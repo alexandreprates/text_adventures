@@ -1,0 +1,1 @@
+var search_data = {"index":{"searchIndex":["readme"],"longSearchIndex":[""],"info":[["README","","README_rdoc.html","","<p>Text Adventures\n<p>Text Adventures is a simple text dungeon generator to play over web.\n<p>Using RPG like concepts …\n"]]}}
