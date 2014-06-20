@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require './lib/text_adventures'
+
+TextAdventures::Server.run
