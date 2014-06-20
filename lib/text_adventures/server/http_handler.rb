@@ -2,16 +2,16 @@ module TextAdventures
   module Server
     class HTTPHandler < EM::HttpServer::Server
 
-      # Process html request
+      # Process a request
       def process_http_request
         @response = EM::DelegatedHttpResponse.new(self)
 
-        if is_static_request?
+        if request_static?
           render(@http_request_uri)
-        elsif is_new_player?
+        elsif request_new_game?
           return create_game_and_redirect
-        elsif is_load_game?
-          load_game
+        elsif request_load_game?
+          render('index.html')
         else
           render('404.html')
           @response.status = 404
@@ -20,45 +20,49 @@ module TextAdventures
         @response.send_response
       end
 
+      # logs error
       def http_request_errback(e)
         puts "[ERROR] #{e.message}\n#{e.backtrace}"
       end
 
       private
 
-      def is_new_player?
+      # Return true if path match with file in public dir
+      def request_static?
+        File.file? statics_path
+      end
+
+      # Returns true if request is new game
+      def request_new_game?
         @http_request_uri == '/'
       end
 
-      def is_load_game?
+      # Returns true if hash match a saved game
+      def request_load_game?
         TextAdventures::Engine.valid_hash? @http_request_uri
       end
 
+      # Creates a new game hash and redirect to him
       def create_game_and_redirect
         hash = TextAdventures::Engine.new_game
         @response.send_redirect "/#{hash}"
       end
 
-      def load_game
-        render('index.html')
-      end
-
-      def is_static_request?
-        File.file? static_path
-      end
-
       def render(filename = nil)
-        if File.exists? static_path(filename)
-          @response.content_type set_content_type
-          @response.content = File.read(static_path(filename))
+        if File.exists? statics_path(filename)
+          @response.content_type identify_content_type
+          @response.content = File.read(statics_path(filename))
         end
       end
 
-      def static_path(filename = nil)
+      # Return path from static for a filename
+      # when filename is nil using current uri
+      def statics_path(filename = nil)
         File.join('./public', filename || @http_request_uri)
       end
 
-      def set_content_type(filename = nil)
+      # Identify content type based on extension
+      def identify_content_type(filename = nil)
         case File.extname(filename || @http_request_uri)
         when '.css'
           'text/css'
