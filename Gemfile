@@ -1,4 +1,4 @@
-#ruby=2.1.1
+#ruby=2.1.2
 #ruby-gemset=text_adventures
 
 source "https://rubygems.org"
@@ -7,9 +7,9 @@ gem 'em-websocket'
 gem 'em-http-server'
 gem 'json'
 
-group :test do
+group :development do
   gem 'rspec'
-  gem 'spork'
+  gem 'guard'
   gem 'guard-rspec'
 end
 
