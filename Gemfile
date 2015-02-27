@@ -1,15 +1,19 @@
-#ruby=2.1.2
-#ruby-gemset=text_adventures
-
 source "https://rubygems.org"
 
-gem 'em-websocket'
-gem 'em-http-server'
+ruby '2.1.2'
+
+gem 'foreman'
+gem 'rack'
+gem 'faye-websocket'
 gem 'json'
 
 group :development do
-  gem 'rspec'
-  gem 'guard'
-  gem 'guard-rspec'
+  gem 'terminal-notifier-guard'
+  gem 'pry'
+  gem 'pry-nav'
 end
 
+group :test do
+	gem 'rspec'
+	gem 'guard-rspec'
+end
