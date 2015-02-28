@@ -1,4 +1,4 @@
-=Text Adventures
+=Text Adventures {<img src="https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/alexandreprates/text_adventures]
 
 Text Adventures is a text RPG with randomly generated dungeons.
 
