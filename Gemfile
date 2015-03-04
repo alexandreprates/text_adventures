@@ -9,10 +9,11 @@ group :development do
   gem 'terminal-notifier-guard'
   gem 'pry'
   gem 'pry-nav'
+  gem 'coveralls'
 end
 
 group :test do
   gem 'rake'
-	gem 'rspec'
-	gem 'guard-rspec'
+  gem 'rspec'
+  gem 'guard-rspec'
 end
