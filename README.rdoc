@@ -1,4 +1,8 @@
-=Text Adventures {<img src="https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/alexandreprates/text_adventures]  {<img src="https://coveralls.io/repos/alexandreprates/text_adventures/badge.svg" alt="Coverage Status" />}[https://coveralls.io/r/alexandreprates/text_adventures] {<img src="http://inch-ci.org/github/alexandreprates/text_adventures.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/alexandreprates/text_adventures] {<img src="https://gemnasium.com/alexandreprates/text_adventures.svg" alt="Dependency Status" />}[https://gemnasium.com/alexandreprates/text_adventures]
+=Text Adventures 
+
+{<img src="https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/alexandreprates/text_adventures]  {<img src="https://coveralls.io/repos/alexandreprates/text_adventures/badge.svg" alt="Coverage Status" />}[https://coveralls.io/r/alexandreprates/text_adventures] {<img src="http://inch-ci.org/github/alexandreprates/text_adventures.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/alexandreprates/text_adventures] {<img src="https://gemnasium.com/alexandreprates/text_adventures.svg" alt="Dependency Status" />}[https://gemnasium.com/alexandreprates/text_adventures]
+
+---
 
 Text Adventures is a text RPG with randomly generated dungeons.
 
