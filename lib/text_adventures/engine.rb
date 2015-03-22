@@ -1,6 +1,8 @@
 module TextAdventures::Engine
 end
 
+require './lib/text_adventures/engine/core_exten'
+
 require './lib/text_adventures/engine/character'
 require './lib/text_adventures/engine/character/player'
 
