@@ -51,6 +51,10 @@ describe TextAdventures::Engine::Character do
       frodo.hit! frodo.hp
       expect(frodo.dead?).to be true
     end
+    it "hp can be negative" do
+      frodo.hp = 3
+      expect(frodo.hit!(100)).to eq 0
+    end
     it "if have armor damage is reduced" do
       frodo.armor = leater_armor
       frodo.hp = 4
