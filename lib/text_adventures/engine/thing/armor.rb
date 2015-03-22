@@ -7,8 +7,8 @@ class TextAdventures::Engine::Thing::Armor < TextAdventures::Engine::Thing
     super
   end
 
-  def absorb(damage, hit_rate)
-    damage = damage - resistance(hit_rate)
+  def absorb(raw_damage, hit_rate)
+    damage = raw_damage - resistance(hit_rate)
     damage > 0 ? damage : 0
   end
 
@@ -16,6 +16,14 @@ class TextAdventures::Engine::Thing::Armor < TextAdventures::Engine::Thing
   def resistance(hit_rate)
     rate = 100 - hit_rate
     ((defense / 100.0) * rate).to_i
+  end
+
+  def is_armor?
+    true
+  end
+
+  def is_equippable?
+    true
   end
 
 end

@@ -22,4 +22,12 @@ class TextAdventures::Engine::Thing::Weapon < TextAdventures::Engine::Thing
     ((attack / 100.0) * hit_rate).to_i
   end
 
+  def is_weapon?
+    true
+  end
+
+  def is_equippable?
+    true
+  end
+
 end

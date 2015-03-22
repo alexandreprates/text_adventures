@@ -42,4 +42,17 @@ describe TextAdventures::Engine::Thing::Weapon do
       expect(sword.damage(50)).to eq(sword.attack / 2)
     end
   end
+
+  describe '#is_weapon?' do
+    it "return true" do
+      expect(sword.is_weapon?).to be true
+    end
+  end
+
+  describe '#is_equippable?' do
+    it "return true" do
+      expect(sword.is_equippable?).to be true
+    end
+  end
+
 end

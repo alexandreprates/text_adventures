@@ -1,5 +1,5 @@
 class TextAdventures::Engine::Thing
-  attr_reader :name, :price, :equip_on
+  attr_reader :name, :price
 
   def initialize(options = {})
     raise "name is required" unless options[:name]
@@ -7,6 +7,10 @@ class TextAdventures::Engine::Thing
 
     @name = options[:name]
     @price = options[:price]
+  end
+
+  def can_pick_up?
+    true
   end
 
   def to_s

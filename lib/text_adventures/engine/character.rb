@@ -10,8 +10,8 @@ class TextAdventures::Engine::Character
     @name = options[:name]
     @level = options[:level] || 1
     @hp = options[:hp] || max_hp
-    @weapon = options[:weapon]
-    @armor = options[:armor]
+    equip_weapon options[:weapon]
+    equip_armor options[:armor]
   end
 
   def dead?
@@ -19,7 +19,7 @@ class TextAdventures::Engine::Character
   end
 
   def hit!(points, hit_rate = 0)
-    damage = calc_damage(points, hit_rate)
+    damage = armor_defense(points, hit_rate)
     if damage > hp
       @hp = 0
     else
@@ -44,6 +44,10 @@ class TextAdventures::Engine::Character
     target.hit! damage
   end
 
+  def say(message)
+    puts "#{self} say: #{message}"
+  end
+
   private
 
   # hit rate is the accuracy of the hit, the higher it is the more damage is
@@ -52,12 +56,20 @@ class TextAdventures::Engine::Character
     rand(100)
   end
 
-  def calc_damage(points, hit_rate)
+  def armor_defense(points, hit_rate)
     if armor
       points - armor.absorb(points, hit_rate)
     else
       points
     end
+  end
+
+  def equip_weapon(weapon)
+    @weapon = weapon if weapon && weapon.is_weapon?
+  end
+
+  def equip_armor(armor)
+    @armor = armor if armor && armor.is_armor?
   end
 
 end

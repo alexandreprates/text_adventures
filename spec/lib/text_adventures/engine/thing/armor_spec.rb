@@ -28,4 +28,16 @@ describe TextAdventures::Engine::Thing::Armor do
     end
   end
 
+  describe '#is_armor?' do
+    it "return true" do
+      expect(leater_armor.is_armor?).to be true
+    end
+  end
+
+  describe '#is_equippable?' do
+    it "return true" do
+      expect(leater_armor.is_equippable?).to be true
+    end
+  end
+
 end

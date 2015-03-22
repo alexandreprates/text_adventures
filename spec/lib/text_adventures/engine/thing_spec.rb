@@ -18,4 +18,10 @@ describe TextAdventures::Engine::Thing do
     end
   end
 
+  describe '#can_pick_up?' do
+    it "return true" do
+      expect(rock.can_pick_up?).to be true
+    end
+  end
+
 end

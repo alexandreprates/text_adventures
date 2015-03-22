@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe TextAdventures::Engine::Character do
   let(:frodo)        { described_class.new(name: 'Frodo') }
-  let(:leater_armor) { double('LeaterArmor', absorb: 10) }
-  let(:sting)        { double('Sting', damage: 10) }
+  let(:leater_armor) { double('LeaterArmor', absorb: 10, is_armor?: true) }
+  let(:sting)        { double('Sting', damage: 10, is_weapon?: true) }
 
   describe "#name" do
     it "be mandatory" do
@@ -98,6 +98,12 @@ describe TextAdventures::Engine::Character do
       frodo.weapon = sting
       expect(frodo.attack(orc)).to eq 1
       expect(orc.hp).to eq 1
+    end
+  end
+
+  describe '#say' do
+    it "say hello" do
+      expect { frodo.say 'hello' }.to output("Frodo say: hello\n").to_stdout
     end
   end
 
