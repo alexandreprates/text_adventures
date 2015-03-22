@@ -33,18 +33,24 @@ class TextAdventures::Engine::Character::Player < TextAdventures::Engine::Charac
     !!(inventory << thing) if can_pick_up?(thing) && !inventory_full?
   end
 
+  def unequip_weapon
+    return false unless has_weapon?
+    @inventory.push @weapon
+    @weapon = nil
+  end
+
+  def unequip_armor
+    return false unless has_armor?
+    @inventory.push @armor
+    @armor = nil
+  end
+
   private
 
   def equip_weapon(weapon)
     unequip_weapon if has_weapon?
     @inventory.delete weapon
     @weapon = weapon
-  end
-
-  def unequip_weapon
-    return false unless has_weapon?
-    @inventory.push @weapon
-    @weapon = nil
   end
 
   def has_weapon?
@@ -55,12 +61,6 @@ class TextAdventures::Engine::Character::Player < TextAdventures::Engine::Charac
     unequip_armor if has_armor?
     @inventory.delete armor
     @armor = armor
-  end
-
-  def unequip_armor
-    return false unless has_armor?
-    @inventory.push @armor
-    @armor = nil
   end
 
   def has_armor?

@@ -62,6 +62,30 @@ describe TextAdventures::Engine::Character::Player do
     end
   end
 
+  describe '#unequip_weapon' do
+    it "unequip current weapon" do
+      frodo.equip(sword)
+      expect(frodo.weapon).not_to be_nil
+      frodo.unequip_weapon
+      expect(frodo.weapon).to be_nil
+    end
+    it "return false when unequipped" do
+      expect(frodo.unequip_weapon).to be false
+    end
+  end
+
+  describe '#unequip_armor' do
+    it "unequip current armor" do
+      frodo.equip(armor)
+      expect(frodo.armor).not_to be_nil
+      frodo.unequip_armor
+      expect(frodo.armor).to be_nil
+    end
+    it "return false when unequipped" do
+      expect(frodo.unequip_armor).to be false
+    end
+  end
+
   describe '#invetory' do
     it "list inventory thins" do
       expect(frodo.inventory).to eq [sword, armor]
