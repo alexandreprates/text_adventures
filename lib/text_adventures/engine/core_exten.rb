@@ -17,4 +17,3 @@ class Object
   end
 
 end
-p :exten_loaded
