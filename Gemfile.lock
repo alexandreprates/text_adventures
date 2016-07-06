@@ -96,6 +96,7 @@ DEPENDENCIES
   pry-meta
   rake
   rspec
+  simplecov
 
 BUNDLED WITH
    1.12.5

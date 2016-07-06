@@ -13,5 +13,6 @@ group :test do
   gem 'rake'
   gem 'rspec'
   gem 'guard-rspec'
+  gem 'simplecov'
   gem 'coveralls'
 end
