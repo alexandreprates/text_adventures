@@ -5,3 +5,4 @@ module TextAdventures
 end
 
 require './lib/text_adventures/engine'
+require './lib/text_adventures/server'

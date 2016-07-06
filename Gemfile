@@ -6,15 +6,12 @@ gem 'foreman'
 # gem 'json'
 
 group :development do
-  gem 'terminal-notifier-guard'
-  gem 'terminal-notifier'
-  gem 'pry'
-  gem 'pry-nav'
-  gem 'coveralls'
+  gem 'pry-meta'
 end
 
 group :test do
   gem 'rake'
   gem 'rspec'
   gem 'guard-rspec'
+  gem 'coveralls'
 end
