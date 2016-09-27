@@ -1,6 +1,5 @@
 source "https://rubygems.org"
 
-gem 'foreman'
 # gem 'rack'
 # gem 'faye-websocket'
 # gem 'json'
