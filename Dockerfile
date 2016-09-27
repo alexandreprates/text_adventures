@@ -1,0 +1,20 @@
+FROM ruby:2.3-alpine
+MAINTAINER Alexandre Prates <ajfprates@gmail.com>
+
+RUN apk update && apk add make gcc ruby-json
+
+ENV APP_DIR /srv/text_adventures
+
+RUN mkdir -p $APP_DIR
+WORKDIR $APP_DIR
+VOLUME $APP_DIR
+
+ADD Gemfile $APP_DIR/
+
+RUN bundle install --jobs 20 --retry 5
+
+EXPOSE 9292
+
+ADD . $APP_DIR
+
+CMD ["echo", "done"]
