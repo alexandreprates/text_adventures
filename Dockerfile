@@ -1,7 +1,7 @@
 FROM ruby:2.3-alpine
 MAINTAINER Alexandre Prates <ajfprates@gmail.com>
 
-RUN apk update && apk add make gcc ruby-json
+RUN apk update && apk add --update build-base libffi-dev
 
 ENV APP_DIR /srv/text_adventures
 
