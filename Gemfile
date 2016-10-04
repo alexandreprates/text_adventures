@@ -7,10 +7,12 @@ gem 'rake'
 
 group :development do
   gem 'pry-nav'
+  gem 'guard'
+  gem 'guard-minitest'
 end
 
 group :test do
-  gem 'rspec'
+  gem 'minitest'
   gem 'simplecov'
   gem 'coveralls'
 end
