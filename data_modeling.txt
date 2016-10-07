@@ -1,0 +1,31 @@
+#Classes and Roles
+
+Player
+ * name
+ * constitution
+ * strength
+ * intelligence
+ * hp
+ * mp
+ * level
+ * xp
+ * inventory
+   * itens
+   * overloaded ??
+ * equipment
+   * lhand
+   * rhand
+   * body
+ * effects
+
+NonPlayer
+
+Effect
+
+Item
+
+Armor
+
+Weapon
+
+Spells
