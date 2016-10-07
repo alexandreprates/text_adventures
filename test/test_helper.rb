@@ -1,3 +1,6 @@
+require 'simplecov'
+SimpleCov.start
+
 require './lib/text_adventures'
 
 require 'minitest/unit'
