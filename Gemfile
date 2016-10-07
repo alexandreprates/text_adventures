@@ -13,6 +13,6 @@ end
 
 group :test do
   gem 'minitest'
-  gem 'simplecov'
-  gem 'coveralls'
+  gem 'simplecov', require: false
+  gem 'yard',  require: false
 end
