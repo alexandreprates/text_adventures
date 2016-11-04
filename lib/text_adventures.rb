@@ -4,4 +4,4 @@ Bundler.require(:default, ENV['RACK_ENV'] || :development)
 module TextAdventures
 end
 
-require './lib/text_adventures/core_ext/range'
+require './lib/core_ext/range'
