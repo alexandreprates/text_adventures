@@ -1,8 +1,8 @@
 require 'simplecov'
 SimpleCov.start
 
-require './lib/text_adventures'
-
-require 'minitest/unit'
+require 'minitest'
 require 'minitest/autorun'
 require 'minitest/pride'
+
+require './lib/text_adventures'

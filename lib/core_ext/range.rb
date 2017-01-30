@@ -7,7 +7,7 @@ class Range
   # @param value [Integer] current value must be beetween min and max
   #   max [Integer] maximum value
   #   min [Integer] (Optional) minimum value, 0
-  def initialize(value, max, min = 0)
+  def initialize(max, value = 0, min = 0)
     @value = value
     @max = max
     @min = min
