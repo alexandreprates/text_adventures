@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 # gem 'rack'
 # gem 'faye-websocket'
-gem 'json', '1.8.3'
+gem 'json'
 gem 'rake'
 
 group :development do

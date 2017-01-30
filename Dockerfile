@@ -1,4 +1,4 @@
-FROM ruby:2.3-alpine
+FROM ruby:2.4.0-alpine
 MAINTAINER Alexandre Prates <ajfprates@gmail.com>
 
 RUN apk update && apk add --update build-base libffi-dev
@@ -12,8 +12,6 @@ VOLUME $APP_DIR
 ADD Gemfile $APP_DIR/
 
 RUN bundle install --jobs 20 --retry 5
-
-EXPOSE 9292
 
 ADD . $APP_DIR
 
