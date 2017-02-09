@@ -1,9 +1,11 @@
-require 'rake/testtask'
+require "rake/testtask"
 require 'yard'
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
-  t.pattern = "test/*_test.rb"
+  t.pattern = "test/lib/**/test_*.rb"
+  t.warning = false
+  t.verbose = false
 end
 
 YARD::Rake::YardocTask.new do |t|

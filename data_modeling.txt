@@ -1,31 +1,89 @@
 #Classes and Roles
 
 Player
- * name
- * constitution
- * strength
- * intelligence
- * hp
- * mp
- * level
- * xp
- * inventory
-   * itens
-   * overloaded ??
- * equipment
-   * lhand
-   * rhand
-   * body
- * effects
+  * name
+  * strength
+  * dexterity
+  * intelligence
+  * level
+  - hp
+    * value
+    * max
+  - mp
+    * value
+    * max
+  - xp
+    * value
+    * max
+  - backpack
+    * gold
+    - itens
+    * overloaded ??
+  - equipment
+    * lhand
+    * rhand
+    * body
+  - effects
+    * effect
+    * duration
+  * live?
+
 
 NonPlayer
+  * name
+  * live?
+  - interactions
+    - conversation
+    - quests
+    - store
+
+Enemy
+  * name
+  * live?
+  * weapon
+  * armor
+  - loot
 
 Effect
+  * name
+  - type
+    * one_time
+    * over_time
+  - effect
+  * cumulative?
+
 
 Item
+  * name
+  * description
+  * price
+  * stackable?
+  * consumable?
 
 Armor
+  * name
+  * description
+  * durability
+  * price
+  * protection
+  - imbued
+    * effect
+    * duration
 
 Weapon
+  * name
+  * description
+  * durability
+  * price
+  * two_handed?
+  * attack
+  - imbued
+    * effect
+    * duration
 
 Spells
+  * name
+  * description
+  * cost
+  * effect
+  * duration

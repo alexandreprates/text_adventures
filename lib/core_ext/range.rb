@@ -8,7 +8,7 @@ class Range
   #   max [Integer] maximum value
   #   min [Integer] (Optional) minimum value, 0
   def initialize(max, value = 0, min = 0)
-    @value = value
+    @value = value < max ? value : max
     @max = max
     @min = min
   end
@@ -93,4 +93,23 @@ class Range
     value == min
   end
 
+  def +(amount)
+    self.value + amount
+  end
+
+  def -(amount)
+    self.value - amount
+  end
+
+  def ==(amount)
+    @value == amount
+  end
+
+  def to_s
+    value.to_i
+  end
+
+  def inspect
+    "Range(#{value} of #{min}..#{max})"
+  end
 end
