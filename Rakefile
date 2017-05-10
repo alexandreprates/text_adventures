@@ -1,9 +1,16 @@
-begin
-  require 'rspec/core/rake_task'
+require "rake/testtask"
+require 'yard'
 
-  RSpec::Core::RakeTask.new(:spec)
-
-  task :default => :spec
-rescue LoadError
-  # no rspec available
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.pattern = "test/lib/**/test_*.rb"
+  t.warning = false
+  t.verbose = false
 end
+
+YARD::Rake::YardocTask.new do |t|
+ t.files   = ['lib/**/*.rb']
+ t.stats_options = ['--list-undoc']
+end
+
+task :default => [:test, :yard]
