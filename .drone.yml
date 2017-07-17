@@ -2,6 +2,6 @@ pipeline:
   build:
     image: ruby:2-alpine
     commands:
-      - apk add --update ruby-json
+      - apk add --update zlib-dev ruby-dev
       - bundle install
       - bundle exec rake
