@@ -5,5 +5,4 @@ pipeline:
       - apk add --update build-base
       - bundle install
       - bundle exec rake
-      
-      
+  
