@@ -1,0 +1,6 @@
+.coveralls.yml
+.git
+.gitignore
+.travis.yml
+README.rdoc
+Dockerfile

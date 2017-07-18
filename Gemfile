@@ -1,20 +1,18 @@
 source "https://rubygems.org"
 
-gem 'foreman'
 # gem 'rack'
 # gem 'faye-websocket'
-# gem 'json'
+gem 'json'
+gem 'rake'
 
 group :development do
-  gem 'terminal-notifier-guard'
-  gem 'terminal-notifier'
-  gem 'pry'
   gem 'pry-nav'
-  gem 'coveralls'
+  gem 'guard'
+  gem 'guard-minitest'
 end
 
 group :test do
-  gem 'rake'
-  gem 'rspec'
-  gem 'guard-rspec'
+  gem 'minitest'
+  gem 'simplecov', require: false
+  gem 'yard',  require: false
 end
