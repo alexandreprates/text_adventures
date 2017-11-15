@@ -1,4 +1,6 @@
 class TextAdventures::Engine::Thing
+  extend TextAdventures::Engine::Builder
+
   attr_reader :name, :price
 
   def initialize(options = {})

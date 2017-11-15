@@ -15,7 +15,7 @@ class TextAdventures::Engine::Character
   end
 
   def dead?
-    hp < 1
+    hp == 0
   end
 
   def hit!(points, hit_rate = 0)
@@ -65,10 +65,12 @@ class TextAdventures::Engine::Character
   end
 
   def equip_weapon(weapon)
+    weapon = TextAdventures::Engine::Thing::Weapon[weapon] if weapon.is_a? Symbol
     @weapon = weapon if weapon && weapon.is_weapon?
   end
 
   def equip_armor(armor)
+    armor = TextAdventures::Engine::Thing::Armor[armor] if armor.is_a? Symbol
     @armor = armor if armor && armor.is_armor?
   end
 
