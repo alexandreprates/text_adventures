@@ -8,5 +8,4 @@ run apk add --no-cache build-base && \
   bundle install && \
   apk del build-base
 
-
 cmd ["bundle", "exec", "rake"]
