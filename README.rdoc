@@ -192,3 +192,5 @@ This is the URL of your game, save it to continue your adventure whenever you wa
   to freeze your enemy
 
    _
+
+
