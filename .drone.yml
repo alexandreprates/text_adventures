@@ -2,5 +2,5 @@ pipeline:
   build:
     image: ruby:2.2-alpine
     commands:
-      - bundle exec
+      - bundle install
       - bundle exec rake
