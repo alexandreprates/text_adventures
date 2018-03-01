@@ -1,0 +1,6 @@
+pipeline:
+  build:
+    image: ruby:2.2-alpine
+    commands:
+      - bundle exec
+      - bundle exec rake
