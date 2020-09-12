@@ -1,4 +1,4 @@
-from ruby:2.4-alpine
+from ruby:2-alpine
 label maintainer "Alexandre Prates <ajfprates@gmail.com>"
 
 add . /text_adventures

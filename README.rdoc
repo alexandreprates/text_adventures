@@ -1,6 +1,6 @@
 =Text Adventures
 
-{<img src="https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/alexandreprates/text_adventures]  {<img src="https://coveralls.io/repos/alexandreprates/text_adventures/badge.svg" alt="Coverage Status" />}[https://coveralls.io/r/alexandreprates/text_adventures] {<img src="http://inch-ci.org/github/alexandreprates/text_adventures.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/alexandreprates/text_adventures] {<img src="https://gemnasium.com/alexandreprates/text_adventures.svg" alt="Dependency Status" />}[https://gemnasium.com/alexandreprates/text_adventures]
+{<img src="https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/alexandreprates/text_adventures]  {<img src="https://coveralls.io/repos/alexandreprates/text_adventures/badge.svg" alt="Coverage Status" />}[https://coveralls.io/r/alexandreprates/text_adventures] {<img src="http://inch-ci.org/github/alexandreprates/text_adventures.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/alexandreprates/text_adventures]
 
 ---
 
@@ -192,5 +192,3 @@ This is the URL of your game, save it to continue your adventure whenever you wa
   to freeze your enemy
 
    _
-
-

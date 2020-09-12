@@ -1,5 +1,0 @@
-pipeline:
-  backend:
-    image: ruby:2.3-alpine
-    commands:
-      - echo done
