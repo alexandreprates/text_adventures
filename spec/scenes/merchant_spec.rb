@@ -136,6 +136,13 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.player.inventory.quantity("sword")).to eq 0
   end
 
+  it "guides invalid input back to a pending confirmation" do
+    game.handle("buy sword")
+
+    expect(game.handle("maybe")).to eq "Please answer agree or no."
+    expect(game.pending_confirmation).to have_attributes(action: :buy, item: sword)
+  end
+
   it "does not confirm transactions from another merchant" do
     other_merchant = described_class.new(
       name: :armorsmith,

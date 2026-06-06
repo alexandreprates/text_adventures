@@ -35,12 +35,18 @@ module TextAdventures
 
     def handle(command_text)
       command = CommandParser.parse(command_text)
-      response = Response.render(command.unknown? ? command.message : handle_known_command(command))
+      response = Response.render(command.unknown? ? handle_unknown_command(command) : handle_known_command(command))
       record_history(command_text, response)
       response
     end
 
     private
+
+    def handle_unknown_command(command)
+      return Response.new("Please answer agree or no.") if pending_confirmation
+
+      command.message
+    end
 
     def handle_known_command(command)
       return game_over_response if player.dead?
