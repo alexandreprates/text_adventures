@@ -41,6 +41,8 @@ RSpec.describe "text_adventures binary" do
         go right
         go right
         go right
+        go right
+        go up
         attack
         attack
         attack
@@ -59,16 +61,17 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "You go to Ruins."
     expect(lines).to include "##.x.."
     expect(lines).to include "##...x"
-    expect(lines).to include "##....x.E.##"
-    expect(lines).to include "##.....xE.##"
+    expect(lines).to include "########.E##"
+    expect(lines).to include "##.........."
+    expect(lines).to include "########xE##"
     expect(output).to include "You see a Giant Spider"
     expect(output).to include "A Giant Spider is about to attack you!"
     expect(output).to include "Giant Spider dies."
     expect(output).to include "[loot dropped]"
-    expect(lines).to include "##.....x@.##"
+    expect(lines).to include "########x@##"
     expect(output).to include "You collect the loot."
     expect(output).to include "[1x Tome of Freezing added to inventory]"
-    expect(after_collection.lines.map(&:chomp)).to include "##.....x..##"
+    expect(after_collection.lines.map(&:chomp)).to include "########x.##"
     expect(output).to include "Thanks for playing."
   end
 end

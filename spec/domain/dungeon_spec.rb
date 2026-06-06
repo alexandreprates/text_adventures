@@ -332,7 +332,7 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
     end
 
-    it "reveals a compatible block when crossing an exit to the right" do
+    it "reveals a compatible expandable block when crossing an exit to the right" do
       edge_dungeon = described_class.new(
         player_position: described_class::Position.new(x: 5, y: 2),
         random: FixedRandom.new(0)
@@ -343,11 +343,11 @@ RSpec.describe TextAdventures::Dungeon do
       expect(result).to have_attributes(success?: true, message: "You move right.")
       expect(edge_dungeon.current_block_position).to have_attributes(x: 1, y: 0)
       expect(edge_dungeon.player_position).to have_attributes(x: 0, y: 2)
-      expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "left_exit"
+      expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "four_exits"
       expect(edge_dungeon.enemies.values).to include "giant_spider"
     end
 
-    it "reveals a compatible block when crossing an exit downward" do
+    it "reveals a compatible expandable block when crossing an exit downward" do
       edge_dungeon = described_class.new(
         revealed_blocks: { [0, 0] => "down_exit" },
         player_position: described_class::Position.new(x: 2, y: 4),
@@ -359,8 +359,23 @@ RSpec.describe TextAdventures::Dungeon do
       expect(result).to have_attributes(success?: true, message: "You move down.")
       expect(edge_dungeon.current_block_position).to have_attributes(x: 0, y: 1)
       expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
-      expect(edge_dungeon.revealed_blocks.fetch([0, 1]).id).to eq "up_exit"
+      expect(edge_dungeon.revealed_blocks.fetch([0, 1]).id).to eq "four_exits"
       expect(edge_dungeon.enemies.values).to include "giant_spider"
+    end
+
+    it "does not choose a terminal block when expandable candidates are available" do
+      edge_dungeon = described_class.new(
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 99])
+      )
+
+      result = edge_dungeon.move("right")
+      revealed_block = edge_dungeon.revealed_blocks.fetch([1, 0])
+
+      expect(result).to be_success
+      expect(revealed_block.id).to_not eq "left_exit"
+      expect(revealed_block.exits.length).to be > 1
+      expect(edge_dungeon.enemies).to eq({})
     end
 
     it "requires new blocks to remain compatible with revealed neighbors" do

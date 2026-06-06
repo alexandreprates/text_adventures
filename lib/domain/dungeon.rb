@@ -303,10 +303,21 @@ module TextAdventures
       end
       return nil if candidates.empty?
 
-      selected = candidates[random.rand(candidates.length)]
+      selected = select_reveal_block(candidates)
       revealed_blocks[block_position.key] = selected
       maybe_place_enemy_in_block(block_position, selected, direction)
       selected
+    end
+
+    def select_reveal_block(candidates)
+      expandable_candidates = candidates.reject { |block| terminal_block?(block) }
+      selected_candidates = expandable_candidates.empty? ? candidates : expandable_candidates
+
+      selected_candidates[random.rand(selected_candidates.length)]
+    end
+
+    def terminal_block?(block)
+      block.exits.length <= 1
     end
 
     def maybe_place_enemy_in_block(block_position, block, direction)
