@@ -398,11 +398,11 @@ compatibilidade entre saídas opostas.
 6. [x] Implementar revelação de bloco ao cruzar uma saída válida.
 7. [x] Implementar validação de compatibilidade com vizinhos.
 8. [x] Manter a lógica de encontros após movimentos válidos.
-9. Adicionar testes para:
-   * render do bloco inicial;
-   * movimento interno;
-   * revelação para direita;
-   * revelação para baixo;
-   * tentativa de atravessar parede;
-   * conexão obrigatória entre blocos;
-   * render com coordenadas negativas.
+9. [x] Adicionar testes para:
+   * [x] render do bloco inicial;
+   * [x] movimento interno;
+   * [x] revelação para direita;
+   * [x] revelação para baixo;
+   * [x] tentativa de atravessar parede;
+   * [x] conexão obrigatória entre blocos;
+   * [x] render com coordenadas negativas.
