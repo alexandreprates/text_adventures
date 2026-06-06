@@ -28,6 +28,7 @@ module TextAdventures
       no
       show
       skills
+      sleep
       spellbook
     ].freeze
 

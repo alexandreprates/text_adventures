@@ -33,6 +33,7 @@ RSpec.describe TextAdventures::CommandParser do
       expect(described_class.parse("look")).to have_attributes(verb: :look, target: nil)
       expect(described_class.parse("loot")).to have_attributes(verb: :loot, target: nil)
       expect(described_class.parse("skills")).to have_attributes(verb: :skills, target: nil)
+      expect(described_class.parse("sleep")).to have_attributes(verb: :sleep, target: nil)
       expect(described_class.parse("spellbook")).to have_attributes(verb: :spellbook, target: nil)
     end
 

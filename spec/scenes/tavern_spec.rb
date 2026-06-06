@@ -15,7 +15,29 @@ RSpec.describe TextAdventures::Scenes::Tavern do
 
     expect(response).to include "You enter the Tavern."
     expect(response).to include "adventurers trading rumors over ale"
+    expect(response).to include "sleep - rent a room and fully recover health"
     expect(response).to include "go town"
+  end
+
+  it "lets the player sleep in a rented room to fully recover health" do
+    game.player.take_damage(17)
+
+    response = game.handle("sleep")
+
+    expect(response).to eq <<~TEXT.chomp
+      You rent a quiet room and sleep until fully rested.
+      [recovered 17 health]
+      [your health is now 30/30]
+    TEXT
+    expect(game.player.health.current).to eq 30
+  end
+
+  it "reports zero recovery when the player is already fully rested" do
+    expect(game.handle("sleep")).to eq <<~TEXT.chomp
+      You rent a quiet room and sleep until fully rested.
+      [recovered 0 health]
+      [your health is now 30/30]
+    TEXT
   end
 
   it "can return to Town" do
