@@ -136,14 +136,20 @@ module TextAdventures
       end
 
       def resolve_battle_result(game, result)
+        response = result.to_response
         if result.finished?
           game.pending_loot = result.player_defeated? ? nil : result.loot
           game.battle = nil
+          return append_loot_hint(response, game.pending_loot)
         end
-        response = result.to_response
-        return response unless game.battle
 
         response.append("", combat_status(game))
+      end
+
+      def append_loot_hint(response, loot)
+        return response if loot.nil? || loot.empty?
+
+        response.append("", "[loot available]", "Use loot to collect your reward.")
       end
 
       def collect_loot(game)

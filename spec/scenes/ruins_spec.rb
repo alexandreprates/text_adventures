@@ -253,6 +253,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(strong_game.handle("attack")).to eq <<~TEXT.chomp
       You attack a Giant Spider causing 39 of damage.
       Giant Spider dies.
+
+      [loot available]
+      Use loot to collect your reward.
     TEXT
     expect(strong_game.battle).to be_nil
     expect(strong_game.pending_loot).to eq TextAdventures::Creature.giant_spider.loot_table
