@@ -7,6 +7,7 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
+    POISON_DAMAGE = 2
 
     attr_reader :creature, :random
 
@@ -16,18 +17,19 @@ module TextAdventures
     end
 
     def attack(player)
+      lines = poison_tick_lines(player)
       damage = player_damage(player)
       critical = critical_hit?
       damage *= 2 if critical
       creature.take_damage(damage)
 
-      lines = [player_attack_line(damage, critical)]
+      lines << player_attack_line(damage, critical)
       if creature.dead?
         lines << "#{creature.display_name} dies."
         return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
       end
 
-      lines << counterattack_line(player)
+      lines.concat counterattack_lines(player)
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
@@ -46,12 +48,28 @@ module TextAdventures
       "You attack a #{creature.display_name} causing #{damage} of damage#{suffix}."
     end
 
-    def counterattack_line(player)
-      attack = creature.attacks.first
+    def counterattack_lines(player)
+      attack = enemy_attack
       damage = [attack.damage_range.begin - player.defense, 0].max
       player.take_damage(damage)
 
-      "#{creature.display_name} attacks you with #{attack.name} causing #{damage} of damage."
+      lines = ["#{creature.display_name} attacks you with #{attack.name} causing #{damage} of damage."]
+      if attack.status && random.rand(100) < attack.status_chance
+        player.apply_status(attack.status)
+        lines << "You are #{attack.status}ed."
+      end
+      lines
+    end
+
+    def enemy_attack
+      creature.attacks[random.rand(creature.attacks.length)]
+    end
+
+    def poison_tick_lines(player)
+      return [] unless player.status?(:poison)
+
+      player.take_damage(POISON_DAMAGE)
+      ["Poison deals #{POISON_DAMAGE} damage."]
     end
   end
 end

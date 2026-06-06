@@ -7,6 +7,12 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     end
   end
 
+  RuinsSequenceRandom = Struct.new(:values) do
+    def rand(_max)
+      values.shift
+    end
+  end
+
   subject(:scene) { described_class.new(dungeon: dungeon) }
 
   let(:dungeon) { TextAdventures::Dungeon.new }
@@ -89,7 +95,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   end
 
   it "switches to active encounter behavior while a creature is present" do
-    game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([99, 0])
+    )
 
     expect(game.handle("look")).to eq <<~TEXT.chomp
       You see a Giant Spider
@@ -100,7 +109,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   end
 
   it "attacks during active encounters and keeps battle active while the creature lives" do
-    game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([99, 0])
+    )
 
     expect(game.handle("attack")).to eq <<~TEXT.chomp
       You attack a Giant Spider causing 10 of damage.
@@ -112,7 +124,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   it "clears active battle when attack defeats the creature" do
     strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil)
     strong_game = TextAdventures::Game.new(current_scene: scene, player: strong_player, random: random)
-    strong_game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
+    strong_game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([99])
+    )
 
     expect(strong_game.handle("attack")).to eq <<~TEXT.chomp
       You attack a Giant Spider causing 39 of damage.

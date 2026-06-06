@@ -1,16 +1,16 @@
 require 'spec_helper'
 
 RSpec.describe TextAdventures::Battle do
-  BattleFixedRandom = Struct.new(:value) do
+  BattleSequenceRandom = Struct.new(:values) do
     def rand(_max)
-      value
+      values.shift
     end
   end
 
   subject(:battle) { described_class.new(creature: creature, random: random) }
 
   let(:creature) { TextAdventures::Creature.giant_spider }
-  let(:random) { BattleFixedRandom.new(99) }
+  let(:random) { BattleSequenceRandom.new([99, 0]) }
   let(:player) { TextAdventures::Character.new(equipped_armor: nil) }
 
   describe "#attack" do
@@ -36,7 +36,7 @@ RSpec.describe TextAdventures::Battle do
     end
 
     it "supports critical hits" do
-      critical_battle = described_class.new(creature: creature, random: BattleFixedRandom.new(0))
+      critical_battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([0, 0]))
 
       response = critical_battle.attack(player)
 
@@ -57,6 +57,31 @@ RSpec.describe TextAdventures::Battle do
       TEXT
       expect(creature).to be_dead
       expect(strong_player.health.current).to eq 30
+    end
+
+    it "applies poison from poison bite when the status roll succeeds" do
+      poison_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([99, 1, 0])
+      )
+
+      response = poison_battle.attack(player)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Giant Spider causing 10 of damage.
+        Giant Spider attacks you with Poison Bite causing 1 of damage.
+        You are poisoned.
+      TEXT
+      expect(player).to be_status(:poison)
+    end
+
+    it "ticks poison damage over time before the player attacks" do
+      player.apply_status(:poison)
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to start_with "Poison deals 2 damage."
+      expect(player.health.current).to eq 26
     end
   end
 end
