@@ -13,7 +13,7 @@ module TextAdventures
     ].freeze
 
     attr_reader :player, :current_scene, :history, :random
-    attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot
+    attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position
 
     def initialize(
       player: Character.new,
@@ -22,6 +22,7 @@ module TextAdventures
       dungeon: nil,
       battle: nil,
       pending_loot: nil,
+      active_enemy_position: nil,
       history: [],
       random: Random.new
     )
@@ -31,6 +32,7 @@ module TextAdventures
       @dungeon = dungeon
       @battle = battle
       @pending_loot = pending_loot
+      @active_enemy_position = active_enemy_position
       @history = history
       @random = random
     end

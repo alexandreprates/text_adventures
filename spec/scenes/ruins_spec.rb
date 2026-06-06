@@ -48,6 +48,8 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     expect(response).to include "Ruins help"
     expect(response).to include "go <up|right|down|left> - move through open floor"
+    expect(response).to include "E - enemy"
+    expect(response).to include "@ - loot"
     expect(response).to include ". - open floor"
     expect(response).to_not include "Ruins Level 1"
     expect(response).to_not include "##.x.."
@@ -71,39 +73,18 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
   end
 
-  it "can force an encounter when looking" do
+  it "does not start an invisible encounter when looking" do
     encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
 
     response = encounter_game.handle("look")
 
-    expect(response).to eq <<~TEXT.chomp
-      You see a Giant Spider
-      A Giant Spider is about to attack you!
-
-      [Giant Spider HP: 35/35]
-      [Adventurer HP: 30/30]
-    TEXT
-    expect(encounter_game.battle).to be_a TextAdventures::Battle
-    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+    expect(response).to include "You are now inside the Ruins Level 1"
+    expect(encounter_game.battle).to be_nil
   end
 
-  it "can spawn different creatures from the dungeon roster" do
-    encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsSequenceRandom.new([0, 1]))
-
-    response = encounter_game.handle("look")
-
-    expect(response).to eq <<~TEXT.chomp
-      You see a Goblin Skirmisher
-      A Goblin Skirmisher is about to attack you!
-
-      [Goblin Skirmisher HP: 18/18]
-      [Adventurer HP: 30/30]
-    TEXT
-    expect(encounter_game.battle.creature.display_name).to eq "Goblin Skirmisher"
-  end
-
-  it "can force an encounter after movement" do
+  it "starts an encounter when movement ends adjacent to a visible enemy" do
     encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
+    dungeon.place_enemy(TextAdventures::Dungeon::Position.new(x: 5, y: 2), "giant_spider")
 
     response = encounter_game.handle("go right")
 
@@ -113,7 +94,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Ruins Level 1
       ######
       ######
-      ##..x.
+      ##..xE
       ######
       ######
 
@@ -124,9 +105,37 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       [Adventurer HP: 30/30]
     TEXT
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+    expect(encounter_game.active_enemy_position).to have_attributes(x: 5, y: 2)
   end
 
-  it "can force an encounter after movement reveals a new dungeon block" do
+  it "does not start an encounter from diagonal enemy adjacency" do
+    open_block = TextAdventures::DungeonBlock.new(
+      id: "open_room",
+      name: "Open Room",
+      tiles: [
+        "######",
+        "#    #",
+        "#    #",
+        "#    #",
+        "######"
+      ],
+      exits: []
+    )
+    open_dungeon = TextAdventures::Dungeon.new(
+      revealed_blocks: { [0, 0] => open_block },
+      player_position: TextAdventures::Dungeon::Position.new(x: 2, y: 2)
+    )
+    open_dungeon.place_enemy(TextAdventures::Dungeon::Position.new(x: 4, y: 3), "giant_spider")
+    open_scene = described_class.new(dungeon: open_dungeon)
+    open_game = TextAdventures::Game.new(current_scene: open_scene, random: RuinsFixedRandom.new(99))
+
+    response = open_game.handle("go right")
+
+    expect(response).to include "You move right."
+    expect(open_game.battle).to be_nil
+  end
+
+  it "can reveal a new dungeon block with a visible enemy marker" do
     edge_dungeon = TextAdventures::Dungeon.new(
       player_position: TextAdventures::Dungeon::Position.new(x: 5, y: 2),
       random: RuinsFixedRandom.new(0)
@@ -137,10 +146,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     response = encounter_game.handle("go right")
 
     expect(response).to include "You move right."
-    expect(response).to include "You see a Giant Spider"
-    expect(response).to include "A Giant Spider is about to attack you!"
+    expect(response).to include "E"
     expect(edge_dungeon.revealed_blocks.keys).to include [1, 0]
-    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+    expect(edge_dungeon.enemies.values).to include "giant_spider"
   end
 
   it "switches to active encounter behavior while a creature is present" do
@@ -255,6 +263,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   it "clears active battle when attack defeats the creature" do
     strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil)
     strong_game = TextAdventures::Game.new(current_scene: scene, player: strong_player, random: random)
+    active_enemy_position = TextAdventures::Dungeon::Position.new(x: 4, y: 2)
+    dungeon.place_enemy(active_enemy_position, "giant_spider")
+    strong_game.active_enemy_position = active_enemy_position
     strong_game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
       random: RuinsSequenceRandom.new([99])
@@ -264,11 +275,20 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       You attack a Giant Spider causing 39 of damage.
       Giant Spider dies.
 
-      [loot available]
-      Use loot to collect your reward.
+      [loot dropped]
+      Reach @ or use loot nearby to collect it.
+
+      Ruins Level 1
+      ######
+      ######
+      ##.x@.
+      ######
+      ######
     TEXT
     expect(strong_game.battle).to be_nil
-    expect(strong_game.pending_loot).to eq TextAdventures::Creature.giant_spider.loot_table
+    expect(strong_game.pending_loot).to be_nil
+    expect(dungeon.enemy_at(active_enemy_position)).to be_nil
+    expect(dungeon.loot_at(active_enemy_position)).to eq TextAdventures::Creature.giant_spider.loot_table
   end
 
   it "collects victory loot once" do
@@ -283,6 +303,61 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.pending_loot).to be_nil
     expect(game.handle("loot")).to eq "There is no loot to collect."
     expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+  end
+
+  it "collects adjacent map loot once" do
+    tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
+    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), [tome])
+
+    expect(game.handle("loot")).to eq <<~TEXT.chomp
+      You collect the loot.
+      [1x Tome of Ice Bolt added to inventory]
+    TEXT
+    expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+    expect(dungeon.loot_at(TextAdventures::Dungeon::Position.new(x: 4, y: 2))).to be_nil
+    expect(game.handle("loot")).to eq "There is no loot to collect."
+  end
+
+  it "collects map loot automatically when stepping onto it" do
+    tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
+    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), [tome])
+
+    expect(game.handle("go right")).to eq <<~TEXT.chomp
+      You move right.
+
+      Ruins Level 1
+      ######
+      ######
+      ##..x.
+      ######
+      ######
+
+      You collect the loot.
+      [1x Tome of Ice Bolt added to inventory]
+
+      Ruins Level 1
+      ######
+      ######
+      ##..x.
+      ######
+      ######
+    TEXT
+    expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+  end
+
+  it "guides the player toward distant map loot" do
+    edge_dungeon = TextAdventures::Dungeon.new(
+      revealed_blocks: {
+        [0, 0] => "right_exit",
+        [1, 0] => "left_exit"
+      },
+      player_position: TextAdventures::Dungeon::Position.new(x: 3, y: 2)
+    )
+    edge_scene = described_class.new(dungeon: edge_dungeon)
+    edge_game = TextAdventures::Game.new(current_scene: edge_scene, random: random)
+    edge_dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 8, y: 2), [TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")])
+
+    expect(edge_game.handle("loot")).to eq "There is loot on the map, but you need to reach it first."
   end
 
   it "rejects loot collection before victory" do

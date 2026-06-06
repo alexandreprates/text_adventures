@@ -2,7 +2,6 @@ module TextAdventures
   module Scenes
     class Ruins
       DIRECTIONS = %w[up right down left].freeze
-      ENCOUNTER_CHANCE = 20
 
       attr_reader :dungeon
 
@@ -80,6 +79,8 @@ module TextAdventures
           "",
           "Map symbols:",
           " x - you",
+          " E - enemy",
+          " @ - loot",
           " . - open floor",
           " # - wall"
         )
@@ -88,7 +89,7 @@ module TextAdventures
       private
 
       def look(game)
-        maybe_spawn_encounter(game) || describe
+        describe
       end
 
       def handle_movement(game, direction)
@@ -104,10 +105,13 @@ module TextAdventures
           "",
           dungeon.render
         )
-        encounter = maybe_spawn_encounter(game)
-        return response unless encounter
 
-        response.append("", encounter)
+        auto_loot = collect_loot_at(game, dungeon.current_global_position, automatic: true)
+        response = response.append("", auto_loot) if auto_loot
+
+        encounter = start_adjacent_encounter(game)
+        response = response.append("", encounter) if encounter
+        response
       end
 
       def invalid_direction(direction)
@@ -120,18 +124,6 @@ module TextAdventures
       def back_to_town(game)
         game.transition_to(Town.new)
         Response.new("You leave the ruins and return to the town of Nee'Peh.")
-      end
-
-      def maybe_spawn_encounter(game)
-        return nil if game.random.rand(100) >= ENCOUNTER_CHANCE
-
-        game.battle = Battle.new(creature: random_creature(game), random: game.random)
-        encounter_response(game)
-      end
-
-      def random_creature(game)
-        creature_ids = ContentCatalog.creature_ids
-        ContentCatalog.creature(creature_ids[game.random.rand(creature_ids.length)])
       end
 
       def handle_active_encounter(game, command)
@@ -167,9 +159,9 @@ module TextAdventures
       def resolve_battle_result(game, result)
         response = result.to_response
         if result.finished?
-          game.pending_loot = result.player_defeated? ? nil : result.loot
+          resolve_finished_battle(game, result)
           game.battle = nil
-          return append_loot_hint(response, game.pending_loot)
+          return append_loot_hint(response, result.loot)
         end
 
         response.append("", combat_status(game))
@@ -178,19 +170,67 @@ module TextAdventures
       def append_loot_hint(response, loot)
         return response if loot.nil? || loot.empty?
 
-        response.append("", "[loot available]", "Use loot to collect your reward.")
+        response.append("", "[loot dropped]", "Reach @ or use loot nearby to collect it.", "", dungeon.render)
       end
 
       def collect_loot(game)
-        return Response.new("There is no loot to collect.") if game.pending_loot.nil? || game.pending_loot.empty?
+        if game.pending_loot && !game.pending_loot.empty?
+          loot = game.pending_loot
+          game.pending_loot = nil
+          return collect_loot_items(game, loot)
+        end
 
+        position = dungeon.nearby_loot_position
+        return collect_loot_at(game, position) if position
+
+        return Response.new("There is loot on the map, but you need to reach it first.") if dungeon.dropped_loot?
+
+        Response.new("There is no loot to collect.")
+      end
+
+      def collect_loot_at(game, position, automatic: false)
+        loot = dungeon.collect_loot_at(position)
+        return nil if loot.empty?
+
+        response = collect_loot_items(game, loot)
+        return response unless automatic
+
+        response.append("", dungeon.render)
+      end
+
+      def collect_loot_items(game, loot)
         lines = ["You collect the loot."]
-        game.pending_loot.each do |item|
+        loot.each do |item|
           game.player.inventory.add(item)
           lines << "[1x #{item.display_name} added to inventory]"
         end
-        game.pending_loot = nil
         Response.new(lines)
+      end
+
+      def start_adjacent_encounter(game)
+        enemy_position = dungeon.adjacent_enemy_position
+        return nil unless enemy_position
+
+        creature_id = dungeon.enemy_at(enemy_position)
+        game.active_enemy_position = enemy_position
+        game.battle = Battle.new(creature: ContentCatalog.creature(creature_id), random: game.random)
+        encounter_response(game)
+      end
+
+      def resolve_finished_battle(game, result)
+        if result.player_defeated?
+          game.pending_loot = nil
+          game.active_enemy_position = nil
+          return
+        end
+
+        enemy_position = game.active_enemy_position
+        game.pending_loot = nil
+        game.active_enemy_position = nil
+        return unless enemy_position
+
+        dungeon.remove_enemy(enemy_position)
+        dungeon.drop_loot(enemy_position, result.loot) unless result.loot.empty?
       end
 
       def encounter_response(game)

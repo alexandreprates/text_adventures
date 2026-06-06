@@ -33,6 +33,7 @@ RSpec.describe TextAdventures::Game do
       expect(game.dungeon).to be_nil
       expect(game.battle).to be_nil
       expect(game.pending_loot).to be_nil
+      expect(game.active_enemy_position).to be_nil
       expect(game.history).to eq []
     end
 
@@ -47,6 +48,7 @@ RSpec.describe TextAdventures::Game do
         dungeon: :dungeon,
         battle: :battle,
         pending_loot: :loot,
+        active_enemy_position: :enemy_position,
         history: [:entry],
         random: random
       )
@@ -59,6 +61,7 @@ RSpec.describe TextAdventures::Game do
         dungeon: :dungeon,
         battle: :battle,
         pending_loot: :loot,
+        active_enemy_position: :enemy_position,
         history: [:entry],
         random: random
       )

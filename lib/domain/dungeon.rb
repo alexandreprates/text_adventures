@@ -305,27 +305,28 @@ module TextAdventures
 
       selected = candidates[random.rand(candidates.length)]
       revealed_blocks[block_position.key] = selected
-      maybe_place_enemy_in_block(block_position, selected)
+      maybe_place_enemy_in_block(block_position, selected, direction)
       selected
     end
 
-    def maybe_place_enemy_in_block(block_position, block)
+    def maybe_place_enemy_in_block(block_position, block, direction)
       return if random.rand(100) >= ENEMY_SPAWN_CHANCE
 
       creature_ids = ContentCatalog.creature_ids
       creature_id = creature_ids[random.rand(creature_ids.length)]
-      position = enemy_spawn_position(block_position, block)
+      position = enemy_spawn_position(block_position, block, direction)
       place_enemy(position, creature_id) if position
     end
 
-    def enemy_spawn_position(block_position, block)
+    def enemy_spawn_position(block_position, block, direction)
+      entry_key = position_key(global_position(entry_position_for(direction), block_position))
       candidates = block.tiles.each_with_index.flat_map do |row, y|
         row.each_char.with_index.filter_map do |tile, x|
           next unless tile == DungeonBlock::OPEN
 
           global_position(Position.new(x: x, y: y), block_position)
         end
-      end.reject { |position| position_key(position) == position_key(current_global_position) }
+      end.reject { |position| position_key(position) == entry_key || position_key(position) == position_key(current_global_position) }
 
       candidates[random.rand(candidates.length)] unless candidates.empty?
     end
