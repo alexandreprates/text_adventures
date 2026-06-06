@@ -30,6 +30,10 @@ module TextAdventures
           look(game)
         when :go
           handle_movement(game, command.target)
+        when :attack
+          Response.new("There is no enemy to attack.")
+        when :cast
+          Response.new("There is no enemy to target.")
         when :loot
           collect_loot(game)
         else

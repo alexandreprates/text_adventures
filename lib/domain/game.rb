@@ -44,6 +44,7 @@ module TextAdventures
 
     def handle_known_command(command)
       return game_over_response if player.dead?
+      return current_scene.describe if command.verb == :help && current_scene.respond_to?(:describe)
       return player.inventory_report if command.verb == :inventory
       return player.spellbook if command.verb == :spellbook
       return player.level_report if command.verb == :level

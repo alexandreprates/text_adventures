@@ -77,6 +77,12 @@ RSpec.describe TextAdventures::Game do
       expect(scene.handled_command).to have_attributes(verb: :go, target: "ruins")
     end
 
+    it "handles help as contextual scene description" do
+      game = described_class.new
+
+      expect(game.handle("help")).to include "Welcome to Text Adventures"
+    end
+
     it "handles inventory as a global player command" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

@@ -32,6 +32,15 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.player.health.current).to eq 30
   end
 
+  it "accepts rent room as a sleep alias" do
+    game.player.take_damage(5)
+
+    response = game.handle("rent room")
+
+    expect(response).to include "[recovered 5 health]"
+    expect(game.player.health.current).to eq 30
+  end
+
   it "reports zero recovery when the player is already fully rested" do
     expect(game.handle("sleep")).to eq <<~TEXT.chomp
       You rent a quiet room and sleep until fully rested.

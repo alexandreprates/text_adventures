@@ -19,6 +19,7 @@ RSpec.describe TextAdventures::CommandParser do
     it "parses standalone commands" do
       expect(described_class.parse("attack")).to have_attributes(verb: :attack, target: nil, known?: true)
       expect(described_class.parse("heal")).to have_attributes(verb: :heal, target: nil)
+      expect(described_class.parse("help")).to have_attributes(verb: :help, target: nil)
       expect(described_class.parse("cure")).to have_attributes(verb: :cure, target: nil)
       expect(described_class.parse("inventory")).to have_attributes(verb: :inventory, target: nil)
       expect(described_class.parse("level")).to have_attributes(verb: :level, target: nil)
@@ -57,6 +58,8 @@ RSpec.describe TextAdventures::CommandParser do
 
     it "supports aliases implied by the README text" do
       expect(described_class.parse("invetory")).to have_attributes(verb: :inventory, target: nil)
+      expect(described_class.parse("rent room")).to have_attributes(verb: :sleep, target: nil)
+      expect(described_class.parse("rest")).to have_attributes(verb: :sleep, target: nil)
       expect(described_class.parse("spell heal")).to have_attributes(verb: :cast, target: "heal")
     end
 

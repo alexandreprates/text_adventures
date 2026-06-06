@@ -21,6 +21,7 @@ module TextAdventures
       attack
       cure
       heal
+      help
       inventory
       level
       look
@@ -34,6 +35,8 @@ module TextAdventures
 
     VERB_ALIASES = {
       invetory: :inventory,
+      rent: :sleep,
+      rest: :sleep,
       spell: :cast
     }.freeze
 

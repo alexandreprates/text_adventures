@@ -282,7 +282,8 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     TEXT
   end
 
-  it "falls back to the ruins description for unsupported commands" do
-    expect(game.handle("attack")).to include "You are now inside the Ruins Level 1"
+  it "gives direct feedback for combat commands without an enemy" do
+    expect(game.handle("attack")).to eq "There is no enemy to attack."
+    expect(game.handle("cast fireball")).to eq "There is no enemy to target."
   end
 end
