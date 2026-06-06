@@ -135,6 +135,67 @@ RSpec.describe TextAdventures::Game do
       expect(game.handle("equip potion of heal")).to eq "Potion of Heal cannot be equipped."
     end
 
+    it "uses healing potions and removes them from inventory" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      potion = TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20)
+      game.player.inventory.add(potion)
+      game.player.take_damage(12)
+
+      response = game.handle("use potion of heal")
+
+      expect(response).to eq <<~TEXT.chomp
+        Used Potion of Heal.
+        [recovered 12 health]
+        [your health is now 30/30]
+        [1x Potion of Heal removed from inventory]
+      TEXT
+      expect(game.player.health.current).to eq 30
+      expect(game.player.inventory.quantity("potion of heal")).to eq 0
+    end
+
+    it "uses tomes to teach a new spell and consumes them" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
+      game.player.inventory.add(tome)
+
+      response = game.handle("use tome of ice bolt")
+
+      expect(response).to eq <<~TEXT.chomp
+        Studied Tome of Ice Bolt.
+        [learned Ice Bolt level 1]
+        [1x Tome of Ice Bolt removed from inventory]
+      TEXT
+      expect(game.player).to be_known_spell("ice bolt")
+      expect(game.player.inventory.quantity("tome of ice bolt")).to eq 0
+    end
+
+    it "uses tomes to level a known spell and consumes them" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
+      game.player.learn_spell(TextAdventures::Spell.ice_bolt)
+      game.player.inventory.add(tome)
+
+      response = game.handle("use tome of ice bolt")
+
+      expect(response).to eq <<~TEXT.chomp
+        Studied Tome of Ice Bolt.
+        [Ice Bolt is now level 2]
+        [1x Tome of Ice Bolt removed from inventory]
+      TEXT
+      expect(game.player.spells["ice bolt"]).to have_attributes(level: 2)
+      expect(game.player.inventory.quantity("tome of ice bolt")).to eq 0
+    end
+
+    it "rejects missing or unusable inventory items" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
+      game.player.inventory.add(sword)
+
+      expect(game.handle("use potion of heal")).to eq "You do not have potion of heal."
+      expect(game.handle("use sword")).to eq "Sword cannot be used."
+      expect(game.player.inventory.quantity("sword")).to eq 1
+    end
+
     it "returns parser messages for unknown commands without delegating" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

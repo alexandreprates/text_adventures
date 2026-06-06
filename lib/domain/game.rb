@@ -43,6 +43,7 @@ module TextAdventures
     def handle_known_command(command)
       return player.inventory_report if command.verb == :inventory
       return equip_item(command.target) if command.verb == :equip
+      return use_item(command.target) if command.verb == :use
 
       current_scene.handle(self, command)
     end
@@ -65,6 +66,49 @@ module TextAdventures
       return "[your defense is now #{player.defense}]" if item.armor?
 
       ""
+    end
+
+    def use_item(query)
+      item = player.inventory.find(query)
+      return Response.new("You do not have #{query}.") unless item
+
+      return use_potion(item) if item.potion?
+      return use_tome(item) if item.tome?
+
+      Response.new("#{item.display_name} cannot be used.")
+    end
+
+    def use_potion(item)
+      before = player.health.current
+      player.heal(item.recovery)
+      recovered = player.health.current - before
+      player.inventory.remove(item.command_name)
+
+      Response.new(
+        "Used #{item.display_name}.",
+        "[recovered #{recovered} health]",
+        "[your health is now #{player.health.current}/#{player.health.max}]",
+        "[1x #{item.display_name} removed from inventory]"
+      )
+    end
+
+    def use_tome(item)
+      spell_name = item.spell
+      previous_level = player.spells[Spell.normalize_name(spell_name)]&.level
+      learned_spell = player.learn_spell_from_tome(item)
+      player.inventory.remove(item.command_name)
+
+      Response.new(
+        "Studied #{item.display_name}.",
+        tome_result_line(learned_spell, previous_level),
+        "[1x #{item.display_name} removed from inventory]"
+      )
+    end
+
+    def tome_result_line(spell, previous_level)
+      return "[learned #{spell.display_name} level #{spell.level}]" unless previous_level
+
+      "[#{spell.display_name} is now level #{spell.level}]"
     end
 
     def record_history(command_text, response)
