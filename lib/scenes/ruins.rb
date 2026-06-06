@@ -93,7 +93,7 @@ module TextAdventures
         return nil if game.random.rand(100) >= ENCOUNTER_CHANCE
 
         game.battle = Battle.new(creature: random_creature(game), random: game.random)
-        encounter_response(game.battle.creature)
+        encounter_response(game)
       end
 
       def random_creature(game)
@@ -103,7 +103,7 @@ module TextAdventures
 
       def handle_active_encounter(game, command)
         creature = game.battle.creature
-        return encounter_response(creature) if command.verb == :look
+        return encounter_response(game) if command.verb == :look
         return handle_attack(game) if command.verb == :attack
         return handle_spell(game, command.target) if command.verb == :cast
         return Response.new("You cannot move while #{creature.display_name} blocks your path.") if command.verb == :go
@@ -129,7 +129,10 @@ module TextAdventures
           game.pending_loot = result.player_defeated? ? nil : result.loot
           game.battle = nil
         end
-        result.to_response
+        response = result.to_response
+        return response unless game.battle
+
+        response.append("", combat_status(game))
       end
 
       def collect_loot(game)
@@ -144,10 +147,21 @@ module TextAdventures
         Response.new(lines)
       end
 
-      def encounter_response(creature)
+      def encounter_response(game)
+        creature = game.battle.creature
         Response.new(
           "You see a #{creature.display_name}",
-          "A #{creature.display_name} is about to attack you!"
+          "A #{creature.display_name} is about to attack you!",
+          "",
+          combat_status(game)
+        )
+      end
+
+      def combat_status(game)
+        creature = game.battle.creature
+        Response.new(
+          "[#{creature.display_name} HP: #{creature.health.current}/#{creature.health.max}]",
+          "[#{game.player.name} HP: #{game.player.health.current}/#{game.player.health.max}]"
         )
       end
     end

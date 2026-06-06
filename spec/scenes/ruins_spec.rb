@@ -68,6 +68,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(response).to eq <<~TEXT.chomp
       You see a Giant Spider
       A Giant Spider is about to attack you!
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(encounter_game.battle).to be_a TextAdventures::Battle
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
@@ -81,6 +84,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(response).to eq <<~TEXT.chomp
       You see a Goblin Skirmisher
       A Goblin Skirmisher is about to attack you!
+
+      [Goblin Skirmisher HP: 18/18]
+      [Adventurer HP: 30/30]
     TEXT
     expect(encounter_game.battle.creature.display_name).to eq "Goblin Skirmisher"
   end
@@ -102,6 +108,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       You see a Giant Spider
       A Giant Spider is about to attack you!
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
   end
@@ -132,6 +141,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("look")).to eq <<~TEXT.chomp
       You see a Giant Spider
       A Giant Spider is about to attack you!
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(game.handle("go right")).to eq "You cannot move while Giant Spider blocks your path."
     expect(game.handle("inventory")).to include "Currently you have nothing."
@@ -146,6 +158,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("attack")).to eq <<~TEXT.chomp
       You attack a Giant Spider causing 10 of damage.
       Giant Spider attacks you with Bite causing 0 of damage.
+
+      [Giant Spider HP: 25/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(game.battle.creature.health.current).to eq 25
   end
@@ -160,6 +175,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("cast fireball")).to eq <<~TEXT.chomp
       You cast Fireball causing 11 of damage.
       Giant Spider attacks you with Bite causing 0 of damage.
+
+      [Giant Spider HP: 24/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(game.battle.creature.health.current).to eq 24
   end
@@ -175,6 +193,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       You cast Ice Bolt causing 4 of damage.
       Giant Spider is frozen.
       Giant Spider is frozen and loses its turn.
+
+      [Giant Spider HP: 31/35]
+      [Adventurer HP: 30/30]
     TEXT
     expect(game.battle.creature.health.current).to eq 31
   end
@@ -193,6 +214,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Poison deals 2 damage.
       You cast Heal and recover 10 health.
       Giant Spider attacks you with Bite causing 0 of damage.
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 26/30]
     TEXT
     expect(game.player.health.current).to eq 26
 
@@ -200,6 +224,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Poison deals 2 damage.
       You cast Cure and remove poison.
       Giant Spider attacks you with Bite causing 0 of damage.
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 24/30]
     TEXT
     expect(game.player).to_not be_status(:poison)
   end
