@@ -37,6 +37,26 @@ module TextAdventures
         )
       end
 
+      def help
+        Response.new(
+          "Town help",
+          "",
+          "Destinations:",
+          " go Tavern",
+          " go Aluriel's Priest",
+          " go Blacksmith",
+          " go Armorsmith",
+          " go Ruins",
+          "",
+          "Global commands:",
+          " inventory - show carried and equipped items",
+          " spellbook - show known spells",
+          " level - show overall level and XP",
+          " skills - show skill progression",
+          " help - show contextual help"
+        )
+      end
+
       private
 
       def route(game, target)

@@ -21,6 +21,17 @@ RSpec.describe TextAdventures::Scenes::Town do
     expect(response).to include "go Ruins"
   end
 
+  it "renders concise town help" do
+    response = scene.help.to_text
+
+    expect(response).to include "Town help"
+    expect(response).to include "Destinations:"
+    expect(response).to include "go Tavern"
+    expect(response).to include "Global commands:"
+    expect(response).to include "inventory - show carried and equipped items"
+    expect(response).to_not include "Welcome to Text Adventures"
+  end
+
   it "routes to Tavern" do
     response = game.handle("go tavern")
 

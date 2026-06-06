@@ -50,7 +50,7 @@ module TextAdventures
 
     def handle_known_command(command)
       return game_over_response if player.dead?
-      return current_scene.describe if command.verb == :help && current_scene.respond_to?(:describe)
+      return help_response if command.verb == :help
       return player.inventory_report if command.verb == :inventory
       return player.spellbook if command.verb == :spellbook
       return player.level_report if command.verb == :level
@@ -60,6 +60,13 @@ module TextAdventures
       return drop_item(command.target) if command.verb == :drop
 
       current_scene.handle(self, command)
+    end
+
+    def help_response
+      return current_scene.help if current_scene.respond_to?(:help)
+      return current_scene.describe if current_scene.respond_to?(:describe)
+
+      Response.new("There is no help available here.")
     end
 
     def game_over_response

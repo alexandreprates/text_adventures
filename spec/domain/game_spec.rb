@@ -80,7 +80,7 @@ RSpec.describe TextAdventures::Game do
     it "handles help as contextual scene description" do
       game = described_class.new
 
-      expect(game.handle("help")).to include "Welcome to Text Adventures"
+      expect(game.handle("help")).to include "Town help"
     end
 
     it "handles inventory as a global player command" do
