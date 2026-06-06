@@ -8,9 +8,15 @@ module TextAdventures
       end
 
       def handle(_game, command)
-        return "Welcome to Text Adventures\n\nYou are now on the town of Nee'Peh." if command.verb == :look
+        if command.verb == :look
+          return Response.new(
+            "Welcome to Text Adventures",
+            "",
+            "You are now on the town of Nee'Peh."
+          )
+        end
 
-        "You are in town."
+        Response.new("You are in town.")
       end
     end
 
@@ -41,7 +47,7 @@ module TextAdventures
 
     def handle(command_text)
       command = CommandParser.parse(command_text)
-      response = command.unknown? ? command.message : current_scene.handle(self, command)
+      response = Response.render(command.unknown? ? command.message : current_scene.handle(self, command))
       record_history(command_text, response)
       response
     end
