@@ -96,6 +96,26 @@ RSpec.describe TextAdventures::Dungeon do
         "######"
       ]
     end
+
+    it "renders all revealed blocks into one composed map" do
+      composed = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 0] => "down_exit"
+        },
+        current_block_position: described_class::BlockPosition.new(x: 1, y: 0),
+        player_position: described_class::Position.new(x: 3, y: 2)
+      )
+
+      expect(composed.render.lines.map(&:chomp)).to eq [
+        "Ruins Level 1",
+        "############",
+        "############",
+        "##    ## x##",
+        "########  ##",
+        "########  ##"
+      ]
+    end
   end
 
   describe "#move" do

@@ -90,9 +90,9 @@ module TextAdventures
 
     def render
       lines = ["Ruins Level #{level}"]
-      tiles.each_with_index do |row, y|
-        rendered_row = row.each_char.with_index.map do |tile, x|
-          player_at?(x, y) ? PLAYER : tile
+      composed_tiles.each_with_index do |row, y|
+        rendered_row = row.each_with_index.map do |tile, x|
+          player_at_render_position?(x, y) ? PLAYER : tile
         end.join
         lines << rendered_row
       end
@@ -131,12 +131,58 @@ module TextAdventures
       player_position.x == x && player_position.y == y
     end
 
+    def player_at_render_position?(x, y)
+      render_position = player_render_position
+
+      render_position.x == x && render_position.y == y
+    end
+
     def current_position
       Position.new(x: player_position.x, y: player_position.y)
     end
 
     def current_block
       revealed_blocks.fetch(current_block_position.key)
+    end
+
+    def composed_tiles
+      bounds = block_bounds
+      rows = Array.new((bounds.fetch(:max_y) - bounds.fetch(:min_y) + 1) * height) do
+        Array.new((bounds.fetch(:max_x) - bounds.fetch(:min_x) + 1) * width, " ")
+      end
+
+      revealed_blocks.each do |(block_x, block_y), block|
+        x_offset = (block_x - bounds.fetch(:min_x)) * width
+        y_offset = (block_y - bounds.fetch(:min_y)) * height
+
+        block.tiles.each_with_index do |row, local_y|
+          row.each_char.with_index do |tile, local_x|
+            rows[y_offset + local_y][x_offset + local_x] = tile
+          end
+        end
+      end
+
+      rows
+    end
+
+    def block_bounds
+      block_xs = revealed_blocks.keys.map(&:first)
+      block_ys = revealed_blocks.keys.map(&:last)
+
+      {
+        min_x: block_xs.min,
+        max_x: block_xs.max,
+        min_y: block_ys.min,
+        max_y: block_ys.max
+      }
+    end
+
+    def player_render_position
+      bounds = block_bounds
+      Position.new(
+        x: (current_block_position.x - bounds.fetch(:min_x)) * width + player_position.x,
+        y: (current_block_position.y - bounds.fetch(:min_y)) * height + player_position.y
+      )
     end
 
     def failed_move(direction, message, from: current_position, to: current_position)

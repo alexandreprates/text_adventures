@@ -393,7 +393,7 @@ compatibilidade entre saídas opostas.
 1. [x] Extrair os 9 blocos para um catálogo de blocos.
 2. [x] Representar cada bloco com `tiles` e `exits`.
 3. [x] Substituir o mapa fixo atual por uma coleção de blocos revelados.
-4. Implementar renderização de múltiplos blocos.
+4. [x] Implementar renderização de múltiplos blocos.
 5. Implementar movimento dentro de um bloco.
 6. Implementar revelação de bloco ao cruzar uma saída válida.
 7. Implementar validação de compatibilidade com vizinhos.
