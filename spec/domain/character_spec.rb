@@ -34,6 +34,13 @@ RSpec.describe TextAdventures::Character do
       expect(character.status_effects).to be_empty
     end
 
+    it "starts with progression state" do
+      expect(character.progression).to be_a TextAdventures::CharacterProgression
+      expect(character.overall_experience).to eq 0
+      expect(character.overall_level).to eq 1
+      expect(character.skill_levels.values).to all(eq 1)
+    end
+
     context "with custom attributes" do
       let(:weapon) { described_class::Equipment.new(name: "Axe", attack: 15, defense: 0) }
       let(:armor) { described_class::Equipment.new(name: "Chainmail", attack: 0, defense: 8) }
@@ -49,6 +56,7 @@ RSpec.describe TextAdventures::Character do
           equipped_weapon: weapon,
           equipped_armor: armor,
           inventory: inventory,
+          progression: TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 60 }),
           status_effects: [:poison, "disease", "poison"]
         }
       end
@@ -64,8 +72,21 @@ RSpec.describe TextAdventures::Character do
           inventory: inventory
         )
         expect(character.health).to have_attributes(current: 12, max: 40)
+        expect(character.skill_experience[:swordsmanship]).to eq 60
         expect(character.status_effects).to eq %i[poison disease]
       end
+    end
+  end
+
+  describe "#gain_skill_xp" do
+    it "delegates XP gains to character progression" do
+      expect { character.gain_skill_xp(:spearmanship, 50) }
+        .to change { character.skill_experience[:spearmanship] }
+        .from(0).to(50)
+
+      expect(character.skill_levels[:spearmanship]).to eq 2
+      expect(character.overall_experience).to eq 50
+      expect(character.overall_level).to eq 2
     end
   end
 

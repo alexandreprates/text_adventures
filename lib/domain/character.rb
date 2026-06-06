@@ -15,6 +15,7 @@ module TextAdventures
     attr_reader :spells
     attr_reader :inventory
     attr_reader :status_effects
+    attr_reader :progression
     attr_accessor :name, :gold, :base_attack, :base_defense,
                   :equipped_weapon, :equipped_armor
 
@@ -29,7 +30,8 @@ module TextAdventures
       equipped_armor: STARTER_ARMOR,
       spells: [],
       inventory: Inventory.new,
-      status_effects: []
+      status_effects: [],
+      progression: CharacterProgression.new
     )
       @name = name
       @health = Extent.new(health, max: max_health)
@@ -41,7 +43,29 @@ module TextAdventures
       @spells = {}
       @inventory = inventory
       @status_effects = normalize_statuses(status_effects)
+      @progression = progression
       spells.each { |spell| learn_spell(spell) }
+    end
+
+    def gain_skill_xp(skill, amount)
+      progression.add_skill_xp(skill, amount)
+      self
+    end
+
+    def skill_experience
+      progression.skill_experience
+    end
+
+    def skill_levels
+      progression.skill_levels
+    end
+
+    def overall_experience
+      progression.overall_experience
+    end
+
+    def overall_level
+      progression.overall_level
     end
 
     def take_damage(amount)
