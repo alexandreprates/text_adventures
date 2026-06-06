@@ -14,7 +14,7 @@ module TextAdventures
 
       def handle(game, command)
         return back_to_town(game) if command.verb == :go && Item.normalize_name(command.target) == "town"
-        return unavailable_route(command.target) if command.verb == :go
+        return route_to_town_destination(game, command.target) if command.verb == :go
 
         case command.verb
         when :show
@@ -193,11 +193,9 @@ module TextAdventures
         item.armor_class.to_s.capitalize
       end
 
-      def unavailable_route(target)
-        Response.new(
-          "You cannot go to #{target} from #{display_name}.",
-          "Use go town first to return to Nee'Peh."
-        )
+      def route_to_town_destination(game, target)
+        game.pending_confirmation = nil
+        Town.route(game, target)
       end
     end
   end

@@ -36,11 +36,15 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.pending_confirmation).to be_nil
   end
 
-  it "guides the player back to town before visiting another place" do
-    expect(game.handle("go tavern")).to eq <<~TEXT.chomp
-      You cannot go to tavern from Blacksmith.
-      Use go town first to return to Nee'Peh.
-    TEXT
+  it "can travel directly to another town destination and clears pending confirmations" do
+    game.handle("buy sword")
+
+    response = game.handle("go tavern")
+
+    expect(response).to include "You go to Tavern."
+    expect(response).to include "You enter the Tavern."
+    expect(game.current_scene_name).to eq :tavern
+    expect(game.pending_confirmation).to be_nil
   end
 
   it "shows stock" do
