@@ -9,11 +9,12 @@ module TextAdventures
     CRITICAL_CHANCE = 10
     POISON_DAMAGE = 2
 
-    attr_reader :creature, :random
+    attr_reader :creature, :random, :contributions
 
     def initialize(creature:, random: Random.new)
       @creature = creature
       @random = random
+      @contributions = Hash.new(0)
     end
 
     def attack(player)
@@ -24,10 +25,12 @@ module TextAdventures
       critical = critical_hit?
       damage *= 2 if critical
       creature.take_damage(damage)
+      record_contribution(weapon_skill(player.equipped_weapon), damage)
 
       lines << player_attack_line(damage, critical)
       if creature.dead?
         lines << "#{creature.display_name} dies."
+        lines.concat award_xp_lines(player)
         return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
       end
 
@@ -51,11 +54,13 @@ module TextAdventures
 
       damage = spell_damage(spell)
       creature.take_damage(damage)
+      record_contribution(spell_skill(spell), damage)
       lines << "You cast #{spell.display_name} causing #{damage} of damage."
 
       lines.concat spell_status_lines(spell)
       if creature.dead?
         lines << "#{creature.display_name} dies."
+        lines.concat award_xp_lines(player)
         return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
       end
 
@@ -72,6 +77,7 @@ module TextAdventures
       before = player.health.current
       player.heal(spell.healing_range.begin)
       recovered = player.health.current - before
+      record_contribution(spell_skill(spell), [recovered, 1].max)
       lines << "You cast #{spell.display_name} and recover #{recovered} health."
       lines.concat enemy_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
@@ -85,6 +91,7 @@ module TextAdventures
 
       cured_poison = player.status?(:poison)
       player.clear_status(:poison)
+      record_contribution(spell_skill(spell), 1)
       lines << if cured_poison
                  "You cast #{spell.display_name} and remove poison."
                else
@@ -103,6 +110,69 @@ module TextAdventures
         loot: [],
         player_defeated?: true
       )
+    end
+
+    def record_contribution(skill, amount)
+      return unless skill
+
+      contributions[skill] += amount
+    end
+
+    def award_xp_lines(player)
+      xp_gains = distribute_xp
+      xp_gains.map do |skill, amount|
+        player.gain_skill_xp(skill, amount)
+        "[#{amount} XP gained in #{skill_label(skill)}]"
+      end
+    end
+
+    def distribute_xp
+      return {} if creature.xp_reward.zero? || contributions.empty?
+
+      total = contributions.values.sum
+      allocations = contributions.to_h do |skill, contribution|
+        exact = creature.xp_reward * contribution.to_f / total
+        [skill, { amount: exact.floor, remainder: exact - exact.floor }]
+      end
+
+      remaining = creature.xp_reward - allocations.values.sum { |allocation| allocation.fetch(:amount) }
+      allocations.sort_by { |_skill, allocation| -allocation.fetch(:remainder) }
+                 .first(remaining)
+                 .each { |skill, allocation| allocations[skill] = allocation.merge(amount: allocation.fetch(:amount) + 1) }
+
+      allocations.transform_values { |allocation| allocation.fetch(:amount) }.reject { |_skill, amount| amount.zero? }
+    end
+
+    def weapon_skill(weapon)
+      weapon_class = equipment_weapon_class(weapon)
+      {
+        sword: :swordsmanship,
+        spear: :spearmanship,
+        dagger: :dagger_mastery
+      }[weapon_class]
+    end
+
+    def equipment_weapon_class(weapon)
+      return nil unless weapon
+      return weapon.weapon_class if weapon.respond_to?(:weapon_class) && weapon.weapon_class
+
+      normalized_name = Item.normalize_name(weapon.name)
+      return :sword if normalized_name.include?("sword")
+      return :spear if normalized_name.match?(/spear|halberd|lance/)
+      return :dagger if normalized_name.include?("dagger")
+
+      nil
+    end
+
+    def spell_skill(spell)
+      return :combat_magic if spell.damage?
+      return :nature_magic if spell.healing? || spell.cure?
+
+      nil
+    end
+
+    def skill_label(skill)
+      skill.to_s.tr("_", " ").split.map(&:capitalize).join(" ")
     end
 
     def player_damage(player)

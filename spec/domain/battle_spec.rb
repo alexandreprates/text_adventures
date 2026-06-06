@@ -59,6 +59,27 @@ RSpec.describe TextAdventures::Battle do
       expect(strong_player.health.current).to eq 30
     end
 
+    it "awards victory XP to the equipped weapon skill" do
+      creature = TextAdventures::Creature.new(
+        name: "Training Shade",
+        health: 10,
+        xp_reward: 100
+      )
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 12, weapon_class: :spear)
+      player = TextAdventures::Character.new(equipped_weapon: spear, equipped_armor: nil)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Training Shade causing 13 of damage.
+        Training Shade dies.
+        [100 XP gained in Spearmanship]
+      TEXT
+      expect(player.skill_experience[:spearmanship]).to eq 100
+      expect(player.overall_experience).to eq 100
+    end
+
     it "applies poison from poison bite when the status roll succeeds" do
       poison_battle = described_class.new(
         creature: creature,
@@ -179,6 +200,33 @@ RSpec.describe TextAdventures::Battle do
       TEXT
       expect(player).to_not be_status(:poison)
       expect(player.health.current).to eq 26
+    end
+
+    it "distributes victory XP by battle contribution" do
+      creature = TextAdventures::Creature.new(
+        name: "Arcane Dummy",
+        health: 30,
+        xp_reward: 100,
+        attacks: [
+          TextAdventures::Creature::Attack.new(name: "Fizzle", damage_range: 0..0)
+        ]
+      )
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22, weapon_class: :spear)
+      player = TextAdventures::Character.new(equipped_weapon: spear)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0]))
+
+      battle.attack(player)
+      response = battle.cast_spell(player, TextAdventures::Spell.fireball)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Fireball causing 12 of damage.
+        Arcane Dummy dies.
+        [66 XP gained in Spearmanship]
+        [34 XP gained in Combat Magic]
+      TEXT
+      expect(player.skill_experience[:spearmanship]).to eq 66
+      expect(player.skill_experience[:combat_magic]).to eq 34
+      expect(player.overall_experience).to eq 100
     end
   end
 end
