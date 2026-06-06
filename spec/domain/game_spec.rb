@@ -100,6 +100,20 @@ RSpec.describe TextAdventures::Game do
       expect(game.handle("inventory")).to include "Currently you have nothing."
     end
 
+    it "handles spellbook as a global player command" do
+      scene = TestScene.new(response: "scene response")
+      game = described_class.new(current_scene: scene)
+      game.player.learn_spell(TextAdventures::Spell.fireball)
+
+      response = game.handle("spellbook")
+
+      expect(response).to eq <<~TEXT.chomp
+        You can cast:
+         1x Fireball (level 1) - Causes 12~22 of damage
+      TEXT
+      expect(scene.handled_command).to be_nil
+    end
+
     it "equips an inventory weapon as a global player command" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)
@@ -240,6 +254,21 @@ RSpec.describe TextAdventures::Game do
       response = game.handle("dance")
 
       expect(response).to eq "Unknown command: dance."
+      expect(scene.handled_command).to be_nil
+    end
+
+    it "blocks commands after the player dies" do
+      scene = TestScene.new(response: "scene response")
+      player = TextAdventures::Character.new
+      player.take_damage(player.health.current)
+      game = described_class.new(current_scene: scene, player: player)
+
+      response = game.handle("look")
+
+      expect(response).to eq <<~TEXT.chomp
+        You cannot continue; Adventurer has fallen.
+        Start a new adventure to try again.
+      TEXT
       expect(scene.handled_command).to be_nil
     end
 

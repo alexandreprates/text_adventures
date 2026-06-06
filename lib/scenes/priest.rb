@@ -7,17 +7,7 @@ module TextAdventures
       CURABLE_STATUSES = %i[poison disease diseased].freeze
 
       def initialize
-        super(
-          name: :priest,
-          display_name: "Aluriel's Priest",
-          stock: [
-            Item.tome("Tome of Heal", price: 25, spell: "Heal"),
-            Item.tome("Tome of Cure", price: 25, spell: "Cure"),
-            Item.tome("Tome of Fireball", price: 30, spell: "Fireball"),
-            Item.tome("Tome of Ice Bolt", price: 30, spell: "Ice Bolt")
-          ],
-          accepted_types: [:tome]
-        )
+        super(**ContentCatalog.shop("priest"))
       end
 
       def handle(game, command)
@@ -39,7 +29,8 @@ module TextAdventures
           " cure - remove poison and disease",
           " show - view holy tomes",
           " buy <item> - buy a tome",
-          " sell <item> - sell a tome"
+          " sell <item> - sell a tome",
+          " go town - return to Nee'Peh"
         )
       end
 

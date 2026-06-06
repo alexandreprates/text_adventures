@@ -14,6 +14,7 @@ RSpec.describe TextAdventures::Scenes::Priest do
        show - view holy tomes
        buy <item> - buy a tome
        sell <item> - sell a tome
+       go town - return to Nee'Peh
     TEXT
   end
 

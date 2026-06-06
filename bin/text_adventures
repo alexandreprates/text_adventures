@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/text_adventures"
+
+module TextAdventures
+  class CLI
+    EXIT_COMMANDS = %w[exit quit].freeze
+
+    def initialize(input: $stdin, output: $stdout, game: Game.new)
+      @input = input
+      @output = output
+      @game = game
+    end
+
+    def run
+      output.puts game.handle("look")
+
+      loop do
+        output.print "\n> "
+        command = input.gets
+        break unless command
+
+        command = command.strip
+        break if EXIT_COMMANDS.include?(command.downcase)
+        next if command.empty?
+
+        output.puts game.handle(command)
+        break if game.player.dead?
+      end
+
+      output.puts "\nThanks for playing."
+    end
+
+    private
+
+    attr_reader :input, :output, :game
+  end
+end
+
+TextAdventures::CLI.new.run if $PROGRAM_NAME == __FILE__

@@ -22,7 +22,18 @@ RSpec.describe TextAdventures::Scenes::Merchant do
        show - view merchant goods
        buy <item> - buy something
        sell <item> - sell item
+       go town - return to Nee'Peh
     TEXT
+  end
+
+  it "can return to Town and clears pending confirmations" do
+    game.handle("buy sword")
+
+    response = game.handle("go town")
+
+    expect(response).to eq "You return to the town of Nee'Peh."
+    expect(game.current_scene_name).to eq :town
+    expect(game.pending_confirmation).to be_nil
   end
 
   it "shows stock" do

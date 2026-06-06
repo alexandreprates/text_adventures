@@ -77,12 +77,17 @@ module TextAdventures
 
     def details_for(item)
       details = []
+      details << armor_class_label(item) if item.armor? && item.armor_class
       details << "Atk: #{item.attack}" if item.attack.positive?
       details << "Def: #{item.defense}" if item.defense.positive?
       details << "Recovery #{item.recovery} Health" if item.recovery.positive?
       return "" if details.empty?
 
       " (#{details.join(', ')})"
+    end
+
+    def armor_class_label(item)
+      item.armor_class.to_s.capitalize
     end
   end
 end

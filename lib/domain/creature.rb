@@ -14,19 +14,7 @@ module TextAdventures
                 :loot_table, :status_effects, :active_statuses
 
     def self.giant_spider
-      new(
-        name: "Giant Spider",
-        health: 35,
-        defense: 1,
-        attacks: [
-          Attack.new(name: "Bite", damage_range: 2..4),
-          Attack.new(name: "Poison Bite", damage_range: 1..3, status: :poison, status_chance: 35)
-        ],
-        loot_table: [
-          Item.tome("Tome of Freezing", price: 25, spell: "Ice Bolt")
-        ],
-        status_effects: [:poison]
-      )
+      ContentCatalog.creature("giant_spider")
     end
 
     def self.normalize_name(value)

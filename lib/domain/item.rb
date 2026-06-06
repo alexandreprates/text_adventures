@@ -3,14 +3,14 @@ module TextAdventures
     VALID_TYPES = %i[weapon armor potion tome].freeze
 
     attr_reader :name, :display_name, :price, :type,
-                :attack, :defense, :recovery, :spell
+                :attack, :defense, :recovery, :spell, :armor_class
 
     def self.weapon(name, price:, attack:, defense: 0)
       new(name: name, price: price, type: :weapon, attack: attack, defense: defense)
     end
 
-    def self.armor(name, price:, defense:)
-      new(name: name, price: price, type: :armor, defense: defense)
+    def self.armor(name, price:, defense:, armor_class: nil)
+      new(name: name, price: price, type: :armor, defense: defense, armor_class: armor_class)
     end
 
     def self.potion(name, price:, recovery:)
@@ -33,7 +33,8 @@ module TextAdventures
       attack: 0,
       defense: 0,
       recovery: 0,
-      spell: nil
+      spell: nil,
+      armor_class: nil
     )
       @name = self.class.normalize_name(name)
       @display_name = display_name
@@ -43,6 +44,7 @@ module TextAdventures
       @defense = defense
       @recovery = recovery
       @spell = spell && self.class.normalize_name(spell)
+      @armor_class = armor_class && self.class.normalize_name(armor_class).to_sym
     end
 
     def command_name

@@ -14,7 +14,21 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
   it "shows armor stock" do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
-       1x Leather Armor (Def: 20) - 20g
+       1x Padded Armor (Light, Def: 12) - 12g
+       1x Leather Armor (Light, Def: 20) - 20g
+       1x Studded Leather (Light, Def: 24) - 35g
+       1x Scout Mail (Light, Def: 30) - 55g
+       1x Silken Guard (Light, Def: 38) - 95g
+       1x Chain Shirt (Medium, Def: 28) - 45g
+       1x Scale Mail (Medium, Def: 36) - 70g
+       1x Breastplate (Medium, Def: 44) - 110g
+       1x Brigandine (Medium, Def: 52) - 150g
+       1x Half Plate (Medium, Def: 62) - 210g
+       1x Ring Mail (Heavy, Def: 42) - 90g
+       1x Chain Mail (Heavy, Def: 54) - 135g
+       1x Splint Armor (Heavy, Def: 66) - 190g
+       1x Plate Armor (Heavy, Def: 78) - 280g
+       1x Dragon Plate (Heavy, Def: 95) - 500g
     TEXT
   end
 
@@ -30,7 +44,7 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
       [1x Leather Armor added to inventory]
       [your gold is now 80]
     TEXT
-    expect(armor).to have_attributes(display_name: "Leather Armor", defense: 20)
+    expect(armor).to have_attributes(display_name: "Leather Armor", defense: 20, armor_class: :light)
     expect(equip_result).to have_attributes(success?: true, message: "Equipped Leather Armor.")
     expect(game.player.equipped_armor).to eq armor
   end

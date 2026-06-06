@@ -13,6 +13,8 @@ module TextAdventures
       end
 
       def handle(game, command)
+        return back_to_town(game) if command.verb == :go && Item.normalize_name(command.target) == "town"
+
         case command.verb
         when :show
           show_stock
@@ -35,11 +37,18 @@ module TextAdventures
           "You can:",
           " show - view merchant goods",
           " buy <item> - buy something",
-          " sell <item> - sell item"
+          " sell <item> - sell item",
+          " go town - return to Nee'Peh"
         )
       end
 
       private
+
+      def back_to_town(game)
+        game.pending_confirmation = nil
+        game.transition_to(Town.new)
+        Response.new("You return to the town of Nee'Peh.")
+      end
 
       def show_stock
         return Response.new("There is nothing for sale.") if stock.empty?
@@ -143,11 +152,16 @@ module TextAdventures
 
       def item_line(item)
         details = []
+        details << armor_class_label(item) if item.armor? && item.armor_class
         details << "Atk: #{item.attack}" if item.attack.positive?
         details << "Def: #{item.defense}" if item.defense.positive?
         suffix = details.empty? ? "" : " (#{details.join(', ')})"
 
         "1x #{item.display_name}#{suffix} - #{item.price}g"
+      end
+
+      def armor_class_label(item)
+        item.armor_class.to_s.capitalize
       end
     end
   end

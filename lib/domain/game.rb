@@ -43,12 +43,21 @@ module TextAdventures
     private
 
     def handle_known_command(command)
+      return game_over_response if player.dead?
       return player.inventory_report if command.verb == :inventory
+      return player.spellbook if command.verb == :spellbook
       return equip_item(command.target) if command.verb == :equip
       return use_item(command.target) if command.verb == :use
       return drop_item(command.target) if command.verb == :drop
 
       current_scene.handle(self, command)
+    end
+
+    def game_over_response
+      Response.new(
+        "You cannot continue; #{player.name} has fallen.",
+        "Start a new adventure to try again."
+      )
     end
 
     def equip_item(query)

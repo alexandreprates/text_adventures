@@ -73,6 +73,18 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
   end
 
+  it "can spawn different creatures from the dungeon roster" do
+    encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsSequenceRandom.new([0, 1]))
+
+    response = encounter_game.handle("look")
+
+    expect(response).to eq <<~TEXT.chomp
+      You see a Goblin Skirmisher
+      A Goblin Skirmisher is about to attack you!
+    TEXT
+    expect(encounter_game.battle.creature.display_name).to eq "Goblin Skirmisher"
+  end
+
   it "can force an encounter after movement" do
     encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
 

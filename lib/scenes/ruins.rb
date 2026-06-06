@@ -92,8 +92,13 @@ module TextAdventures
       def maybe_spawn_encounter(game)
         return nil if game.random.rand(100) >= ENCOUNTER_CHANCE
 
-        game.battle = Battle.new(creature: Creature.giant_spider, random: game.random)
+        game.battle = Battle.new(creature: random_creature(game), random: game.random)
         encounter_response(game.battle.creature)
+      end
+
+      def random_creature(game)
+        creature_ids = ContentCatalog.creature_ids
+        ContentCatalog.creature(creature_ids[game.random.rand(creature_ids.length)])
       end
 
       def handle_active_encounter(game, command)
@@ -121,7 +126,7 @@ module TextAdventures
 
       def resolve_battle_result(game, result)
         if result.finished?
-          game.pending_loot = result.loot
+          game.pending_loot = result.player_defeated? ? nil : result.loot
           game.battle = nil
         end
         result.to_response

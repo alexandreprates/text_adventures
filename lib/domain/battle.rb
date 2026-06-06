@@ -1,6 +1,6 @@
 module TextAdventures
   class Battle
-    Result = Struct.new(:lines, :finished?, :loot, keyword_init: true) do
+    Result = Struct.new(:lines, :finished?, :loot, :player_defeated?, keyword_init: true) do
       def to_response
         Response.new(lines)
       end
@@ -18,6 +18,8 @@ module TextAdventures
 
     def attack(player)
       lines = poison_tick_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       damage = player_damage(player)
       critical = critical_hit?
       damage *= 2 if critical
@@ -30,6 +32,8 @@ module TextAdventures
       end
 
       lines.concat enemy_turn_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
@@ -43,6 +47,8 @@ module TextAdventures
 
     def cast_damage_spell(player, spell)
       lines = poison_tick_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       damage = spell_damage(spell)
       creature.take_damage(damage)
       lines << "You cast #{spell.display_name} causing #{damage} of damage."
@@ -54,21 +60,29 @@ module TextAdventures
       end
 
       lines.concat enemy_turn_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
     def cast_healing_spell(player, spell)
       lines = poison_tick_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       before = player.health.current
       player.heal(spell.healing_range.begin)
       recovered = player.health.current - before
       lines << "You cast #{spell.display_name} and recover #{recovered} health."
       lines.concat enemy_turn_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
     def cast_cure_spell(player, spell)
       lines = poison_tick_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       cured_poison = player.status?(:poison)
       player.clear_status(:poison)
       lines << if cured_poison
@@ -77,7 +91,18 @@ module TextAdventures
                  "You cast #{spell.display_name}, but there is nothing to cure."
                end
       lines.concat enemy_turn_lines(player)
+      return player_defeat_result(lines) if player.dead?
+
       Result.new(lines: lines, finished?: false, loot: [])
+    end
+
+    def player_defeat_result(lines)
+      Result.new(
+        lines: lines + ["You have fallen."],
+        finished?: true,
+        loot: [],
+        player_defeated?: true
+      )
     end
 
     def player_damage(player)

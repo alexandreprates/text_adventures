@@ -10,10 +10,12 @@ Explore the ruins, confront incredible creatures and increase the power of your 
 
 ==Current Implementation Status
 
-The current implementation is an early Ruby library foundation. It includes the
-`Extent` bounded-number helper and its specs. The browser game, server command,
-town, shops, dungeon, combat, inventory, spells, and persistence described below
-are planned gameplay behavior and are not fully implemented yet.
+The current implementation is a playable terminal Ruby game foundation. It
+includes command parsing, a game loop, town navigation, shops, inventory,
+equipment, spells, dungeon movement, random encounters, combat, loot, and basic
+game-over handling.
+
+Browser play, URL-based sessions, and persistence are still planned work.
 
 ==Installing Dependencies
 
@@ -32,6 +34,23 @@ installation artifacts are ignored through `.bundle/` and `vendor/bundle/`.
 
 The default Rake task runs the RSpec suite.
 
+==Editing Game Content
+
+Game content is stored in YAML files under `data/`:
+
+  data/items.yml     # weapons, armor, potions, and tomes
+  data/shops.yml     # merchant stock and accepted item types
+  data/creatures.yml # creatures, attacks, loot, and status effects
+
+The Ruby domain objects are built from these files through
+`TextAdventures::ContentCatalog`.
+
+==Running the Terminal Game
+
+  bin/text_adventures
+
+Type commands at the prompt. Use `quit` or `exit` to leave the game.
+
 ==Planned Server
 
   Runing on top
@@ -43,7 +62,7 @@ The default Rake task runs the RSpec suite.
   Stopping daemon
   # bin/text_adventures_server stop
 
-==How to Play
+==Planned Browser Play
 
 Into browser access:
 

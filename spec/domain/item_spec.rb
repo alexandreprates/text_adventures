@@ -26,7 +26,7 @@ RSpec.describe TextAdventures::Item do
   end
 
   describe ".armor" do
-    subject(:item) { described_class.armor("Leather Armor", price: 20, defense: 20) }
+    subject(:item) { described_class.armor("Leather Armor", price: 20, defense: 20, armor_class: :light) }
 
     it "builds armor with defense value" do
       expect(item).to have_attributes(
@@ -35,7 +35,8 @@ RSpec.describe TextAdventures::Item do
         price: 20,
         type: :armor,
         attack: 0,
-        defense: 20
+        defense: 20,
+        armor_class: :light
       )
       expect(item).to be_armor
     end

@@ -83,6 +83,34 @@ RSpec.describe TextAdventures::Battle do
       expect(response.to_response.to_text).to start_with "Poison deals 2 damage."
       expect(player.health.current).to eq 26
     end
+
+    it "ends without loot when a counterattack defeats the player" do
+      weak_player = TextAdventures::Character.new(health: 1, max_health: 30, equipped_armor: nil)
+
+      response = battle.attack(weak_player)
+
+      expect(response).to have_attributes(finished?: true, player_defeated?: true, loot: [])
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Giant Spider causing 10 of damage.
+        Giant Spider attacks you with Bite causing 2 of damage.
+        You have fallen.
+      TEXT
+      expect(weak_player).to be_dead
+    end
+
+    it "ends before the player acts when poison defeats the player" do
+      poisoned_player = TextAdventures::Character.new(health: 2, max_health: 30, equipped_armor: nil)
+      poisoned_player.apply_status(:poison)
+
+      response = battle.attack(poisoned_player)
+
+      expect(response).to have_attributes(finished?: true, player_defeated?: true, loot: [])
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        You have fallen.
+      TEXT
+      expect(creature.health.current).to eq 35
+    end
   end
 
   describe "#cast_spell" do
