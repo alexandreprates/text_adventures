@@ -40,7 +40,7 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
   end
 
   it "buys Spear and reduces player gold" do
-    expect(game.handle("buy spear")).to include "Excellent choice its yours for mere 50g."
+    expect(game.handle("buy spear")).to include "Excellent choice. It is yours for 50g."
 
     response = game.handle("agree")
 
@@ -54,7 +54,7 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
   end
 
   it "cannot buy King's Nep Sword without enough gold" do
-    expect(game.handle("buy king's nep sword")).to eq "Sorry but you dont have enough money for this."
+    expect(game.handle("buy king's nep sword")).to eq "Sorry, but you do not have enough money for this."
     expect(game.pending_confirmation).to be_nil
   end
 
@@ -62,12 +62,12 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
     game.player.inventory.add(sword)
 
-    expect(game.handle("sell sword")).to include "Well i can give you 10g for this Sword."
+    expect(game.handle("sell sword")).to include "I can give you 10g for this Sword."
     response = game.handle("agree")
 
     expect(response).to eq <<~TEXT.chomp
       You sold Sword at 10g.
-      [1x Sword removed to inventory]
+      [1x Sword removed from inventory]
       [your gold is now 110]
     TEXT
     expect(game.player.gold).to eq 110

@@ -47,6 +47,13 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.current_scene_name).to eq :town
   end
 
+  it "guides the player back to town before visiting another place" do
+    expect(game.handle("go priest")).to eq <<~TEXT.chomp
+      You cannot go to priest from inside the Tavern.
+      Use go town first to return to Nee'Peh.
+    TEXT
+  end
+
   it "uses Tavern text for unsupported commands" do
     expect(game.handle("attack")).to include "You enter the Tavern."
   end

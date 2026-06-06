@@ -36,6 +36,13 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.pending_confirmation).to be_nil
   end
 
+  it "guides the player back to town before visiting another place" do
+    expect(game.handle("go tavern")).to eq <<~TEXT.chomp
+      You cannot go to tavern from Blacksmith.
+      Use go town first to return to Nee'Peh.
+    TEXT
+  end
+
   it "shows stock" do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
@@ -47,7 +54,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   it "starts a buy confirmation for available stock" do
     response = game.handle("buy spear")
 
-    expect(response).to include "Excellent choice its yours for mere 50g."
+    expect(response).to include "Excellent choice. It is yours for 50g."
     expect(game.pending_confirmation).to have_attributes(
       merchant: merchant,
       action: :buy,
@@ -64,7 +71,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   it "checks player gold before buying" do
     game.player.gold = 10
 
-    expect(game.handle("buy spear")).to eq "Sorry but you dont have enough money for this."
+    expect(game.handle("buy spear")).to eq "Sorry, but you do not have enough money for this."
     expect(game.pending_confirmation).to be_nil
   end
 
@@ -87,7 +94,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
 
     response = game.handle("sell sword")
 
-    expect(response).to include "Well i can give you 10g for this Sword."
+    expect(response).to include "I can give you 10g for this Sword."
     expect(game.pending_confirmation).to have_attributes(
       merchant: merchant,
       action: :sell,
@@ -114,7 +121,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
 
     expect(response).to eq <<~TEXT.chomp
       You sold Sword at 10g.
-      [1x Sword removed to inventory]
+      [1x Sword removed from inventory]
       [your gold is now 110]
     TEXT
     expect(game.player.inventory.quantity("sword")).to eq 0

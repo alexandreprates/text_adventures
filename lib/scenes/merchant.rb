@@ -14,6 +14,7 @@ module TextAdventures
 
       def handle(game, command)
         return back_to_town(game) if command.verb == :go && Item.normalize_name(command.target) == "town"
+        return unavailable_route(command.target) if command.verb == :go
 
         case command.verb
         when :show
@@ -59,7 +60,7 @@ module TextAdventures
       def request_buy(game, query)
         item = find_stock(query)
         return Response.new("I do not have #{query} for sale.") unless item
-        return Response.new("Sorry but you dont have enough money for this.") if game.player.gold < item.price
+        return Response.new("Sorry, but you do not have enough money for this.") if game.player.gold < item.price
 
         game.pending_confirmation = Confirmation.new(
           merchant: self,
@@ -68,7 +69,7 @@ module TextAdventures
           price: item.price
         )
         Response.new(
-          "Excellent choice its yours for mere #{item.price}g.",
+          "Excellent choice. It is yours for #{item.price}g.",
           "Select your answer:",
           " agree - buy it",
           " no - forget it"
@@ -88,8 +89,8 @@ module TextAdventures
           price: price
         )
         Response.new(
-          "Well i can give you #{price}g for this #{item.display_name}.",
-          "That you want:",
+          "I can give you #{price}g for this #{item.display_name}.",
+          "Select your answer:",
           " agree - sell item",
           " no - keep item"
         )
@@ -126,7 +127,7 @@ module TextAdventures
         game.pending_confirmation = nil
         Response.new(
           "You sold #{confirmation.item.display_name} at #{confirmation.price}g.",
-          "[1x #{confirmation.item.display_name} removed to inventory]",
+          "[1x #{confirmation.item.display_name} removed from inventory]",
           "[your gold is now #{game.player.gold}]"
         )
       end
@@ -162,6 +163,13 @@ module TextAdventures
 
       def armor_class_label(item)
         item.armor_class.to_s.capitalize
+      end
+
+      def unavailable_route(target)
+        Response.new(
+          "You cannot go to #{target} from #{display_name}.",
+          "Use go town first to return to Nee'Peh."
+        )
       end
     end
   end

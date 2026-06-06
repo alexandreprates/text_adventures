@@ -11,6 +11,7 @@ module TextAdventures
 
       def handle(game, command)
         return back_to_town(game) if command.verb == :go && Item.normalize_name(command.target) == "town"
+        return unavailable_route(command.target) if command.verb == :go
         return sleep(game) if command.verb == :sleep
 
         describe
@@ -44,6 +45,13 @@ module TextAdventures
       def back_to_town(game)
         game.transition_to(Town.new)
         Response.new("You return to the town of Nee'Peh.")
+      end
+
+      def unavailable_route(target)
+        Response.new(
+          "You cannot go to #{target} from inside the Tavern.",
+          "Use go town first to return to Nee'Peh."
+        )
       end
     end
   end
