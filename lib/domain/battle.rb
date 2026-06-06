@@ -22,7 +22,7 @@ module TextAdventures
       return player_defeat_result(lines) if player.dead?
 
       damage = player_damage(player)
-      critical = critical_hit?
+      critical = critical_hit?(player)
       damage *= 2 if critical
       creature.take_damage(damage)
       record_contribution(weapon_skill(player.equipped_weapon), damage)
@@ -52,7 +52,7 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      damage = spell_damage(spell)
+      damage = spell_damage(player, spell)
       creature.take_damage(damage)
       record_contribution(spell_skill(spell), damage)
       lines << "You cast #{spell.display_name} causing #{damage} of damage."
@@ -75,7 +75,7 @@ module TextAdventures
       return player_defeat_result(lines) if player.dead?
 
       before = player.health.current
-      player.heal(spell.healing_range.begin)
+      player.heal(spell.healing_range.begin + player.nature_magic_healing_bonus)
       recovered = player.health.current - before
       record_contribution(spell_skill(spell), [recovered, 1].max)
       lines << "You cast #{spell.display_name} and recover #{recovered} health."
@@ -179,8 +179,8 @@ module TextAdventures
       [player.attack - creature.defense, 1].max
     end
 
-    def critical_hit?
-      random.rand(100) < CRITICAL_CHANCE
+    def critical_hit?(player)
+      random.rand(100) < CRITICAL_CHANCE + player.dagger_critical_bonus
     end
 
     def player_attack_line(damage, critical)
@@ -188,8 +188,14 @@ module TextAdventures
       "You attack a #{creature.display_name} causing #{damage} of damage#{suffix}."
     end
 
-    def spell_damage(spell)
-      [spell.damage_range.begin - creature.defense, 1].max
+    def spell_damage(player, spell)
+      [spell.damage_range.begin + spell_damage_bonus(player, spell) - creature.defense, 1].max
+    end
+
+    def spell_damage_bonus(player, spell)
+      return 0 unless spell.damage?
+
+      player.combat_magic_damage_bonus
     end
 
     def spell_status_lines(spell)

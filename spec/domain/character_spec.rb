@@ -147,6 +147,20 @@ RSpec.describe TextAdventures::Character do
       expect(character.attack).to eq 11
     end
 
+    it "adds swordsmanship bonus when using swords" do
+      character.gain_skill_xp(:swordsmanship, 50)
+
+      expect(character.attack).to eq 13
+    end
+
+    it "adds a smaller spearmanship attack bonus when using spears" do
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22, defense: 5, weapon_class: :spear)
+      character.equip(spear)
+      character.gain_skill_xp(:spearmanship, 50)
+
+      expect(character.attack).to eq 24
+    end
+
     it "falls back to base attack without an equipped weapon" do
       character.equipped_weapon = nil
 
@@ -159,10 +173,36 @@ RSpec.describe TextAdventures::Character do
       expect(character.defense).to eq 20
     end
 
+    it "adds spearmanship defense bonus when using spears" do
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22, defense: 5, weapon_class: :spear)
+      character.equip(spear)
+      character.gain_skill_xp(:spearmanship, 50)
+
+      expect(character.defense).to eq 21
+    end
+
     it "falls back to base defense without equipped armor" do
       character.equipped_armor = nil
 
       expect(character.defense).to eq 0
+    end
+  end
+
+  describe "skill combat bonuses" do
+    it "adds dagger mastery to critical chance" do
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 12, weapon_class: :dagger)
+      character.equip(dagger)
+      character.gain_skill_xp(:dagger_mastery, 50)
+
+      expect(character.dagger_critical_bonus).to eq 3
+    end
+
+    it "adds magic skill bonuses" do
+      character.gain_skill_xp(:combat_magic, 50)
+      character.gain_skill_xp(:nature_magic, 50)
+
+      expect(character.combat_magic_damage_bonus).to eq 2
+      expect(character.nature_magic_healing_bonus).to eq 3
     end
   end
 

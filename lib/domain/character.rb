@@ -87,11 +87,25 @@ module TextAdventures
     end
 
     def attack
-      base_attack + equipment_value(equipped_weapon, :attack)
+      base_attack + equipment_value(equipped_weapon, :attack) + weapon_attack_bonus
     end
 
     def defense
-      base_defense + equipment_value(equipped_armor, :defense)
+      base_defense + equipment_value(equipped_armor, :defense) + spear_defense_bonus
+    end
+
+    def dagger_critical_bonus
+      return 0 unless equipped_weapon_class == :dagger
+
+      skill_bonus(:dagger_mastery) * 3
+    end
+
+    def combat_magic_damage_bonus
+      skill_bonus(:combat_magic) * 2
+    end
+
+    def nature_magic_healing_bonus
+      skill_bonus(:nature_magic) * 3
     end
 
     def equip(item)
@@ -181,6 +195,43 @@ module TextAdventures
       return 0 unless equipment.respond_to?(attribute)
 
       equipment.public_send(attribute).to_i
+    end
+
+    def weapon_attack_bonus
+      case equipped_weapon_class
+      when :sword
+        skill_bonus(:swordsmanship) * 2
+      when :spear
+        skill_bonus(:spearmanship)
+      else
+        0
+      end
+    end
+
+    def spear_defense_bonus
+      return 0 unless equipped_weapon_class == :spear
+
+      skill_bonus(:spearmanship)
+    end
+
+    def skill_bonus(skill)
+      [progression.skill_level(skill) - 1, 0].max
+    end
+
+    def equipped_weapon_class
+      weapon_class_for(equipped_weapon)
+    end
+
+    def weapon_class_for(weapon)
+      return nil unless weapon
+      return weapon.weapon_class if weapon.respond_to?(:weapon_class) && weapon.weapon_class
+
+      normalized_name = Item.normalize_name(weapon.name)
+      return :sword if normalized_name.include?("sword")
+      return :spear if normalized_name.match?(/spear|halberd|lance/)
+      return :dagger if normalized_name.include?("dagger")
+
+      nil
     end
 
     def spell_list

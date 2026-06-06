@@ -44,6 +44,19 @@ RSpec.describe TextAdventures::Battle do
       expect(creature.health.current).to eq 15
     end
 
+    it "uses dagger mastery to improve critical hit chance" do
+      creature = TextAdventures::Creature.new(name: "Training Shade", health: 20)
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 12, weapon_class: :dagger)
+      player = TextAdventures::Character.new(equipped_weapon: dagger, equipped_armor: nil)
+      player.gain_skill_xp(:dagger_mastery, 50)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([12]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to include "You attack a Training Shade causing 26 of damage (critical hit)."
+      expect(creature).to be_dead
+    end
+
     it "ends the battle when the creature dies without counterattacking" do
       strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil, equipped_armor: nil)
 
@@ -168,6 +181,21 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 28
     end
 
+    it "adds combat magic bonus to offensive spell damage" do
+      player.gain_skill_xp(:combat_magic, 50)
+      battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+
+      response = battle.cast_spell(player, TextAdventures::Spell.fireball)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Fireball causing 13 of damage.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+    end
+
     it "casts Heal to restore player health during battle" do
       healing_battle = described_class.new(
         creature: creature,
@@ -182,6 +210,23 @@ RSpec.describe TextAdventures::Battle do
         Giant Spider attacks you with Bite causing 2 of damage.
       TEXT
       expect(player.health.current).to eq 26
+    end
+
+    it "adds nature magic bonus to healing spells" do
+      player.gain_skill_xp(:nature_magic, 50)
+      healing_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+      player.take_damage(20)
+
+      response = healing_battle.cast_spell(player, TextAdventures::Spell.heal)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Heal and recover 13 health.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+      expect(player.health.current).to eq 21
     end
 
     it "casts Cure to remove poison during battle" do
