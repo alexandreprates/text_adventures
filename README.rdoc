@@ -84,6 +84,7 @@ Type commands at the prompt. Use `quit` or `exit` to leave the game.
 
 Global commands:
 
+  help            # show contextual help for the current place
   inventory       # show carried and equipped items
   spellbook       # show known spells
   level           # show overall character level and XP
@@ -95,6 +96,7 @@ Global commands:
 Town and shop commands:
 
   go <place>      # move between town destinations
+  go town         # return to town from sublocations
   show            # show merchant stock
   buy <item>      # request a purchase
   sell <item>     # request a sale
@@ -102,11 +104,15 @@ Town and shop commands:
   no              # cancel buy/sell
   heal            # priest healing service
   cure            # priest cure service
+  sleep           # rent a Tavern room and fully recover health
+  rent room       # alias for sleep
+  rest            # alias for sleep
 
 Ruins commands:
 
   look            # inspect the dungeon and possibly trigger encounters
   go <direction>  # move up, right, down, or left
+  go town         # leave the ruins when no enemy is active
   attack          # attack the active enemy
   cast <spell>    # cast a known spell
   loot            # collect victory loot
@@ -177,9 +183,9 @@ historical and may differ from the current terminal implementation.
 
   Here you can:
     go Tavern - small talk, some Ale and Potions
-    go Aluriel's Priest - here you can cure deseases, recover health, buy and sell tomes
+    go Aluriel's Priest - here you can cure diseases, recover health, buy and sell tomes
     go Blacksmith - buy or sell weapons
-    go Armorsmith - buy  or sell armors
+    go Armorsmith - buy or sell armors
     go Ruins - where your adventure begins
 
   What will you do now?
@@ -191,21 +197,21 @@ historical and may differ from the current terminal implementation.
    _go blacksmith
   Welcome, adventurer to buy or sell weapons here is the right place!
 
-  That you want:
+  You can:
    show - view merchant goods
    buy <item> - buy something
    sell <item> - sell item
 
    _sell sword
-  Well i can give you 10g for this Sword (Atk: 10).
+  I can give you 10g for this Sword (Atk: 10).
 
-  That you want:
+  Select your answer:
    agree - sell item
    no - keep item
 
    _agree
   You sold Sword (Atk: 10) at 10g.
-  [1x Sword (Atk: 10) removed to inventory]
+  [1x Sword (Atk: 10) removed from inventory]
   [your gold is now 120]
 
    _sell leather armor
@@ -219,10 +225,10 @@ historical and may differ from the current terminal implementation.
    1x King's Nep Sword (Atk: 50) - 500g
 
    _buy king nep's sword
-  Sorry but you dont have enough money for this.
+  Sorry, but you do not have enough money for this.
 
    _buy spear
-  Excellent choice its yours for mere 50g.
+  Excellent choice. It is yours for 50g.
 
    Select your answer:
     agree - buy it
@@ -241,15 +247,16 @@ historical and may differ from the current terminal implementation.
 
   Here you can:
     go <up|right|down|left> - to move around
+    go town - return to Nee'Peh
     look - to examine your surroundings
     attack - to attack an enemy (yes this really is an adventure)
     spellbook - show the spells you can cast
-    cast <spell> - to cast a powerfull spell
+    cast <spell> - to cast a powerful spell
     loot - to collect your prize after the battle
-    invetory - to show what you carry in our bags
+    inventory - to show what you carry in your bags
     equip <item> - to equip item
     use <item> - to use item
-    drop <item> - to leave an item (not everything is helpfull)
+    drop <item> - to leave an item
 
     ######  <- this is the dungeon wall
     ######
