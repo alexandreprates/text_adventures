@@ -45,6 +45,7 @@ RSpec.describe TextAdventures::Scenes::Town do
 
     expect(blacksmith_game.handle("go blacksmith")).to eq "You go to Blacksmith."
     expect(blacksmith_game.current_scene_name).to eq :blacksmith
+    expect(blacksmith_game.current_scene).to be_a TextAdventures::Scenes::Blacksmith
 
     expect(armorsmith_game.handle("go armorsmith")).to eq "You go to Armorsmith."
     expect(armorsmith_game.current_scene_name).to eq :armorsmith

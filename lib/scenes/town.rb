@@ -5,7 +5,7 @@ module TextAdventures
         "tavern" => -> { Tavern.new },
         "aluriel s priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
         "priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
-        "blacksmith" => -> { StaticLocation.new(name: :blacksmith, display_name: "Blacksmith") },
+        "blacksmith" => -> { Blacksmith.new },
         "armorsmith" => -> { StaticLocation.new(name: :armorsmith, display_name: "Armorsmith") },
         "ruins" => -> { StaticLocation.new(name: :ruins, display_name: "Ruins") }
       }.freeze
