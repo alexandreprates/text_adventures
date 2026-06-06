@@ -114,6 +114,19 @@ RSpec.describe TextAdventures::Game do
       expect(scene.handled_command).to be_nil
     end
 
+    it "handles level and skills as global player commands" do
+      scene = TestScene.new(response: "scene response")
+      game = described_class.new(current_scene: scene)
+      game.player.gain_skill_xp(:dagger_mastery, 50)
+
+      expect(game.handle("level")).to eq <<~TEXT.chomp
+        Adventurer level 2
+        [50/200 XP]
+      TEXT
+      expect(game.handle("skills")).to include "Dagger Mastery: level 2 (50/200 XP)"
+      expect(scene.handled_command).to be_nil
+    end
+
     it "equips an inventory weapon as a global player command" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

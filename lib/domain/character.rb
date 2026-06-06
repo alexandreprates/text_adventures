@@ -158,6 +158,21 @@ module TextAdventures
       lines.join("\n")
     end
 
+    def level_report
+      Response.new(
+        "#{name} level #{overall_level}",
+        "[#{overall_experience}/#{progression.xp_required_for(overall_level)} XP]"
+      ).to_text
+    end
+
+    def skills_report
+      lines = ["Skills:"]
+      CharacterProgression::SKILL_TRACKS.each do |skill|
+        lines << " #{skill_label(skill)}: level #{progression.skill_level(skill)} (#{progression.skill_xp(skill)}/#{progression.xp_required_for(progression.skill_level(skill))} XP)"
+      end
+      lines.join("\n")
+    end
+
     private
 
     attr_writer :health
@@ -174,6 +189,10 @@ module TextAdventures
 
     def spellbook_line(spell)
       "1x #{spell.display_name} (level #{spell.level}) - #{spell.description}"
+    end
+
+    def skill_label(skill)
+      skill.to_s.tr("_", " ").split.map(&:capitalize).join(" ")
     end
 
     def equipment_line(equipment, attribute)

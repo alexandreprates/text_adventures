@@ -46,6 +46,8 @@ module TextAdventures
       return game_over_response if player.dead?
       return player.inventory_report if command.verb == :inventory
       return player.spellbook if command.verb == :spellbook
+      return player.level_report if command.verb == :level
+      return player.skills_report if command.verb == :skills
       return equip_item(command.target) if command.verb == :equip
       return use_item(command.target) if command.verb == :use
       return drop_item(command.target) if command.verb == :drop

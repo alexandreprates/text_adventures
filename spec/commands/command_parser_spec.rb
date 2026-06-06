@@ -21,6 +21,7 @@ RSpec.describe TextAdventures::CommandParser do
       expect(described_class.parse("heal")).to have_attributes(verb: :heal, target: nil)
       expect(described_class.parse("cure")).to have_attributes(verb: :cure, target: nil)
       expect(described_class.parse("inventory")).to have_attributes(verb: :inventory, target: nil)
+      expect(described_class.parse("level")).to have_attributes(verb: :level, target: nil)
       expect(described_class.parse("agree")).to have_attributes(verb: :agree, target: nil)
       expect(described_class.parse("no")).to have_attributes(verb: :no, target: nil)
     end
@@ -31,6 +32,7 @@ RSpec.describe TextAdventures::CommandParser do
       expect(described_class.parse("sell sword")).to have_attributes(verb: :sell, target: "sword")
       expect(described_class.parse("look")).to have_attributes(verb: :look, target: nil)
       expect(described_class.parse("loot")).to have_attributes(verb: :loot, target: nil)
+      expect(described_class.parse("skills")).to have_attributes(verb: :skills, target: nil)
       expect(described_class.parse("spellbook")).to have_attributes(verb: :spellbook, target: nil)
     end
 

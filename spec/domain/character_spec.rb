@@ -328,4 +328,31 @@ RSpec.describe TextAdventures::Character do
       TEXT
     end
   end
+
+  describe "#level_report" do
+    it "renders overall level and XP progress" do
+      character.gain_skill_xp(:swordsmanship, 60)
+
+      expect(character.level_report).to eq <<~TEXT.chomp
+        Adventurer level 2
+        [60/200 XP]
+      TEXT
+    end
+  end
+
+  describe "#skills_report" do
+    it "renders every skill track with XP progress" do
+      character.gain_skill_xp(:swordsmanship, 60)
+      character.gain_skill_xp(:combat_magic, 20)
+
+      expect(character.skills_report).to eq <<~TEXT.chomp
+        Skills:
+         Swordsmanship: level 2 (60/200 XP)
+         Spearmanship: level 1 (0/50 XP)
+         Dagger Mastery: level 1 (0/50 XP)
+         Combat Magic: level 1 (20/50 XP)
+         Nature Magic: level 1 (0/50 XP)
+      TEXT
+    end
+  end
 end

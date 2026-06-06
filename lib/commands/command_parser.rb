@@ -22,10 +22,12 @@ module TextAdventures
       cure
       heal
       inventory
+      level
       look
       loot
       no
       show
+      skills
       spellbook
     ].freeze
 
