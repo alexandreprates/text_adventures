@@ -7,7 +7,7 @@ module TextAdventures
         "priest" => -> { Priest.new },
         "blacksmith" => -> { Blacksmith.new },
         "armorsmith" => -> { Armorsmith.new },
-        "ruins" => -> { Ruins.new }
+        "ruins" => ->(game) { Ruins.new(dungeon: Dungeon.new(random: game.random)) }
       }.freeze
 
       def name
@@ -18,7 +18,7 @@ module TextAdventures
         destination_factory = DESTINATIONS[Item.normalize_name(target)]
         return invalid_destination(target) unless destination_factory
 
-        scene = destination_factory.call
+        scene = destination_factory.arity == 1 ? destination_factory.call(game) : destination_factory.call
         game.transition_to(scene)
         scene.enter(game) if scene.respond_to?(:enter)
         Response.new("You go to #{scene.display_name}.", "", scene.describe)

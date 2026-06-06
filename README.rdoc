@@ -12,8 +12,8 @@ Dungeon Siege-inspired progression by use.
 
 The current implementation is a playable terminal Ruby game foundation. It
 includes command parsing, a game loop, town navigation, shops, inventory,
-equipment, spells, dungeon movement, random encounters, combat, loot, basic
-game-over handling, and XP/level progression.
+equipment, spells, dungeon movement, visible map encounters, spatial loot,
+combat, basic game-over handling, and XP/level progression.
 
 Implemented gameplay includes:
 
@@ -25,7 +25,9 @@ Implemented gameplay includes:
 * 50 high-fantasy dungeon enemies with attacks, loot, status effects, and XP rewards.
 * Buy, sell, confirmation, inventory, equip, use, and drop commands.
 * Spell tomes and spellbook support.
-* Damage, healing, cure, freeze, poison, critical hits, loot, and game-over handling.
+* Visible dungeon enemies marked with `E` when new blocks are revealed.
+* Spatial dungeon loot marked with `@` after defeated enemies drop rewards.
+* Damage, healing, cure, freeze, poison, critical hits, loot collection, and game-over handling.
 * Use-based progression inspired by Dungeon Siege.
 
 Browser play, URL-based sessions, and persistence are still planned work.
@@ -110,12 +112,26 @@ Town and shop commands:
 
 Ruins commands:
 
-  look            # inspect the dungeon and possibly trigger encounters
+  look            # inspect the dungeon map and visible entities
   go <direction>  # move up, right, down, or left
   go town         # leave the ruins when no enemy is active
   attack          # attack the active enemy
   cast <spell>    # cast a known spell
-  loot            # collect victory loot
+  loot            # collect nearby map loot
+
+Ruins map symbols:
+
+  x               # player
+  E               # visible enemy
+  @               # loot on the ground
+  .               # open floor
+  #               # wall
+
+Dungeon encounters are visible on the map. New blocks may reveal an `E`, and
+combat starts when the player moves to an orthogonally adjacent tile. Defeated
+enemies disappear and can drop `@` loot at their map position. The player can
+step onto loot to collect it automatically or use `loot` while standing on or
+next to `@`.
 
 ==Progression
 

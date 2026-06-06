@@ -31,7 +31,7 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "Thanks for playing."
   end
 
-  it "creates the dungeon incrementally when the player crosses a block exit" do
+  it "plays a visible dungeon enemy and map loot loop through the binary" do
     output, error, status = Open3.capture3(
       { "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
       binary,
@@ -40,19 +40,35 @@ RSpec.describe "text_adventures binary" do
         go right
         go right
         go right
+        go right
+        attack
+        attack
+        attack
+        attack
+        loot
+        look
         quit
       COMMANDS
     )
 
     lines = output.lines.map(&:chomp)
+    after_collection = output.split("You collect the loot.").last
 
     expect(status).to be_success
     expect(error).to eq ""
     expect(output).to include "You go to Ruins."
     expect(lines).to include "##.x.."
     expect(lines).to include "##...x"
-    expect(lines).to include a_string_matching(/\A.{12}\z/)
-    expect(lines).to include a_string_matching(/\A.{6}x.{5}\z/)
+    expect(lines).to include "##....x.E.##"
+    expect(lines).to include "##.....xE.##"
+    expect(output).to include "You see a Giant Spider"
+    expect(output).to include "A Giant Spider is about to attack you!"
+    expect(output).to include "Giant Spider dies."
+    expect(output).to include "[loot dropped]"
+    expect(lines).to include "##.....x@.##"
+    expect(output).to include "You collect the loot."
+    expect(output).to include "[1x Tome of Freezing added to inventory]"
+    expect(after_collection.lines.map(&:chomp)).to include "##.....x..##"
     expect(output).to include "Thanks for playing."
   end
 end
