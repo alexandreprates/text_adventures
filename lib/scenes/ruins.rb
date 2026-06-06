@@ -33,7 +33,7 @@ module TextAdventures
         when :attack
           Response.new("There is no enemy to attack.")
         when :cast
-          Response.new("There is no enemy to target.")
+          no_spell_target(game, command.target)
         when :loot
           collect_loot(game)
         else
@@ -133,6 +133,13 @@ module TextAdventures
 
         result = game.battle.cast_spell(game.player, spell)
         resolve_battle_result(game, result)
+      end
+
+      def no_spell_target(game, spell_name)
+        spell = game.player.spells[Spell.normalize_name(spell_name)]
+        return Response.new("There is no enemy to target.") unless spell
+
+        Response.new("You know #{spell.display_name}, but there is no enemy to target.")
       end
 
       def resolve_battle_result(game, result)

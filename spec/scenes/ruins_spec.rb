@@ -297,4 +297,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("attack")).to eq "There is no enemy to attack."
     expect(game.handle("cast fireball")).to eq "There is no enemy to target."
   end
+
+  it "acknowledges known spells when casting without an enemy" do
+    game.player.learn_spell(TextAdventures::Spell.fireball)
+
+    expect(game.handle("cast fireball")).to eq "You know Fireball, but there is no enemy to target."
+  end
 end
