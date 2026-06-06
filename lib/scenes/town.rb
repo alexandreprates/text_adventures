@@ -46,7 +46,7 @@ module TextAdventures
         scene = destination_factory.call
         game.transition_to(scene)
         scene.enter(game) if scene.respond_to?(:enter)
-        Response.new("You go to #{scene.display_name}.")
+        Response.new("You go to #{scene.display_name}.", "", scene.describe)
       end
 
       def invalid_destination(target)
