@@ -49,6 +49,7 @@ RSpec.describe TextAdventures::Scenes::Town do
 
     expect(armorsmith_game.handle("go armorsmith")).to eq "You go to Armorsmith."
     expect(armorsmith_game.current_scene_name).to eq :armorsmith
+    expect(armorsmith_game.current_scene).to be_a TextAdventures::Scenes::Armorsmith
 
     expect(ruins_game.handle("go ruins")).to eq "You go to Ruins."
     expect(ruins_game.current_scene_name).to eq :ruins

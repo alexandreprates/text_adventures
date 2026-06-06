@@ -1,6 +1,7 @@
 module TextAdventures
   class Character
     Equipment = Struct.new(:name, :attack, :defense, keyword_init: true)
+    EquipResult = Struct.new(:success?, :item, :message, keyword_init: true)
 
     DEFAULT_NAME = "Adventurer".freeze
     DEFAULT_HEALTH = 30
@@ -64,6 +65,20 @@ module TextAdventures
 
     def defense
       base_defense + equipment_value(equipped_armor, :defense)
+    end
+
+    def equip(item)
+      if item.weapon?
+        self.equipped_weapon = item
+        return EquipResult.new(success?: true, item: item, message: "Equipped #{item.display_name}.")
+      end
+
+      if item.armor?
+        self.equipped_armor = item
+        return EquipResult.new(success?: true, item: item, message: "Equipped #{item.display_name}.")
+      end
+
+      EquipResult.new(success?: false, item: item, message: "#{item.display_name} cannot be equipped.")
     end
 
     def learn_spell(spell)

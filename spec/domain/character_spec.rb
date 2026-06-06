@@ -139,6 +139,48 @@ RSpec.describe TextAdventures::Character do
     end
   end
 
+  describe "#equip" do
+    it "equips a weapon" do
+      weapon = TextAdventures::Item.weapon("Bastard Sword", price: 30, attack: 25)
+
+      result = character.equip(weapon)
+
+      expect(result).to have_attributes(
+        success?: true,
+        item: weapon,
+        message: "Equipped Bastard Sword."
+      )
+      expect(character.equipped_weapon).to eq weapon
+      expect(character.attack).to eq 26
+    end
+
+    it "equips armor" do
+      armor = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
+
+      result = character.equip(armor)
+
+      expect(result).to have_attributes(
+        success?: true,
+        item: armor,
+        message: "Equipped Iron Armor."
+      )
+      expect(character.equipped_armor).to eq armor
+      expect(character.defense).to eq 35
+    end
+
+    it "rejects non-equippable items" do
+      potion = TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20)
+
+      result = character.equip(potion)
+
+      expect(result).to have_attributes(
+        success?: false,
+        item: potion,
+        message: "Potion of Heal cannot be equipped."
+      )
+    end
+  end
+
   describe "#learn_spell" do
     it "learns a new spell" do
       character.learn_spell(TextAdventures::Spell.fireball)
