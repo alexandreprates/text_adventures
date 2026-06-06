@@ -158,7 +158,7 @@ module TextAdventures
 
       def no_spell_target(game, spell_name)
         spell = game.player.spells[Spell.normalize_name(spell_name)]
-        return Response.new("There is no enemy to target.") unless spell
+        return Response.new("You do not know #{spell_name}, and there is no enemy to target.") unless spell
 
         Response.new("You know #{spell.display_name}, but there is no enemy to target.")
       end

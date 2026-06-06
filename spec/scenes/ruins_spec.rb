@@ -305,7 +305,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
   it "gives direct feedback for combat commands without an enemy" do
     expect(game.handle("attack")).to eq "There is no enemy to attack."
-    expect(game.handle("cast fireball")).to eq "There is no enemy to target."
+    expect(game.handle("cast fireball")).to eq "You do not know fireball, and there is no enemy to target."
   end
 
   it "acknowledges known spells when casting without an enemy" do
