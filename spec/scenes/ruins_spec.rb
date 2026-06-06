@@ -296,6 +296,14 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.current_scene_name).to eq :town
   end
 
+  it "can travel directly to another town destination when no enemy is active" do
+    response = game.handle("go armorsmith")
+
+    expect(response).to include "You go to Armorsmith."
+    expect(response).to include "Welcome to Armorsmith."
+    expect(game.current_scene_name).to eq :armorsmith
+  end
+
   it "rejects invalid movement targets" do
     expect(game.handle("go sideways")).to eq <<~TEXT.chomp
       You cannot go sideways inside the ruins.

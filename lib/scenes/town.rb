@@ -24,6 +24,10 @@ module TextAdventures
         Response.new("You go to #{scene.display_name}.", "", scene.describe)
       end
 
+      def self.destination?(target)
+        DESTINATIONS.key?(Item.normalize_name(target))
+      end
+
       def handle(game, command)
         return self.class.route(game, command.target) if command.verb == :go
 

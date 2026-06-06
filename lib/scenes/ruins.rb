@@ -93,6 +93,7 @@ module TextAdventures
 
       def handle_movement(game, direction)
         return back_to_town(game) if Item.normalize_name(direction) == "town"
+        return Town.route(game, direction) if Town.destination?(direction)
         return invalid_direction(direction) unless DIRECTIONS.include?(direction)
 
         result = dungeon.move(direction)
