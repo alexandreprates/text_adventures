@@ -7,7 +7,7 @@ module TextAdventures
         "priest" => -> { Priest.new },
         "blacksmith" => -> { Blacksmith.new },
         "armorsmith" => -> { Armorsmith.new },
-        "ruins" => -> { StaticLocation.new(name: :ruins, display_name: "Ruins") }
+        "ruins" => -> { Ruins.new }
       }.freeze
 
       def name
@@ -45,6 +45,7 @@ module TextAdventures
 
         scene = destination_factory.call
         game.transition_to(scene)
+        scene.enter(game) if scene.respond_to?(:enter)
         Response.new("You go to #{scene.display_name}.")
       end
 

@@ -55,6 +55,8 @@ RSpec.describe TextAdventures::Scenes::Town do
 
     expect(ruins_game.handle("go ruins")).to eq "You go to Ruins."
     expect(ruins_game.current_scene_name).to eq :ruins
+    expect(ruins_game.current_scene).to be_a TextAdventures::Scenes::Ruins
+    expect(ruins_game.dungeon).to be_a TextAdventures::Dungeon
   end
 
   it "returns available options for invalid destinations" do
