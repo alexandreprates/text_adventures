@@ -1,810 +1,861 @@
+---
 creatures:
   giant_spider:
     name: Giant Spider
     health: 35
     defense: 1
     attacks:
-      - name: Bite
-        damage:
-          min: 2
-          max: 4
-      - name: Poison Bite
-        damage:
-          min: 1
-          max: 3
-        status: poison
-        status_chance: 35
+    - name: Bite
+      damage:
+        min: 2
+        max: 4
+    - name: Poison Bite
+      damage:
+        min: 1
+        max: 3
+      status: poison
+      status_chance: 35
     loot:
-      - tome_of_freezing
+    - tome_of_freezing
     status_effects:
-      - poison
+    - poison
+    xp_reward: 67
   goblin_skirmisher:
     name: Goblin Skirmisher
     health: 18
     defense: 0
     attacks:
-      - name: Rusty Slash
-        damage:
-          min: 1
-          max: 3
-      - name: Sneaky Jab
-        damage:
-          min: 2
-          max: 4
+    - name: Rusty Slash
+      damage:
+        min: 1
+        max: 3
+    - name: Sneaky Jab
+      damage:
+        min: 2
+        max: 4
     loot:
-      - rusty_dagger
+    - rusty_dagger
     status_effects: []
+    xp_reward: 30
   goblin_hexer:
     name: Goblin Hexer
     health: 22
     defense: 0
     attacks:
-      - name: Hex Bolt
-        damage:
-          min: 3
-          max: 6
-      - name: Bone Charm
-        damage:
-          min: 2
-          max: 5
+    - name: Hex Bolt
+      damage:
+        min: 3
+        max: 6
+    - name: Bone Charm
+      damage:
+        min: 2
+        max: 5
     loot:
-      - tome_of_cure
+    - tome_of_cure
     status_effects: []
+    xp_reward: 40
   hobgoblin_soldier:
     name: Hobgoblin Soldier
     health: 34
     defense: 2
     attacks:
-      - name: Spear Thrust
-        damage:
-          min: 4
-          max: 7
-      - name: Shield Bash
-        damage:
-          min: 3
-          max: 6
+    - name: Spear Thrust
+      damage:
+        min: 4
+        max: 7
+    - name: Shield Bash
+      damage:
+        min: 3
+        max: 6
     loot:
-      - hunting_spear
+    - hunting_spear
     status_effects: []
+    xp_reward: 65
   orc_raider:
     name: Orc Raider
     health: 42
     defense: 1
     attacks:
-      - name: Axe Chop
-        damage:
-          min: 5
-          max: 9
-      - name: Brutal Kick
-        damage:
-          min: 3
-          max: 6
+    - name: Axe Chop
+      damage:
+        min: 5
+        max: 9
+    - name: Brutal Kick
+      damage:
+        min: 3
+        max: 6
     loot:
-      - sword
+    - sword
     status_effects: []
+    xp_reward: 74
   orc_berserker:
     name: Orc Berserker
     health: 55
     defense: 0
     attacks:
-      - name: Frenzied Cleave
-        damage:
-          min: 7
-          max: 12
-      - name: Headbutt
-        damage:
-          min: 4
-          max: 8
+    - name: Frenzied Cleave
+      damage:
+        min: 7
+        max: 12
+    - name: Headbutt
+      damage:
+        min: 4
+        max: 8
     loot:
-      - greatsword
+    - greatsword
     status_effects: []
+    xp_reward: 91
   kobold_trapper:
     name: Kobold Trapper
     health: 20
     defense: 1
     attacks:
-      - name: Barbed Dagger
-        damage:
-          min: 2
-          max: 5
-      - name: Sling Stone
-        damage:
-          min: 1
-          max: 4
+    - name: Barbed Dagger
+      damage:
+        min: 2
+        max: 5
+    - name: Sling Stone
+      damage:
+        min: 1
+        max: 4
     loot:
-      - iron_dagger
+    - iron_dagger
     status_effects: []
+    xp_reward: 40
   kobold_sparkmage:
     name: Kobold Sparkmage
     health: 24
     defense: 0
     attacks:
-      - name: Spark Bolt
-        damage:
-          min: 4
-          max: 8
-      - name: Static Burst
-        damage:
-          min: 3
-          max: 6
+    - name: Spark Bolt
+      damage:
+        min: 4
+        max: 8
+    - name: Static Burst
+      damage:
+        min: 3
+        max: 6
     loot:
-      - tome_of_fireball
+    - tome_of_fireball
     status_effects: []
+    xp_reward: 48
   gnoll_hunter:
     name: Gnoll Hunter
     health: 38
     defense: 1
     attacks:
-      - name: Hunting Spear
-        damage:
-          min: 4
-          max: 8
-      - name: Savage Bite
-        damage:
-          min: 3
-          max: 7
+    - name: Hunting Spear
+      damage:
+        min: 4
+        max: 8
+    - name: Savage Bite
+      damage:
+        min: 3
+        max: 7
     loot:
-      - hunting_spear
+    - hunting_spear
     status_effects: []
+    xp_reward: 67
   gnoll_bonecaller:
     name: Gnoll Bonecaller
     health: 32
     defense: 1
     attacks:
-      - name: Bone Shards
-        damage:
-          min: 4
-          max: 8
-      - name: Spirit Gnaw
-        damage:
-          min: 3
-          max: 7
+    - name: Bone Shards
+      damage:
+        min: 4
+        max: 8
+    - name: Spirit Gnaw
+      damage:
+        min: 3
+        max: 7
     loot:
-      - tome_of_heal
+    - tome_of_heal
     status_effects: []
+    xp_reward: 61
   skeleton_guard:
     name: Skeleton Guard
     health: 28
     defense: 2
     attacks:
-      - name: Ancient Blade
-        damage:
-          min: 3
-          max: 7
-      - name: Shield Rattle
-        damage:
-          min: 2
-          max: 5
+    - name: Ancient Blade
+      damage:
+        min: 3
+        max: 7
+    - name: Shield Rattle
+      damage:
+        min: 2
+        max: 5
     loot:
-      - chain_shirt
+    - chain_shirt
     status_effects: []
+    xp_reward: 59
   skeleton_archer:
     name: Skeleton Archer
     health: 24
     defense: 1
     attacks:
-      - name: Bone Arrow
-        damage:
-          min: 4
-          max: 7
-      - name: Knife Slash
-        damage:
-          min: 2
-          max: 5
+    - name: Bone Arrow
+      damage:
+        min: 4
+        max: 7
+    - name: Knife Slash
+      damage:
+        min: 2
+        max: 5
     loot:
-      - curved_dagger
+    - curved_dagger
     status_effects: []
+    xp_reward: 50
   wight_knight:
     name: Wight Knight
     health: 58
     defense: 4
     attacks:
-      - name: Graveblade
-        damage:
-          min: 7
-          max: 13
-      - name: Cold Grasp
-        damage:
-          min: 5
-          max: 10
+    - name: Graveblade
+      damage:
+        min: 7
+        max: 13
+    - name: Cold Grasp
+      damage:
+        min: 5
+        max: 10
     loot:
-      - longsword
+    - longsword
     status_effects: []
+    xp_reward: 117
   ghoul_stalker:
     name: Ghoul Stalker
     health: 36
     defense: 1
     attacks:
-      - name: Rending Claws
-        damage:
-          min: 5
-          max: 9
-      - name: Grave Bite
-        damage:
-          min: 4
-          max: 8
+    - name: Rending Claws
+      damage:
+        min: 5
+        max: 9
+    - name: Grave Bite
+      damage:
+        min: 4
+        max: 8
     loot:
-      - potion_of_heal
+    - potion_of_heal
     status_effects: []
+    xp_reward: 68
   zombie_brute:
     name: Zombie Brute
     health: 60
     defense: 0
     attacks:
-      - name: Heavy Slam
-        damage:
-          min: 5
-          max: 10
-      - name: Rotting Fist
-        damage:
-          min: 3
-          max: 8
+    - name: Heavy Slam
+      damage:
+        min: 5
+        max: 10
+    - name: Rotting Fist
+      damage:
+        min: 3
+        max: 8
     loot:
-      - ring_mail
+    - ring_mail
     status_effects: []
+    xp_reward: 90
   shadow_imp:
     name: Shadow Imp
     health: 26
     defense: 2
     attacks:
-      - name: Shadow Claw
-        damage:
-          min: 4
-          max: 8
-      - name: Wicked Prank
-        damage:
-          min: 2
-          max: 6
+    - name: Shadow Claw
+      damage:
+        min: 4
+        max: 8
+    - name: Wicked Prank
+      damage:
+        min: 2
+        max: 6
     loot:
-      - shadow_dagger
+    - shadow_dagger
     status_effects: []
+    xp_reward: 60
   brimstone_imp:
     name: Brimstone Imp
     health: 30
     defense: 1
     attacks:
-      - name: Ember Spit
-        damage:
-          min: 5
-          max: 9
-      - name: Burning Scratch
-        damage:
-          min: 3
-          max: 7
+    - name: Ember Spit
+      damage:
+        min: 5
+        max: 9
+    - name: Burning Scratch
+      damage:
+        min: 3
+        max: 7
     loot:
-      - tome_of_fireball
+    - tome_of_fireball
     status_effects: []
+    xp_reward: 62
   lesser_demon:
     name: Lesser Demon
     health: 70
     defense: 3
     attacks:
-      - name: Hellish Claw
-        damage:
-          min: 8
-          max: 14
-      - name: Infernal Bite
-        damage:
-          min: 6
-          max: 12
+    - name: Hellish Claw
+      damage:
+        min: 8
+        max: 14
+    - name: Infernal Bite
+      damage:
+        min: 6
+        max: 12
     loot:
-      - plate_armor
+    - plate_armor
     status_effects: []
+    xp_reward: 127
   forest_sprite:
     name: Forest Sprite
     health: 18
     defense: 3
     attacks:
-      - name: Thorn Dart
-        damage:
-          min: 2
-          max: 5
-      - name: Glimmer Sting
-        damage:
-          min: 3
-          max: 6
+    - name: Thorn Dart
+      damage:
+        min: 2
+        max: 5
+    - name: Glimmer Sting
+      damage:
+        min: 3
+        max: 6
     loot:
-      - silken_guard
+    - silken_guard
     status_effects: []
+    xp_reward: 51
   pixie_trickster:
     name: Pixie Trickster
     health: 20
     defense: 4
     attacks:
-      - name: Needle Prick
-        damage:
-          min: 2
-          max: 5
-      - name: Glitter Burst
-        damage:
-          min: 3
-          max: 7
+    - name: Needle Prick
+      damage:
+        min: 2
+        max: 5
+    - name: Glitter Burst
+      damage:
+        min: 3
+        max: 7
     loot:
-      - tome_of_heal
+    - tome_of_heal
     status_effects: []
+    xp_reward: 61
   satyr_duelist:
     name: Satyr Duelist
     health: 40
     defense: 2
     attacks:
-      - name: Rapier Flourish
-        damage:
-          min: 5
-          max: 10
-      - name: Hoof Kick
-        damage:
-          min: 3
-          max: 7
+    - name: Rapier Flourish
+      damage:
+        min: 5
+        max: 10
+    - name: Hoof Kick
+      damage:
+        min: 3
+        max: 7
     loot:
-      - bastard_sword
+    - bastard_sword
     status_effects: []
+    xp_reward: 80
   dryad_thornweaver:
     name: Dryad Thornweaver
     health: 44
     defense: 3
     attacks:
-      - name: Thorn Lash
-        damage:
-          min: 5
-          max: 10
-      - name: Root Crush
-        damage:
-          min: 4
-          max: 9
+    - name: Thorn Lash
+      damage:
+        min: 5
+        max: 10
+    - name: Root Crush
+      damage:
+        min: 4
+        max: 9
     loot:
-      - scout_mail
+    - scout_mail
     status_effects: []
+    xp_reward: 89
   fae_blade_dancer:
     name: Fae Blade Dancer
     health: 46
     defense: 4
     attacks:
-      - name: Moonlit Cut
-        damage:
-          min: 6
-          max: 11
-      - name: Spiral Slash
-        damage:
-          min: 5
-          max: 10
+    - name: Moonlit Cut
+      damage:
+        min: 6
+        max: 11
+    - name: Spiral Slash
+      damage:
+        min: 5
+        max: 10
     loot:
-      - assassin_dagger
+    - assassin_dagger
     status_effects: []
+    xp_reward: 99
   dire_wolf:
     name: Dire Wolf
     health: 45
     defense: 1
     attacks:
-      - name: Crushing Bite
-        damage:
-          min: 6
-          max: 11
-      - name: Pounce
-        damage:
-          min: 4
-          max: 9
+    - name: Crushing Bite
+      damage:
+        min: 6
+        max: 11
+    - name: Pounce
+      damage:
+        min: 4
+        max: 9
     loot:
-      - leather_armor
+    - leather_armor
     status_effects: []
+    xp_reward: 83
   owlbear_cub:
     name: Owlbear Cub
     health: 62
     defense: 2
     attacks:
-      - name: Beak Snap
-        damage:
-          min: 6
-          max: 12
-      - name: Bear Hug
-        damage:
-          min: 5
-          max: 11
+    - name: Beak Snap
+      damage:
+        min: 6
+        max: 12
+    - name: Bear Hug
+      damage:
+        min: 5
+        max: 11
     loot:
-      - scale_mail
+    - scale_mail
     status_effects: []
+    xp_reward: 108
   cave_troll:
     name: Cave Troll
     health: 90
     defense: 3
     attacks:
-      - name: Club Smash
-        damage:
-          min: 9
-          max: 16
-      - name: Stony Fist
-        damage:
-          min: 7
-          max: 14
+    - name: Club Smash
+      damage:
+        min: 9
+        max: 16
+    - name: Stony Fist
+      damage:
+        min: 7
+        max: 14
     loot:
-      - half_plate
+    - half_plate
     status_effects: []
+    xp_reward: 153
   hill_giant_youth:
     name: Hill Giant Youth
     health: 110
     defense: 4
     attacks:
-      - name: Boulder Swing
-        damage:
-          min: 10
-          max: 18
-      - name: Stomp
-        damage:
-          min: 8
-          max: 15
+    - name: Boulder Swing
+      damage:
+        min: 10
+        max: 18
+    - name: Stomp
+      damage:
+        min: 8
+        max: 15
     loot:
-      - halberd
+    - halberd
     status_effects: []
+    xp_reward: 184
   minotaur_guardian:
     name: Minotaur Guardian
     health: 95
     defense: 5
     attacks:
-      - name: Horn Gore
-        damage:
-          min: 10
-          max: 17
-      - name: Labyrinth Axe
-        damage:
-          min: 9
-          max: 16
+    - name: Horn Gore
+      damage:
+        min: 10
+        max: 17
+    - name: Labyrinth Axe
+      damage:
+        min: 9
+        max: 16
     loot:
-      - splint_armor
+    - splint_armor
     status_effects: []
+    xp_reward: 171
   ogre_marauder:
     name: Ogre Marauder
     health: 85
     defense: 2
     attacks:
-      - name: Maul Swing
-        damage:
-          min: 8
-          max: 15
-      - name: Backhand
-        damage:
-          min: 6
-          max: 12
+    - name: Maul Swing
+      damage:
+        min: 8
+        max: 15
+    - name: Backhand
+      damage:
+        min: 6
+        max: 12
     loot:
-      - brigandine
+    - brigandine
     status_effects: []
+    xp_reward: 140
   lizardfolk_scout:
     name: Lizardfolk Scout
     health: 38
     defense: 3
     attacks:
-      - name: Javelin Thrust
-        damage:
-          min: 4
-          max: 9
-      - name: Tail Sweep
-        damage:
-          min: 3
-          max: 7
+    - name: Javelin Thrust
+      damage:
+        min: 4
+        max: 9
+    - name: Tail Sweep
+      damage:
+        min: 3
+        max: 7
     loot:
-      - spear
+    - spear
     status_effects: []
+    xp_reward: 80
   naga_apprentice:
     name: Naga Apprentice
     health: 52
     defense: 3
     attacks:
-      - name: Arcane Fang
-        damage:
-          min: 6
-          max: 11
-      - name: Serpent Bolt
-        damage:
-          min: 5
-          max: 10
+    - name: Arcane Fang
+      damage:
+        min: 6
+        max: 11
+    - name: Serpent Bolt
+      damage:
+        min: 5
+        max: 10
     loot:
-      - tome_of_ice_bolt
+    - tome_of_ice_bolt
     status_effects: []
+    xp_reward: 100
   yuan_ti_cutthroat:
     name: Yuan-ti Cutthroat
     health: 48
     defense: 2
     attacks:
-      - name: Venom Knife
-        damage:
-          min: 5
-          max: 10
-        status: poison
-        status_chance: 25
-      - name: Coiled Strike
-        damage:
-          min: 5
-          max: 9
+    - name: Venom Knife
+      damage:
+        min: 5
+        max: 10
+      status: poison
+      status_chance: 25
+    - name: Coiled Strike
+      damage:
+        min: 5
+        max: 9
     loot:
-      - curved_dagger
+    - curved_dagger
     status_effects:
-      - poison
+    - poison
+    xp_reward: 103
   basilisk_hatchling:
     name: Basilisk Hatchling
     health: 65
     defense: 5
     attacks:
-      - name: Stone Beak
-        damage:
-          min: 6
-          max: 12
-      - name: Heavy Tail
-        damage:
-          min: 5
-          max: 11
+    - name: Stone Beak
+      damage:
+        min: 6
+        max: 12
+    - name: Heavy Tail
+      damage:
+        min: 5
+        max: 11
     loot:
-      - breastplate
+    - breastplate
     status_effects: []
+    xp_reward: 126
   harpy_screecher:
     name: Harpy Screecher
     health: 36
     defense: 2
     attacks:
-      - name: Talon Rake
-        damage:
-          min: 5
-          max: 9
-      - name: Wing Buffet
-        damage:
-          min: 3
-          max: 8
+    - name: Talon Rake
+      damage:
+        min: 5
+        max: 9
+    - name: Wing Buffet
+      damage:
+        min: 3
+        max: 8
     loot:
-      - padded_armor
+    - padded_armor
     status_effects: []
+    xp_reward: 73
   griffin_fledgling:
     name: Griffin Fledgling
     health: 74
     defense: 4
     attacks:
-      - name: Eagle Rend
-        damage:
-          min: 8
-          max: 14
-      - name: Lion Pounce
-        damage:
-          min: 7
-          max: 13
+    - name: Eagle Rend
+      damage:
+        min: 8
+        max: 14
+    - name: Lion Pounce
+      damage:
+        min: 7
+        max: 13
     loot:
-      - iron_spear
+    - iron_spear
     status_effects: []
+    xp_reward: 136
   manticore_whelp:
     name: Manticore Whelp
     health: 78
     defense: 4
     attacks:
-      - name: Tail Spike
-        damage:
-          min: 8
-          max: 15
-      - name: Jaw Snap
-        damage:
-          min: 6
-          max: 12
+    - name: Tail Spike
+      damage:
+        min: 8
+        max: 15
+    - name: Jaw Snap
+      damage:
+        min: 6
+        max: 12
     loot:
-      - chain_mail
+    - chain_mail
     status_effects: []
+    xp_reward: 143
   wyvern_juvenile:
     name: Wyvern Juvenile
     health: 105
     defense: 5
     attacks:
-      - name: Stinger Jab
-        damage:
-          min: 10
-          max: 18
-        status: poison
-        status_chance: 30
-      - name: Wing Slam
-        damage:
-          min: 8
-          max: 15
+    - name: Stinger Jab
+      damage:
+        min: 10
+        max: 18
+      status: poison
+      status_chance: 30
+    - name: Wing Slam
+      damage:
+        min: 8
+        max: 15
     loot:
-      - dragon_lance
+    - dragon_lance
     status_effects:
-      - poison
+    - poison
+    xp_reward: 199
   dragon_wyrmling:
     name: Dragon Wyrmling
     health: 120
     defense: 6
     attacks:
-      - name: Ember Breath
-        damage:
-          min: 12
-          max: 22
-      - name: Draconic Claw
-        damage:
-          min: 10
-          max: 18
+    - name: Ember Breath
+      damage:
+        min: 12
+        max: 22
+    - name: Draconic Claw
+      damage:
+        min: 10
+        max: 18
     loot:
-      - dragon_plate
+    - dragon_plate
     status_effects: []
+    xp_reward: 216
   elemental_spark:
     name: Elemental Spark
     health: 28
     defense: 4
     attacks:
-      - name: Arc Flash
-        damage:
-          min: 5
-          max: 10
-      - name: Crackling Touch
-        damage:
-          min: 4
-          max: 8
+    - name: Arc Flash
+      damage:
+        min: 5
+        max: 10
+    - name: Crackling Touch
+      damage:
+        min: 4
+        max: 8
     loot:
-      - tome_of_fireball
+    - tome_of_fireball
     status_effects: []
+    xp_reward: 78
   fire_elemental_ling:
     name: Fire Elemental Ling
     health: 50
     defense: 3
     attacks:
-      - name: Flame Lash
-        damage:
-          min: 7
-          max: 13
-      - name: Searing Touch
-        damage:
-          min: 5
-          max: 11
+    - name: Flame Lash
+      damage:
+        min: 7
+        max: 13
+    - name: Searing Touch
+      damage:
+        min: 5
+        max: 11
     loot:
-      - tome_of_fireball
+    - tome_of_fireball
     status_effects: []
+    xp_reward: 104
   ice_elemental_ling:
     name: Ice Elemental Ling
     health: 50
     defense: 3
     attacks:
-      - name: Frost Lash
-        damage:
-          min: 7
-          max: 13
-      - name: Shard Burst
-        damage:
-          min: 5
-          max: 11
+    - name: Frost Lash
+      damage:
+        min: 7
+        max: 13
+    - name: Shard Burst
+      damage:
+        min: 5
+        max: 11
     loot:
-      - tome_of_ice_bolt
+    - tome_of_ice_bolt
     status_effects: []
+    xp_reward: 104
   earth_elemental_ling:
     name: Earth Elemental Ling
     health: 75
     defense: 7
     attacks:
-      - name: Stone Fist
-        damage:
-          min: 7
-          max: 13
-      - name: Pebble Storm
-        damage:
-          min: 5
-          max: 10
+    - name: Stone Fist
+      damage:
+        min: 7
+        max: 13
+    - name: Pebble Storm
+      damage:
+        min: 5
+        max: 10
     loot:
-      - plate_armor
+    - plate_armor
     status_effects: []
+    xp_reward: 149
   air_elemental_ling:
     name: Air Elemental Ling
     health: 44
     defense: 5
     attacks:
-      - name: Gale Cut
-        damage:
-          min: 6
-          max: 12
-      - name: Cyclone Push
-        damage:
-          min: 4
-          max: 9
+    - name: Gale Cut
+      damage:
+        min: 6
+        max: 12
+    - name: Cyclone Push
+      damage:
+        min: 4
+        max: 9
     loot:
-      - silken_guard
+    - silken_guard
     status_effects: []
+    xp_reward: 105
   dark_elf_assassin:
     name: Dark Elf Assassin
     health: 58
     defense: 5
     attacks:
-      - name: Assassin Blade
-        damage:
-          min: 8
-          max: 15
-      - name: Shadow Step Strike
-        damage:
-          min: 7
-          max: 13
+    - name: Assassin Blade
+      damage:
+        min: 8
+        max: 15
+    - name: Shadow Step Strike
+      damage:
+        min: 7
+        max: 13
     loot:
-      - assassin_dagger
+    - assassin_dagger
     status_effects: []
+    xp_reward: 128
   dark_elf_arcanist:
     name: Dark Elf Arcanist
     health: 52
     defense: 3
     attacks:
-      - name: Void Bolt
-        damage:
-          min: 8
-          max: 15
-      - name: Nightfire
-        damage:
-          min: 7
-          max: 14
+    - name: Void Bolt
+      damage:
+        min: 8
+        max: 15
+    - name: Nightfire
+      damage:
+        min: 7
+        max: 14
     loot:
-      - tome_of_fireball
+    - tome_of_fireball
     status_effects: []
+    xp_reward: 112
   dwarven_ghost:
     name: Dwarven Ghost
     health: 54
     defense: 4
     attacks:
-      - name: Spectral Hammer
-        damage:
-          min: 7
-          max: 13
-      - name: Ancestral Wail
-        damage:
-          min: 5
-          max: 11
+    - name: Spectral Hammer
+      damage:
+        min: 7
+        max: 13
+    - name: Ancestral Wail
+      damage:
+        min: 5
+        max: 11
     loot:
-      - ring_mail
+    - ring_mail
     status_effects: []
+    xp_reward: 113
   cursed_paladin:
     name: Cursed Paladin
     health: 88
     defense: 6
     attacks:
-      - name: Fallen Smite
-        damage:
-          min: 9
-          max: 17
-      - name: Broken Oath
-        damage:
-          min: 7
-          max: 14
+    - name: Fallen Smite
+      damage:
+        min: 9
+        max: 17
+    - name: Broken Oath
+      damage:
+        min: 7
+        max: 14
     loot:
-      - plate_armor
+    - plate_armor
     status_effects: []
+    xp_reward: 169
   enchanted_armor:
     name: Enchanted Armor
     health: 80
     defense: 8
     attacks:
-      - name: Empty Gauntlet
-        damage:
-          min: 7
-          max: 14
-      - name: Iron Charge
-        damage:
-          min: 8
-          max: 15
+    - name: Empty Gauntlet
+      damage:
+        min: 7
+        max: 14
+    - name: Iron Charge
+      damage:
+        min: 8
+        max: 15
     loot:
-      - half_plate
+    - half_plate
     status_effects: []
+    xp_reward: 165
   crystal_golem:
     name: Crystal Golem
     health: 100
     defense: 9
     attacks:
-      - name: Crystal Fist
-        damage:
-          min: 9
-          max: 17
-      - name: Shard Spray
-        damage:
-          min: 8
-          max: 16
+    - name: Crystal Fist
+      damage:
+        min: 9
+        max: 17
+    - name: Shard Spray
+      damage:
+        min: 8
+        max: 16
     loot:
-      - dragon_plate
+    - dragon_plate
     status_effects: []
+    xp_reward: 196
   lich_acolyte:
     name: Lich Acolyte
     health: 72
     defense: 4
     attacks:
-      - name: Necrotic Ray
-        damage:
-          min: 9
-          max: 16
-      - name: Withering Touch
-        damage:
-          min: 7
-          max: 14
+    - name: Necrotic Ray
+      damage:
+        min: 9
+        max: 16
+    - name: Withering Touch
+      damage:
+        min: 7
+        max: 14
     loot:
-      - tome_of_cure
+    - tome_of_cure
     status_effects: []
+    xp_reward: 140

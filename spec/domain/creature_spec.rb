@@ -8,7 +8,8 @@ RSpec.describe TextAdventures::Creature do
       expect(creature).to have_attributes(
         name: "giant spider",
         display_name: "Giant Spider",
-        defense: 1
+        defense: 1,
+        xp_reward: 67
       )
       expect(creature.health).to have_attributes(current: 35, max: 35, min: 0)
     end
@@ -55,6 +56,7 @@ RSpec.describe TextAdventures::Creature do
         name: "Cave Bat",
         health: 12,
         defense: 0,
+        xp_reward: 0,
         attacks: [attack],
         loot_table: [loot],
         status_effects: [:blind]

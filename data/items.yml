@@ -1,84 +1,100 @@
+---
 items:
   sword:
     type: weapon
     name: Sword
     price: 15
     attack: 10
+    weapon_class: sword
   bastard_sword:
     type: weapon
     name: Bastard Sword
     price: 30
     attack: 25
+    weapon_class: sword
   longsword:
     type: weapon
     name: Longsword
     price: 75
     attack: 32
+    weapon_class: sword
   greatsword:
     type: weapon
     name: Greatsword
     price: 120
     attack: 40
+    weapon_class: sword
   spear:
     type: weapon
     name: Spear
     price: 50
     attack: 22
     defense: 5
+    weapon_class: spear
   hunting_spear:
     type: weapon
     name: Hunting Spear
     price: 25
     attack: 16
     defense: 2
+    weapon_class: spear
   iron_spear:
     type: weapon
     name: Iron Spear
     price: 65
     attack: 28
     defense: 6
+    weapon_class: spear
   halberd:
     type: weapon
     name: Halberd
     price: 110
     attack: 36
     defense: 8
+    weapon_class: spear
   dragon_lance:
     type: weapon
     name: Dragon Lance
     price: 220
     attack: 48
     defense: 10
+    weapon_class: spear
   rusty_dagger:
     type: weapon
     name: Rusty Dagger
     price: 8
     attack: 6
+    weapon_class: dagger
   iron_dagger:
     type: weapon
     name: Iron Dagger
     price: 18
     attack: 12
+    weapon_class: dagger
   curved_dagger:
     type: weapon
     name: Curved Dagger
     price: 35
     attack: 18
+    weapon_class: dagger
   shadow_dagger:
     type: weapon
     name: Shadow Dagger
     price: 90
     attack: 30
+    weapon_class: dagger
   assassin_dagger:
     type: weapon
     name: Assassin Dagger
     price: 160
     attack: 42
+    weapon_class: dagger
   kings_nep_sword:
     type: weapon
     name: King's Nep Sword
     price: 500
     attack: 50
+    weapon_class: sword
   leather_armor:
     type: armor
     name: Leather Armor

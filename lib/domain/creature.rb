@@ -10,7 +10,7 @@ module TextAdventures
       end
     end
 
-    attr_reader :name, :display_name, :health, :attacks, :defense,
+    attr_reader :name, :display_name, :health, :attacks, :defense, :xp_reward,
                 :loot_table, :status_effects, :active_statuses
 
     def self.giant_spider
@@ -26,6 +26,7 @@ module TextAdventures
       health:,
       max_health: health,
       defense: 0,
+      xp_reward: 0,
       attacks: [],
       loot_table: [],
       status_effects: [],
@@ -35,6 +36,7 @@ module TextAdventures
       @display_name = name
       @health = Extent.new(health, max: max_health)
       @defense = defense
+      @xp_reward = xp_reward
       @attacks = attacks.freeze
       @loot_table = loot_table.freeze
       @status_effects = status_effects.freeze

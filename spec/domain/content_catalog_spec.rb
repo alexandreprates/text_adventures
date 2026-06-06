@@ -8,7 +8,15 @@ RSpec.describe TextAdventures::ContentCatalog do
         type: :weapon,
         price: 50,
         attack: 22,
-        defense: 5
+        defense: 5,
+        weapon_class: :spear
+      )
+    end
+
+    it "builds weapon classes from YAML definitions" do
+      expect(described_class.item("assassin_dagger")).to have_attributes(
+        type: :weapon,
+        weapon_class: :dagger
       )
     end
 
@@ -85,6 +93,7 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(creature).to have_attributes(
         display_name: "Giant Spider",
         defense: 1,
+        xp_reward: 67,
         status_effects: [:poison]
       )
       expect(creature.health.current).to eq 35
@@ -94,6 +103,12 @@ RSpec.describe TextAdventures::ContentCatalog do
         status_chance: 35
       )
       expect(creature.loot_table.map(&:display_name)).to eq ["Tome of Freezing"]
+    end
+
+    it "requires every dungeon creature to have an XP reward" do
+      rewards = described_class.creature_ids.map { |id| described_class.creature(id).xp_reward }
+
+      expect(rewards).to all(be_positive)
     end
   end
 end

@@ -39,6 +39,7 @@ module TextAdventures
         name: definition.fetch("name"),
         health: definition.fetch("health"),
         defense: definition.fetch("defense", 0),
+        xp_reward: definition.fetch("xp_reward", 0),
         attacks: build_attacks(definition.fetch("attacks", [])),
         loot_table: items(definition.fetch("loot", [])),
         status_effects: symbol_list(definition.fetch("status_effects", []))
@@ -71,7 +72,8 @@ module TextAdventures
           name,
           price: price,
           attack: definition.fetch("attack"),
-          defense: definition.fetch("defense", 0)
+          defense: definition.fetch("defense", 0),
+          weapon_class: definition["weapon_class"]
         )
       when "armor"
         Item.armor(
