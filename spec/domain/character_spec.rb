@@ -30,6 +30,10 @@ RSpec.describe TextAdventures::Character do
       expect(character.inventory).to be_empty
     end
 
+    it "starts without active status effects" do
+      expect(character.status_effects).to be_empty
+    end
+
     context "with custom attributes" do
       let(:weapon) { described_class::Equipment.new(name: "Axe", attack: 15, defense: 0) }
       let(:armor) { described_class::Equipment.new(name: "Chainmail", attack: 0, defense: 8) }
@@ -44,7 +48,8 @@ RSpec.describe TextAdventures::Character do
           base_defense: 2,
           equipped_weapon: weapon,
           equipped_armor: armor,
-          inventory: inventory
+          inventory: inventory,
+          status_effects: [:poison, "disease", "poison"]
         }
       end
 
@@ -59,6 +64,7 @@ RSpec.describe TextAdventures::Character do
           inventory: inventory
         )
         expect(character.health).to have_attributes(current: 12, max: 40)
+        expect(character.status_effects).to eq %i[poison disease]
       end
     end
   end
@@ -178,6 +184,30 @@ RSpec.describe TextAdventures::Character do
         item: potion,
         message: "Potion of Heal cannot be equipped."
       )
+    end
+  end
+
+  describe "status effects" do
+    it "applies unique normalized statuses" do
+      character.apply_status(:poison)
+      character.apply_status("poison")
+      character.apply_status("disease")
+
+      expect(character.status_effects).to eq %i[poison disease]
+      expect(character).to be_status(:poison)
+      expect(character).to be_status("disease")
+    end
+
+    it "clears one or more statuses" do
+      character.apply_status(:poison)
+      character.apply_status(:disease)
+      character.apply_status(:blessed)
+
+      character.clear_statuses(:poison, "disease")
+
+      expect(character).to_not be_status(:poison)
+      expect(character).to_not be_status(:disease)
+      expect(character).to be_status(:blessed)
     end
   end
 

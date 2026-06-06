@@ -19,6 +19,8 @@ module TextAdventures
     STANDALONE_VERBS = %i[
       agree
       attack
+      cure
+      heal
       inventory
       look
       loot

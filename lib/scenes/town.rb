@@ -3,8 +3,8 @@ module TextAdventures
     class Town
       DESTINATIONS = {
         "tavern" => -> { Tavern.new },
-        "aluriel s priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
-        "priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
+        "aluriel s priest" => -> { Priest.new },
+        "priest" => -> { Priest.new },
         "blacksmith" => -> { Blacksmith.new },
         "armorsmith" => -> { Armorsmith.new },
         "ruins" => -> { StaticLocation.new(name: :ruins, display_name: "Ruins") }

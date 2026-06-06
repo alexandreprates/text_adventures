@@ -18,6 +18,8 @@ RSpec.describe TextAdventures::CommandParser do
 
     it "parses standalone commands" do
       expect(described_class.parse("attack")).to have_attributes(verb: :attack, target: nil, known?: true)
+      expect(described_class.parse("heal")).to have_attributes(verb: :heal, target: nil)
+      expect(described_class.parse("cure")).to have_attributes(verb: :cure, target: nil)
       expect(described_class.parse("inventory")).to have_attributes(verb: :inventory, target: nil)
       expect(described_class.parse("agree")).to have_attributes(verb: :agree, target: nil)
       expect(described_class.parse("no")).to have_attributes(verb: :no, target: nil)

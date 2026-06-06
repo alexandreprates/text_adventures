@@ -14,6 +14,7 @@ module TextAdventures
     attr_reader :health
     attr_reader :spells
     attr_reader :inventory
+    attr_reader :status_effects
     attr_accessor :name, :gold, :base_attack, :base_defense,
                   :equipped_weapon, :equipped_armor
 
@@ -27,7 +28,8 @@ module TextAdventures
       equipped_weapon: STARTER_WEAPON,
       equipped_armor: STARTER_ARMOR,
       spells: [],
-      inventory: Inventory.new
+      inventory: Inventory.new,
+      status_effects: []
     )
       @name = name
       @health = Extent.new(health, max: max_health)
@@ -38,6 +40,7 @@ module TextAdventures
       @equipped_armor = equipped_armor
       @spells = {}
       @inventory = inventory
+      @status_effects = normalize_statuses(status_effects)
       spells.each { |spell| learn_spell(spell) }
     end
 
@@ -81,6 +84,26 @@ module TextAdventures
       EquipResult.new(success?: false, item: item, message: "#{item.display_name} cannot be equipped.")
     end
 
+    def apply_status(status)
+      normalized_status = normalize_status(status)
+      status_effects << normalized_status unless status_effects.include?(normalized_status)
+      self
+    end
+
+    def clear_status(status)
+      status_effects.delete(normalize_status(status))
+      self
+    end
+
+    def clear_statuses(*statuses)
+      statuses.each { |status| clear_status(status) }
+      self
+    end
+
+    def status?(status)
+      status_effects.include?(normalize_status(status))
+    end
+
     def learn_spell(spell)
       current_spell = spells[spell.command_name]
       spells[spell.command_name] = current_spell ? current_spell.level_up : spell
@@ -118,6 +141,14 @@ module TextAdventures
 
     def spellbook_line(spell)
       "1x #{spell.display_name} (level #{spell.level}) - #{spell.description}"
+    end
+
+    def normalize_statuses(statuses)
+      statuses.map { |status| normalize_status(status) }.uniq
+    end
+
+    def normalize_status(status)
+      status.to_s.downcase.strip.tr(" ", "_").to_sym
     end
   end
 end

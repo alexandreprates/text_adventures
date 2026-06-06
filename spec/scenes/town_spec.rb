@@ -32,10 +32,12 @@ RSpec.describe TextAdventures::Scenes::Town do
   it "routes to Aluriel's Priest by full name or short alias" do
     expect(game.handle("go aluriel's priest")).to eq "You go to Aluriel's Priest."
     expect(game.current_scene_name).to eq :priest
+    expect(game.current_scene).to be_a TextAdventures::Scenes::Priest
 
     other_game = TextAdventures::Game.new(current_scene: scene)
     expect(other_game.handle("go priest")).to eq "You go to Aluriel's Priest."
     expect(other_game.current_scene_name).to eq :priest
+    expect(other_game.current_scene).to be_a TextAdventures::Scenes::Priest
   end
 
   it "routes to Blacksmith, Armorsmith, and Ruins" do
