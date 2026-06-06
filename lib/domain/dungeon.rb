@@ -9,7 +9,10 @@ module TextAdventures
     end
 
     PLAYER = "x".freeze
+    ENEMY = "E".freeze
+    LOOT = "@".freeze
     FLOOR = ".".freeze
+    ENEMY_SPAWN_CHANCE = 50
     DIRECTIONS = {
       "up" => [0, -1],
       "right" => [1, 0],
@@ -27,22 +30,27 @@ module TextAdventures
     DEFAULT_PLAYER_POSITION = Position.new(x: 3, y: 2).freeze
     DEFAULT_BLOCK_POSITION = BlockPosition.new(x: 0, y: 0).freeze
 
-    attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :random
+    attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :random, :enemies, :dropped_loot
 
     def initialize(
       level: DEFAULT_LEVEL,
       revealed_blocks: nil,
       player_position: DEFAULT_PLAYER_POSITION,
       current_block_position: DEFAULT_BLOCK_POSITION,
+      enemies: {},
+      dropped_loot: {},
       random: Random.new
     )
       @level = level
       @revealed_blocks = normalize_revealed_blocks(revealed_blocks)
       @player_position = Position.new(x: player_position.x, y: player_position.y)
       @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
+      @enemies = normalize_entity_hash(enemies)
+      @dropped_loot = normalize_entity_hash(dropped_loot)
       @random = random
       validate_current_block!
       validate_player_position!
+      validate_entity_positions!
     end
 
     def width
@@ -77,6 +85,84 @@ module TextAdventures
       open?(player_position.x, player_position.y)
     end
 
+    def current_global_position
+      global_position(player_position, current_block_position)
+    end
+
+    def global_position(local_position, block_position = current_block_position)
+      Position.new(
+        x: (block_position.x * width) + local_position.x,
+        y: (block_position.y * height) + local_position.y
+      )
+    end
+
+    def block_position_for_global(x, y)
+      BlockPosition.new(x: Integer(x).div(width), y: Integer(y).div(height))
+    end
+
+    def local_position_for_global(x, y)
+      block_position = block_position_for_global(x, y)
+      Position.new(
+        x: Integer(x) - (block_position.x * width),
+        y: Integer(y) - (block_position.y * height)
+      )
+    end
+
+    def global_tile_at(x, y)
+      block_position = block_position_for_global(x, y)
+      block = revealed_blocks[block_position.key]
+      return nil unless block
+
+      local_position = local_position_for_global(x, y)
+      block.tile_at(local_position.x, local_position.y)
+    end
+
+    def global_open?(x, y)
+      global_tile_at(x, y) == DungeonBlock::OPEN
+    end
+
+    def place_enemy(position, creature_id)
+      key = position_key(position)
+      validate_entity_position!(key)
+      raise ArgumentError, "enemy cannot be placed on the player tile" if key == position_key(current_global_position)
+
+      enemies[key] = creature_id
+    end
+
+    def remove_enemy(position)
+      enemies.delete(position_key(position))
+    end
+
+    def enemy_at(position)
+      enemies[position_key(position)]
+    end
+
+    def drop_loot(position, items)
+      key = position_key(position)
+      validate_entity_position!(key)
+      dropped_loot[key] = Array(items)
+    end
+
+    def loot_at(position)
+      dropped_loot[position_key(position)]
+    end
+
+    def collect_loot_at(position)
+      dropped_loot.delete(position_key(position)) || []
+    end
+
+    def dropped_loot?
+      dropped_loot.any?
+    end
+
+    def adjacent_enemy_position(position = current_global_position)
+      adjacent_positions(position).find { |adjacent_position| enemy_at(adjacent_position) }
+    end
+
+    def nearby_loot_position(position = current_global_position)
+      ([position] + adjacent_positions(position)).find { |nearby_position| loot_at(nearby_position) }
+    end
+
     def move(direction)
       normalized_direction = direction.to_s.downcase.strip
       delta = DIRECTIONS[normalized_direction]
@@ -101,7 +187,16 @@ module TextAdventures
       lines = ["Ruins Level #{level}"]
       composed_tiles.each_with_index do |row, y|
         rendered_row = row.each_with_index.map do |tile, x|
-          player_at_render_position?(x, y) ? PLAYER : rendered_tile(tile)
+          render_position = render_position_to_global_position(x, y)
+          if player_at_render_position?(x, y)
+            PLAYER
+          elsif enemy_at(render_position)
+            ENEMY
+          elsif loot_at(render_position)
+            LOOT
+          else
+            rendered_tile(tile)
+          end
         end.join
         lines << rendered_row
       end
@@ -117,8 +212,19 @@ module TextAdventures
       end
     end
 
+    def normalize_entity_hash(value)
+      value.to_h.transform_keys { |key| normalize_position_key(key) }
+    end
+
     def normalize_block_key(key)
       return key.key if key.respond_to?(:key)
+
+      x, y = key
+      [Integer(x), Integer(y)]
+    end
+
+    def normalize_position_key(key)
+      return [Integer(key.x), Integer(key.y)] if key.respond_to?(:x) && key.respond_to?(:y)
 
       x, y = key
       [Integer(x), Integer(y)]
@@ -134,6 +240,17 @@ module TextAdventures
       return if revealed_blocks.key?(current_block_position.key)
 
       raise ArgumentError, "current block must be revealed"
+    end
+
+    def validate_entity_positions!
+      enemies.each_key { |key| validate_entity_position!(key) }
+      dropped_loot.each_key { |key| validate_entity_position!(key) }
+    end
+
+    def validate_entity_position!(key)
+      return if global_open?(*key)
+
+      raise ArgumentError, "dungeon entities must be placed on open tiles"
     end
 
     def player_at?(x, y)
@@ -188,6 +305,29 @@ module TextAdventures
 
       selected = candidates[random.rand(candidates.length)]
       revealed_blocks[block_position.key] = selected
+      maybe_place_enemy_in_block(block_position, selected)
+      selected
+    end
+
+    def maybe_place_enemy_in_block(block_position, block)
+      return if random.rand(100) >= ENEMY_SPAWN_CHANCE
+
+      creature_ids = ContentCatalog.creature_ids
+      creature_id = creature_ids[random.rand(creature_ids.length)]
+      position = enemy_spawn_position(block_position, block)
+      place_enemy(position, creature_id) if position
+    end
+
+    def enemy_spawn_position(block_position, block)
+      candidates = block.tiles.each_with_index.flat_map do |row, y|
+        row.each_char.with_index.filter_map do |tile, x|
+          next unless tile == DungeonBlock::OPEN
+
+          global_position(Position.new(x: x, y: y), block_position)
+        end
+      end.reject { |position| position_key(position) == position_key(current_global_position) }
+
+      candidates[random.rand(candidates.length)] unless candidates.empty?
     end
 
     def compatible_with_neighbors?(block_position, block)
@@ -260,6 +400,25 @@ module TextAdventures
         x: (current_block_position.x - bounds.fetch(:min_x)) * width + player_position.x,
         y: (current_block_position.y - bounds.fetch(:min_y)) * height + player_position.y
       )
+    end
+
+    def render_position_to_global_position(x, y)
+      bounds = block_bounds
+      Position.new(
+        x: (bounds.fetch(:min_x) * width) + x,
+        y: (bounds.fetch(:min_y) * height) + y
+      )
+    end
+
+    def adjacent_positions(position)
+      key = position_key(position)
+      DIRECTIONS.values.map do |delta|
+        Position.new(x: key[0] + delta[0], y: key[1] + delta[1])
+      end
+    end
+
+    def position_key(position)
+      normalize_position_key(position)
     end
 
     def failed_move(direction, message, from: current_position, to: current_position)

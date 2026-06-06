@@ -7,6 +7,13 @@ RSpec.describe TextAdventures::Dungeon do
     end
   end
 
+  SequenceRandom = Struct.new(:values) do
+    def rand(_max)
+      values.shift
+    end
+  end
+
+  let(:test_loot) { TextAdventures::Item.tome("Tome of Heal", price: 60, spell: "Heal") }
   subject(:dungeon) { described_class.new }
 
   describe ".new" do
@@ -142,6 +149,109 @@ RSpec.describe TextAdventures::Dungeon do
         "############"
       ]
     end
+
+    it "renders enemies and dropped loot above floor tiles" do
+      position = described_class::Position.new(x: 2, y: 2)
+      loot_position = described_class::Position.new(x: 5, y: 2)
+
+      dungeon.place_enemy(position, "giant_spider")
+      dungeon.drop_loot(loot_position, [test_loot])
+
+      expect(dungeon.render.lines.map(&:chomp)).to eq [
+        "Ruins Level 1",
+        "######",
+        "######",
+        "##Ex.@",
+        "######",
+        "######"
+      ]
+    end
+
+    it "renders the player above entity markers" do
+      position = described_class::Position.new(x: 3, y: 2)
+
+      dungeon.drop_loot(position, [test_loot])
+
+      expect(dungeon.render.lines.map(&:chomp)).to eq [
+        "Ruins Level 1",
+        "######",
+        "######",
+        "##.x..",
+        "######",
+        "######"
+      ]
+    end
+  end
+
+  describe "entity state" do
+    it "starts without visible enemies or dropped loot" do
+      expect(dungeon.enemies).to eq({})
+      expect(dungeon.dropped_loot).to eq({})
+      expect(dungeon).to_not be_dropped_loot
+    end
+
+    it "converts between local and global coordinates" do
+      global = dungeon.global_position(
+        described_class::Position.new(x: 1, y: 2),
+        described_class::BlockPosition.new(x: -1, y: 1)
+      )
+
+      expect(global).to have_attributes(x: -5, y: 7)
+      expect(dungeon.block_position_for_global(-5, 7)).to have_attributes(x: -1, y: 1)
+      expect(dungeon.local_position_for_global(-5, 7)).to have_attributes(x: 1, y: 2)
+    end
+
+    it "places and removes enemies by global tile position" do
+      position = described_class::Position.new(x: 2, y: 2)
+
+      dungeon.place_enemy(position, "giant_spider")
+
+      expect(dungeon.enemy_at(position)).to eq "giant_spider"
+      expect(dungeon.remove_enemy(position)).to eq "giant_spider"
+      expect(dungeon.enemy_at(position)).to be_nil
+    end
+
+    it "drops and collects loot by global tile position" do
+      position = described_class::Position.new(x: 2, y: 2)
+      loot = [test_loot]
+
+      dungeon.drop_loot(position, loot)
+
+      expect(dungeon.loot_at(position)).to eq loot
+      expect(dungeon).to be_dropped_loot
+      expect(dungeon.collect_loot_at(position)).to eq loot
+      expect(dungeon.loot_at(position)).to be_nil
+    end
+
+    it "rejects enemies and loot on walls" do
+      wall_position = described_class::Position.new(x: 0, y: 0)
+
+      expect do
+        dungeon.place_enemy(wall_position, "giant_spider")
+      end.to raise_error ArgumentError, "dungeon entities must be placed on open tiles"
+
+      expect do
+        dungeon.drop_loot(wall_position, [test_loot])
+      end.to raise_error ArgumentError, "dungeon entities must be placed on open tiles"
+    end
+
+    it "finds adjacent enemies and nearby loot without using diagonals" do
+      enemy_position = described_class::Position.new(x: 4, y: 2)
+      loot_position = described_class::Position.new(x: 2, y: 2)
+      diagonal_enemy_position = described_class::Position.new(x: 4, y: 3)
+
+      dungeon.place_enemy(enemy_position, "giant_spider")
+      dungeon.drop_loot(loot_position, [test_loot])
+
+      expect(dungeon.adjacent_enemy_position).to have_attributes(x: 4, y: 2)
+      expect(dungeon.nearby_loot_position).to have_attributes(x: 2, y: 2)
+
+      dungeon.remove_enemy(enemy_position)
+      expect do
+        dungeon.place_enemy(diagonal_enemy_position, "giant_spider")
+      end.to raise_error ArgumentError, "dungeon entities must be placed on open tiles"
+      expect(dungeon.adjacent_enemy_position).to be_nil
+    end
   end
 
   describe "#move" do
@@ -234,6 +344,7 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.current_block_position).to have_attributes(x: 1, y: 0)
       expect(edge_dungeon.player_position).to have_attributes(x: 0, y: 2)
       expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "left_exit"
+      expect(edge_dungeon.enemies.values).to include "giant_spider"
     end
 
     it "reveals a compatible block when crossing an exit downward" do
@@ -249,6 +360,7 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.current_block_position).to have_attributes(x: 0, y: 1)
       expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
       expect(edge_dungeon.revealed_blocks.fetch([0, 1]).id).to eq "up_exit"
+      expect(edge_dungeon.enemies.values).to include "giant_spider"
     end
 
     it "requires new blocks to remain compatible with revealed neighbors" do
@@ -266,6 +378,18 @@ RSpec.describe TextAdventures::Dungeon do
       expect(result).to have_attributes(success?: true, message: "You move right.")
       expect(edge_dungeon.current_block_position).to have_attributes(x: 1, y: 0)
       expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "four_exits"
+    end
+
+    it "does not spawn an enemy when the reveal roll fails" do
+      edge_dungeon = described_class.new(
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 99])
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to be_success
+      expect(edge_dungeon.enemies).to eq({})
     end
 
     it "rejects movement into an already revealed incompatible neighbor" do
