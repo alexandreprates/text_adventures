@@ -30,6 +30,8 @@ module TextAdventures
           look(game)
         when :go
           handle_movement(game, command.target)
+        when :loot
+          collect_loot(game)
         else
           describe
         end
@@ -105,8 +107,23 @@ module TextAdventures
 
       def handle_attack(game)
         result = game.battle.attack(game.player)
-        game.battle = nil if result.finished?
+        if result.finished?
+          game.pending_loot = result.loot
+          game.battle = nil
+        end
         result.to_response
+      end
+
+      def collect_loot(game)
+        return Response.new("There is no loot to collect.") if game.pending_loot.nil? || game.pending_loot.empty?
+
+        lines = ["You collect the loot."]
+        game.pending_loot.each do |item|
+          game.player.inventory.add(item)
+          lines << "[1x #{item.display_name} added to inventory]"
+        end
+        game.pending_loot = nil
+        Response.new(lines)
       end
 
       def encounter_response(creature)

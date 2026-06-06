@@ -3,7 +3,7 @@ module TextAdventures
     HistoryEntry = Struct.new(:command, :response, keyword_init: true)
 
     attr_reader :player, :current_scene, :history, :random
-    attr_accessor :pending_confirmation, :dungeon, :battle
+    attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot
 
     def initialize(
       player: Character.new,
@@ -11,6 +11,7 @@ module TextAdventures
       pending_confirmation: nil,
       dungeon: nil,
       battle: nil,
+      pending_loot: nil,
       history: [],
       random: Random.new
     )
@@ -19,6 +20,7 @@ module TextAdventures
       @pending_confirmation = pending_confirmation
       @dungeon = dungeon
       @battle = battle
+      @pending_loot = pending_loot
       @history = history
       @random = random
     end

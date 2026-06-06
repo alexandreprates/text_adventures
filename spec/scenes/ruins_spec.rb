@@ -119,6 +119,25 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Giant Spider dies.
     TEXT
     expect(strong_game.battle).to be_nil
+    expect(strong_game.pending_loot).to eq TextAdventures::Creature.giant_spider.loot_table
+  end
+
+  it "collects victory loot once" do
+    tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
+    game.pending_loot = [tome]
+
+    expect(game.handle("loot")).to eq <<~TEXT.chomp
+      You collect the loot.
+      [1x Tome of Ice Bolt added to inventory]
+    TEXT
+    expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+    expect(game.pending_loot).to be_nil
+    expect(game.handle("loot")).to eq "There is no loot to collect."
+    expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+  end
+
+  it "rejects loot collection before victory" do
+    expect(game.handle("loot")).to eq "There is no loot to collect."
   end
 
   it "rejects invalid movement targets" do

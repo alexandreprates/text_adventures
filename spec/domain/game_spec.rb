@@ -32,6 +32,7 @@ RSpec.describe TextAdventures::Game do
       expect(game.pending_confirmation).to be_nil
       expect(game.dungeon).to be_nil
       expect(game.battle).to be_nil
+      expect(game.pending_loot).to be_nil
       expect(game.history).to eq []
     end
 
@@ -45,6 +46,7 @@ RSpec.describe TextAdventures::Game do
         pending_confirmation: :pending,
         dungeon: :dungeon,
         battle: :battle,
+        pending_loot: :loot,
         history: [:entry],
         random: random
       )
@@ -56,6 +58,7 @@ RSpec.describe TextAdventures::Game do
         pending_confirmation: :pending,
         dungeon: :dungeon,
         battle: :battle,
+        pending_loot: :loot,
         history: [:entry],
         random: random
       )

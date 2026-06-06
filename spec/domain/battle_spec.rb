@@ -18,6 +18,7 @@ RSpec.describe TextAdventures::Battle do
       response = battle.attack(player)
 
       expect(response).to have_attributes(finished?: false)
+      expect(response.loot).to eq []
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Giant Spider causing 10 of damage.
         Giant Spider attacks you with Bite causing 2 of damage.
@@ -49,6 +50,7 @@ RSpec.describe TextAdventures::Battle do
       response = battle.attack(strong_player)
 
       expect(response).to have_attributes(finished?: true)
+      expect(response.loot).to eq creature.loot_table
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Giant Spider causing 39 of damage.
         Giant Spider dies.

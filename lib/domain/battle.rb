@@ -1,6 +1,6 @@
 module TextAdventures
   class Battle
-    Result = Struct.new(:lines, :finished?, keyword_init: true) do
+    Result = Struct.new(:lines, :finished?, :loot, keyword_init: true) do
       def to_response
         Response.new(lines)
       end
@@ -24,11 +24,11 @@ module TextAdventures
       lines = [player_attack_line(damage, critical)]
       if creature.dead?
         lines << "#{creature.display_name} dies."
-        return Result.new(lines: lines, finished?: true)
+        return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
       end
 
       lines << counterattack_line(player)
-      Result.new(lines: lines, finished?: false)
+      Result.new(lines: lines, finished?: false, loot: [])
     end
 
     private
