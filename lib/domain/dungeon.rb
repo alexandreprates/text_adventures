@@ -2,9 +2,12 @@ module TextAdventures
   class Dungeon
     Position = Struct.new(:x, :y, keyword_init: true)
     MoveResult = Struct.new(:success?, :direction, :from, :to, :message, keyword_init: true)
+    BlockPosition = Struct.new(:x, :y, keyword_init: true) do
+      def key
+        [x, y]
+      end
+    end
 
-    WALL = "#".freeze
-    OPEN = " ".freeze
     PLAYER = "x".freeze
     DIRECTIONS = {
       "up" => [0, -1],
@@ -13,34 +16,36 @@ module TextAdventures
       "left" => [-1, 0]
     }.freeze
     DEFAULT_LEVEL = 1
-    DEFAULT_TILES = [
-      "######",
-      "######",
-      "##   #",
-      "######",
-      "######"
-    ].freeze
+    DEFAULT_BLOCK_ID = "right_exit".freeze
     DEFAULT_PLAYER_POSITION = Position.new(x: 3, y: 2).freeze
+    DEFAULT_BLOCK_POSITION = BlockPosition.new(x: 0, y: 0).freeze
 
-    attr_reader :level, :tiles, :player_position
+    attr_reader :level, :revealed_blocks, :player_position, :current_block_position
 
     def initialize(
       level: DEFAULT_LEVEL,
-      tiles: DEFAULT_TILES,
-      player_position: DEFAULT_PLAYER_POSITION
+      revealed_blocks: nil,
+      player_position: DEFAULT_PLAYER_POSITION,
+      current_block_position: DEFAULT_BLOCK_POSITION
     )
       @level = level
-      @tiles = normalize_tiles(tiles)
+      @revealed_blocks = normalize_revealed_blocks(revealed_blocks)
       @player_position = Position.new(x: player_position.x, y: player_position.y)
+      @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
+      validate_current_block!
       validate_player_position!
     end
 
     def width
-      tiles.first.length
+      current_block.width
     end
 
     def height
-      tiles.length
+      current_block.height
+    end
+
+    def tiles
+      current_block.tiles
     end
 
     def in_bounds?(x, y)
@@ -48,17 +53,15 @@ module TextAdventures
     end
 
     def tile_at(x, y)
-      return nil unless in_bounds?(x, y)
-
-      tiles[y][x]
+      current_block.tile_at(x, y)
     end
 
     def wall?(x, y)
-      tile_at(x, y) == WALL
+      current_block.wall?(x, y)
     end
 
     def open?(x, y)
-      tile_at(x, y) == OPEN
+      current_block.open?(x, y)
     end
 
     def player_on_open_tile?
@@ -98,16 +101,18 @@ module TextAdventures
 
     private
 
-    def normalize_tiles(value)
-      rows = value.map(&:to_s)
-      raise ArgumentError, "dungeon must have at least one row" if rows.empty?
+    def normalize_revealed_blocks(value)
+      blocks = value || { DEFAULT_BLOCK_POSITION.key => ContentCatalog.dungeon_block(DEFAULT_BLOCK_ID) }
+      blocks.transform_keys { |key| normalize_block_key(key) }.transform_values do |block|
+        block.is_a?(DungeonBlock) ? block : ContentCatalog.dungeon_block(block)
+      end.freeze
+    end
 
-      expected_width = rows.first.length
-      raise ArgumentError, "dungeon rows cannot be empty" if expected_width.zero?
-      raise ArgumentError, "dungeon rows must have the same width" unless rows.all? { |row| row.length == expected_width }
-      raise ArgumentError, "dungeon tiles can only contain walls and open spaces" unless rows.all? { |row| row.match?(/\A[#{Regexp.escape(WALL + OPEN)}]+\z/) }
+    def normalize_block_key(key)
+      return key.key if key.respond_to?(:key)
 
-      rows.freeze
+      x, y = key
+      [Integer(x), Integer(y)]
     end
 
     def validate_player_position!
@@ -116,12 +121,22 @@ module TextAdventures
       raise ArgumentError, "player must start on an open dungeon tile"
     end
 
+    def validate_current_block!
+      return if revealed_blocks.key?(current_block_position.key)
+
+      raise ArgumentError, "current block must be revealed"
+    end
+
     def player_at?(x, y)
       player_position.x == x && player_position.y == y
     end
 
     def current_position
       Position.new(x: player_position.x, y: player_position.y)
+    end
+
+    def current_block
+      revealed_blocks.fetch(current_block_position.key)
     end
 
     def failed_move(direction, message, from: current_position, to: current_position)

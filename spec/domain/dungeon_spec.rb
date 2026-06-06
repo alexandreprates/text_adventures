@@ -6,36 +6,47 @@ RSpec.describe TextAdventures::Dungeon do
   describe ".new" do
     it "starts on level one with a valid open player position" do
       expect(dungeon).to have_attributes(level: 1, width: 6, height: 5)
+      expect(dungeon.revealed_blocks.keys).to eq [[0, 0]]
+      expect(dungeon.current_block_position).to have_attributes(x: 0, y: 0)
+      expect(dungeon.revealed_blocks.fetch([0, 0]).id).to eq "right_exit"
       expect(dungeon.player_position).to have_attributes(x: 3, y: 2)
       expect(dungeon).to be_player_on_open_tile
     end
 
-    it "accepts a custom level, map, and player position" do
+    it "accepts a custom level, revealed blocks, and player position" do
       position = described_class::Position.new(x: 1, y: 1)
+      block = TextAdventures::DungeonBlock.new(
+        id: "custom",
+        name: "Custom",
+        tiles: [
+          "######",
+          "#    #",
+          "######",
+          "######",
+          "######"
+        ],
+        exits: []
+      )
       custom = described_class.new(
         level: 2,
-        tiles: [
-          "###",
-          "# #",
-          "###"
-        ],
+        revealed_blocks: { [0, 0] => block },
         player_position: position
       )
 
-      expect(custom).to have_attributes(level: 2, width: 3, height: 3)
+      expect(custom).to have_attributes(level: 2, width: 6, height: 5)
       expect(custom.player_position).to have_attributes(x: 1, y: 1)
     end
 
-    it "rejects non-rectangular maps" do
-      expect do
-        described_class.new(tiles: ["###", "##"])
-      end.to raise_error ArgumentError, "dungeon rows must have the same width"
+    it "accepts revealed block ids" do
+      custom = described_class.new(revealed_blocks: { [0, 0] => "four_exits" })
+
+      expect(custom.revealed_blocks.fetch([0, 0]).id).to eq "four_exits"
     end
 
-    it "rejects unsupported tile symbols" do
+    it "rejects unrevealed current blocks" do
       expect do
-        described_class.new(tiles: ["###", "#.#", "###"])
-      end.to raise_error ArgumentError, "dungeon tiles can only contain walls and open spaces"
+        described_class.new(current_block_position: described_class::BlockPosition.new(x: 1, y: 0))
+      end.to raise_error ArgumentError, "current block must be revealed"
     end
 
     it "rejects player positions on walls or outside the map" do
@@ -60,7 +71,7 @@ RSpec.describe TextAdventures::Dungeon do
 
     it "reports walls and open spaces" do
       expect(dungeon).to be_wall(0, 0)
-      expect(dungeon).to be_wall(5, 2)
+      expect(dungeon).to be_open(5, 2)
       expect(dungeon).to be_open(2, 2)
       expect(dungeon).to be_open(3, 2)
       expect(dungeon).to_not be_open(0, 0)
@@ -76,14 +87,14 @@ RSpec.describe TextAdventures::Dungeon do
 
   describe "#render" do
     it "renders a README-style text map with x for the player" do
-      expect(dungeon.render).to eq <<~TEXT.chomp
-        Ruins Level 1
-        ######
-        ######
-        ## x #
-        ######
-        ######
-      TEXT
+      expect(dungeon.render.lines.map(&:chomp)).to eq [
+        "Ruins Level 1",
+        "######",
+        "######",
+        "## x  ",
+        "######",
+        "######"
+      ]
     end
   end
 
@@ -122,11 +133,8 @@ RSpec.describe TextAdventures::Dungeon do
 
     it "rejects movement outside map boundaries" do
       edge_dungeon = described_class.new(
-        tiles: [
-          "# #",
-          "###"
-        ],
-        player_position: described_class::Position.new(x: 1, y: 0)
+        revealed_blocks: { [0, 0] => "up_exit" },
+        player_position: described_class::Position.new(x: 2, y: 0)
       )
 
       result = edge_dungeon.move("up")
@@ -135,7 +143,7 @@ RSpec.describe TextAdventures::Dungeon do
         success?: false,
         message: "You cannot go up; the path leaves the dungeon."
       )
-      expect(edge_dungeon.player_position).to have_attributes(x: 1, y: 0)
+      expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
     end
 
     it "rejects unknown directions" do
