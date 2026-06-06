@@ -390,7 +390,7 @@ compatibilidade entre saídas opostas.
 
 ## Estratégia de implementação sugerida
 
-1. Extrair os 9 blocos para um catálogo de blocos.
+1. [x] Extrair os 9 blocos para um catálogo de blocos.
 2. Representar cada bloco com `tiles` e `exits`.
 3. Substituir o mapa fixo atual por uma coleção de blocos revelados.
 4. Implementar renderização de múltiplos blocos.
