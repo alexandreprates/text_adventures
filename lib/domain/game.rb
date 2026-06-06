@@ -2,30 +2,12 @@ module TextAdventures
   class Game
     HistoryEntry = Struct.new(:command, :response, keyword_init: true)
 
-    class TownScene
-      def name
-        :town
-      end
-
-      def handle(_game, command)
-        if command.verb == :look
-          return Response.new(
-            "Welcome to Text Adventures",
-            "",
-            "You are now on the town of Nee'Peh."
-          )
-        end
-
-        Response.new("You are in town.")
-      end
-    end
-
     attr_reader :player, :current_scene, :history, :random
     attr_accessor :pending_confirmation, :dungeon, :battle
 
     def initialize(
       player: Character.new,
-      current_scene: TownScene.new,
+      current_scene: Scenes::Town.new,
       pending_confirmation: nil,
       dungeon: nil,
       battle: nil,
@@ -43,6 +25,10 @@ module TextAdventures
 
     def current_scene_name
       current_scene.name
+    end
+
+    def transition_to(scene)
+      @current_scene = scene
     end
 
     def handle(command_text)

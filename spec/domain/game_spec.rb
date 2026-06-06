@@ -113,7 +113,7 @@ RSpec.describe TextAdventures::Game do
     end
   end
 
-  describe TextAdventures::Game::TownScene do
+  describe TextAdventures::Scenes::Town do
     subject(:scene) { described_class.new }
 
     it "has the Town scene name" do
