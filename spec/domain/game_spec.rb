@@ -196,6 +196,40 @@ RSpec.describe TextAdventures::Game do
       expect(game.player.inventory.quantity("sword")).to eq 1
     end
 
+    it "drops one carried inventory item" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      potion = TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20)
+      game.player.inventory.add(potion, quantity: 2)
+
+      response = game.handle("drop potion of heal")
+
+      expect(response).to eq <<~TEXT.chomp
+        Dropped Potion of Heal.
+        [1x Potion of Heal removed from inventory]
+      TEXT
+      expect(game.player.inventory.quantity("potion of heal")).to eq 1
+    end
+
+    it "returns a clear message when dropping a missing item" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+
+      expect(game.handle("drop sword")).to eq "You do not have sword."
+    end
+
+    it "protects equipped weapons and armor from being dropped" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
+      armor = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
+      game.player.inventory.add(sword)
+      game.player.inventory.add(armor)
+      game.player.equip(armor)
+
+      expect(game.handle("drop sword")).to eq "You cannot drop equipped Sword."
+      expect(game.handle("drop iron armor")).to eq "You cannot drop equipped Iron Armor."
+      expect(game.player.inventory.quantity("sword")).to eq 1
+      expect(game.player.inventory.quantity("iron armor")).to eq 1
+    end
+
     it "returns parser messages for unknown commands without delegating" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

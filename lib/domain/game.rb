@@ -44,6 +44,7 @@ module TextAdventures
       return player.inventory_report if command.verb == :inventory
       return equip_item(command.target) if command.verb == :equip
       return use_item(command.target) if command.verb == :use
+      return drop_item(command.target) if command.verb == :drop
 
       current_scene.handle(self, command)
     end
@@ -109,6 +110,31 @@ module TextAdventures
       return "[learned #{spell.display_name} level #{spell.level}]" unless previous_level
 
       "[#{spell.display_name} is now level #{spell.level}]"
+    end
+
+    def drop_item(query)
+      item = player.inventory.find(query)
+      return Response.new("You do not have #{query}.") unless item
+      return Response.new("You cannot drop equipped #{item.display_name}.") if equipped_item?(item)
+
+      result = player.inventory.remove(item.command_name)
+      Response.new(
+        "Dropped #{result.item.display_name}.",
+        "[#{result.quantity}x #{result.item.display_name} removed from inventory]"
+      )
+    end
+
+    def equipped_item?(item)
+      [player.equipped_weapon, player.equipped_armor].any? do |equipment|
+        equipment_name(equipment) == item.command_name
+      end
+    end
+
+    def equipment_name(equipment)
+      return nil unless equipment
+      return equipment.command_name if equipment.respond_to?(:command_name)
+
+      Item.normalize_name(equipment.name)
     end
 
     def record_history(command_text, response)
