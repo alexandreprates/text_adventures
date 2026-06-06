@@ -1,5 +1,8 @@
-require 'coveralls'
-Coveralls.wear!
+begin
+  require 'coveralls'
+  Coveralls.wear!
+rescue LoadError
+end
 
 require './lib/text_adventures'
 RSpec.configure do |config|

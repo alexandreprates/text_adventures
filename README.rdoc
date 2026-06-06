@@ -8,7 +8,31 @@ Text Adventures is a text RPG with randomly generated dungeons.
 
 Explore the ruins, confront incredible creatures and increase the power of your character. All directly from your browser.
 
-==Starting Server
+==Current Implementation Status
+
+The current implementation is an early Ruby library foundation. It includes the
+`Extent` bounded-number helper and its specs. The browser game, server command,
+town, shops, dungeon, combat, inventory, spells, and persistence described below
+are planned gameplay behavior and are not fully implemented yet.
+
+==Installing Dependencies
+
+  # Keep gems local to the project and avoid system gem permission issues.
+  bundle config set --local path vendor/bundle
+
+  # Install the locked dependencies.
+  bundle install
+
+The checked-in `Gemfile.lock` keeps local installs reproducible. Bundler's local
+installation artifacts are ignored through `.bundle/` and `vendor/bundle/`.
+
+==Running Tests
+
+  bundle exec rake
+
+The default Rake task runs the RSpec suite.
+
+==Planned Server
 
   Runing on top
   # bin/text_adventures_server
