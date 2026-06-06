@@ -1,6 +1,16 @@
 module TextAdventures
   class Game
     HistoryEntry = Struct.new(:command, :response, keyword_init: true)
+    GLOBAL_VERBS = %i[
+      drop
+      equip
+      help
+      inventory
+      level
+      skills
+      spellbook
+      use
+    ].freeze
 
     attr_reader :player, :current_scene, :history, :random
     attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot
@@ -36,11 +46,18 @@ module TextAdventures
     def handle(command_text)
       command = CommandParser.parse(command_text)
       response = Response.render(command.unknown? ? handle_unknown_command(command) : handle_known_command(command))
+      response = append_pending_confirmation_hint(response, command)
       record_history(command_text, response)
       response
     end
 
     private
+
+    def append_pending_confirmation_hint(response, command)
+      return response unless pending_confirmation && GLOBAL_VERBS.include?(command.verb)
+
+      Response.render(Response.new(response, "", "[pending confirmation: agree/no]"))
+    end
 
     def handle_unknown_command(command)
       return Response.new("Please answer agree or no.") if pending_confirmation

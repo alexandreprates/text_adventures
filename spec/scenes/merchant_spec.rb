@@ -144,6 +144,21 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.pending_confirmation).to have_attributes(action: :buy, item: sword)
   end
 
+  it "keeps pending confirmation visible after global commands" do
+    game.handle("buy sword")
+
+    expect(game.handle("inventory")).to eq <<~TEXT.chomp
+      Currently you have nothing.
+      Equipped:
+       weapon: Sword (Atk: 10)
+       armor: Leather Armor (Def: 20)
+
+      [pending confirmation: agree/no]
+    TEXT
+    expect(game.handle("help")).to end_with "[pending confirmation: agree/no]"
+    expect(game.pending_confirmation).to have_attributes(action: :buy, item: sword)
+  end
+
   it "does not confirm transactions from another merchant" do
     other_merchant = described_class.new(
       name: :armorsmith,
