@@ -121,6 +121,70 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.battle.creature.health.current).to eq 25
   end
 
+  it "casts known Fireball during active encounters" do
+    game.player.learn_spell(TextAdventures::Spell.fireball)
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([0])
+    )
+
+    expect(game.handle("cast fireball")).to eq <<~TEXT.chomp
+      You cast Fireball causing 11 of damage.
+      Giant Spider attacks you with Bite causing 0 of damage.
+    TEXT
+    expect(game.battle.creature.health.current).to eq 24
+  end
+
+  it "casts known Ice Bolt and can freeze during active encounters" do
+    game.player.learn_spell(TextAdventures::Spell.ice_bolt)
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([0])
+    )
+
+    expect(game.handle("cast ice bolt")).to eq <<~TEXT.chomp
+      You cast Ice Bolt causing 4 of damage.
+      Giant Spider is frozen.
+      Giant Spider is frozen and loses its turn.
+    TEXT
+    expect(game.battle.creature.health.current).to eq 31
+  end
+
+  it "casts known Heal and Cure during active encounters" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.learn_spell(TextAdventures::Spell.cure)
+    game.player.take_damage(12)
+    game.player.apply_status(:poison)
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([0, 0])
+    )
+
+    expect(game.handle("cast heal")).to eq <<~TEXT.chomp
+      Poison deals 2 damage.
+      You cast Heal and recover 10 health.
+      Giant Spider attacks you with Bite causing 0 of damage.
+    TEXT
+    expect(game.player.health.current).to eq 26
+
+    expect(game.handle("cast cure")).to eq <<~TEXT.chomp
+      Poison deals 2 damage.
+      You cast Cure and remove poison.
+      Giant Spider attacks you with Bite causing 0 of damage.
+    TEXT
+    expect(game.player).to_not be_status(:poison)
+  end
+
+  it "rejects unknown spells during active encounters" do
+    game.battle = TextAdventures::Battle.new(
+      creature: TextAdventures::Creature.giant_spider,
+      random: RuinsSequenceRandom.new([99, 0])
+    )
+
+    expect(game.handle("cast fireball")).to eq "You do not know fireball."
+    expect(game.battle).to be_a TextAdventures::Battle
+  end
+
   it "clears active battle when attack defeats the creature" do
     strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil)
     strong_game = TextAdventures::Game.new(current_scene: scene, player: strong_player, random: random)

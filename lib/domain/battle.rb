@@ -34,6 +34,14 @@ module TextAdventures
     end
 
     def cast_spell(player, spell)
+      return cast_damage_spell(player, spell) if spell.damage?
+      return cast_healing_spell(player, spell) if spell.healing?
+      return cast_cure_spell(player, spell) if spell.cure?
+    end
+
+    private
+
+    def cast_damage_spell(player, spell)
       lines = poison_tick_lines(player)
       damage = spell_damage(spell)
       creature.take_damage(damage)
@@ -49,7 +57,28 @@ module TextAdventures
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
-    private
+    def cast_healing_spell(player, spell)
+      lines = poison_tick_lines(player)
+      before = player.health.current
+      player.heal(spell.healing_range.begin)
+      recovered = player.health.current - before
+      lines << "You cast #{spell.display_name} and recover #{recovered} health."
+      lines.concat enemy_turn_lines(player)
+      Result.new(lines: lines, finished?: false, loot: [])
+    end
+
+    def cast_cure_spell(player, spell)
+      lines = poison_tick_lines(player)
+      cured_poison = player.status?(:poison)
+      player.clear_status(:poison)
+      lines << if cured_poison
+                 "You cast #{spell.display_name} and remove poison."
+               else
+                 "You cast #{spell.display_name}, but there is nothing to cure."
+               end
+      lines.concat enemy_turn_lines(player)
+      Result.new(lines: lines, finished?: false, loot: [])
+    end
 
     def player_damage(player)
       [player.attack - creature.defense, 1].max

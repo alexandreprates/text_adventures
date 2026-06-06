@@ -100,6 +100,7 @@ module TextAdventures
         creature = game.battle.creature
         return encounter_response(creature) if command.verb == :look
         return handle_attack(game) if command.verb == :attack
+        return handle_spell(game, command.target) if command.verb == :cast
         return Response.new("You cannot move while #{creature.display_name} blocks your path.") if command.verb == :go
 
         Response.new("#{creature.display_name} is about to attack you!")
@@ -107,6 +108,18 @@ module TextAdventures
 
       def handle_attack(game)
         result = game.battle.attack(game.player)
+        resolve_battle_result(game, result)
+      end
+
+      def handle_spell(game, spell_name)
+        spell = game.player.spells[Spell.normalize_name(spell_name)]
+        return Response.new("You do not know #{spell_name}.") unless spell
+
+        result = game.battle.cast_spell(game.player, spell)
+        resolve_battle_result(game, result)
+      end
+
+      def resolve_battle_result(game, result)
         if result.finished?
           game.pending_loot = result.loot
           game.battle = nil

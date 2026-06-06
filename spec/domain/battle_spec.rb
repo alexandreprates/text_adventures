@@ -118,5 +118,39 @@ RSpec.describe TextAdventures::Battle do
       TEXT
       expect(player.health.current).to eq 28
     end
+
+    it "casts Heal to restore player health during battle" do
+      healing_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+      player.take_damage(12)
+
+      response = healing_battle.cast_spell(player, TextAdventures::Spell.heal)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Heal and recover 10 health.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+      expect(player.health.current).to eq 26
+    end
+
+    it "casts Cure to remove poison during battle" do
+      cure_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+      player.apply_status(:poison)
+
+      response = cure_battle.cast_spell(player, TextAdventures::Spell.cure)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        You cast Cure and remove poison.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+      expect(player).to_not be_status(:poison)
+      expect(player.health.current).to eq 26
+    end
   end
 end
