@@ -37,6 +37,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     expect(response).to include "You are now inside the Ruins Level 1"
     expect(response).to include "go <up|right|down|left> - to move around"
+    expect(response).to include "go town - return to Nee'Peh"
     expect(response).to include "spellbook - show the spells you can cast"
     expect(response).to include "##.x.."
     expect(response).to include "Good luck and have a great adventure!"
@@ -275,9 +276,16 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("loot")).to eq "There is no loot to collect."
   end
 
-  it "rejects invalid movement targets" do
+  it "can return to town when no enemy is active" do
     expect(game.handle("go town")).to eq <<~TEXT.chomp
-      You cannot go town inside the ruins.
+      You leave the ruins and return to the town of Nee'Peh.
+    TEXT
+    expect(game.current_scene_name).to eq :town
+  end
+
+  it "rejects invalid movement targets" do
+    expect(game.handle("go sideways")).to eq <<~TEXT.chomp
+      You cannot go sideways inside the ruins.
       Available directions: up, right, down, left.
     TEXT
   end

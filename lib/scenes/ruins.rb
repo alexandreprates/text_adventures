@@ -47,6 +47,7 @@ module TextAdventures
           "",
           "Here you can:",
           " go <up|right|down|left> - to move around",
+          " go town - return to Nee'Peh",
           " look - to examine your surroundings",
           " attack - to attack an enemy",
           " spellbook - show the spells you can cast",
@@ -70,6 +71,7 @@ module TextAdventures
       end
 
       def handle_movement(game, direction)
+        return back_to_town(game) if Item.normalize_name(direction) == "town"
         return invalid_direction(direction) unless DIRECTIONS.include?(direction)
 
         result = dungeon.move(direction)
@@ -91,6 +93,11 @@ module TextAdventures
           "You cannot go #{direction} inside the ruins.",
           "Available directions: up, right, down, left."
         )
+      end
+
+      def back_to_town(game)
+        game.transition_to(Town.new)
+        Response.new("You leave the ruins and return to the town of Nee'Peh.")
       end
 
       def maybe_spawn_encounter(game)

@@ -17,7 +17,7 @@ module TextAdventures
       output.puts game.handle("look")
 
       loop do
-        output.print "\n> "
+        output.print "\n#{prompt_label} > "
         command = input.gets
         break unless command
 
@@ -35,6 +35,14 @@ module TextAdventures
     private
 
     attr_reader :input, :output, :game
+
+    def prompt_label
+      scene = game.current_scene
+      return "Ruins L#{game.dungeon.level}" if scene.name == :ruins && game.dungeon
+      return scene.display_name if scene.respond_to?(:display_name)
+
+      scene.name.to_s.split("_").map(&:capitalize).join(" ")
+    end
 
     def self.default_game
       seed = ENV["TEXT_ADVENTURES_RANDOM_SEED"]
