@@ -2,7 +2,7 @@ module TextAdventures
   module Scenes
     class Town
       DESTINATIONS = {
-        "tavern" => -> { StaticLocation.new(name: :tavern, display_name: "Tavern") },
+        "tavern" => -> { Tavern.new },
         "aluriel s priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
         "priest" => -> { StaticLocation.new(name: :priest, display_name: "Aluriel's Priest") },
         "blacksmith" => -> { StaticLocation.new(name: :blacksmith, display_name: "Blacksmith") },

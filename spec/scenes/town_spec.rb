@@ -26,6 +26,7 @@ RSpec.describe TextAdventures::Scenes::Town do
 
     expect(response).to eq "You go to Tavern."
     expect(game.current_scene_name).to eq :tavern
+    expect(game.current_scene).to be_a TextAdventures::Scenes::Tavern
   end
 
   it "routes to Aluriel's Priest by full name or short alias" do
