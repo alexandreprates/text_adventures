@@ -160,6 +160,17 @@ RSpec.describe TextAdventures::Character do
       expect(character.attack).to eq 26
     end
 
+    it "replaces the equipped weapon" do
+      sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22)
+
+      character.equip(sword)
+      character.equip(spear)
+
+      expect(character.equipped_weapon).to eq spear
+      expect(character.attack).to eq 23
+    end
+
     it "equips armor" do
       armor = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
 
@@ -171,6 +182,17 @@ RSpec.describe TextAdventures::Character do
         message: "Equipped Iron Armor."
       )
       expect(character.equipped_armor).to eq armor
+      expect(character.defense).to eq 35
+    end
+
+    it "replaces the equipped armor" do
+      leather = TextAdventures::Item.armor("Leather Armor", price: 20, defense: 20)
+      iron = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
+
+      character.equip(leather)
+      character.equip(iron)
+
+      expect(character.equipped_armor).to eq iron
       expect(character.defense).to eq 35
     end
 

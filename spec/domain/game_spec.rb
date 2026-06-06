@@ -97,6 +97,44 @@ RSpec.describe TextAdventures::Game do
       expect(game.handle("inventory")).to include "Currently you have nothing."
     end
 
+    it "equips an inventory weapon as a global player command" do
+      scene = TestScene.new(response: "scene response")
+      game = described_class.new(current_scene: scene)
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22)
+      game.player.inventory.add(spear)
+
+      response = game.handle("equip spear")
+
+      expect(response).to eq <<~TEXT.chomp
+        Equipped Spear.
+        [your attack is now 23]
+      TEXT
+      expect(game.player.equipped_weapon).to eq spear
+      expect(scene.handled_command).to be_nil
+    end
+
+    it "equips an inventory armor as a global player command" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      armor = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
+      game.player.inventory.add(armor)
+
+      response = game.handle("equip iron armor")
+
+      expect(response).to eq <<~TEXT.chomp
+        Equipped Iron Armor.
+        [your defense is now 35]
+      TEXT
+      expect(game.player.equipped_armor).to eq armor
+    end
+
+    it "rejects missing or non-equippable inventory items" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      game.player.inventory.add(TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20))
+
+      expect(game.handle("equip sword")).to eq "You do not have sword."
+      expect(game.handle("equip potion of heal")).to eq "Potion of Heal cannot be equipped."
+    end
+
     it "returns parser messages for unknown commands without delegating" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

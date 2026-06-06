@@ -42,8 +42,29 @@ module TextAdventures
 
     def handle_known_command(command)
       return player.inventory_report if command.verb == :inventory
+      return equip_item(command.target) if command.verb == :equip
 
       current_scene.handle(self, command)
+    end
+
+    def equip_item(query)
+      item = player.inventory.find(query)
+      return Response.new("You do not have #{query}.") unless item
+
+      result = player.equip(item)
+      return Response.new(result.message) unless result.success?
+
+      Response.new(
+        result.message,
+        equipment_stat_line(item)
+      )
+    end
+
+    def equipment_stat_line(item)
+      return "[your attack is now #{player.attack}]" if item.weapon?
+      return "[your defense is now #{player.defense}]" if item.armor?
+
+      ""
     end
 
     def record_history(command_text, response)
