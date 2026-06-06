@@ -49,8 +49,8 @@ RSpec.describe "text_adventures binary" do
     expect(status).to be_success
     expect(error).to eq ""
     expect(output).to include "You go to Ruins."
-    expect(lines).to include "## x  "
-    expect(lines).to include "##   x"
+    expect(lines).to include "##.x.."
+    expect(lines).to include "##...x"
     expect(lines).to include a_string_matching(/\A.{12}\z/)
     expect(lines).to include a_string_matching(/\A.{6}x.{5}\z/)
     expect(output).to include "Thanks for playing."

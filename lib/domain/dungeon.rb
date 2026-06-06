@@ -9,6 +9,7 @@ module TextAdventures
     end
 
     PLAYER = "x".freeze
+    FLOOR = ".".freeze
     DIRECTIONS = {
       "up" => [0, -1],
       "right" => [1, 0],
@@ -100,7 +101,7 @@ module TextAdventures
       lines = ["Ruins Level #{level}"]
       composed_tiles.each_with_index do |row, y|
         rendered_row = row.each_with_index.map do |tile, x|
-          player_at_render_position?(x, y) ? PLAYER : tile
+          player_at_render_position?(x, y) ? PLAYER : rendered_tile(tile)
         end.join
         lines << rendered_row
       end
@@ -143,6 +144,10 @@ module TextAdventures
       render_position = player_render_position
 
       render_position.x == x && render_position.y == y
+    end
+
+    def rendered_tile(tile)
+      tile == DungeonBlock::OPEN ? FLOOR : tile
     end
 
     def current_position

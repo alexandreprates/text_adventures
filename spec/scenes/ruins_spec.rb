@@ -38,7 +38,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(response).to include "You are now inside the Ruins Level 1"
     expect(response).to include "go <up|right|down|left> - to move around"
     expect(response).to include "spellbook - show the spells you can cast"
-    expect(response).to include "## x  "
+    expect(response).to include "##.x.."
     expect(response).to include "Good luck and have a great adventure!"
   end
 
@@ -53,7 +53,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Ruins Level 1
       ######
       ######
-      ##  x 
+      ##..x.
       ######
       ######
     TEXT
@@ -96,7 +96,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       Ruins Level 1
       ######
       ######
-      ##  x 
+      ##..x.
       ######
       ######
 

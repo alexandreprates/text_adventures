@@ -97,7 +97,7 @@ RSpec.describe TextAdventures::Dungeon do
         "Ruins Level 1",
         "######",
         "######",
-        "## x  ",
+        "##.x..",
         "######",
         "######"
       ]
@@ -117,9 +117,9 @@ RSpec.describe TextAdventures::Dungeon do
         "Ruins Level 1",
         "############",
         "############",
-        "##    ## x##",
-        "########  ##",
-        "########  ##"
+        "##....##.x##",
+        "########..##",
+        "########..##"
       ]
     end
 
@@ -137,7 +137,7 @@ RSpec.describe TextAdventures::Dungeon do
         "Ruins Level 1",
         "############",
         "############",
-        "## x      ##",
+        "##.x......##",
         "############",
         "############"
       ]
