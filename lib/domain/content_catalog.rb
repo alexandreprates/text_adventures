@@ -24,6 +24,14 @@ module TextAdventures
       new.shop(id)
     end
 
+    def self.dungeon_block(id)
+      new.dungeon_block(id)
+    end
+
+    def self.dungeon_blocks
+      new.dungeon_blocks
+    end
+
     def item(id)
       definition = fetch_definition(items_data.fetch("items"), id, "item")
       build_item(definition)
@@ -58,6 +66,17 @@ module TextAdventures
         stock: items(definition.fetch("stock", [])),
         accepted_types: symbol_list(definition.fetch("accepted_types", []))
       }
+    end
+
+    def dungeon_block(id)
+      definition = fetch_definition(dungeon_blocks_data.fetch("dungeon_blocks"), id, "dungeon block")
+      build_dungeon_block(id, definition)
+    end
+
+    def dungeon_blocks
+      dungeon_blocks_data.fetch("dungeon_blocks").map do |id, definition|
+        build_dungeon_block(id, definition)
+      end
     end
 
     private
@@ -103,6 +122,15 @@ module TextAdventures
       end
     end
 
+    def build_dungeon_block(id, definition)
+      DungeonBlock.new(
+        id: id,
+        name: definition.fetch("name"),
+        tiles: definition.fetch("tiles"),
+        exits: definition.fetch("exits")
+      )
+    end
+
     def fetch_definition(collection, id, type)
       normalized_id = id.to_s
       collection.fetch(normalized_id) do
@@ -128,6 +156,10 @@ module TextAdventures
 
     def creatures_data
       @creatures_data ||= load_yaml("creatures.yml")
+    end
+
+    def dungeon_blocks_data
+      @dungeon_blocks_data ||= load_yaml("dungeon_blocks.yml")
     end
 
     def load_yaml(file_name)

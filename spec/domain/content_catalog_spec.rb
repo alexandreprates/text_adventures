@@ -111,4 +111,41 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(rewards).to all(be_positive)
     end
   end
+
+  describe ".dungeon_block" do
+    it "builds dungeon blocks from YAML definitions" do
+      block = described_class.dungeon_block("right_exit")
+
+      expect(block).to have_attributes(
+        id: "right_exit",
+        name: "Corridor Right Exit",
+        width: 6,
+        height: 5,
+        exits: ["right"]
+      )
+      expect(block).to be_exit("right")
+      expect(block).to be_open(5, 2)
+      expect(block).to be_wall(0, 0)
+    end
+
+    it "exposes the full dungeon block catalog" do
+      expect(described_class.dungeon_blocks.map(&:id)).to eq [
+        "right_exit",
+        "left_exit",
+        "down_exit",
+        "up_exit",
+        "four_exits",
+        "corner_down_left",
+        "corner_down_right",
+        "corner_up_left",
+        "corner_up_right"
+      ]
+    end
+
+    it "raises a clear error for unknown dungeon block ids" do
+      expect do
+        described_class.dungeon_block("missing")
+      end.to raise_error(ArgumentError, "unknown dungeon block: missing")
+    end
+  end
 end
