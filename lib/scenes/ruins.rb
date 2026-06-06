@@ -90,15 +90,23 @@ module TextAdventures
       def maybe_spawn_encounter(game)
         return nil if game.random.rand(100) >= ENCOUNTER_CHANCE
 
-        game.battle = Creature.giant_spider
-        encounter_response(game.battle)
+        game.battle = Battle.new(creature: Creature.giant_spider, random: game.random)
+        encounter_response(game.battle.creature)
       end
 
       def handle_active_encounter(game, command)
-        return encounter_response(game.battle) if command.verb == :look
-        return Response.new("You cannot move while #{game.battle.display_name} blocks your path.") if command.verb == :go
+        creature = game.battle.creature
+        return encounter_response(creature) if command.verb == :look
+        return handle_attack(game) if command.verb == :attack
+        return Response.new("You cannot move while #{creature.display_name} blocks your path.") if command.verb == :go
 
-        Response.new("#{game.battle.display_name} is about to attack you!")
+        Response.new("#{creature.display_name} is about to attack you!")
+      end
+
+      def handle_attack(game)
+        result = game.battle.attack(game.player)
+        game.battle = nil if result.finished?
+        result.to_response
       end
 
       def encounter_response(creature)

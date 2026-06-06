@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe TextAdventures::Scenes::Ruins do
-  FixedRandom = Struct.new(:value) do
+  RuinsFixedRandom = Struct.new(:value) do
     def rand(_max)
       value
     end
@@ -10,7 +10,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   subject(:scene) { described_class.new(dungeon: dungeon) }
 
   let(:dungeon) { TextAdventures::Dungeon.new }
-  let(:random) { FixedRandom.new(99) }
+  let(:random) { RuinsFixedRandom.new(99) }
   let(:game) { TextAdventures::Game.new(current_scene: scene, random: random) }
 
   it "has the Ruins scene identity" do
@@ -55,7 +55,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   end
 
   it "can force an encounter when looking" do
-    encounter_game = TextAdventures::Game.new(current_scene: scene, random: FixedRandom.new(0))
+    encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
 
     response = encounter_game.handle("look")
 
@@ -63,12 +63,12 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       You see a Giant Spider
       A Giant Spider is about to attack you!
     TEXT
-    expect(encounter_game.battle).to be_a TextAdventures::Creature
-    expect(encounter_game.battle.display_name).to eq "Giant Spider"
+    expect(encounter_game.battle).to be_a TextAdventures::Battle
+    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
   end
 
   it "can force an encounter after movement" do
-    encounter_game = TextAdventures::Game.new(current_scene: scene, random: FixedRandom.new(0))
+    encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
 
     response = encounter_game.handle("go right")
 
@@ -85,18 +85,40 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       You see a Giant Spider
       A Giant Spider is about to attack you!
     TEXT
-    expect(encounter_game.battle.display_name).to eq "Giant Spider"
+    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
   end
 
   it "switches to active encounter behavior while a creature is present" do
-    game.battle = TextAdventures::Creature.giant_spider
+    game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
 
     expect(game.handle("look")).to eq <<~TEXT.chomp
       You see a Giant Spider
       A Giant Spider is about to attack you!
     TEXT
     expect(game.handle("go right")).to eq "You cannot move while Giant Spider blocks your path."
-    expect(game.handle("attack")).to eq "Giant Spider is about to attack you!"
+    expect(game.handle("inventory")).to include "Currently you have nothing."
+  end
+
+  it "attacks during active encounters and keeps battle active while the creature lives" do
+    game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
+
+    expect(game.handle("attack")).to eq <<~TEXT.chomp
+      You attack a Giant Spider causing 10 of damage.
+      Giant Spider attacks you with Bite causing 0 of damage.
+    TEXT
+    expect(game.battle.creature.health.current).to eq 25
+  end
+
+  it "clears active battle when attack defeats the creature" do
+    strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil)
+    strong_game = TextAdventures::Game.new(current_scene: scene, player: strong_player, random: random)
+    strong_game.battle = TextAdventures::Battle.new(creature: TextAdventures::Creature.giant_spider, random: random)
+
+    expect(strong_game.handle("attack")).to eq <<~TEXT.chomp
+      You attack a Giant Spider causing 39 of damage.
+      Giant Spider dies.
+    TEXT
+    expect(strong_game.battle).to be_nil
   end
 
   it "rejects invalid movement targets" do
