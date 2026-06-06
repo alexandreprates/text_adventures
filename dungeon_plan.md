@@ -397,7 +397,7 @@ compatibilidade entre saídas opostas.
 5. [x] Implementar movimento dentro de um bloco.
 6. [x] Implementar revelação de bloco ao cruzar uma saída válida.
 7. [x] Implementar validação de compatibilidade com vizinhos.
-8. Manter a lógica de encontros após movimentos válidos.
+8. [x] Manter a lógica de encontros após movimentos válidos.
 9. Adicionar testes para:
    * render do bloco inicial;
    * movimento interno;

@@ -106,6 +106,23 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
   end
 
+  it "can force an encounter after movement reveals a new dungeon block" do
+    edge_dungeon = TextAdventures::Dungeon.new(
+      player_position: TextAdventures::Dungeon::Position.new(x: 5, y: 2),
+      random: RuinsFixedRandom.new(0)
+    )
+    edge_scene = described_class.new(dungeon: edge_dungeon)
+    encounter_game = TextAdventures::Game.new(current_scene: edge_scene, random: RuinsFixedRandom.new(0))
+
+    response = encounter_game.handle("go right")
+
+    expect(response).to include "You move right."
+    expect(response).to include "You see a Giant Spider"
+    expect(response).to include "A Giant Spider is about to attack you!"
+    expect(edge_dungeon.revealed_blocks.keys).to include [1, 0]
+    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+  end
+
   it "switches to active encounter behavior while a creature is present" do
     game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
