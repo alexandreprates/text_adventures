@@ -64,6 +64,27 @@ module TextAdventures
         )
       end
 
+      def help
+        Response.new(
+          "Ruins help",
+          "",
+          "Movement:",
+          " go <up|right|down|left> - move through open floor",
+          " go town - return to Nee'Peh when no enemy blocks you",
+          " look - inspect the ruins and risk an encounter",
+          "",
+          "Combat:",
+          " attack - strike the active enemy",
+          " cast <spell> - cast a known spell",
+          " loot - collect rewards after victory",
+          "",
+          "Map symbols:",
+          " x - you",
+          " . - open floor",
+          " # - wall"
+        )
+      end
+
       private
 
       def look(game)

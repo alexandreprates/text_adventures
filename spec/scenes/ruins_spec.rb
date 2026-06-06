@@ -43,6 +43,16 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(response).to include "Good luck and have a great adventure!"
   end
 
+  it "shows concise ruins help without rendering the map" do
+    response = game.handle("help")
+
+    expect(response).to include "Ruins help"
+    expect(response).to include "go <up|right|down|left> - move through open floor"
+    expect(response).to include ". - open floor"
+    expect(response).to_not include "Ruins Level 1"
+    expect(response).to_not include "##.x.."
+  end
+
   it "moves through valid dungeon directions and renders the updated map" do
     expect(game.handle("go up")).to eq <<~TEXT.chomp
       You cannot go up; a wall blocks the way.
