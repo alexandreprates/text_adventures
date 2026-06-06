@@ -25,9 +25,15 @@ RSpec.describe TextAdventures::Character do
       expect(character.equipped_armor).to have_attributes(name: "Leather Armor", defense: 20)
     end
 
+    it "starts with an inventory" do
+      expect(character.inventory).to be_a TextAdventures::Inventory
+      expect(character.inventory).to be_empty
+    end
+
     context "with custom attributes" do
       let(:weapon) { described_class::Equipment.new(name: "Axe", attack: 15, defense: 0) }
       let(:armor) { described_class::Equipment.new(name: "Chainmail", attack: 0, defense: 8) }
+      let(:inventory) { TextAdventures::Inventory.new }
       let(:attributes) do
         {
           name: "Nee Peh",
@@ -37,7 +43,8 @@ RSpec.describe TextAdventures::Character do
           base_attack: 3,
           base_defense: 2,
           equipped_weapon: weapon,
-          equipped_armor: armor
+          equipped_armor: armor,
+          inventory: inventory
         }
       end
 
@@ -48,7 +55,8 @@ RSpec.describe TextAdventures::Character do
           base_attack: 3,
           base_defense: 2,
           equipped_weapon: weapon,
-          equipped_armor: armor
+          equipped_armor: armor,
+          inventory: inventory
         )
         expect(character.health).to have_attributes(current: 12, max: 40)
       end

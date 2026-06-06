@@ -12,6 +12,7 @@ module TextAdventures
 
     attr_reader :health
     attr_reader :spells
+    attr_reader :inventory
     attr_accessor :name, :gold, :base_attack, :base_defense,
                   :equipped_weapon, :equipped_armor
 
@@ -24,7 +25,8 @@ module TextAdventures
       base_defense: DEFAULT_BASE_DEFENSE,
       equipped_weapon: STARTER_WEAPON,
       equipped_armor: STARTER_ARMOR,
-      spells: []
+      spells: [],
+      inventory: Inventory.new
     )
       @name = name
       @health = Extent.new(health, max: max_health)
@@ -34,6 +36,7 @@ module TextAdventures
       @equipped_weapon = equipped_weapon
       @equipped_armor = equipped_armor
       @spells = {}
+      @inventory = inventory
       spells.each { |spell| learn_spell(spell) }
     end
 
