@@ -46,8 +46,9 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   it "shows stock" do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
-       1x Sword (Atk: 10) - 15g
-       1x Spear (Atk: 22, Def: 5) - 50g
+       Weapons:
+        1x Sword (Atk: 10) - 15g
+        1x Spear (Atk: 22, Def: 5) - 50g
     TEXT
   end
 

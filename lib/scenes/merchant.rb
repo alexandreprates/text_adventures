@@ -54,7 +54,7 @@ module TextAdventures
       def show_stock
         return Response.new("There is nothing for sale.") if stock.empty?
 
-        Response.new(["Here, take a look at these goods!"] + stock.map { |item| " #{item_line(item)}" })
+        Response.new(["Here, take a look at these goods!"] + grouped_stock_lines)
       end
 
       def request_buy(game, query)
@@ -159,6 +159,34 @@ module TextAdventures
         suffix = details.empty? ? "" : " (#{details.join(', ')})"
 
         "1x #{item.display_name}#{suffix} - #{item.price}g"
+      end
+
+      def grouped_stock_lines
+        stock.each_with_object({}) do |item, groups|
+          groups[group_label(item)] ||= []
+          groups[group_label(item)] << item
+        end.flat_map do |label, items|
+          [" #{label}:"] + items.map { |item| "  #{item_line(item)}" }
+        end
+      end
+
+      def group_label(item)
+        return weapon_group_label(item.weapon_class) if item.weapon? && item.weapon_class
+        return armor_group_label(item.armor_class) if item.armor? && item.armor_class
+
+        "#{item.type.to_s.capitalize}s"
+      end
+
+      def weapon_group_label(weapon_class)
+        {
+          sword: "Swords",
+          spear: "Spears and Polearms",
+          dagger: "Daggers"
+        }.fetch(weapon_class, "#{weapon_class.to_s.capitalize}s")
+      end
+
+      def armor_group_label(armor_class)
+        "#{armor_class.to_s.capitalize} Armor"
       end
 
       def armor_class_label(item)
