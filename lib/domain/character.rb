@@ -104,6 +104,15 @@ module TextAdventures
       status_effects.include?(normalize_status(status))
     end
 
+    def inventory_report
+      Response.new(
+        inventory.render,
+        "Equipped:",
+        " weapon: #{equipment_line(equipped_weapon, :attack)}",
+        " armor: #{equipment_line(equipped_armor, :defense)}"
+      ).to_text
+    end
+
     def learn_spell(spell)
       current_spell = spells[spell.command_name]
       spells[spell.command_name] = current_spell ? current_spell.level_up : spell
@@ -141,6 +150,27 @@ module TextAdventures
 
     def spellbook_line(spell)
       "1x #{spell.display_name} (level #{spell.level}) - #{spell.description}"
+    end
+
+    def equipment_line(equipment, attribute)
+      return "none" unless equipment
+
+      value = equipment_value(equipment, attribute)
+      detail = value.positive? ? " (#{attribute_label(attribute)}: #{value})" : ""
+      "#{equipment_display_name(equipment)}#{detail}"
+    end
+
+    def equipment_display_name(equipment)
+      return equipment.display_name if equipment.respond_to?(:display_name)
+
+      equipment.name
+    end
+
+    def attribute_label(attribute)
+      {
+        attack: "Atk",
+        defense: "Def"
+      }.fetch(attribute)
     end
 
     def normalize_statuses(statuses)

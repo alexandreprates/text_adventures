@@ -74,6 +74,29 @@ RSpec.describe TextAdventures::Game do
       expect(scene.handled_command).to have_attributes(verb: :go, target: "ruins")
     end
 
+    it "handles inventory as a global player command" do
+      scene = TestScene.new(response: "scene response")
+      game = described_class.new(current_scene: scene)
+      game.player.inventory.add(TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20), quantity: 2)
+
+      response = game.handle("inventory")
+
+      expect(response).to eq <<~TEXT.chomp
+        Currently you have:
+         2x Potion of Heal (Recovery 20 Health)
+        Equipped:
+         weapon: Sword (Atk: 10)
+         armor: Leather Armor (Def: 20)
+      TEXT
+      expect(scene.handled_command).to be_nil
+    end
+
+    it "renders an explicit empty inventory through the global command" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+
+      expect(game.handle("inventory")).to include "Currently you have nothing."
+    end
+
     it "returns parser messages for unknown commands without delegating" do
       scene = TestScene.new(response: "scene response")
       game = described_class.new(current_scene: scene)

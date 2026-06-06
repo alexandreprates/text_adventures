@@ -211,6 +211,35 @@ RSpec.describe TextAdventures::Character do
     end
   end
 
+  describe "#inventory_report" do
+    it "renders an empty inventory with equipped items" do
+      expect(character.inventory_report).to eq <<~TEXT.chomp
+        Currently you have nothing.
+        Equipped:
+         weapon: Sword (Atk: 10)
+         armor: Leather Armor (Def: 20)
+      TEXT
+    end
+
+    it "renders item quantities with equipped item indicators" do
+      sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
+      potion = TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20)
+      armor = TextAdventures::Item.armor("Leather Armor", price: 20, defense: 20)
+      character.inventory.add(potion, quantity: 2)
+      character.inventory.add(sword)
+      character.equip(armor)
+
+      expect(character.inventory_report).to eq <<~TEXT.chomp
+        Currently you have:
+         2x Potion of Heal (Recovery 20 Health)
+         1x Sword (Atk: 10)
+        Equipped:
+         weapon: Sword (Atk: 10)
+         armor: Leather Armor (Def: 20)
+      TEXT
+    end
+  end
+
   describe "#learn_spell" do
     it "learns a new spell" do
       character.learn_spell(TextAdventures::Spell.fireball)

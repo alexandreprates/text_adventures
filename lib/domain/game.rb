@@ -33,12 +33,18 @@ module TextAdventures
 
     def handle(command_text)
       command = CommandParser.parse(command_text)
-      response = Response.render(command.unknown? ? command.message : current_scene.handle(self, command))
+      response = Response.render(command.unknown? ? command.message : handle_known_command(command))
       record_history(command_text, response)
       response
     end
 
     private
+
+    def handle_known_command(command)
+      return player.inventory_report if command.verb == :inventory
+
+      current_scene.handle(self, command)
+    end
 
     def record_history(command_text, response)
       history << HistoryEntry.new(command: command_text, response: response)
