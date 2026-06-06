@@ -86,4 +86,67 @@ RSpec.describe TextAdventures::Dungeon do
       TEXT
     end
   end
+
+  describe "#move" do
+    it "moves the player to an adjacent open tile" do
+      result = dungeon.move("right")
+
+      expect(result).to have_attributes(
+        success?: true,
+        direction: "right",
+        message: "You move right."
+      )
+      expect(result.from).to have_attributes(x: 3, y: 2)
+      expect(result.to).to have_attributes(x: 4, y: 2)
+      expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
+    end
+
+    it "normalizes direction text" do
+      dungeon.move(" RIGHT ")
+
+      expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
+    end
+
+    it "rejects movement into walls without changing position" do
+      result = dungeon.move("up")
+
+      expect(result).to have_attributes(
+        success?: false,
+        direction: "up",
+        message: "You cannot go up; a wall blocks the way."
+      )
+      expect(result.from).to have_attributes(x: 3, y: 2)
+      expect(result.to).to have_attributes(x: 3, y: 1)
+      expect(dungeon.player_position).to have_attributes(x: 3, y: 2)
+    end
+
+    it "rejects movement outside map boundaries" do
+      edge_dungeon = described_class.new(
+        tiles: [
+          "# #",
+          "###"
+        ],
+        player_position: described_class::Position.new(x: 1, y: 0)
+      )
+
+      result = edge_dungeon.move("up")
+
+      expect(result).to have_attributes(
+        success?: false,
+        message: "You cannot go up; the path leaves the dungeon."
+      )
+      expect(edge_dungeon.player_position).to have_attributes(x: 1, y: 0)
+    end
+
+    it "rejects unknown directions" do
+      result = dungeon.move("sideways")
+
+      expect(result).to have_attributes(
+        success?: false,
+        direction: "sideways",
+        message: "Unknown direction: sideways."
+      )
+      expect(dungeon.player_position).to have_attributes(x: 3, y: 2)
+    end
+  end
 end

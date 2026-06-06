@@ -29,12 +29,22 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(response).to include "Good luck and have a great adventure!"
   end
 
-  it "accepts movement directions for later dungeon-grid handling" do
+  it "moves through valid dungeon directions and renders the updated map" do
     expect(game.handle("go up")).to eq <<~TEXT.chomp
-      You prepare to go up.
-      [dungeon movement will resolve against the grid]
+      You cannot go up; a wall blocks the way.
     TEXT
-    expect(game.handle("go right")).to include "You prepare to go right."
+
+    expect(game.handle("go right")).to eq <<~TEXT.chomp
+      You move right.
+
+      Ruins Level 1
+      ######
+      ######
+      ##  x#
+      ######
+      ######
+    TEXT
+    expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
   end
 
   it "rejects invalid movement targets" do

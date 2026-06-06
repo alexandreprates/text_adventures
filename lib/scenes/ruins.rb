@@ -59,9 +59,13 @@ module TextAdventures
       def handle_movement(direction)
         return invalid_direction(direction) unless DIRECTIONS.include?(direction)
 
+        result = dungeon.move(direction)
+        return Response.new(result.message) unless result.success?
+
         Response.new(
-          "You prepare to go #{direction}.",
-          "[dungeon movement will resolve against the grid]"
+          result.message,
+          "",
+          dungeon.render
         )
       end
 

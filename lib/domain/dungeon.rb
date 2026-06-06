@@ -1,10 +1,17 @@
 module TextAdventures
   class Dungeon
     Position = Struct.new(:x, :y, keyword_init: true)
+    MoveResult = Struct.new(:success?, :direction, :from, :to, :message, keyword_init: true)
 
     WALL = "#".freeze
     OPEN = " ".freeze
     PLAYER = "x".freeze
+    DIRECTIONS = {
+      "up" => [0, -1],
+      "right" => [1, 0],
+      "down" => [0, 1],
+      "left" => [-1, 0]
+    }.freeze
     DEFAULT_LEVEL = 1
     DEFAULT_TILES = [
       "######",
@@ -58,6 +65,26 @@ module TextAdventures
       open?(player_position.x, player_position.y)
     end
 
+    def move(direction)
+      normalized_direction = direction.to_s.downcase.strip
+      delta = DIRECTIONS[normalized_direction]
+      return failed_move(normalized_direction, "Unknown direction: #{direction}.") unless delta
+
+      from = current_position
+      to = Position.new(x: from.x + delta[0], y: from.y + delta[1])
+      return failed_move(normalized_direction, "You cannot go #{normalized_direction}; the path leaves the dungeon.", from: from, to: to) unless in_bounds?(to.x, to.y)
+      return failed_move(normalized_direction, "You cannot go #{normalized_direction}; a wall blocks the way.", from: from, to: to) if wall?(to.x, to.y)
+
+      @player_position = to
+      MoveResult.new(
+        success?: true,
+        direction: normalized_direction,
+        from: from,
+        to: to,
+        message: "You move #{normalized_direction}."
+      )
+    end
+
     def render
       lines = ["Ruins Level #{level}"]
       tiles.each_with_index do |row, y|
@@ -91,6 +118,20 @@ module TextAdventures
 
     def player_at?(x, y)
       player_position.x == x && player_position.y == y
+    end
+
+    def current_position
+      Position.new(x: player_position.x, y: player_position.y)
+    end
+
+    def failed_move(direction, message, from: current_position, to: current_position)
+      MoveResult.new(
+        success?: false,
+        direction: direction,
+        from: from,
+        to: to,
+        message: message
+      )
     end
   end
 end
