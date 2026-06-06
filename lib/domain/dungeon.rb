@@ -15,23 +15,31 @@ module TextAdventures
       "down" => [0, 1],
       "left" => [-1, 0]
     }.freeze
+    OPPOSITE_DIRECTIONS = {
+      "up" => "down",
+      "right" => "left",
+      "down" => "up",
+      "left" => "right"
+    }.freeze
     DEFAULT_LEVEL = 1
     DEFAULT_BLOCK_ID = "right_exit".freeze
     DEFAULT_PLAYER_POSITION = Position.new(x: 3, y: 2).freeze
     DEFAULT_BLOCK_POSITION = BlockPosition.new(x: 0, y: 0).freeze
 
-    attr_reader :level, :revealed_blocks, :player_position, :current_block_position
+    attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :random
 
     def initialize(
       level: DEFAULT_LEVEL,
       revealed_blocks: nil,
       player_position: DEFAULT_PLAYER_POSITION,
-      current_block_position: DEFAULT_BLOCK_POSITION
+      current_block_position: DEFAULT_BLOCK_POSITION,
+      random: Random.new
     )
       @level = level
       @revealed_blocks = normalize_revealed_blocks(revealed_blocks)
       @player_position = Position.new(x: player_position.x, y: player_position.y)
       @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
+      @random = random
       validate_current_block!
       validate_player_position!
     end
@@ -75,7 +83,7 @@ module TextAdventures
 
       from = current_position
       to = Position.new(x: from.x + delta[0], y: from.y + delta[1])
-      return failed_move(normalized_direction, "You cannot go #{normalized_direction}; the path leaves the dungeon.", from: from, to: to) unless in_bounds?(to.x, to.y)
+      return move_across_exit(normalized_direction, from, to) unless in_bounds?(to.x, to.y)
       return failed_move(normalized_direction, "You cannot go #{normalized_direction}; a wall blocks the way.", from: from, to: to) if wall?(to.x, to.y)
 
       @player_position = to
@@ -105,7 +113,7 @@ module TextAdventures
       blocks = value || { DEFAULT_BLOCK_POSITION.key => ContentCatalog.dungeon_block(DEFAULT_BLOCK_ID) }
       blocks.transform_keys { |key| normalize_block_key(key) }.transform_values do |block|
         block.is_a?(DungeonBlock) ? block : ContentCatalog.dungeon_block(block)
-      end.freeze
+      end
     end
 
     def normalize_block_key(key)
@@ -143,6 +151,54 @@ module TextAdventures
 
     def current_block
       revealed_blocks.fetch(current_block_position.key)
+    end
+
+    def move_across_exit(direction, from, attempted_to)
+      return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) unless current_block.exit?(direction)
+
+      next_block_position = adjacent_block_position(direction)
+      next_block = revealed_blocks[next_block_position.key] || reveal_block(next_block_position, direction)
+      return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) unless next_block
+
+      @current_block_position = next_block_position
+      @player_position = entry_position_for(direction)
+      MoveResult.new(
+        success?: true,
+        direction: direction,
+        from: from,
+        to: current_position,
+        message: "You move #{direction}."
+      )
+    end
+
+    def reveal_block(block_position, direction)
+      required_exit = OPPOSITE_DIRECTIONS.fetch(direction)
+      candidates = ContentCatalog.dungeon_blocks.select { |block| block.exit?(required_exit) }
+      return nil if candidates.empty?
+
+      selected = candidates[random.rand(candidates.length)]
+      revealed_blocks[block_position.key] = selected
+    end
+
+    def adjacent_block_position(direction)
+      delta = DIRECTIONS.fetch(direction)
+      BlockPosition.new(
+        x: current_block_position.x + delta[0],
+        y: current_block_position.y + delta[1]
+      )
+    end
+
+    def entry_position_for(direction)
+      case direction
+      when "up"
+        Position.new(x: 2, y: height - 1)
+      when "right"
+        Position.new(x: 0, y: 2)
+      when "down"
+        Position.new(x: 2, y: 0)
+      when "left"
+        Position.new(x: width - 1, y: 2)
+      end
     end
 
     def composed_tiles

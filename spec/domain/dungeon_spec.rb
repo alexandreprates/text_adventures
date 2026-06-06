@@ -1,6 +1,12 @@
 require 'spec_helper'
 
 RSpec.describe TextAdventures::Dungeon do
+  FixedRandom = Struct.new(:value) do
+    def rand(_max)
+      value
+    end
+  end
+
   subject(:dungeon) { described_class.new }
 
   describe ".new" do
@@ -170,8 +176,20 @@ RSpec.describe TextAdventures::Dungeon do
     end
 
     it "rejects movement outside map boundaries" do
+      edge_block = TextAdventures::DungeonBlock.new(
+        id: "open_top",
+        name: "Open Top",
+        tiles: [
+          "##  ##",
+          "######",
+          "######",
+          "######",
+          "######"
+        ],
+        exits: []
+      )
       edge_dungeon = described_class.new(
-        revealed_blocks: { [0, 0] => "up_exit" },
+        revealed_blocks: { [0, 0] => edge_block },
         player_position: described_class::Position.new(x: 2, y: 0)
       )
 
@@ -182,6 +200,35 @@ RSpec.describe TextAdventures::Dungeon do
         message: "You cannot go up; the path leaves the dungeon."
       )
       expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
+    end
+
+    it "reveals a compatible block when crossing an exit to the right" do
+      edge_dungeon = described_class.new(
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: FixedRandom.new(0)
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to have_attributes(success?: true, message: "You move right.")
+      expect(edge_dungeon.current_block_position).to have_attributes(x: 1, y: 0)
+      expect(edge_dungeon.player_position).to have_attributes(x: 0, y: 2)
+      expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "left_exit"
+    end
+
+    it "reveals a compatible block when crossing an exit downward" do
+      edge_dungeon = described_class.new(
+        revealed_blocks: { [0, 0] => "down_exit" },
+        player_position: described_class::Position.new(x: 2, y: 4),
+        random: FixedRandom.new(0)
+      )
+
+      result = edge_dungeon.move("down")
+
+      expect(result).to have_attributes(success?: true, message: "You move down.")
+      expect(edge_dungeon.current_block_position).to have_attributes(x: 0, y: 1)
+      expect(edge_dungeon.player_position).to have_attributes(x: 2, y: 0)
+      expect(edge_dungeon.revealed_blocks.fetch([0, 1]).id).to eq "up_exit"
     end
 
     it "rejects unknown directions" do
