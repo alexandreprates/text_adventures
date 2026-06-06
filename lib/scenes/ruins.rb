@@ -2,6 +2,7 @@ module TextAdventures
   module Scenes
     class Ruins
       DIRECTIONS = %w[up right down left].freeze
+      ENCOUNTER_CHANCE = 20
 
       attr_reader :dungeon
 
@@ -21,12 +22,14 @@ module TextAdventures
         game.dungeon = dungeon
       end
 
-      def handle(_game, command)
+      def handle(game, command)
+        return handle_active_encounter(game, command) if game.battle
+
         case command.verb
         when :look
-          describe
+          look(game)
         when :go
-          handle_movement(command.target)
+          handle_movement(game, command.target)
         else
           describe
         end
@@ -56,23 +59,52 @@ module TextAdventures
 
       private
 
-      def handle_movement(direction)
+      def look(game)
+        maybe_spawn_encounter(game) || describe
+      end
+
+      def handle_movement(game, direction)
         return invalid_direction(direction) unless DIRECTIONS.include?(direction)
 
         result = dungeon.move(direction)
         return Response.new(result.message) unless result.success?
 
-        Response.new(
+        response = Response.new(
           result.message,
           "",
           dungeon.render
         )
+        encounter = maybe_spawn_encounter(game)
+        return response unless encounter
+
+        response.append("", encounter)
       end
 
       def invalid_direction(direction)
         Response.new(
           "You cannot go #{direction} inside the ruins.",
           "Available directions: up, right, down, left."
+        )
+      end
+
+      def maybe_spawn_encounter(game)
+        return nil if game.random.rand(100) >= ENCOUNTER_CHANCE
+
+        game.battle = Creature.giant_spider
+        encounter_response(game.battle)
+      end
+
+      def handle_active_encounter(game, command)
+        return encounter_response(game.battle) if command.verb == :look
+        return Response.new("You cannot move while #{game.battle.display_name} blocks your path.") if command.verb == :go
+
+        Response.new("#{game.battle.display_name} is about to attack you!")
+      end
+
+      def encounter_response(creature)
+        Response.new(
+          "You see a #{creature.display_name}",
+          "A #{creature.display_name} is about to attack you!"
         )
       end
     end
