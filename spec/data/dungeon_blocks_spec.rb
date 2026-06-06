@@ -2,6 +2,14 @@ require 'spec_helper'
 require 'yaml'
 
 RSpec.describe "dungeon block catalog" do
+  EXIT_TILES = {
+    "up" => [[2, 0], [3, 0]],
+    "right" => [[5, 2]],
+    "down" => [[2, 4], [3, 4]],
+    "left" => [[0, 2]]
+  }.freeze
+  DIRECTIONS = [[0, -1], [1, 0], [0, 1], [-1, 0]].freeze
+
   let(:catalog_path) { File.expand_path("../../data/dungeon_blocks.yml", __dir__) }
   let(:blocks) { YAML.safe_load(File.read(catalog_path)).fetch("dungeon_blocks") }
 
@@ -38,5 +46,58 @@ RSpec.describe "dungeon block catalog" do
       expect(exits).to_not be_empty
       expect(exits).to all(satisfy { |exit| valid_exits.include?(exit) })
     end
+  end
+
+  it "keeps declared exits aligned with open border tiles" do
+    blocks.each do |id, block|
+      tiles = block.fetch("tiles")
+      exits = block.fetch("exits")
+
+      EXIT_TILES.each do |direction, positions|
+        open_exit = positions.all? { |x, y| tiles[y][x] == " " }
+
+        expect(open_exit).to eq(exits.include?(direction)), "#{id} has mismatched #{direction} exit tiles"
+      end
+    end
+  end
+
+  it "keeps every block exit connected by open floor" do
+    blocks.each do |id, block|
+      tiles = block.fetch("tiles")
+      exit_positions = block.fetch("exits").flat_map { |direction| EXIT_TILES.fetch(direction) }
+      reachable = reachable_open_positions(tiles, exit_positions.first)
+
+      exit_positions.each do |position|
+        expect(reachable).to include(position), "#{id} has disconnected exit at #{position.inspect}"
+      end
+    end
+  end
+
+  def reachable_open_positions(tiles, start)
+    queue = [start]
+    seen = { start => true }
+
+    until queue.empty?
+      x, y = queue.shift
+
+      DIRECTIONS.each do |dx, dy|
+        next_position = [x + dx, y + dy]
+        next if seen[next_position]
+        next unless open_tile?(tiles, next_position)
+
+        seen[next_position] = true
+        queue << next_position
+      end
+    end
+
+    seen.keys
+  end
+
+  def open_tile?(tiles, position)
+    x, y = position
+
+    y.between?(0, tiles.length - 1) &&
+      x.between?(0, tiles.fetch(y).length - 1) &&
+      tiles[y][x] == " "
   end
 end

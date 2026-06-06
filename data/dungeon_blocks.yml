@@ -58,41 +58,41 @@ dungeon_blocks:
       - down
       - left
     tiles:
-      - "##  ##"
-      - "##  ##"
+      - "######"
+      - "######"
       - "    ##"
-      - "######"
-      - "######"
+      - "##  ##"
+      - "##  ##"
   corner_down_right:
     name: Corridor Corner Down Right
     exits:
       - down
       - right
     tiles:
-      - "##  ##"
-      - "##  ##"
+      - "######"
+      - "######"
       - "##    "
-      - "######"
-      - "######"
+      - "##  ##"
+      - "##  ##"
   corner_up_left:
     name: Corridor Corner Up Left
     exits:
       - up
       - left
     tiles:
-      - "######"
-      - "######"
+      - "##  ##"
+      - "##  ##"
       - "    ##"
-      - "##  ##"
-      - "##  ##"
+      - "######"
+      - "######"
   corner_up_right:
     name: Corridor Corner Up Right
     exits:
       - up
       - right
     tiles:
-      - "######"
-      - "######"
+      - "##  ##"
+      - "##  ##"
       - "##    "
-      - "##  ##"
-      - "##  ##"
+      - "######"
+      - "######"
