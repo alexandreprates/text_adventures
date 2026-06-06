@@ -4,16 +4,29 @@
 
 ---
 
-Text Adventures is a text RPG with randomly generated dungeons.
-
-Explore the ruins, confront incredible creatures and increase the power of your character. All directly from your browser.
+Text Adventures is a terminal text RPG foundation with YAML-driven content,
+town services, shops, dungeon exploration, combat, loot, spells, and
+Dungeon Siege-inspired progression by use.
 
 ==Current Implementation Status
 
 The current implementation is a playable terminal Ruby game foundation. It
 includes command parsing, a game loop, town navigation, shops, inventory,
-equipment, spells, dungeon movement, random encounters, combat, loot, and basic
-game-over handling.
+equipment, spells, dungeon movement, random encounters, combat, loot, basic
+game-over handling, and XP/level progression.
+
+Implemented gameplay includes:
+
+* A terminal executable: `bin/text_adventures`.
+* A town hub with Tavern, Priest, Blacksmith, Armorsmith, and Ruins routes.
+* YAML-driven items, shops, and creatures.
+* 15 weapons split across swords, spears/lances, and daggers.
+* 15 armors split across light, medium, and heavy armor classes.
+* 50 high-fantasy dungeon enemies with attacks, loot, status effects, and XP rewards.
+* Buy, sell, confirmation, inventory, equip, use, and drop commands.
+* Spell tomes and spellbook support.
+* Damage, healing, cure, freeze, poison, critical hits, loot, and game-over handling.
+* Use-based progression inspired by Dungeon Siege.
 
 Browser play, URL-based sessions, and persistence are still planned work.
 
@@ -40,16 +53,93 @@ Game content is stored in YAML files under `data/`:
 
   data/items.yml     # weapons, armor, potions, and tomes
   data/shops.yml     # merchant stock and accepted item types
-  data/creatures.yml # creatures, attacks, loot, and status effects
+  data/creatures.yml # creatures, attacks, loot, status effects, and XP rewards
 
 The Ruby domain objects are built from these files through
 `TextAdventures::ContentCatalog`.
+
+Weapons use `weapon_class` metadata for progression:
+
+  weapon_class: sword
+  weapon_class: spear
+  weapon_class: dagger
+
+Armors use `armor_class` metadata:
+
+  armor_class: light
+  armor_class: medium
+  armor_class: heavy
+
+Creatures use `xp_reward` for victory rewards:
+
+  xp_reward: 67
 
 ==Running the Terminal Game
 
   bin/text_adventures
 
 Type commands at the prompt. Use `quit` or `exit` to leave the game.
+
+==Core Commands
+
+Global commands:
+
+  inventory       # show carried and equipped items
+  spellbook       # show known spells
+  level           # show overall character level and XP
+  skills          # show progression by skill track
+  equip <item>    # equip a carried weapon or armor
+  use <item>      # use potions or tomes
+  drop <item>     # drop a carried item
+
+Town and shop commands:
+
+  go <place>      # move between town destinations
+  show            # show merchant stock
+  buy <item>      # request a purchase
+  sell <item>     # request a sale
+  agree           # confirm buy/sell
+  no              # cancel buy/sell
+  heal            # priest healing service
+  cure            # priest cure service
+
+Ruins commands:
+
+  look            # inspect the dungeon and possibly trigger encounters
+  go <direction>  # move up, right, down, or left
+  attack          # attack the active enemy
+  cast <spell>    # cast a known spell
+  loot            # collect victory loot
+
+==Progression
+
+Progression is inspired by Dungeon Siege: the character improves based on what
+they use in battle instead of choosing a fixed class at creation time.
+
+Skill tracks:
+
+  swordsmanship  # using swords
+  spearmanship   # using spears, halberds, and lances
+  dagger_mastery # using daggers
+  combat_magic   # casting damage spells
+  nature_magic   # casting heal, cure, and support spells
+
+When a creature dies, its `xp_reward` is distributed across the skill tracks
+that contributed during the battle. For example, if a fight is won mostly with
+a spear and finished with Fireball, XP is split between `spearmanship` and
+`combat_magic`.
+
+Overall level is derived from total skill XP. The current level curve is:
+
+  xp_required_for(level) = 50 * level * level
+
+Skill levels also grant gameplay bonuses:
+
+* Swordsmanship adds stable weapon attack when using swords.
+* Spearmanship adds a smaller attack bonus and a defense bonus when using spears.
+* Dagger Mastery improves critical hit chance when using daggers.
+* Combat Magic increases offensive spell damage.
+* Nature Magic improves healing.
 
 ==Planned Server
 
@@ -74,7 +164,10 @@ You will be redirected to an url like:
 
 This is the URL of your game, save it to continue your adventure whenever you want.
 
-=Planning Gameplay
+=Original Gameplay Plan
+
+The following section preserves the original gameplay sketch. Some text is now
+historical and may differ from the current terminal implementation.
 
 ==Begining (Town)
 
