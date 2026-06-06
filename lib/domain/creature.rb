@@ -11,7 +11,7 @@ module TextAdventures
     end
 
     attr_reader :name, :display_name, :health, :attacks, :defense,
-                :loot_table, :status_effects
+                :loot_table, :status_effects, :active_statuses
 
     def self.giant_spider
       new(
@@ -40,7 +40,8 @@ module TextAdventures
       defense: 0,
       attacks: [],
       loot_table: [],
-      status_effects: []
+      status_effects: [],
+      active_statuses: []
     )
       @name = self.class.normalize_name(name)
       @display_name = name
@@ -49,6 +50,7 @@ module TextAdventures
       @attacks = attacks.freeze
       @loot_table = loot_table.freeze
       @status_effects = status_effects.freeze
+      @active_statuses = active_statuses.map { |status| normalize_status(status) }.uniq
     end
 
     def take_damage(amount)
@@ -72,8 +74,27 @@ module TextAdventures
       status_effects.include?(status)
     end
 
+    def apply_status(status)
+      normalized_status = normalize_status(status)
+      active_statuses << normalized_status unless active_statuses.include?(normalized_status)
+      self
+    end
+
+    def clear_status(status)
+      active_statuses.delete(normalize_status(status))
+      self
+    end
+
+    def status?(status)
+      active_statuses.include?(normalize_status(status))
+    end
+
     private
 
     attr_writer :health
+
+    def normalize_status(status)
+      status.to_s.downcase.strip.tr(" ", "_").to_sym
+    end
   end
 end

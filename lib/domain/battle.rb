@@ -29,7 +29,23 @@ module TextAdventures
         return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
       end
 
-      lines.concat counterattack_lines(player)
+      lines.concat enemy_turn_lines(player)
+      Result.new(lines: lines, finished?: false, loot: [])
+    end
+
+    def cast_spell(player, spell)
+      lines = poison_tick_lines(player)
+      damage = spell_damage(spell)
+      creature.take_damage(damage)
+      lines << "You cast #{spell.display_name} causing #{damage} of damage."
+
+      lines.concat spell_status_lines(spell)
+      if creature.dead?
+        lines << "#{creature.display_name} dies."
+        return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
+      end
+
+      lines.concat enemy_turn_lines(player)
       Result.new(lines: lines, finished?: false, loot: [])
     end
 
@@ -46,6 +62,32 @@ module TextAdventures
     def player_attack_line(damage, critical)
       suffix = critical ? " (critical hit)" : ""
       "You attack a #{creature.display_name} causing #{damage} of damage#{suffix}."
+    end
+
+    def spell_damage(spell)
+      [spell.damage_range.begin - creature.defense, 1].max
+    end
+
+    def spell_status_lines(spell)
+      return [] unless spell.status && random.rand(100) < spell.status_chance
+
+      creature.apply_status(spell.status)
+      ["#{creature.display_name} is #{status_adjective(spell.status)}."]
+    end
+
+    def enemy_turn_lines(player)
+      if creature.status?(:freeze)
+        creature.clear_status(:freeze)
+        return ["#{creature.display_name} is frozen and loses its turn."]
+      end
+
+      counterattack_lines(player)
+    end
+
+    def status_adjective(status)
+      {
+        freeze: "frozen"
+      }.fetch(status, status.to_s)
     end
 
     def counterattack_lines(player)

@@ -71,7 +71,8 @@ RSpec.describe TextAdventures::Creature do
         defense: 0,
         attacks: [attack],
         loot_table: [loot],
-        status_effects: [:blind]
+        status_effects: [:blind],
+        active_statuses: []
       )
       expect(creature.health).to be_a Extent
     end
@@ -128,6 +129,22 @@ RSpec.describe TextAdventures::Creature do
 
     it "returns nil when no attack matches" do
       expect(creature.attack_named("claw")).to be_nil
+    end
+  end
+
+  describe "active statuses" do
+    subject(:creature) { described_class.new(name: "Rat", health: 3) }
+
+    it "applies and clears active statuses" do
+      creature.apply_status(:freeze)
+      creature.apply_status("freeze")
+
+      expect(creature.active_statuses).to eq [:freeze]
+      expect(creature).to be_status(:freeze)
+
+      creature.clear_status(:freeze)
+
+      expect(creature).to_not be_status(:freeze)
     end
   end
 end

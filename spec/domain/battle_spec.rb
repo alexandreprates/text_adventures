@@ -84,4 +84,39 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 26
     end
   end
+
+  describe "#cast_spell" do
+    it "can force Ice Bolt to freeze the creature and skip its turn" do
+      freeze_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+
+      response = freeze_battle.cast_spell(player, TextAdventures::Spell.ice_bolt)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Ice Bolt causing 4 of damage.
+        Giant Spider is frozen.
+        Giant Spider is frozen and loses its turn.
+      TEXT
+      expect(creature.health.current).to eq 31
+      expect(creature).to_not be_status(:freeze)
+      expect(player.health.current).to eq 30
+    end
+
+    it "counterattacks when Ice Bolt does not freeze" do
+      no_freeze_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([99, 0])
+      )
+
+      response = no_freeze_battle.cast_spell(player, TextAdventures::Spell.ice_bolt)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You cast Ice Bolt causing 4 of damage.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+      expect(player.health.current).to eq 28
+    end
+  end
 end
