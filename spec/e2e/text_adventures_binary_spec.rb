@@ -30,4 +30,29 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "weapon: Iron Dagger (Atk: 12)"
     expect(output).to include "Thanks for playing."
   end
+
+  it "creates the dungeon incrementally when the player crosses a block exit" do
+    output, error, status = Open3.capture3(
+      { "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      binary,
+      stdin_data: <<~COMMANDS
+        go ruins
+        go right
+        go right
+        go right
+        quit
+      COMMANDS
+    )
+
+    lines = output.lines.map(&:chomp)
+
+    expect(status).to be_success
+    expect(error).to eq ""
+    expect(output).to include "You go to Ruins."
+    expect(lines).to include "## x  "
+    expect(lines).to include "##   x"
+    expect(lines).to include a_string_matching(/\A.{12}\z/)
+    expect(lines).to include a_string_matching(/\A.{6}x.{5}\z/)
+    expect(output).to include "Thanks for playing."
+  end
 end

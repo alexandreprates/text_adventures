@@ -7,7 +7,7 @@ module TextAdventures
   class CLI
     EXIT_COMMANDS = %w[exit quit].freeze
 
-    def initialize(input: $stdin, output: $stdout, game: Game.new)
+    def initialize(input: $stdin, output: $stdout, game: self.class.default_game)
       @input = input
       @output = output
       @game = game
@@ -35,6 +35,13 @@ module TextAdventures
     private
 
     attr_reader :input, :output, :game
+
+    def self.default_game
+      seed = ENV["TEXT_ADVENTURES_RANDOM_SEED"]
+      return Game.new unless seed
+
+      Game.new(random: Random.new(Integer(seed)))
+    end
   end
 end
 
