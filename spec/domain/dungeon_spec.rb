@@ -231,6 +231,42 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.revealed_blocks.fetch([0, 1]).id).to eq "up_exit"
     end
 
+    it "requires new blocks to remain compatible with revealed neighbors" do
+      edge_dungeon = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 1] => "up_exit"
+        },
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: FixedRandom.new(0)
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to have_attributes(success?: true, message: "You move right.")
+      expect(edge_dungeon.current_block_position).to have_attributes(x: 1, y: 0)
+      expect(edge_dungeon.revealed_blocks.fetch([1, 0]).id).to eq "four_exits"
+    end
+
+    it "rejects movement into an already revealed incompatible neighbor" do
+      edge_dungeon = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 0] => "right_exit"
+        },
+        player_position: described_class::Position.new(x: 5, y: 2)
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to have_attributes(
+        success?: false,
+        message: "You cannot go right; the path leaves the dungeon."
+      )
+      expect(edge_dungeon.current_block_position).to have_attributes(x: 0, y: 0)
+      expect(edge_dungeon.player_position).to have_attributes(x: 5, y: 2)
+    end
+
     it "rejects unknown directions" do
       result = dungeon.move("sideways")
 

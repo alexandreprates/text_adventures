@@ -157,7 +157,10 @@ module TextAdventures
       return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) unless current_block.exit?(direction)
 
       next_block_position = adjacent_block_position(direction)
-      next_block = revealed_blocks[next_block_position.key] || reveal_block(next_block_position, direction)
+      next_block = revealed_blocks[next_block_position.key]
+      return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) if next_block && !next_block.exit?(OPPOSITE_DIRECTIONS.fetch(direction))
+
+      next_block ||= reveal_block(next_block_position, direction)
       return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) unless next_block
 
       @current_block_position = next_block_position
@@ -173,11 +176,24 @@ module TextAdventures
 
     def reveal_block(block_position, direction)
       required_exit = OPPOSITE_DIRECTIONS.fetch(direction)
-      candidates = ContentCatalog.dungeon_blocks.select { |block| block.exit?(required_exit) }
+      candidates = ContentCatalog.dungeon_blocks.select do |block|
+        block.exit?(required_exit) && compatible_with_neighbors?(block_position, block)
+      end
       return nil if candidates.empty?
 
       selected = candidates[random.rand(candidates.length)]
       revealed_blocks[block_position.key] = selected
+    end
+
+    def compatible_with_neighbors?(block_position, block)
+      DIRECTIONS.all? do |direction, delta|
+        neighbor_position = [block_position.x + delta[0], block_position.y + delta[1]]
+        neighbor = revealed_blocks[neighbor_position]
+        next true unless neighbor
+
+        opposite_direction = OPPOSITE_DIRECTIONS.fetch(direction)
+        block.exit?(direction) == neighbor.exit?(opposite_direction)
+      end
     end
 
     def adjacent_block_position(direction)
