@@ -132,6 +132,24 @@ RSpec.describe TextAdventures::Dungeon do
       expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
     end
 
+    it "moves the player inside the current revealed block" do
+      current_block = described_class::BlockPosition.new(x: 1, y: 0)
+      composed = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 0] => "down_exit"
+        },
+        current_block_position: current_block,
+        player_position: described_class::Position.new(x: 2, y: 2)
+      )
+
+      result = composed.move("right")
+
+      expect(result).to have_attributes(success?: true, message: "You move right.")
+      expect(composed.current_block_position).to have_attributes(x: 1, y: 0)
+      expect(composed.player_position).to have_attributes(x: 3, y: 2)
+    end
+
     it "normalizes direction text" do
       dungeon.move(" RIGHT ")
 

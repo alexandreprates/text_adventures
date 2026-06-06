@@ -394,7 +394,7 @@ compatibilidade entre saídas opostas.
 2. [x] Representar cada bloco com `tiles` e `exits`.
 3. [x] Substituir o mapa fixo atual por uma coleção de blocos revelados.
 4. [x] Implementar renderização de múltiplos blocos.
-5. Implementar movimento dentro de um bloco.
+5. [x] Implementar movimento dentro de um bloco.
 6. Implementar revelação de bloco ao cruzar uma saída válida.
 7. Implementar validação de compatibilidade com vizinhos.
 8. Manter a lógica de encontros após movimentos válidos.
