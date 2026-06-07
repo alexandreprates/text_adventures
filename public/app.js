@@ -72,13 +72,14 @@ function render(payload) {
   renderBattle(state.battle);
   renderCollections(state.player);
   renderQuickActions(state);
+  updateCommandPlaceholder(state);
   renderLog(payload.response, state.history);
 }
 
 function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.promptLabel.textContent = state.prompt;
-  elements.gameId.textContent = api.gameId ? `Session ${api.gameId.slice(0, 8)}` : "No session";
+  elements.gameId.textContent = api.gameId ? `ID ${api.gameId.slice(0, 8)}` : "No session";
 }
 
 function renderMap(state) {
@@ -190,6 +191,13 @@ function renderQuickActions(state = currentState) {
 function quickCommandsFor(state) {
   if (!state) return [];
 
+  if (state.pending?.confirmation) {
+    return [
+      ["Agree", "agree", "primary"],
+      ["No", "no", "danger"]
+    ];
+  }
+
   const global = [
     ["Inventory", "inventory"],
     ["Spellbook", "spellbook"]
@@ -218,7 +226,46 @@ function quickCommandsFor(state) {
     ]
   };
 
-  return [...(sceneCommands[state.scene] || travel), ...global];
+  return [
+    ...(sceneCommands[state.scene] || travel),
+    ...suggestedItemCommands(state.player),
+    ...global
+  ];
+}
+
+function suggestedItemCommands(player) {
+  const equippedNames = [
+    player.equipment.weapon?.name,
+    player.equipment.armor?.name
+  ].filter(Boolean);
+
+  return player.inventory.filter(item => !equippedNames.includes(item.name)).slice(0, 2).map(item => {
+    if (item.type === "weapon" || item.type === "armor") {
+      return [`Equip ${item.display_name}`, `equip ${item.name}`, "primary"];
+    }
+    if (item.type === "tome" || item.type === "potion") {
+      return [`Use ${item.display_name}`, `use ${item.name}`, "primary"];
+    }
+
+    return [`Use ${item.display_name}`, `use ${item.name}`];
+  });
+}
+
+function updateCommandPlaceholder(state) {
+  if (state.pending?.confirmation) {
+    elements.commandInput.placeholder = "agree or no";
+    return;
+  }
+
+  const placeholders = {
+    town: "go ruins, go blacksmith, inventory",
+    tavern: "rent room, show, buy potion of heal",
+    priest: "heal, cure, show, buy tome of fireball",
+    blacksmith: "show, buy iron dagger, sell sword",
+    armorsmith: "show, buy padded armor",
+    ruins: "go right, attack, loot, cast fireball"
+  };
+  elements.commandInput.placeholder = placeholders[state.scene] || "type a command";
 }
 
 function labelize(value) {

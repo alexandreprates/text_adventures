@@ -169,6 +169,11 @@ h3 {
   font-size: 13px;
 }
 
+#game-id {
+  font-size: 11px;
+  opacity: 0.72;
+}
+
 .map-grid {
   width: 100%;
   min-height: 315px;

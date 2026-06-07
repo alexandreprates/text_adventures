@@ -22,6 +22,10 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('state.dungeon.map.join("\\n")')
     expect(javascript).to include('function isLoggableLine(line)')
     expect(javascript).to include('function quickCommandsFor(state)')
+    expect(javascript).to include('state.pending?.confirmation')
+    expect(javascript).to include('function suggestedItemCommands(player)')
+    expect(javascript).to include('equippedNames.includes(item.name)')
+    expect(javascript).to include('function updateCommandPlaceholder(state)')
     expect(javascript).to include('locationPanels')
     expect(javascript).to include('/^[?#.xE@]+$/')
   end
