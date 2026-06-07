@@ -188,6 +188,13 @@ The screen UI renders:
 The dungeon screen centers the current 3x3 viewport inside the left panel and
 keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
 
+Inventory and game-mode spell selection also use dedicated screen states:
+
+- Inventory shows equipped gear, bag contents, character status, and skill
+  levels.
+- Cast Spell shows numbered spell choices and a `0` cancel option while a
+  game-mode spell choice is pending.
+
 ## Town
 
 The town of Nee'Peh is the main hub.

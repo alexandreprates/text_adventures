@@ -19,16 +19,17 @@ module TextAdventures
       attr_reader :width
 
       def render(game)
-        left_lines, right_lines = main_panels(game)
+        context = screen_context(game)
+        left_lines, right_lines = main_panels(game, context)
         [
           full_border,
-          full_line(header_text(game)),
+          full_line(header_text(game, context)),
           split_border,
           *main_panel_lines(left_lines, right_lines),
           full_border,
           *log_lines(game),
           full_border,
-          full_line(controls_text(game)),
+          full_line(controls_text(game, context)),
           full_border
         ].join("\n")
       end
@@ -115,7 +116,22 @@ module TextAdventures
 
       private
 
-      def main_panels(game)
+      def screen_context(game)
+        return :cast if game.pending_game_spell_choices
+        return :inventory if inventory_screen?(game)
+
+        :default
+      end
+
+      def inventory_screen?(game)
+        command = game.history.last&.command.to_s.downcase.strip
+        ["inventory", "i"].include?(command)
+      end
+
+      def main_panels(game, context)
+        return [inventory_lines(game), inventory_sidebar_lines(game)] if context == :inventory
+        return [cast_left_lines(game), cast_spell_lines(game)] if context == :cast
+
         case game.current_scene_name
         when :ruins
           [ruins_map_lines(game), ruins_sidebar_lines(game)]
@@ -136,12 +152,17 @@ module TextAdventures
         ).map { |line| "|#{line}|" }
       end
 
-      def header_text(game)
+      def header_text(game, context)
         title = "Text Adventures"
         location = location_label(game)
         mode = game.game_mode? ? "game" : "text"
+        suffix = {
+          inventory: "Inventory",
+          cast: "Cast Spell"
+        }[context]
 
-        "#{title} - #{location} [#{mode}]"
+        text = "#{title} - #{location} [#{mode}]"
+        suffix ? "#{text} - #{suffix}" : text
       end
 
       def location_label(game)
@@ -176,6 +197,80 @@ module TextAdventures
           " Blacksmith: weapons",
           " Armorsmith: armor"
         ]
+      end
+
+      def inventory_lines(game)
+        player = game.player
+        lines = [
+          "Equipped",
+          "",
+          "Weapon",
+          " #{equipment_name(player.equipped_weapon)}",
+          "",
+          "Armor",
+          " #{equipment_name(player.equipped_armor)}",
+          "",
+          "Bag"
+        ]
+
+        entries = player.inventory.entries_list
+        if entries.empty?
+          lines << " empty"
+        else
+          entries.each_with_index do |entry, index|
+            lines << " #{index + 1} #{entry.quantity}x #{entry.item.display_name}"
+          end
+        end
+
+        lines
+      end
+
+      def inventory_sidebar_lines(game)
+        player = game.player
+        [
+          player.name,
+          "HP #{bar(player.health.current, player.health.max)} #{player.health.current}/#{player.health.max}",
+          "LV #{player.overall_level} XP #{player.overall_experience}/#{player.progression.xp_required_for(player.overall_level)}",
+          "Gold #{player.gold}",
+          "",
+          "Skills",
+          "Sword #{player.progression.skill_level(:swordsmanship)}",
+          "Spear #{player.progression.skill_level(:spearmanship)}",
+          "Dagger #{player.progression.skill_level(:dagger_mastery)}",
+          "Combat #{player.progression.skill_level(:combat_magic)}",
+          "Nature #{player.progression.skill_level(:nature_magic)}",
+          "",
+          "Commands",
+          "use <item>",
+          "equip <item>",
+          "drop <item>"
+        ]
+      end
+
+      def cast_left_lines(game)
+        return ruins_map_lines(game) if game.current_scene_name == :ruins
+        return town_content_lines if game.current_scene_name == :town
+
+        location_content_lines(game)
+      end
+
+      def cast_spell_lines(game)
+        choices = game.pending_game_spell_choices || []
+        lines = [
+          "Choose a spell",
+          ""
+        ]
+
+        if choices.empty?
+          lines << "No known spells"
+        else
+          choices.each_with_index do |spell, index|
+            lines << "#{index + 1} #{spell.display_name}"
+            lines << "  #{spell.description}"
+          end
+        end
+
+        lines + ["", "0 Cancel"]
       end
 
       def location_content_lines(game)
@@ -317,7 +412,10 @@ module TextAdventures
         true
       end
 
-      def controls_text(game)
+      def controls_text(game, context)
+        return "use/equip/drop <item> | h help | continue with any command" if context == :inventory
+        return "1-9 cast | 0 cancel" if context == :cast
+
         if game.game_mode?
           return "WASD move | Enter attack | c cast | i inventory | l loot | h help | text" if game.current_scene_name == :ruins
 

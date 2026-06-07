@@ -205,5 +205,40 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(screen).to include " buy <weapon>"
       expect(screen).to include " sell <weapon>"
     end
+
+    it "renders an inventory screen after inventory commands" do
+      game = TextAdventures::Game.new
+      game.player.inventory.add(TextAdventures::Item.potion("Potion of Heal", price: 10, recovery: 20))
+      game.handle("inventory")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+      screen = lines.join("\n")
+
+      expect(lines.map(&:length)).to all eq 80
+      expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [text] - Inventory"
+      expect(screen).to include "Equipped"
+      expect(screen).to include "Bag"
+      expect(screen).to include "1 1x Potion of Heal"
+      expect(screen).to include "Skills"
+      expect(screen).to include "use/equip/drop <item> | h help | continue with any command"
+    end
+
+    it "renders a cast selection screen while game mode spell selection is pending" do
+      game = TextAdventures::Game.new
+      game.player.learn_spell(TextAdventures::Spell.fireball)
+      game.handle("game")
+      game.handle("c")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+      screen = lines.join("\n")
+
+      expect(lines.map(&:length)).to all eq 80
+      expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [game] - Cast Spell"
+      expect(screen).to include "Choose a spell"
+      expect(screen).to include "1 Fireball"
+      expect(screen).to include "Causes 12~22 of damage"
+      expect(screen).to include "0 Cancel"
+      expect(screen).to include "1-9 cast | 0 cancel"
+    end
   end
 end
