@@ -309,6 +309,7 @@ module TextAdventures
         return false if text.match?(/\A[#.?xE@]+\z/)
         return false if text.match?(/\ARuins Level \d+\z/)
         return false if text == "Here you can:"
+        return false if text == "You can:"
         return false if text == "Global commands:"
         return false if text.match?(/\Ago [A-Z]/)
         return false if text.match?(/\A(go|look|attack|spellbook|cast|loot|inventory|equip|use|drop|level|skills|help|show|buy|sell|agree|no|heal|cure|sleep|rent|rest)(?: .*)? - /)
@@ -317,7 +318,11 @@ module TextAdventures
       end
 
       def controls_text(game)
-        return "WASD move | Enter attack | c cast | i inventory | l loot | h help | text" if game.game_mode?
+        if game.game_mode?
+          return "WASD move | Enter attack | c cast | i inventory | l loot | h help | text" if game.current_scene_name == :ruins
+
+          return "i inventory | c cast | h help | text | type travel/shop commands normally"
+        end
 
         case game.current_scene_name
         when :ruins

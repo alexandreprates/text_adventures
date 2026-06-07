@@ -156,15 +156,28 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(log_section).to_not include " go Ruins"
       expect(log_section).to_not include "level - show overall level and XP"
       expect(log_section).to_not include "Global commands:"
+      expect(log_section).to_not include "You can:"
     end
 
-    it "renders game mode controls" do
+    it "renders context-aware game mode controls outside the ruins" do
       game = TextAdventures::Game.new
       game.handle("game")
 
       lines = renderer.render(game).lines.map(&:chomp)
 
       expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [game]"
+      expect(lines.join("\n")).to include "i inventory | c cast | h help | text | type travel/shop commands normally"
+      expect(lines.join("\n")).to_not include "WASD move"
+    end
+
+    it "renders dungeon game mode controls in the ruins" do
+      game = TextAdventures::Game.new
+      game.handle("go ruins")
+      game.handle("game")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+
+      expect(lines[1]).to include "Text Adventures - Ruins L1 [game]"
       expect(lines.join("\n")).to include "WASD move | Enter attack | c cast | i inventory | l loot | h help | text"
     end
 
