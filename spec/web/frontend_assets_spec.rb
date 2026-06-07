@@ -18,8 +18,11 @@ RSpec.describe "Frontend assets" do
     expect(html).to include('<script src="/app.js"></script>')
     expect(javascript).to include('fetch("/games"')
     expect(javascript).to include('fetch(`/games/${this.gameId}/commands`')
+    expect(javascript).to include('state.scene === "ruins" && state.dungeon?.map?.length')
     expect(javascript).to include('state.dungeon.map.join("\\n")')
     expect(javascript).to include('function isLoggableLine(line)')
+    expect(javascript).to include('function quickCommandsFor(state)')
+    expect(javascript).to include('locationPanels')
     expect(javascript).to include('/^[?#.xE@]+$/')
   end
 end

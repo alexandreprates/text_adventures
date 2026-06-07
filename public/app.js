@@ -43,23 +43,9 @@ const elements = {
   tabs: document.querySelectorAll(".tab")
 };
 
-const quickCommands = [
-  ["Town", "go town"],
-  ["Ruins", "go ruins"],
-  ["Tavern", "go tavern"],
-  ["Priest", "go priest"],
-  ["Blacksmith", "go blacksmith"],
-  ["Armorsmith", "go armorsmith"],
-  ["North", "go up"],
-  ["East", "go right"],
-  ["South", "go down"],
-  ["West", "go left"],
-  ["Attack", "attack"],
-  ["Loot", "loot"],
-  ["Inventory", "inventory"],
-  ["Spellbook", "spellbook"],
-  ["Rest", "rent room"]
-];
+const LOG_FALLBACK_LIMIT = 12;
+
+let currentState = null;
 
 async function parseResponse(response) {
   const text = await response.text();
@@ -79,11 +65,13 @@ function setStatus(text, error = false) {
 function render(payload) {
   api.gameId = payload.game_id || api.gameId;
   const state = payload.state;
+  currentState = state;
   renderHeader(state);
   renderMap(state);
   renderPlayer(state.player, state.input_mode);
   renderBattle(state.battle);
   renderCollections(state.player);
+  renderQuickActions(state);
   renderLog(payload.response, state.history);
 }
 
@@ -94,20 +82,20 @@ function renderHeader(state) {
 }
 
 function renderMap(state) {
-  if (state.dungeon?.map?.length) {
+  if (state.scene === "ruins" && state.dungeon?.map?.length) {
     elements.mapGrid.textContent = state.dungeon.map.join("\n");
     return;
   }
 
-  elements.mapGrid.textContent = [
-    "Town of Nee'Peh",
-    "",
-    "Tavern",
-    "Aluriel's Priest",
-    "Blacksmith",
-    "Armorsmith",
-    "Ruins"
-  ].join("\n");
+  const locationPanels = {
+    town: ["Town of Nee'Peh", "", "Tavern", "Aluriel's Priest", "Blacksmith", "Armorsmith", "Ruins"],
+    tavern: ["Tavern", "", "Rest in a rented room", "Buy or sell potions", "Return to town"],
+    priest: ["Aluriel's Priest", "", "Recover health", "Cure poison", "Buy or sell tomes", "Return to town"],
+    blacksmith: ["Blacksmith", "", "Show weapons", "Buy weapons", "Sell weapons", "Return to town"],
+    armorsmith: ["Armorsmith", "", "Show armors", "Buy armors", "Sell armors", "Return to town"]
+  };
+
+  elements.mapGrid.textContent = (locationPanels[state.scene] || [state.scene_display_name || state.scene]).join("\n");
 }
 
 function renderPlayer(player, inputMode) {
@@ -165,11 +153,11 @@ function renderList(target, entries, formatter) {
 }
 
 function renderLog(response, history) {
-  const sourceLines = response?.lines?.length ? response.lines : history.flatMap(entry => entry.lines).slice(-8);
+  const sourceLines = response?.lines?.length ? response.lines : history.flatMap(entry => entry.lines).slice(-LOG_FALLBACK_LIMIT);
   const lines = sourceLines.filter(isLoggableLine);
   elements.messageLog.innerHTML = "";
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
-  visibleLines.slice(-8).forEach(line => {
+  visibleLines.forEach(line => {
     const item = document.createElement("li");
     item.textContent = line || " ";
     elements.messageLog.appendChild(item);
@@ -187,15 +175,50 @@ function isLoggableLine(line) {
   return true;
 }
 
-function renderQuickActions() {
+function renderQuickActions(state = currentState) {
   elements.quickActions.innerHTML = "";
-  quickCommands.forEach(([label, command]) => {
+  quickCommandsFor(state).forEach(([label, command, kind]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
+    if (kind) button.dataset.kind = kind;
     button.addEventListener("click", () => runCommand(command));
     elements.quickActions.appendChild(button);
   });
+}
+
+function quickCommandsFor(state) {
+  if (!state) return [];
+
+  const global = [
+    ["Inventory", "inventory"],
+    ["Spellbook", "spellbook"]
+  ];
+  const travel = [
+    ["Town", "go town"],
+    ["Ruins", "go ruins"],
+    ["Tavern", "go tavern"],
+    ["Priest", "go priest"],
+    ["Blacksmith", "go blacksmith"],
+    ["Armorsmith", "go armorsmith"]
+  ];
+  const sceneCommands = {
+    town: travel.filter(([label]) => label !== "Town"),
+    tavern: [["Rest", "rent room", "primary"], ["Show Stock", "show"], ["Town", "go town"]],
+    priest: [["Heal", "heal", "primary"], ["Cure", "cure"], ["Show Tomes", "show"], ["Town", "go town"]],
+    blacksmith: [["Show Weapons", "show", "primary"], ["Buy Dagger", "buy iron dagger"], ["Town", "go town"]],
+    armorsmith: [["Show Armors", "show", "primary"], ["Buy Padded", "buy padded armor"], ["Town", "go town"]],
+    ruins: [
+      ["North", "go up"],
+      ["East", "go right"],
+      ["South", "go down"],
+      ["West", "go left"],
+      ["Attack", "attack", state.battle?.active ? "danger" : "primary"],
+      ["Loot", "loot"]
+    ]
+  };
+
+  return [...(sceneCommands[state.scene] || travel), ...global];
 }
 
 function labelize(value) {

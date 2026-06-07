@@ -45,6 +45,16 @@ button:focus-visible {
   outline: none;
 }
 
+button[data-kind="primary"] {
+  border-color: rgba(217, 180, 95, 0.72);
+  color: var(--accent);
+}
+
+button[data-kind="danger"] {
+  border-color: rgba(214, 111, 98, 0.78);
+  color: #f2a399;
+}
+
 .app-shell {
   width: min(1180px, calc(100vw - 32px));
   margin: 0 auto;
@@ -249,6 +259,9 @@ h3 {
   margin: 0;
   display: grid;
   gap: 8px;
+  max-height: 330px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .message-log li {
@@ -371,6 +384,14 @@ h3 {
     min-height: 240px;
     font-size: 15px;
     justify-content: flex-start;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .message-log {
+    max-height: 260px;
   }
 
   .command-bar {
