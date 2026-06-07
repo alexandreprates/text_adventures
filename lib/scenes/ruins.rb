@@ -23,6 +23,8 @@ module TextAdventures
 
       def handle(game, command)
         return handle_active_encounter(game, command) if game.battle
+        visible_encounter = start_visible_encounter(game)
+        return visible_encounter if visible_encounter
 
         case command.verb
         when :look
@@ -109,7 +111,7 @@ module TextAdventures
         auto_loot = collect_loot_at(game, dungeon.current_global_position, automatic: true)
         response = response.append("", auto_loot) if auto_loot
 
-        encounter = start_adjacent_encounter(game)
+        encounter = start_visible_encounter(game)
         response = response.append("", encounter) if encounter
         response
       end
@@ -207,14 +209,22 @@ module TextAdventures
         Response.new(lines)
       end
 
-      def start_adjacent_encounter(game)
-        enemy_position = dungeon.adjacent_enemy_position
+      def start_visible_encounter(game)
+        enemy_position = visible_enemy_position
         return nil unless enemy_position
 
         creature_id = dungeon.enemy_at(enemy_position)
         game.active_enemy_position = enemy_position
         game.battle = Battle.new(creature: ContentCatalog.creature(creature_id), random: game.random)
         encounter_response(game)
+      end
+
+      def visible_enemy_position
+        current_position = dungeon.current_global_position
+
+        return current_position if dungeon.enemy_at(current_position)
+
+        dungeon.adjacent_enemy_position
       end
 
       def resolve_finished_battle(game, result)

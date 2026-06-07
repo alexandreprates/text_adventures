@@ -108,6 +108,36 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(encounter_game.active_enemy_position).to have_attributes(x: 5, y: 2)
   end
 
+  it "starts an encounter before handling commands when an enemy is already adjacent" do
+    encounter_game = TextAdventures::Game.new(current_scene: scene, random: RuinsFixedRandom.new(0))
+    dungeon.place_enemy(TextAdventures::Dungeon::Position.new(x: 4, y: 2), "giant_spider")
+
+    response = encounter_game.handle("look")
+
+    expect(response).to eq <<~TEXT.chomp
+      You see a Giant Spider
+      A Giant Spider is about to attack you!
+
+      [Giant Spider HP: 35/35]
+      [Adventurer HP: 30/30]
+    TEXT
+    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+    expect(encounter_game.active_enemy_position).to have_attributes(x: 4, y: 2)
+  end
+
+  it "starts an encounter if the player is already on an enemy marker" do
+    legacy_dungeon = TextAdventures::Dungeon.new(enemies: { [3, 2] => "giant_spider" })
+    legacy_scene = described_class.new(dungeon: legacy_dungeon)
+    encounter_game = TextAdventures::Game.new(current_scene: legacy_scene, random: RuinsFixedRandom.new(0))
+
+    response = encounter_game.handle("go right")
+
+    expect(response).to include "You see a Giant Spider"
+    expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
+    expect(encounter_game.active_enemy_position).to have_attributes(x: 3, y: 2)
+    expect(legacy_dungeon.player_position).to have_attributes(x: 3, y: 2)
+  end
+
   it "does not start an encounter from diagonal enemy adjacency" do
     open_block = TextAdventures::DungeonBlock.new(
       id: "open_room",
