@@ -82,6 +82,12 @@ Both flags can be combined for repeatable screen UI exploration:
 TEXT_ADVENTURES_SCREEN=1 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
 ```
 
+Optional ANSI color can be enabled for the screen UI:
+
+```sh
+TEXT_ADVENTURES_SCREEN=1 TEXT_ADVENTURES_COLOR=1 bin/text_adventures
+```
+
 ## Running Tests
 
 ```sh
@@ -187,6 +193,7 @@ The screen UI renders:
 
 The dungeon screen centers the current 3x3 viewport inside the left panel and
 keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
+ANSI color is optional and disabled unless `TEXT_ADVENTURES_COLOR=1` is set.
 
 Inventory and game-mode spell selection also use dedicated screen states:
 

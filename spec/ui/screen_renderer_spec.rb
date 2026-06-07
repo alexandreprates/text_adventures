@@ -3,6 +3,10 @@ require 'spec_helper'
 RSpec.describe TextAdventures::UI::ScreenRenderer do
   subject(:renderer) { described_class.new }
 
+  def strip_ansi(value)
+    value.gsub(/\e\[[0-9;]*m/, "")
+  end
+
   describe "constants" do
     it "defines the target terminal layout dimensions" do
       expect(described_class::DEFAULT_WIDTH).to eq 80
@@ -239,6 +243,23 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(screen).to include "Causes 12~22 of damage"
       expect(screen).to include "0 Cancel"
       expect(screen).to include "1-9 cast | 0 cancel"
+    end
+
+    it "does not emit ANSI colors by default" do
+      game = TextAdventures::Game.new
+
+      expect(renderer.render(game)).to_not include "\e["
+    end
+
+    it "can render optional ANSI colors without changing visual width" do
+      color_renderer = described_class.new(color: true)
+      game = TextAdventures::Game.new
+
+      colored_lines = color_renderer.render(game).lines.map(&:chomp)
+      visible_lines = colored_lines.map { |line| strip_ansi(line) }
+
+      expect(color_renderer.render(game)).to include "\e["
+      expect(visible_lines.map(&:length)).to all eq 80
     end
   end
 end

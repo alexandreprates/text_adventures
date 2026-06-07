@@ -103,7 +103,7 @@ module TextAdventures
     def self.default_screen_renderer
       return nil unless ENV["TEXT_ADVENTURES_SCREEN"] == "1"
 
-      UI::ScreenRenderer.new
+      UI::ScreenRenderer.new(color: ENV["TEXT_ADVENTURES_COLOR"] == "1")
     end
   end
 end

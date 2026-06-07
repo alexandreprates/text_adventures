@@ -11,9 +11,16 @@ module TextAdventures
       LOG_WIDTH = 78
       CONTROLS_WIDTH = 78
       ELLIPSIS = "...".freeze
+      ANSI = {
+        reset: "\e[0m",
+        border: "\e[90m",
+        header: "\e[1;36m",
+        controls: "\e[1;33m"
+      }.freeze
 
-      def initialize(width: DEFAULT_WIDTH)
+      def initialize(width: DEFAULT_WIDTH, color: false)
         @width = Integer(width)
+        @color = color
       end
 
       attr_reader :width
@@ -23,13 +30,13 @@ module TextAdventures
         left_lines, right_lines = main_panels(game, context)
         [
           full_border,
-          full_line(header_text(game, context)),
+          full_line(header_text(game, context), style: :header),
           split_border,
           *main_panel_lines(left_lines, right_lines),
           full_border,
           *log_lines(game),
           full_border,
-          full_line(controls_text(game, context)),
+          full_line(controls_text(game, context), style: :controls),
           full_border
         ].join("\n")
       end
@@ -115,6 +122,12 @@ module TextAdventures
       end
 
       private
+
+      attr_reader :color
+
+      def color?
+        color
+      end
 
       def screen_context(game)
         return :cast if game.pending_game_spell_choices
@@ -433,15 +446,22 @@ module TextAdventures
       end
 
       def full_border
-        "+#{'-' * (width - 2)}+"
+        colorize("+#{'-' * (width - 2)}+", :border)
       end
 
       def split_border
-        "+#{'-' * LEFT_PANEL_WIDTH}+#{'-' * RIGHT_PANEL_WIDTH}+"
+        colorize("+#{'-' * LEFT_PANEL_WIDTH}+#{'-' * RIGHT_PANEL_WIDTH}+", :border)
       end
 
-      def full_line(value)
-        "|#{pad(value, width - 2)}|"
+      def full_line(value, style: nil)
+        line = "|#{pad(value, width - 2)}|"
+        style ? colorize(line, style) : line
+      end
+
+      def colorize(value, style)
+        return value unless color?
+
+        "#{ANSI.fetch(style)}#{value}#{ANSI.fetch(:reset)}"
       end
 
       def normalized_lines(lines, width:, height:)
