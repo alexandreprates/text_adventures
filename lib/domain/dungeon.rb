@@ -12,7 +12,10 @@ module TextAdventures
     ENEMY = "E".freeze
     LOOT = "@".freeze
     FLOOR = ".".freeze
+    UNREVEALED = "?".freeze
     ENEMY_SPAWN_CHANCE = 50
+    VIEWPORT_BLOCK_RADIUS = 1
+    RENDER_VIEWS = %i[viewport full].freeze
     DIRECTIONS = {
       "up" => [0, -1],
       "right" => [1, 0],
@@ -183,12 +186,15 @@ module TextAdventures
       )
     end
 
-    def render
+    def render(view: :viewport)
+      validate_render_view!(view)
+      origin = render_origin_for(view)
+      tiles = render_tiles_for(view, origin)
       lines = ["Ruins Level #{level}"]
-      composed_tiles.each_with_index do |row, y|
+      tiles.each_with_index do |row, y|
         rendered_row = row.each_with_index.map do |tile, x|
-          render_position = render_position_to_global_position(x, y)
-          if player_at_render_position?(x, y)
+          render_position = render_position_to_global_position(x, y, origin)
+          if position_key(render_position) == position_key(current_global_position)
             PLAYER
           elsif enemy_at(render_position)
             ENEMY
@@ -204,6 +210,12 @@ module TextAdventures
     end
 
     private
+
+    def validate_render_view!(view)
+      return if RENDER_VIEWS.include?(view)
+
+      raise ArgumentError, "unknown dungeon render view: #{view}"
+    end
 
     def normalize_revealed_blocks(value)
       blocks = value || { DEFAULT_BLOCK_POSITION.key => ContentCatalog.dungeon_block(DEFAULT_BLOCK_ID) }
@@ -251,16 +263,6 @@ module TextAdventures
       return if global_open?(*key)
 
       raise ArgumentError, "dungeon entities must be placed on open tiles"
-    end
-
-    def player_at?(x, y)
-      player_position.x == x && player_position.y == y
-    end
-
-    def player_at_render_position?(x, y)
-      render_position = player_render_position
-
-      render_position.x == x && render_position.y == y
     end
 
     def rendered_tile(tile)
@@ -374,24 +376,62 @@ module TextAdventures
       end
     end
 
-    def composed_tiles
+    def render_origin_for(view)
+      return full_render_origin if view == :full
+
+      BlockPosition.new(
+        x: current_block_position.x - VIEWPORT_BLOCK_RADIUS,
+        y: current_block_position.y - VIEWPORT_BLOCK_RADIUS
+      )
+    end
+
+    def render_tiles_for(view, origin)
+      return composed_tiles(origin) if view == :full
+
+      viewport_tiles(origin)
+    end
+
+    def viewport_tiles(origin)
+      diameter = (VIEWPORT_BLOCK_RADIUS * 2) + 1
+      rows = Array.new(diameter * height) do
+        Array.new(diameter * width, UNREVEALED)
+      end
+
+      (0...diameter).each do |block_offset_y|
+        (0...diameter).each do |block_offset_x|
+          block_key = [origin.x + block_offset_x, origin.y + block_offset_y]
+          block = revealed_blocks[block_key]
+          next unless block
+
+          copy_block_tiles(rows, block, block_offset_x * width, block_offset_y * height)
+        end
+      end
+
+      rows
+    end
+
+    def composed_tiles(origin)
       bounds = block_bounds
       rows = Array.new((bounds.fetch(:max_y) - bounds.fetch(:min_y) + 1) * height) do
         Array.new((bounds.fetch(:max_x) - bounds.fetch(:min_x) + 1) * width, " ")
       end
 
       revealed_blocks.each do |(block_x, block_y), block|
-        x_offset = (block_x - bounds.fetch(:min_x)) * width
-        y_offset = (block_y - bounds.fetch(:min_y)) * height
+        x_offset = (block_x - origin.x) * width
+        y_offset = (block_y - origin.y) * height
 
-        block.tiles.each_with_index do |row, local_y|
-          row.each_char.with_index do |tile, local_x|
-            rows[y_offset + local_y][x_offset + local_x] = tile
-          end
-        end
+        copy_block_tiles(rows, block, x_offset, y_offset)
       end
 
       rows
+    end
+
+    def copy_block_tiles(rows, block, x_offset, y_offset)
+      block.tiles.each_with_index do |row, local_y|
+        row.each_char.with_index do |tile, local_x|
+          rows[y_offset + local_y][x_offset + local_x] = tile
+        end
+      end
     end
 
     def block_bounds
@@ -406,19 +446,15 @@ module TextAdventures
       }
     end
 
-    def player_render_position
+    def full_render_origin
       bounds = block_bounds
-      Position.new(
-        x: (current_block_position.x - bounds.fetch(:min_x)) * width + player_position.x,
-        y: (current_block_position.y - bounds.fetch(:min_y)) * height + player_position.y
-      )
+      BlockPosition.new(x: bounds.fetch(:min_x), y: bounds.fetch(:min_y))
     end
 
-    def render_position_to_global_position(x, y)
-      bounds = block_bounds
+    def render_position_to_global_position(x, y, origin)
       Position.new(
-        x: (bounds.fetch(:min_x) * width) + x,
-        y: (bounds.fetch(:min_y) * height) + y
+        x: (origin.x * width) + x,
+        y: (origin.y * height) + y
       )
     end
 

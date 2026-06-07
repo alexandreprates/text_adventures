@@ -73,6 +73,7 @@ module TextAdventures
           " go <up|right|down|left> - move through open floor",
           " go town - return to Nee'Peh when no enemy blocks you",
           " look - inspect the ruins and risk an encounter",
+          " The map shows the 3x3 area around your current block.",
           "",
           "Combat:",
           " attack - strike the active enemy",
@@ -84,7 +85,8 @@ module TextAdventures
           " E - enemy",
           " @ - loot",
           " . - open floor",
-          " # - wall"
+          " # - wall",
+          " ? - unrevealed area"
         )
       end
 
