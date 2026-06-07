@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "readline"
 require_relative "../lib/text_adventures"
 
 module TextAdventures
@@ -52,6 +51,7 @@ module TextAdventures
     def read_interactive_command(prompt)
       return line_reader.call(prompt) if line_reader
 
+      require "readline"
       Readline.readline(prompt, false)
     end
 
@@ -61,6 +61,7 @@ module TextAdventures
       return unless interactive_input?
       return if line_reader
 
+      require "readline"
       Readline::HISTORY << command
     end
 
