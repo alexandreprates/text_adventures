@@ -6,6 +6,12 @@ module TextAdventures
     class Server
       DEFAULT_HOST = "127.0.0.1".freeze
       DEFAULT_PORT = 4567
+      PUBLIC_ROOT = File.join(TextAdventures::ROOT, "public").freeze
+      MIME_TYPES = {
+        ".css" => "text/css; charset=utf-8",
+        ".html" => "text/html; charset=utf-8",
+        ".js" => "text/javascript; charset=utf-8"
+      }.freeze
       REASON_PHRASES = {
         200 => "OK",
         201 => "Created",
@@ -62,6 +68,9 @@ module TextAdventures
         request = read_request(socket)
         return unless request
 
+        static_response = static_response_for(request)
+        return write_raw_response(socket, **static_response) if static_response
+
         response = router.call(
           method: request.fetch(:method),
           path: request.fetch(:path),
@@ -106,12 +115,42 @@ module TextAdventures
 
       def write_response(socket, response)
         body = response.json
-        socket.write "HTTP/1.1 #{response.status} #{reason_phrase(response.status)}\r\n"
-        response.headers.each { |key, value| socket.write "#{key}: #{value}\r\n" }
+        write_raw_response(socket, status: response.status, headers: response.headers, body: body)
+      end
+
+      def write_raw_response(socket, status:, headers:, body:)
+        socket.write "HTTP/1.1 #{status} #{reason_phrase(status)}\r\n"
+        headers.each { |key, value| socket.write "#{key}: #{value}\r\n" }
         socket.write "Content-Length: #{body.bytesize}\r\n"
         socket.write "Connection: close\r\n"
         socket.write "\r\n"
         socket.write body
+      end
+
+      def static_response_for(request)
+        return nil unless request.fetch(:method) == "GET"
+
+        path = request.fetch(:path)
+        static_path = static_file_path(path == "/" ? "/index.html" : path)
+        return nil unless static_path
+
+        body = File.binread(static_path)
+        {
+          status: 200,
+          headers: { "Content-Type" => MIME_TYPES.fetch(File.extname(static_path), "application/octet-stream") },
+          body: body
+        }
+      end
+
+      def static_file_path(path)
+        relative_path = path.sub(%r{\A/+}, "")
+        return nil if relative_path.empty? || relative_path.include?("..")
+
+        full_path = File.expand_path(relative_path, PUBLIC_ROOT)
+        return nil unless full_path.start_with?("#{PUBLIC_ROOT}/")
+        return nil unless File.file?(full_path)
+
+        full_path
       end
 
       def reason_phrase(status)

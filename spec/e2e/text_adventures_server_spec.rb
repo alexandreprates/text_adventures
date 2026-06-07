@@ -10,20 +10,7 @@ RSpec.describe "text_adventures server binary" do
   let(:binary) { File.join(root, "bin", "text_adventures") }
 
   it "serves the JSON game API over HTTP" do
-    port = available_port
-    stdin, stdout, stderr, wait_thread = Open3.popen3(
-      {
-        "TEXT_ADVENTURES_HOST" => "127.0.0.1",
-        "TEXT_ADVENTURES_PORT" => port.to_s
-      },
-      binary,
-      "server"
-    )
-    stdin.close
-
-    begin
-      wait_for_server(port)
-
+    with_server do |port|
       create_response = request_json(port, Net::HTTP::Post, "/games", seed: 0)
       expect(create_response.code).to eq "201"
       created = JSON.parse(create_response.body)
@@ -45,12 +32,47 @@ RSpec.describe "text_adventures server binary" do
       delete_response = request_json(port, Net::HTTP::Delete, "/games/#{game_id}")
       expect(delete_response.code).to eq "204"
       expect(delete_response.body.to_s).to eq ""
-    ensure
-      Process.kill("TERM", wait_thread.pid)
-      wait_thread.value
-      stdout.close
-      stderr.close
     end
+  end
+
+  it "serves the browser frontend assets" do
+    with_server do |port|
+      index_response = request_json(port, Net::HTTP::Get, "/")
+      expect(index_response.code).to eq "200"
+      expect(index_response["Content-Type"]).to include "text/html"
+      expect(index_response.body).to include '<main class="game-layout">'
+      expect(index_response.body).to include '<script src="/app.js"></script>'
+
+      styles_response = request_json(port, Net::HTTP::Get, "/styles.css")
+      expect(styles_response.code).to eq "200"
+      expect(styles_response["Content-Type"]).to include "text/css"
+      expect(styles_response.body).to include ".game-layout"
+
+      app_response = request_json(port, Net::HTTP::Get, "/app.js")
+      expect(app_response.code).to eq "200"
+      expect(app_response["Content-Type"]).to include "text/javascript"
+      expect(app_response.body).to include 'fetch("/games"'
+    end
+  end
+
+  def with_server
+    port = available_port
+    stdin, stdout, stderr, wait_thread = Open3.popen3(
+      {
+        "TEXT_ADVENTURES_HOST" => "127.0.0.1",
+        "TEXT_ADVENTURES_PORT" => port.to_s
+      },
+      binary,
+      "server"
+    )
+    stdin.close
+    wait_for_server(port)
+    yield port
+  ensure
+    Process.kill("TERM", wait_thread.pid) if wait_thread&.alive?
+    wait_thread&.value
+    stdout&.close
+    stderr&.close
   end
 
   def available_port

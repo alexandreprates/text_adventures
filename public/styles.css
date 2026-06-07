@@ -1,0 +1,379 @@
+:root {
+  color-scheme: dark;
+  --bg: #101214;
+  --panel: #191d21;
+  --panel-2: #20262b;
+  --text: #f0ede5;
+  --muted: #aab0b5;
+  --line: #343c43;
+  --accent: #d9b45f;
+  --accent-2: #7fb7a7;
+  --danger: #d66f62;
+  --shadow: rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  min-height: 40px;
+  border-radius: 6px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.app-shell {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+h3 {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.server-status {
+  min-width: 112px;
+  text-align: center;
+  color: var(--accent-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--panel);
+}
+
+.server-status.error {
+  color: var(--danger);
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.35fr) minmax(280px, 0.75fr);
+  grid-template-areas:
+    "map status"
+    "log inventory";
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.map-panel,
+.status-panel,
+.log-panel,
+.inventory-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px var(--shadow);
+}
+
+.map-panel {
+  grid-area: map;
+  min-height: 430px;
+  padding: 14px;
+}
+
+.status-panel {
+  grid-area: status;
+  padding: 14px;
+}
+
+.log-panel {
+  grid-area: log;
+  padding: 14px;
+  min-height: 270px;
+}
+
+.inventory-panel {
+  grid-area: inventory;
+  min-height: 270px;
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.panel-heading span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.map-grid {
+  width: 100%;
+  min-height: 315px;
+  margin: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d0f11;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: #d8d1bf;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 19px;
+  line-height: 1.2;
+  overflow: auto;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.meter {
+  margin-bottom: 14px;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.meter-track {
+  height: 12px;
+  background: #0d0f11;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--danger), var(--accent));
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.stats-grid div,
+.compact-section {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.stats-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stats-grid strong {
+  display: block;
+  margin-top: 2px;
+}
+
+.compact-section {
+  margin-top: 10px;
+}
+
+.compact-section p {
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.message-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.message-log li {
+  border-left: 3px solid var(--accent);
+  background: var(--panel-2);
+  border-radius: 6px;
+  padding: 9px 10px;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.ghost-button {
+  background: transparent;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.tab:last-child {
+  border-right: 0;
+}
+
+.tab.active {
+  background: var(--panel-2);
+  color: var(--accent);
+}
+
+.tab-panel {
+  padding: 14px;
+}
+
+.tab-panel.hidden {
+  display: none;
+}
+
+.tab-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.tab-panel li {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 10px;
+}
+
+.command-bar {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(16, 18, 20, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.command-bar label {
+  color: var(--muted);
+}
+
+.command-bar input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0d0f11;
+  color: var(--text);
+  padding: 0 12px;
+}
+
+.command-bar input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+@media (max-width: 860px) {
+  .app-shell {
+    width: min(100vw - 20px, 720px);
+    padding: 10px 0;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "map"
+      "status"
+      "log"
+      "inventory";
+  }
+
+  .map-panel {
+    min-height: auto;
+  }
+
+  .map-grid {
+    min-height: 240px;
+    font-size: 15px;
+    justify-content: flex-start;
+  }
+
+  .command-bar {
+    grid-template-columns: 1fr;
+  }
+}

@@ -33,6 +33,7 @@ Implemented systems include:
 - Turn-based combat with attacks, spells, poison, freeze, healing, cure, critical hits, and game-over handling.
 - Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
 - JSON server mode for frontend clients through `bin/text_adventures server`.
+- Browser frontend served by the JSON server.
 - End-to-end binary specs for the main terminal flows.
 
 Not implemented yet:
@@ -97,6 +98,12 @@ The same binary can run as a small JSON API for frontend clients:
 
 ```sh
 bin/text_adventures server
+```
+
+Open the browser frontend at:
+
+```text
+http://127.0.0.1:4567/
 ```
 
 Server configuration:
@@ -164,6 +171,14 @@ Errors are returned as JSON:
     "message": "Game not found."
   }
 }
+```
+
+The server also serves the static frontend assets from `public/`:
+
+```text
+public/index.html
+public/styles.css
+public/app.js
 ```
 
 ## Running Tests
@@ -418,6 +433,7 @@ markers are runtime render markers, not YAML tile characters.
 
 ```text
 bin/text_adventures          terminal entrypoint
+public                       browser frontend assets
 lib/commands                 command parsing
 lib/domain                   gameplay domain objects
 lib/scenes                   town, shops, tavern, priest, and ruins scenes
