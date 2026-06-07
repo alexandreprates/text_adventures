@@ -32,6 +32,7 @@ Implemented systems include:
 - Dropped map loot rendered as `@`.
 - Turn-based combat with attacks, spells, poison, freeze, healing, cure, critical hits, and game-over handling.
 - Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
+- JSON server mode for frontend clients through `bin/text_adventures server`.
 - End-to-end binary specs for the main terminal flows.
 
 Not implemented yet:
@@ -39,7 +40,6 @@ Not implemented yet:
 - Browser play.
 - URL-based saved sessions.
 - Persistent save/load.
-- A production server executable.
 
 ## Requirements
 
@@ -89,6 +89,81 @@ Flags can be combined for repeatable classic text exploration:
 
 ```sh
 TEXT_ADVENTURES_SCREEN=0 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+```
+
+## JSON Server Mode
+
+The same binary can run as a small JSON API for frontend clients:
+
+```sh
+bin/text_adventures server
+```
+
+Server configuration:
+
+```sh
+TEXT_ADVENTURES_HOST=127.0.0.1
+TEXT_ADVENTURES_PORT=4567
+TEXT_ADVENTURES_RANDOM_SEED=0
+```
+
+Create a game session:
+
+```sh
+curl -sS -X POST http://127.0.0.1:4567/games \
+  -H 'Content-Type: application/json' \
+  -d '{"seed":0}'
+```
+
+Send a command:
+
+```sh
+curl -sS -X POST http://127.0.0.1:4567/games/<game_id>/commands \
+  -H 'Content-Type: application/json' \
+  -d '{"command":"go ruins"}'
+```
+
+Fetch state:
+
+```sh
+curl -sS http://127.0.0.1:4567/games/<game_id>
+```
+
+Delete a session:
+
+```sh
+curl -sS -X DELETE http://127.0.0.1:4567/games/<game_id>
+```
+
+Successful command responses include the command response and semantic game
+state:
+
+```json
+{
+  "game_id": "abc123",
+  "response": {
+    "text": "You go to Ruins.",
+    "lines": ["You go to Ruins."]
+  },
+  "state": {
+    "scene": "ruins",
+    "prompt": "Ruins L1",
+    "input_mode": "text",
+    "player": {},
+    "dungeon": {}
+  }
+}
+```
+
+Errors are returned as JSON:
+
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Game not found."
+  }
+}
 ```
 
 ## Running Tests
@@ -346,6 +421,7 @@ bin/text_adventures          terminal entrypoint
 lib/commands                 command parsing
 lib/domain                   gameplay domain objects
 lib/scenes                   town, shops, tavern, priest, and ruins scenes
+lib/web                      JSON server mode
 data                         YAML content
 spec                         RSpec suite
 ```
@@ -355,5 +431,5 @@ spec                         RSpec suite
 - Keep gameplay logic independent from any future web layer.
 - Prefer adding content through YAML when possible.
 - Use seeded binary runs for repeatable dungeon exploration tests.
-- The browser/server experience remains planned work and should not be treated
-  as currently available.
+- Keep the JSON server layer thin; gameplay commands should continue to flow
+  through `Game#handle`.

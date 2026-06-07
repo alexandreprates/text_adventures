@@ -108,4 +108,10 @@ module TextAdventures
   end
 end
 
-TextAdventures::CLI.new.run if $PROGRAM_NAME == __FILE__
+if $PROGRAM_NAME == __FILE__
+  if ARGV.first == "server"
+    TextAdventures::Web::Server.from_env.start
+  else
+    TextAdventures::CLI.new.run
+  end
+end
