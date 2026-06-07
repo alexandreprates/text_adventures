@@ -309,7 +309,9 @@ module TextAdventures
         return false if text.match?(/\A[#.?xE@]+\z/)
         return false if text.match?(/\ARuins Level \d+\z/)
         return false if text == "Here you can:"
-        return false if text.match?(/\A(go|look|attack|spellbook|cast|loot|inventory|equip|use|drop)(?: .*)? - /)
+        return false if text == "Global commands:"
+        return false if text.match?(/\Ago [A-Z]/)
+        return false if text.match?(/\A(go|look|attack|spellbook|cast|loot|inventory|equip|use|drop|level|skills|help|show|buy|sell|agree|no|heal|cure|sleep|rent|rest)(?: .*)? - /)
 
         true
       end

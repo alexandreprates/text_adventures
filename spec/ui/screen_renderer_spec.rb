@@ -146,6 +146,18 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(log_section).to_not include "attack - to attack an enemy"
     end
 
+    it "filters help menu rows out of the bounded message log" do
+      game = TextAdventures::Game.new
+      game.handle("help")
+
+      log_section = renderer.render(game).lines.map(&:chomp)[21, 5].join("\n")
+
+      expect(log_section).to include "Town help"
+      expect(log_section).to_not include " go Ruins"
+      expect(log_section).to_not include "level - show overall level and XP"
+      expect(log_section).to_not include "Global commands:"
+    end
+
     it "renders game mode controls" do
       game = TextAdventures::Game.new
       game.handle("game")
