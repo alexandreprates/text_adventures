@@ -171,6 +171,7 @@ function isLoggableLine(line) {
   if (/^[?#.xE@]+$/.test(trimmed)) return false;
   if (/^Ruins Level \d+$/.test(trimmed)) return false;
   if (/^(Here you can:|You can:|Global commands:|Destinations:)$/.test(trimmed)) return false;
+  if (/^(agree|no) - /.test(trimmed)) return false;
   if (/^(go|show|buy|sell|sleep|rent room|rest|inventory|spellbook|level|skills|help|look|attack|loot|cast|equip|use|drop)\b/.test(trimmed)) return false;
 
   return true;
@@ -216,14 +217,7 @@ function quickCommandsFor(state) {
     priest: [["Heal", "heal", "primary"], ["Cure", "cure"], ["Show Tomes", "show"], ["Town", "go town"]],
     blacksmith: [["Show Weapons", "show", "primary"], ["Buy Dagger", "buy iron dagger"], ["Town", "go town"]],
     armorsmith: [["Show Armors", "show", "primary"], ["Buy Padded", "buy padded armor"], ["Town", "go town"]],
-    ruins: [
-      ["North", "go up"],
-      ["East", "go right"],
-      ["South", "go down"],
-      ["West", "go left"],
-      ["Attack", "attack", state.battle?.active ? "danger" : "primary"],
-      ["Loot", "loot"]
-    ]
+    ruins: ruinsCommands(state)
   };
 
   return [
@@ -231,6 +225,27 @@ function quickCommandsFor(state) {
     ...suggestedItemCommands(state.player),
     ...global
   ];
+}
+
+function ruinsCommands(state) {
+  const commands = [
+    ["North", "go up"],
+    ["East", "go right"],
+    ["South", "go down"],
+    ["West", "go left"]
+  ];
+
+  if (state.battle?.active) {
+    const firstDamageSpell = state.player.spells.find(spell => spell.kind === "damage");
+    if (firstDamageSpell) commands.push([`Cast ${firstDamageSpell.display_name}`, `cast ${firstDamageSpell.name}`, "primary"]);
+    commands.push(["Attack", "attack", "danger"]);
+  } else {
+    commands.push(["Attack", "attack"]);
+  }
+
+  if (state.dungeon?.nearby_loot) commands.push(["Loot", "loot", "primary"]);
+
+  return commands;
 }
 
 function suggestedItemCommands(player) {
