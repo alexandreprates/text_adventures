@@ -1,0 +1,60 @@
+shops:
+  blacksmith:
+    name: blacksmith
+    display_name: Blacksmith
+    stock:
+      - sword
+      - bastard_sword
+      - longsword
+      - greatsword
+      - spear
+      - hunting_spear
+      - iron_spear
+      - halberd
+      - dragon_lance
+      - rusty_dagger
+      - iron_dagger
+      - curved_dagger
+      - shadow_dagger
+      - assassin_dagger
+      - kings_nep_sword
+    accepted_types:
+      - weapon
+  armorsmith:
+    name: armorsmith
+    display_name: Armorsmith
+    stock:
+      - padded_armor
+      - leather_armor
+      - studded_leather
+      - scout_mail
+      - silken_guard
+      - chain_shirt
+      - scale_mail
+      - breastplate
+      - brigandine
+      - half_plate
+      - ring_mail
+      - chain_mail
+      - splint_armor
+      - plate_armor
+      - dragon_plate
+    accepted_types:
+      - armor
+  priest:
+    name: priest
+    display_name: Aluriel's Priest
+    stock:
+      - tome_of_heal
+      - tome_of_cure
+      - tome_of_fireball
+      - tome_of_ice_bolt
+    accepted_types:
+      - tome
+  tavern:
+    name: tavern
+    display_name: Tavern
+    stock:
+      - potion_of_heal
+    accepted_types:
+      - potion

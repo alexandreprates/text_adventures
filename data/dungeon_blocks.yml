@@ -1,0 +1,98 @@
+dungeon_blocks:
+  right_exit:
+    name: Corridor Right Exit
+    exits:
+      - right
+    tiles:
+      - "######"
+      - "######"
+      - "##    "
+      - "######"
+      - "######"
+  left_exit:
+    name: Corridor Left Exit
+    exits:
+      - left
+    tiles:
+      - "######"
+      - "######"
+      - "    ##"
+      - "######"
+      - "######"
+  down_exit:
+    name: Corridor Down Exit
+    exits:
+      - down
+    tiles:
+      - "######"
+      - "######"
+      - "##  ##"
+      - "##  ##"
+      - "##  ##"
+  up_exit:
+    name: Corridor Up Exit
+    exits:
+      - up
+    tiles:
+      - "##  ##"
+      - "##  ##"
+      - "##  ##"
+      - "######"
+      - "######"
+  four_exits:
+    name: Corridor Four Exits
+    exits:
+      - up
+      - right
+      - down
+      - left
+    tiles:
+      - "##  ##"
+      - "##  ##"
+      - "      "
+      - "##  ##"
+      - "##  ##"
+  corner_down_left:
+    name: Corridor Corner Down Left
+    exits:
+      - down
+      - left
+    tiles:
+      - "######"
+      - "######"
+      - "    ##"
+      - "##  ##"
+      - "##  ##"
+  corner_down_right:
+    name: Corridor Corner Down Right
+    exits:
+      - down
+      - right
+    tiles:
+      - "######"
+      - "######"
+      - "##    "
+      - "##  ##"
+      - "##  ##"
+  corner_up_left:
+    name: Corridor Corner Up Left
+    exits:
+      - up
+      - left
+    tiles:
+      - "##  ##"
+      - "##  ##"
+      - "    ##"
+      - "######"
+      - "######"
+  corner_up_right:
+    name: Corridor Corner Up Right
+    exits:
+      - up
+      - right
+    tiles:
+      - "##  ##"
+      - "##  ##"
+      - "##    "
+      - "######"
+      - "######"

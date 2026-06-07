@@ -1,238 +1,359 @@
 # Text Adventures
 
-Text Adventures is a full text dangeon crawler.
+Text Adventures is a terminal text RPG written in Ruby. The current game is a
+playable command-line adventure with a town hub, shops, dungeon exploration,
+visible enemies, spatial loot, spells, equipment, and use-based character
+progression inspired by Dungeon Siege.
 
-Explore the ruins, confront incredible creatures and increase the power of your character.
+The implementation is intentionally data-driven where it matters: items, shops,
+creatures, and dungeon blocks live in YAML files under `data/`.
 
----
+## Current Status
 
-[![Build Status](https://travis-ci.org/alexandreprates/text_adventures.svg?branch=master)](https://travis-ci.org/alexandreprates/text_adventures)
-[![Coverage Status](https://coveralls.io/repos/github/alexandreprates/text_adventures/badge.svg?branch=master)](https://coveralls.io/github/alexandreprates/text_adventures?branch=master)
-[![Inline docs](http://inch-ci.org/github/alexandreprates/text_adventures.svg?branch=master)](http://inch-ci.org/github/alexandreprates/text_adventures)
+The terminal game is playable through `bin/text_adventures`.
 
-# Index
+Implemented systems include:
 
-**Planned Gameplay**
+- Contextual command loop with scene prompts such as `Town >` and `Ruins L1 >`.
+- Optional game input mode with WASD-style shortcuts.
+- Town hub with Tavern, Aluriel's Priest, Blacksmith, Armorsmith, and Ruins.
+- Direct travel between town destinations when no battle blocks the player.
+- Tavern rest flow that fully restores player health.
+- Priest healing, cure services, and spell tomes.
+- Merchant buy/sell flows with confirmation and grouped stock.
+- Inventory, equipment, item use, and item dropping.
+- YAML-driven weapons, armor, potions, tomes, shops, creatures, and dungeon blocks.
+- 15 weapons across swords, spears/lances, and daggers.
+- 15 armors across light, medium, and heavy armor classes.
+- 50 high-fantasy dungeon enemies with attacks, loot, status effects, and XP rewards.
+- Dungeon generation by connected blocks.
+- Fixed 3x3 dungeon viewport centered on the player's current block.
+- Visible dungeon enemies rendered as `E`.
+- Dropped map loot rendered as `@`.
+- Turn-based combat with attacks, spells, poison, freeze, healing, cure, critical hits, and game-over handling.
+- Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
+- End-to-end binary specs for the main terminal flows.
 
-[Town](#towm)
+Not implemented yet:
 
-[Shopping](#shopping)
+- Browser play.
+- URL-based saved sessions.
+- Persistent save/load.
+- A production server executable.
 
-[Dungeon](#dungeon)
+## Requirements
 
-[Battle](#battle)
+- Ruby
+- Bundler
 
-[Cast Speel](#cast-speel)
+Install dependencies with:
 
-[Looting](#looting)
+```sh
+bundle config set --local path vendor/bundle
+bundle install
+```
 
-[Learn Speel](#learn-speel)
+The checked-in `Gemfile.lock` keeps installs reproducible. Local Bundler
+artifacts are ignored through `.bundle/` and `vendor/bundle/`.
 
-**Attributes, levels and classes**
+## Running The Game
 
-[Attributes](#attributes)
+```sh
+bin/text_adventures
+```
 
-[Levels](#levels)
+Use `quit` or `exit` to leave the game.
 
-[Classes](#classes)
+The binary starts with the fixed-width screen UI and ANSI color enabled by
+default.
 
----
+For deterministic dungeon behavior during manual testing, set a random seed:
 
-# Planned Gameplay
+```sh
+TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+```
+
+To run the classic text response format instead of the screen UI:
+
+```sh
+TEXT_ADVENTURES_SCREEN=0 bin/text_adventures
+```
+
+To keep the screen UI but disable ANSI color:
+
+```sh
+TEXT_ADVENTURES_COLOR=0 bin/text_adventures
+```
+
+Flags can be combined for repeatable classic text exploration:
+
+```sh
+TEXT_ADVENTURES_SCREEN=0 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+```
+
+## Running Tests
+
+```sh
+bundle exec rake
+```
+
+You can also run RSpec directly:
+
+```sh
+bundle exec rspec
+```
+
+## Basic Commands
+
+Global commands:
+
+```text
+help            show contextual help
+look            inspect the current place
+inventory       show carried and equipped items
+spellbook       show known spells
+level           show overall character level and XP
+skills          show progression by skill track
+equip <item>    equip a carried weapon or armor
+use <item>      use a potion or tome
+drop <item>     drop a carried item
+game            enable game input mode
+text            return to text command mode
+commands        return to text command mode
+quit            exit the game
+exit            exit the game
+```
+
+Town and shop commands:
+
+```text
+go <place>      travel to a town destination
+go town         return to the town hub
+show            show merchant stock
+buy <item>      request a purchase
+sell <item>     request a sale
+agree           confirm a buy/sell offer
+no              cancel a buy/sell offer
+heal            priest healing service
+cure            priest cure service
+sleep           rent a Tavern room and fully recover health
+rent room       alias for sleep
+rest            alias for sleep
+```
+
+Ruins commands:
+
+```text
+go up           move north
+go right        move east
+go down         move south
+go left         move west
+attack          attack the active enemy
+cast <spell>    cast a known spell
+loot            collect loot on or next to the player
+go town         leave the Ruins when no enemy is active
+```
+
+## Game Mode
+
+Text command mode is the default. Type `game` to enable faster game controls.
+The prompt shows `[game]` while this mode is active.
+
+Game mode controls:
+
+```text
+w               go up
+a               go left
+s               go down
+d               go right
+Enter           attack
+i               inventory
+l               loot
+c               choose a spell by number
+h               game mode help
+?               game mode help
+text            return to text command mode
+commands        return to text command mode
+```
+
+Spell casting in game mode is numbered. Press `c`, choose `1`, `2`, and so on,
+or use `0`, `cancel`, or `escape` to cancel.
+
+## Terminal Screen UI
+
+The default output is a fixed-width screen UI with ANSI color enabled. The
+classic text response format is still available through
+`TEXT_ADVENTURES_SCREEN=0`.
+
+The screen UI renders:
+
+- an 80-column frame;
+- a location header;
+- a left content panel for the town list or dungeon viewport;
+- a right sidebar with player HP, level, XP, gold, equipment, statuses, nearby
+  enemies, nearby loot, and active enemy details when available;
+- a bounded five-line message log;
+- controls that change between text mode and game mode.
+
+The dungeon screen centers the current 3x3 viewport inside the left panel and
+keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
+ANSI color can be disabled with `TEXT_ADVENTURES_COLOR=0`.
+
+Inventory and game-mode spell selection also use dedicated screen states:
+
+- Inventory shows equipped gear, bag contents, character status, and skill
+  levels.
+- Cast Spell shows numbered spell choices and a `0` cancel option while a
+  game-mode spell choice is pending.
 
 ## Town
 
-```
-  Welcome to Text Adventures
+The town of Nee'Peh is the main hub.
 
-  You are now on the town of Nee'Peh
+Destinations:
 
-  Here you can:
-    go Tavern - small talk, some Ale and Potions
-    go Aluriel's Priest - here you can cure deseases, recover health, buy and sell tomes
-    go Blacksmith - buy or sell weapons
-    go Armorsmith - buy  or sell armors
-    go Ruins - where your adventure begins
+- `go Tavern`
+- `go Aluriel's Priest`
+- `go Blacksmith`
+- `go Armorsmith`
+- `go Ruins`
 
-  What will you do now?
-```
-
-## Shopping
-
-```
-  _go blacksmith_
-  Welcome, adventurer to buy or sell weapons here is the right place!
-
-  That you want:
-  show - view merchant goods
-  buy <item> - buy something
-  sell <item> - sell item
-
-  _sell sword_
-  Well i can give you 10g for this Sword (Atk: 10).
-
-  That you want:
-  agree - sell item
-  no - keep item
-
-  _agree_
-  You sold Sword (Atk: 10) at 10g.
-  [1x Sword (Atk: 10) removed to inventory]
-  [your gold is now 120]
-
-  _sell leather armor_
-  Sorry bud, but I have no interest in this item.
-
-  _show_
-  Here bud, take a look at these incredible goods!
-  1x Sword (Atk: 10) - 15g
-  1x Bastard Sword (Atk: 25) - 30g
-  1x Spear (Atk: 22, Def: 5) - 50g
-  1x King's Nep Sword (Atk: 50) - 500g
-
-  _buy king nep's sword_
-  Sorry but you dont have enough money for this.
-
-  _buy spear_
-  Excellent choice its yours for mere 50g.
-
-  Select your answer:
-  agree - buy it
-  no - forget it
-
-  _agree_
-  You bought Spear (Atk: 22, Def: 5).
-  [1x Spear (Atk: 22, Def: 5) added to inventory]
-  [your gold is now 70]
-
-  _bye_
-```
+The Tavern sells potions and lets the player sleep to fully recover health. The
+Priest heals, cures poison and disease, and sells tomes. The Blacksmith sells
+weapons. The Armorsmith sells armor.
 
 ## Dungeon
 
-```
-  You are now inside the Ruins Level 1
+The Ruins are built from connected dungeon blocks. Moving through exits reveals
+new blocks. The in-game map renders a fixed 3x3 block viewport centered on the
+player's current block so the display stays stable as the dungeon grows.
 
-  Here you can:
-  go <up|right|down|left> - to move around
-  look - to examine your surroundings
-  attack - to attack an enemy (yes this really is an adventure)
-  spellbook - show the spells you can cast
-  cast <spell> - to cast a powerfull spell
-  loot - to collect your prize after the battle
-  invetory - to show what you carry in our bags
-  equip <item> - to equip item
-  use <item> - to use item
-  drop <item> - to leave an item (not everything is helpfull)
+Map symbols:
 
-  ######  <- this is the dungeon wall
-  ######
-  ## x    <- this is you
-  ######
-  ######
-
-  Good luck and have a great adventure!
+```text
+x               player
+E               visible enemy
+@               loot on the ground
+.               open floor
+#               wall
+?               unrevealed area
 ```
 
-## Battle
+Enemies are visible before combat. A new block may reveal an `E`; combat starts
+when the player moves to an orthogonally adjacent tile. Diagonal adjacency does
+not start combat.
 
-```
-  _look_
-  You see a Giant Spider
-  A Giant Spider is about to attack you!
+When an enemy dies, it is removed from the map. If it drops loot, the loot is
+placed at the enemy's map position as `@`. The player can collect loot by
+stepping onto it automatically or by using `loot` while standing on or next to
+it.
 
-  _attack_
-  You Slash a Giant Spider with Bastard Sword causing 10 of damage.
-  The Giant Spider attacks you with a Bite causing 3 of damage.
-  [your life is now 23]
+## Combat And Spells
 
-  _cast fireball_
-  You burn Giant Spider with fireball causing 30 of damage.
-  The Giant Spider attacks you with Poison Bite causing 1 of damage, and Poison you!
-  [your life is now 22]
+Combat is turn-based. The player can attack with an equipped weapon or cast a
+known spell. Enemies counterattack when able.
 
-  _attack_
-  You Slash (Critical hit) a Giant Spider with Bastard Sword causing 25 of damage.
-  The Giant Spider die.
-  You feel the effect of Poison! You lost 2 hp.
-  [your life is now 20]
-```
+Current spell families:
 
-## Cast Speel
+- Fireball: damage spell.
+- Ice Bolt: damage spell with a freeze chance.
+- Heal: restores health.
+- Cure: removes harmful statuses.
 
-```
-  _spell cure_
-  The effect of Poison is over.
+Tomes teach new spells or level known spells. Use a tome with:
 
-  _spell heal_
-  You feel the effect of Heal!
-  [your life is now 33]
+```text
+use tome of fireball
 ```
 
-## Looting
+## Progression
 
-```
-  _loot_
-  You found a Tome of freezing.
-  [Tome of freezing added to inventory]
-```
+Progression is inspired by Dungeon Siege: the character improves through use
+instead of choosing a fixed class at character creation.
 
-# Learn Speel
+Skill tracks:
 
-```
-  _inventory_
-  currently you have:
-  1x Sword (Atk: 10)
-  2x Tome of Ice Bolt
-  3x Potion of Heal (Recovery 20 Health)
-  1x Leather Armor (Def: 20)
-
-  _use tome of ice bolt_
-  You learn spell Ice Bolt (level 1) - Freeze you enemy casing 5~10 of ice damage,
-  with 2% chance to freeze your enemy
-
-  _spellbook_
-  Your can cast:
-  1x Heal (level 1) - Recovery 10~30 of health
-  1x Fireball (level 1) - Burn your enemy causes 12~22 of fire damage
-  1x Ice Bolt (level 1) - Freeze your enemy causes 5~10 of ice damage, with 2% chance
-  to freeze your enemy
-
-  _use tome of ice bolt_
-  You learn spell Ice Bolt (level 2) - Freeze your enemy causes 8~18 of ice damage,
-  with 3% chance to freeze your enemy
-
-  _spellbook_
-  Your can cast:
-  1x Heal (level 1) - Recovery 10~30 of health
-  1x Fireball (level 1) - Burn your enemy cause 12~22 of fire damage
-  2x Ice Bolt (level 2) - Freeze you enemy casing 8~18 of ice damage, with 3% chance
-  to freeze your enemy
+```text
+swordsmanship   using swords
+spearmanship    using spears, halberds, and lances
+dagger_mastery  using daggers
+combat_magic    casting offensive spells
+nature_magic    casting healing, cure, and support spells
 ```
 
-# Attributes, levels and classes
+When a creature dies, its `xp_reward` is distributed across the skill tracks
+that contributed during the battle. For example, if a fight is won mostly with
+a spear and finished with Fireball, XP is split between `spearmanship` and
+`combat_magic`.
 
-Explain here
+Overall level is derived from total skill XP. The current level curve is:
 
-## Attributes
+```ruby
+xp_required_for(level) = 50 * level * level
+```
 
-Level -
-HP    -
-MP    -
-STR   -
-DEX   -
-INT   -
+Skill levels grant gameplay bonuses:
 
-## Levels
+- Swordsmanship adds stable attack while using swords.
+- Spearmanship adds a smaller attack bonus and a defense bonus while using spears.
+- Dagger Mastery improves critical hit chance while using daggers.
+- Combat Magic increases offensive spell damage.
+- Nature Magic improves healing.
 
-XP    -
-Melee -
-Range -
-Magic -
+## Editing Content
 
-# Classes
+Game content is stored in YAML files:
 
-Warrior
-Mage
-Paladin
-Battle-mage
+```text
+data/items.yml          weapons, armor, potions, and tomes
+data/shops.yml          merchant stock and accepted item types
+data/creatures.yml      creatures, attacks, loot, statuses, and XP rewards
+data/dungeon_blocks.yml dungeon block layouts and exits
+```
+
+The Ruby domain objects are built from these files through
+`TextAdventures::ContentCatalog`.
+
+Weapon metadata:
+
+```yaml
+weapon_class: sword
+weapon_class: spear
+weapon_class: dagger
+```
+
+Armor metadata:
+
+```yaml
+armor_class: light
+armor_class: medium
+armor_class: heavy
+```
+
+Creature XP metadata:
+
+```yaml
+xp_reward: 67
+```
+
+Dungeon block tiles should store only walls and open floor. Enemy and loot
+markers are runtime render markers, not YAML tile characters.
+
+## Project Layout
+
+```text
+bin/text_adventures          terminal entrypoint
+lib/commands                 command parsing
+lib/domain                   gameplay domain objects
+lib/scenes                   town, shops, tavern, priest, and ruins scenes
+data                         YAML content
+spec                         RSpec suite
+```
+
+## Development Notes
+
+- Keep gameplay logic independent from any future web layer.
+- Prefer adding content through YAML when possible.
+- Use seeded binary runs for repeatable dungeon exploration tests.
+- The browser/server experience remains planned work and should not be treated
+  as currently available.

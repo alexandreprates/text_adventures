@@ -1,2 +1,0 @@
-module TextAdventures::Server
-end

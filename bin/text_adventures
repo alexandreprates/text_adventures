@@ -1,0 +1,111 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require_relative "../lib/text_adventures"
+
+module TextAdventures
+  class CLI
+    EXIT_COMMANDS = %w[exit quit].freeze
+
+    def initialize(input: $stdin, output: $stdout, game: self.class.default_game, line_reader: nil, screen_renderer: self.class.default_screen_renderer)
+      @input = input
+      @output = output
+      @game = game
+      @line_reader = line_reader
+      @screen_renderer = screen_renderer
+    end
+
+    def run
+      output.puts render_output(game.handle("look"))
+
+      loop do
+        command = read_command
+        break unless command
+
+        command = command.strip
+        break if EXIT_COMMANDS.include?(command.downcase)
+        next if command.empty? && !game.game_mode?
+
+        output.puts render_output(game.handle(command))
+        break if game.player.dead?
+      end
+
+      output.puts "\nThanks for playing."
+    end
+
+    private
+
+    attr_reader :input, :output, :game, :line_reader, :screen_renderer
+
+    def render_output(response)
+      return response unless screen_renderer
+
+      screen_renderer.render(game)
+    end
+
+    def read_command
+      prompt = "\n#{prompt_label} > "
+      command = interactive_input? ? read_interactive_command(prompt) : read_plain_command(prompt)
+      record_history(command)
+      command
+    end
+
+    def read_plain_command(prompt)
+      output.print prompt
+      command = input.gets
+      output.puts if screen_renderer && command
+      command
+    end
+
+    def read_interactive_command(prompt)
+      return line_reader.call(prompt) if line_reader
+
+      require "readline"
+      Readline.readline(prompt, false)
+    end
+
+    def record_history(command)
+      command = command.to_s.strip
+      return if command.empty?
+      return unless interactive_input?
+      return if line_reader
+
+      require "readline"
+      Readline::HISTORY << command
+    end
+
+    def interactive_input?
+      return true if line_reader
+
+      input.equal?($stdin) && output.equal?($stdout) && input.tty? && output.tty?
+    end
+
+    def prompt_label
+      scene = game.current_scene
+      label = if scene.name == :ruins && game.dungeon
+                "Ruins L#{game.dungeon.level}"
+              elsif scene.respond_to?(:display_name)
+                scene.display_name
+              else
+                scene.name.to_s.split("_").map(&:capitalize).join(" ")
+              end
+
+      game.game_mode? ? "#{label} [game]" : label
+    end
+
+    def self.default_game
+      seed = ENV["TEXT_ADVENTURES_RANDOM_SEED"]
+      return Game.new unless seed
+
+      Game.new(random: Random.new(Integer(seed)))
+    end
+
+    def self.default_screen_renderer
+      return nil if ENV["TEXT_ADVENTURES_SCREEN"] == "0"
+
+      UI::ScreenRenderer.new(color: ENV["TEXT_ADVENTURES_COLOR"] != "0")
+    end
+  end
+end
+
+TextAdventures::CLI.new.run if $PROGRAM_NAME == __FILE__

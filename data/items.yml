@@ -1,0 +1,217 @@
+---
+items:
+  sword:
+    type: weapon
+    name: Sword
+    price: 15
+    attack: 10
+    weapon_class: sword
+  bastard_sword:
+    type: weapon
+    name: Bastard Sword
+    price: 30
+    attack: 25
+    weapon_class: sword
+  longsword:
+    type: weapon
+    name: Longsword
+    price: 75
+    attack: 32
+    weapon_class: sword
+  greatsword:
+    type: weapon
+    name: Greatsword
+    price: 120
+    attack: 40
+    weapon_class: sword
+  spear:
+    type: weapon
+    name: Spear
+    price: 50
+    attack: 22
+    defense: 5
+    weapon_class: spear
+  hunting_spear:
+    type: weapon
+    name: Hunting Spear
+    price: 25
+    attack: 16
+    defense: 2
+    weapon_class: spear
+  iron_spear:
+    type: weapon
+    name: Iron Spear
+    price: 65
+    attack: 28
+    defense: 6
+    weapon_class: spear
+  halberd:
+    type: weapon
+    name: Halberd
+    price: 110
+    attack: 36
+    defense: 8
+    weapon_class: spear
+  dragon_lance:
+    type: weapon
+    name: Dragon Lance
+    price: 220
+    attack: 48
+    defense: 10
+    weapon_class: spear
+  rusty_dagger:
+    type: weapon
+    name: Rusty Dagger
+    price: 8
+    attack: 6
+    weapon_class: dagger
+  iron_dagger:
+    type: weapon
+    name: Iron Dagger
+    price: 18
+    attack: 12
+    weapon_class: dagger
+  curved_dagger:
+    type: weapon
+    name: Curved Dagger
+    price: 35
+    attack: 18
+    weapon_class: dagger
+  shadow_dagger:
+    type: weapon
+    name: Shadow Dagger
+    price: 90
+    attack: 30
+    weapon_class: dagger
+  assassin_dagger:
+    type: weapon
+    name: Assassin Dagger
+    price: 160
+    attack: 42
+    weapon_class: dagger
+  kings_nep_sword:
+    type: weapon
+    name: King's Nep Sword
+    price: 500
+    attack: 50
+    weapon_class: sword
+  leather_armor:
+    type: armor
+    name: Leather Armor
+    price: 20
+    defense: 20
+    armor_class: light
+  padded_armor:
+    type: armor
+    name: Padded Armor
+    price: 12
+    defense: 12
+    armor_class: light
+  studded_leather:
+    type: armor
+    name: Studded Leather
+    price: 35
+    defense: 24
+    armor_class: light
+  scout_mail:
+    type: armor
+    name: Scout Mail
+    price: 55
+    defense: 30
+    armor_class: light
+  silken_guard:
+    type: armor
+    name: Silken Guard
+    price: 95
+    defense: 38
+    armor_class: light
+  chain_shirt:
+    type: armor
+    name: Chain Shirt
+    price: 45
+    defense: 28
+    armor_class: medium
+  scale_mail:
+    type: armor
+    name: Scale Mail
+    price: 70
+    defense: 36
+    armor_class: medium
+  breastplate:
+    type: armor
+    name: Breastplate
+    price: 110
+    defense: 44
+    armor_class: medium
+  brigandine:
+    type: armor
+    name: Brigandine
+    price: 150
+    defense: 52
+    armor_class: medium
+  half_plate:
+    type: armor
+    name: Half Plate
+    price: 210
+    defense: 62
+    armor_class: medium
+  ring_mail:
+    type: armor
+    name: Ring Mail
+    price: 90
+    defense: 42
+    armor_class: heavy
+  chain_mail:
+    type: armor
+    name: Chain Mail
+    price: 135
+    defense: 54
+    armor_class: heavy
+  splint_armor:
+    type: armor
+    name: Splint Armor
+    price: 190
+    defense: 66
+    armor_class: heavy
+  plate_armor:
+    type: armor
+    name: Plate Armor
+    price: 280
+    defense: 78
+    armor_class: heavy
+  dragon_plate:
+    type: armor
+    name: Dragon Plate
+    price: 500
+    defense: 95
+    armor_class: heavy
+  potion_of_heal:
+    type: potion
+    name: Potion of Heal
+    price: 10
+    recovery: 20
+  tome_of_heal:
+    type: tome
+    name: Tome of Heal
+    price: 25
+    spell: Heal
+  tome_of_cure:
+    type: tome
+    name: Tome of Cure
+    price: 25
+    spell: Cure
+  tome_of_fireball:
+    type: tome
+    name: Tome of Fireball
+    price: 30
+    spell: Fireball
+  tome_of_ice_bolt:
+    type: tome
+    name: Tome of Ice Bolt
+    price: 30
+    spell: Ice Bolt
+  tome_of_freezing:
+    type: tome
+    name: Tome of Freezing
+    price: 25
+    spell: Ice Bolt
