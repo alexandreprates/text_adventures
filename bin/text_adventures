@@ -23,7 +23,7 @@ module TextAdventures
 
         command = command.strip
         break if EXIT_COMMANDS.include?(command.downcase)
-        next if command.empty?
+        next if command.empty? && !game.game_mode?
 
         output.puts game.handle(command)
         break if game.player.dead?
@@ -73,10 +73,15 @@ module TextAdventures
 
     def prompt_label
       scene = game.current_scene
-      return "Ruins L#{game.dungeon.level}" if scene.name == :ruins && game.dungeon
-      return scene.display_name if scene.respond_to?(:display_name)
+      label = if scene.name == :ruins && game.dungeon
+                "Ruins L#{game.dungeon.level}"
+              elsif scene.respond_to?(:display_name)
+                scene.display_name
+              else
+                scene.name.to_s.split("_").map(&:capitalize).join(" ")
+              end
 
-      scene.name.to_s.split("_").map(&:capitalize).join(" ")
+      game.game_mode? ? "#{label} [game]" : label
     end
 
     def self.default_game

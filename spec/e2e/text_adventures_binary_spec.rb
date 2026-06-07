@@ -74,4 +74,43 @@ RSpec.describe "text_adventures binary" do
     expect(after_collection.lines.map(&:chomp)).to include "########x.##??????"
     expect(output).to include "Thanks for playing."
   end
+
+  it "plays with game mode shortcuts through the binary" do
+    output, error, status = Open3.capture3(
+      { "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      binary,
+      stdin_data: <<~COMMANDS
+        go priest
+        buy tome of fireball
+        agree
+        use tome of fireball
+        go town
+        go ruins
+        game
+        d
+
+        i
+        l
+        c
+        1
+        text
+        quit
+      COMMANDS
+    )
+
+    expect(status).to be_success
+    expect(error).to eq ""
+    expect(output).to include "You bought Tome of Fireball."
+    expect(output).to include "Studied Tome of Fireball."
+    expect(output).to include "Game mode enabled."
+    expect(output).to include "Ruins L1 [game] > You move right."
+    expect(output).to include "Ruins L1 [game] > There is no enemy to attack."
+    expect(output).to include "Currently you have nothing."
+    expect(output).to include "There is no loot to collect."
+    expect(output).to include "Choose a spell:"
+    expect(output).to include " 1 - Fireball"
+    expect(output).to include "You know Fireball, but there is no enemy to target."
+    expect(output).to include "Text command mode enabled."
+    expect(output).to include "Thanks for playing."
+  end
 end

@@ -34,6 +34,8 @@ RSpec.describe TextAdventures::Game do
       expect(game.battle).to be_nil
       expect(game.pending_loot).to be_nil
       expect(game.active_enemy_position).to be_nil
+      expect(game.input_mode).to eq :text
+      expect(game.pending_game_spell_choices).to be_nil
       expect(game.history).to eq []
     end
 
@@ -49,6 +51,8 @@ RSpec.describe TextAdventures::Game do
         battle: :battle,
         pending_loot: :loot,
         active_enemy_position: :enemy_position,
+        input_mode: :game,
+        pending_game_spell_choices: [:spell],
         history: [:entry],
         random: random
       )
@@ -62,6 +66,8 @@ RSpec.describe TextAdventures::Game do
         battle: :battle,
         pending_loot: :loot,
         active_enemy_position: :enemy_position,
+        input_mode: :game,
+        pending_game_spell_choices: [:spell],
         history: [:entry],
         random: random
       )
@@ -302,6 +308,109 @@ RSpec.describe TextAdventures::Game do
       expect(game.history).to contain_exactly(
         have_attributes(command: "attack", response: "done")
       )
+    end
+
+    it "enables and disables game input mode" do
+      game = described_class.new(current_scene: TestScene.new(response: "done"))
+
+      expect(game.handle("game")).to eq <<~TEXT.chomp
+        Game mode enabled.
+        Controls: W/A/S/D move, Enter attacks, I inventory, L loot, C cast, H help.
+        Type text to return to text commands.
+      TEXT
+      expect(game).to be_game_mode
+
+      expect(game.handle("text")).to eq "Text command mode enabled."
+      expect(game).to_not be_game_mode
+    end
+
+    it "translates game mode movement keys into go commands" do
+      scene = TestScene.new(response: "moved")
+      game = described_class.new(current_scene: scene)
+
+      game.handle("game")
+      expect(game.handle("w")).to eq "moved"
+
+      expect(scene.handled_command).to have_attributes(verb: :go, target: "up")
+    end
+
+    it "translates game mode action keys into existing commands" do
+      scene = TestScene.new(response: "attacked")
+      game = described_class.new(current_scene: scene)
+
+      game.handle("game")
+      expect(game.handle("")).to eq "attacked"
+      expect(scene.handled_command).to have_attributes(verb: :attack)
+
+      expect(game.handle("l")).to eq "attacked"
+      expect(scene.handled_command).to have_attributes(verb: :loot)
+    end
+
+    it "uses global commands from game mode keys" do
+      scene = TestScene.new(response: "scene response")
+      game = described_class.new(current_scene: scene)
+
+      game.handle("game")
+
+      expect(game.handle("i")).to include "Currently you have nothing."
+      expect(scene.handled_command).to be_nil
+    end
+
+    it "shows game mode help" do
+      game = described_class.new(current_scene: TestScene.new(response: "done"))
+
+      game.handle("game")
+
+      expect(game.handle("h")).to eq <<~TEXT.chomp
+        Game mode help
+         W/A/S/D - move
+         Enter - attack
+         I - inventory
+         L - loot
+         C - cast a numbered spell
+         text - return to text commands
+      TEXT
+    end
+
+    it "casts game mode spells by number" do
+      scene = TestScene.new(response: "casted")
+      game = described_class.new(current_scene: scene)
+      game.player.learn_spell(TextAdventures::Spell.heal)
+      game.player.learn_spell(TextAdventures::Spell.fireball)
+
+      game.handle("game")
+
+      expect(game.handle("c")).to eq <<~TEXT.chomp
+        Choose a spell:
+         1 - Fireball
+         2 - Heal
+         0 - cancel
+      TEXT
+      expect(game.handle("2")).to eq "casted"
+      expect(scene.handled_command).to have_attributes(verb: :cast, target: "heal")
+      expect(game.pending_game_spell_choices).to be_nil
+    end
+
+    it "keeps game mode spell selection open for invalid numbers" do
+      game = described_class.new(current_scene: TestScene.new(response: "casted"))
+      game.player.learn_spell(TextAdventures::Spell.fireball)
+
+      game.handle("game")
+      game.handle("c")
+
+      expect(game.handle("9")).to eq "Choose a spell number from 1 to 1, or 0 to cancel."
+      expect(game.pending_game_spell_choices).to_not be_nil
+      expect(game.handle("0")).to eq "Spell casting canceled."
+      expect(game.pending_game_spell_choices).to be_nil
+    end
+
+    it "reports empty game mode spell choices" do
+      game = described_class.new(current_scene: TestScene.new(response: "done"))
+
+      game.handle("game")
+
+      expect(game.handle("c")).to eq "You cannot cast any spells yet."
+      expect(game.pending_game_spell_choices).to be_nil
     end
 
     it "keeps responses deterministic when a random source is injected" do

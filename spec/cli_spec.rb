@@ -54,4 +54,17 @@ RSpec.describe TextAdventures::CLI do
     expect(output.string).to include "You go to Ruins."
     expect(output.string).to include "Thanks for playing."
   end
+
+  it "marks the prompt when game mode is active" do
+    output = StringIO.new
+    line_reader = FakeLineReader.new(["game", "quit"])
+
+    described_class.new(output: output, line_reader: line_reader).run
+
+    expect(line_reader.prompts).to eq [
+      "\nTown > ",
+      "\nTown [game] > "
+    ]
+    expect(output.string).to include "Game mode enabled."
+  end
 end
