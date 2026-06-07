@@ -18,6 +18,19 @@ RSpec.describe TextAdventures::CLI do
     end
   end
 
+  class FakeScreenRenderer
+    attr_reader :rendered_scenes
+
+    def initialize
+      @rendered_scenes = []
+    end
+
+    def render(game)
+      rendered_scenes << game.current_scene_name
+      "[screen: #{game.current_scene_name}]"
+    end
+  end
+
   it "runs a terminal game loop until the player quits" do
     input = StringIO.new("inventory\nquit\n")
     output = StringIO.new
@@ -66,5 +79,18 @@ RSpec.describe TextAdventures::CLI do
       "\nTown [game] > "
     ]
     expect(output.string).to include "Game mode enabled."
+  end
+
+  it "can render command responses through a screen renderer" do
+    input = StringIO.new("go ruins\nquit\n")
+    output = StringIO.new
+    screen_renderer = FakeScreenRenderer.new
+
+    described_class.new(input: input, output: output, screen_renderer: screen_renderer).run
+
+    expect(output.string).to include "[screen: town]"
+    expect(output.string).to include "[screen: ruins]"
+    expect(output.string).to_not include "Welcome to Text Adventures"
+    expect(screen_renderer.rendered_scenes).to eq %i[town ruins]
   end
 end

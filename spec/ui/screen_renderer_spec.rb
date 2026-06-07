@@ -97,4 +97,63 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       ]
     end
   end
+
+  describe "#render" do
+    it "renders a fixed-width town screen from game state" do
+      game = TextAdventures::Game.new
+      game.handle("look")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+
+      expect(lines.map(&:length)).to all eq 80
+      expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [text]"
+      expect(lines.join("\n")).to include "Places"
+      expect(lines.join("\n")).to include "Adventurer"
+      expect(lines.join("\n")).to include "go <place> | inventory | spellbook | level | skills | game | help"
+    end
+
+    it "renders the ruins viewport centered in the left panel" do
+      game = TextAdventures::Game.new(random: Random.new(0))
+      game.handle("go ruins")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+
+      expect(lines.map(&:length)).to all eq 80
+      expect(lines[1]).to include "Text Adventures - Ruins L1 [text]"
+      expect(lines.join("\n")).to include "              ??????##.x..??????              "
+      expect(lines.join("\n")).to include "Nearby"
+      expect(lines.join("\n")).to include "go <dir> | attack | cast <spell> | inventory | loot | help | game"
+    end
+
+    it "filters dungeon map rows out of the bounded message log" do
+      game = TextAdventures::Game.new(random: Random.new(0))
+      game.handle("go ruins")
+      game.handle("go right")
+
+      log_section = renderer.render(game).lines.map(&:chomp)[21, 5]
+
+      expect(log_section.join("\n")).to include "You move right."
+      expect(log_section).to_not include "|??????????????????                                                            |"
+    end
+
+    it "filters command list rows out of the bounded message log" do
+      game = TextAdventures::Game.new(random: Random.new(0))
+      game.handle("go ruins")
+
+      log_section = renderer.render(game).lines.map(&:chomp)[21, 5].join("\n")
+
+      expect(log_section).to include "You go to Ruins."
+      expect(log_section).to_not include "attack - to attack an enemy"
+    end
+
+    it "renders game mode controls" do
+      game = TextAdventures::Game.new
+      game.handle("game")
+
+      lines = renderer.render(game).lines.map(&:chomp)
+
+      expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [game]"
+      expect(lines.join("\n")).to include "WASD move | Enter attack | c cast | i inventory | l loot | h help | text"
+    end
+  end
 end

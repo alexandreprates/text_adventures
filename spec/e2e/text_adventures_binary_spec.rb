@@ -113,4 +113,29 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "Text command mode enabled."
     expect(output).to include "Thanks for playing."
   end
+
+  it "renders the terminal screen UI through the binary when enabled" do
+    output, error, status = Open3.capture3(
+      { "TEXT_ADVENTURES_SCREEN" => "1", "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      binary,
+      stdin_data: <<~COMMANDS
+        go ruins
+        game
+        d
+        quit
+      COMMANDS
+    )
+
+    lines = output.lines.map(&:chomp)
+
+    expect(status).to be_success
+    expect(error).to eq ""
+    expect(lines).to include "+------------------------------------------------------------------------------+"
+    expect(output).to include "Text Adventures - Town of Nee'Peh [text]"
+    expect(output).to include "Text Adventures - Ruins L1 [text]"
+    expect(output).to include "Text Adventures - Ruins L1 [game]"
+    expect(output).to include "              ??????##..x.??????              "
+    expect(output).to include "WASD move | Enter attack | c cast | i inventory | l loot | h help | text"
+    expect(output).to include "Thanks for playing."
+  end
 end

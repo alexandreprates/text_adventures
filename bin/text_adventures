@@ -7,15 +7,16 @@ module TextAdventures
   class CLI
     EXIT_COMMANDS = %w[exit quit].freeze
 
-    def initialize(input: $stdin, output: $stdout, game: self.class.default_game, line_reader: nil)
+    def initialize(input: $stdin, output: $stdout, game: self.class.default_game, line_reader: nil, screen_renderer: self.class.default_screen_renderer)
       @input = input
       @output = output
       @game = game
       @line_reader = line_reader
+      @screen_renderer = screen_renderer
     end
 
     def run
-      output.puts game.handle("look")
+      output.puts render_output(game.handle("look"))
 
       loop do
         command = read_command
@@ -25,7 +26,7 @@ module TextAdventures
         break if EXIT_COMMANDS.include?(command.downcase)
         next if command.empty? && !game.game_mode?
 
-        output.puts game.handle(command)
+        output.puts render_output(game.handle(command))
         break if game.player.dead?
       end
 
@@ -34,7 +35,13 @@ module TextAdventures
 
     private
 
-    attr_reader :input, :output, :game, :line_reader
+    attr_reader :input, :output, :game, :line_reader, :screen_renderer
+
+    def render_output(response)
+      return response unless screen_renderer
+
+      screen_renderer.render(game)
+    end
 
     def read_command
       prompt = "\n#{prompt_label} > "
@@ -45,7 +52,9 @@ module TextAdventures
 
     def read_plain_command(prompt)
       output.print prompt
-      input.gets
+      command = input.gets
+      output.puts if screen_renderer && command
+      command
     end
 
     def read_interactive_command(prompt)
@@ -89,6 +98,12 @@ module TextAdventures
       return Game.new unless seed
 
       Game.new(random: Random.new(Integer(seed)))
+    end
+
+    def self.default_screen_renderer
+      return nil unless ENV["TEXT_ADVENTURES_SCREEN"] == "1"
+
+      UI::ScreenRenderer.new
     end
   end
 end

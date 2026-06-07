@@ -70,6 +70,18 @@ For deterministic dungeon behavior during manual testing, set a random seed:
 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
 ```
 
+To try the fixed-width terminal screen UI, enable screen rendering:
+
+```sh
+TEXT_ADVENTURES_SCREEN=1 bin/text_adventures
+```
+
+Both flags can be combined for repeatable screen UI exploration:
+
+```sh
+TEXT_ADVENTURES_SCREEN=1 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+```
+
 ## Running Tests
 
 ```sh
@@ -157,6 +169,24 @@ commands        return to text command mode
 
 Spell casting in game mode is numbered. Press `c`, choose `1`, `2`, and so on,
 or use `0`, `cancel`, or `escape` to cancel.
+
+## Terminal Screen UI
+
+The default output remains the classic text response format. An experimental
+fixed-width screen UI is available through `TEXT_ADVENTURES_SCREEN=1`.
+
+The screen UI renders:
+
+- an 80-column frame;
+- a location header;
+- a left content panel for the town list or dungeon viewport;
+- a right sidebar with player HP, level, XP, gold, equipment, statuses, nearby
+  enemies, nearby loot, and active enemy details when available;
+- a bounded five-line message log;
+- controls that change between text mode and game mode.
+
+The dungeon screen centers the current 3x3 viewport inside the left panel and
+keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
 
 ## Town
 
