@@ -16,7 +16,52 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(response).to include "You enter the Tavern."
     expect(response).to include "adventurers trading rumors over ale"
     expect(response).to include "sleep - rent a room and fully recover health"
+    expect(response).to include "show - view potions for sale"
+    expect(response).to include "buy <item> - buy a potion"
+    expect(response).to include "sell <item> - sell a potion"
     expect(response).to include "go town"
+  end
+
+  it "shows potion stock" do
+    expect(game.handle("show")).to eq <<~TEXT.chomp
+      Here, take a look at these goods!
+       Potions:
+        1x Potion of Heal - 10g
+    TEXT
+  end
+
+  it "buys healing potions" do
+    expect(game.handle("buy potion of heal")).to eq <<~TEXT.chomp
+      Excellent choice. It is yours for 10g.
+      Select your answer:
+       agree - buy it
+       no - forget it
+    TEXT
+
+    expect(game.handle("agree")).to eq <<~TEXT.chomp
+      You bought Potion of Heal.
+      [1x Potion of Heal added to inventory]
+      [your gold is now 90]
+    TEXT
+    expect(game.player.inventory.quantity("potion of heal")).to eq 1
+  end
+
+  it "sells healing potions" do
+    game.player.inventory.add(TextAdventures::ContentCatalog.item("potion_of_heal"))
+
+    expect(game.handle("sell potion of heal")).to eq <<~TEXT.chomp
+      I can give you 7g for this Potion of Heal.
+      Select your answer:
+       agree - sell item
+       no - keep item
+    TEXT
+
+    expect(game.handle("agree")).to eq <<~TEXT.chomp
+      You sold Potion of Heal at 7g.
+      [1x Potion of Heal removed from inventory]
+      [your gold is now 107]
+    TEXT
+    expect(game.player.inventory.quantity("potion of heal")).to eq 0
   end
 
   it "lets the player sleep in a rented room to fully recover health" do

@@ -43,6 +43,9 @@ RSpec.describe TextAdventures::Scenes::Town do
       The room is warm, loud, and full of adventurers trading rumors over ale.
       Here you can:
        sleep - rent a room and fully recover health
+       show - view potions for sale
+       buy <item> - buy a potion
+       sell <item> - sell a potion
        go town - return to Nee'Peh
     TEXT
     expect(game.current_scene_name).to eq :tavern

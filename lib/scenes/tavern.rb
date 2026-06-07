@@ -1,6 +1,12 @@
+require_relative "merchant"
+
 module TextAdventures
   module Scenes
-    class Tavern
+    class Tavern < Merchant
+      def initialize
+        super(**ContentCatalog.shop("tavern"))
+      end
+
       def name
         :tavern
       end
@@ -14,7 +20,7 @@ module TextAdventures
         return Town.route(game, command.target) if command.verb == :go
         return sleep(game) if command.verb == :sleep
 
-        describe
+        super
       end
 
       def describe
@@ -24,6 +30,9 @@ module TextAdventures
           "The room is warm, loud, and full of adventurers trading rumors over ale.",
           "Here you can:",
           " sleep - rent a room and fully recover health",
+          " show - view potions for sale",
+          " buy <item> - buy a potion",
+          " sell <item> - sell a potion",
           " go town - return to Nee'Peh"
         )
       end

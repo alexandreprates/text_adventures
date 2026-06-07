@@ -51,3 +51,10 @@ shops:
       - tome_of_ice_bolt
     accepted_types:
       - tome
+  tavern:
+    name: tavern
+    display_name: Tavern
+    stock:
+      - potion_of_heal
+    accepted_types:
+      - potion

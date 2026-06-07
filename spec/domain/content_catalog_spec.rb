@@ -79,6 +79,17 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(stock.count { |item| item.armor_class == :medium }).to eq 5
       expect(stock.count { |item| item.armor_class == :heavy }).to eq 5
     end
+
+    it "builds Tavern potion stock and accepts potion trades" do
+      shop = described_class.shop("tavern")
+
+      expect(shop).to include(
+        name: :tavern,
+        display_name: "Tavern",
+        accepted_types: [:potion]
+      )
+      expect(shop.fetch(:stock).map(&:display_name)).to eq ["Potion of Heal"]
+    end
   end
 
   describe ".creature" do
