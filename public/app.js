@@ -201,7 +201,8 @@ function quickCommandsFor(state) {
 
   const global = [
     ["Inventory", "inventory"],
-    ["Spellbook", "spellbook"]
+    ["Spellbook", "spellbook"],
+    inputModeCommand(state)
   ];
   const travel = [
     ["Town", "go town"],
@@ -248,6 +249,10 @@ function ruinsCommands(state) {
   return commands;
 }
 
+function inputModeCommand(state) {
+  return state.input_mode === "game" ? ["Text Mode", "text"] : ["Game Mode", "game"];
+}
+
 function suggestedItemCommands(player) {
   const equippedNames = [
     player.equipment.weapon?.name,
@@ -272,6 +277,11 @@ function updateCommandPlaceholder(state) {
     return;
   }
 
+  if (state.input_mode === "game") {
+    elements.commandInput.placeholder = "w/a/s/d, Enter, i, l, c, text";
+    return;
+  }
+
   const placeholders = {
     town: "go ruins, go blacksmith, inventory",
     tavern: "rent room, show, buy potion of heal",
@@ -291,6 +301,7 @@ async function startGame() {
   setStatus("Connecting");
   try {
     const payload = await api.createGame();
+    selectTab("inventory");
     render(payload);
     setStatus("Online");
     elements.commandInput.focus();
@@ -330,14 +341,13 @@ elements.commandForm.addEventListener("submit", event => {
 
 elements.newGameButton.addEventListener("click", startGame);
 
-elements.tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    elements.tabs.forEach(button => button.classList.remove("active"));
-    document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
-    tab.classList.add("active");
-    document.querySelector(`#${tab.dataset.tab}-tab`).classList.remove("hidden");
-  });
-});
+elements.tabs.forEach(tab => tab.addEventListener("click", () => selectTab(tab.dataset.tab)));
+
+function selectTab(name) {
+  elements.tabs.forEach(button => button.classList.toggle("active", button.dataset.tab === name));
+  document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
+  document.querySelector(`#${name}-tab`).classList.remove("hidden");
+}
 
 renderQuickActions();
 startGame();
