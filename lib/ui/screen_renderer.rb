@@ -122,7 +122,7 @@ module TextAdventures
         when :town
           [town_content_lines, player_sidebar_lines(game)]
         else
-          [generic_location_lines(game), player_sidebar_lines(game)]
+          [location_content_lines(game), player_sidebar_lines(game)]
         end
       end
 
@@ -178,31 +178,64 @@ module TextAdventures
         ]
       end
 
-      def generic_location_lines(game)
+      def location_content_lines(game)
+        case game.current_scene_name
+        when :blacksmith
+          merchant_content_lines("Blacksmith", "Weapons", "show", "buy <weapon>", "sell <weapon>", "go town")
+        when :armorsmith
+          merchant_content_lines("Armorsmith", "Armor", "show", "buy <armor>", "sell <armor>", "go town")
+        when :priest
+          merchant_content_lines("Aluriel's Priest", "Services", "heal", "cure", "show tomes", "buy <tome>", "go town")
+        when :tavern
+          merchant_content_lines("Tavern", "Services", "sleep", "rent room", "show potions", "buy <potion>", "go town")
+        else
+          [
+            location_label(game),
+            "",
+            "Use help to see available commands."
+          ]
+        end
+      end
+
+      def merchant_content_lines(title, subtitle, *commands)
         [
-          location_label(game),
+          title,
           "",
-          "Use help to see available commands."
+          subtitle,
+          "",
+          *commands.map { |command| " #{command}" }
         ]
       end
 
       def ruins_sidebar_lines(game)
-        player_sidebar_lines(game) + [""] + nearby_lines(game) + [""] + enemy_lines(game)
+        player_sidebar_lines(game, compact: true) + nearby_lines(game) + enemy_lines(game)
       end
 
-      def player_sidebar_lines(game)
+      def player_sidebar_lines(game, compact: false)
         player = game.player
-        [
+        lines = [
           player.name,
           "HP #{bar(player.health.current, player.health.max)} #{player.health.current}/#{player.health.max}",
           "LV #{player.overall_level} XP #{player.overall_experience}/#{player.progression.xp_required_for(player.overall_level)}",
           "Gold #{player.gold}",
-          "",
-          "Equipment",
           "Wpn #{equipment_name(player.equipped_weapon)}",
           "Arm #{equipment_name(player.equipped_armor)}",
-          "",
           "Status #{status_text(player.status_effects)}"
+        ]
+
+        return lines + [""] if compact
+
+        [
+          lines[0],
+          lines[1],
+          lines[2],
+          lines[3],
+          "",
+          "Equipment",
+          lines[4],
+          lines[5],
+          "",
+          lines[6]
         ]
       end
 
@@ -213,9 +246,10 @@ module TextAdventures
         loot_position = game.dungeon.nearby_loot_position
 
         [
-          "Nearby",
+          "Adjacent",
           "E #{enemy_label(game, enemy_position)}",
-          "@ #{loot_label(game, loot_position)}"
+          "@ #{loot_label(game, loot_position)}",
+          ""
         ]
       end
 

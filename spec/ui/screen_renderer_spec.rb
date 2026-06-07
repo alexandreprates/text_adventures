@@ -121,7 +121,7 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(lines.map(&:length)).to all eq 80
       expect(lines[1]).to include "Text Adventures - Ruins L1 [text]"
       expect(lines.join("\n")).to include "              ??????##.x..??????              "
-      expect(lines.join("\n")).to include "Nearby"
+      expect(lines.join("\n")).to include "Adjacent"
       expect(lines.join("\n")).to include "go <dir> | attack | cast <spell> | inventory | loot | help | game"
     end
 
@@ -154,6 +154,31 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
 
       expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [game]"
       expect(lines.join("\n")).to include "WASD move | Enter attack | c cast | i inventory | l loot | h help | text"
+    end
+
+    it "keeps active enemy HP visible in the ruins sidebar" do
+      game = TextAdventures::Game.new(random: Random.new(0))
+      game.handle("go ruins")
+      game.dungeon.place_enemy(TextAdventures::Dungeon::Position.new(x: 4, y: 2), "giant_spider")
+      game.handle("look")
+
+      screen = renderer.render(game)
+
+      expect(screen).to include "Enemy"
+      expect(screen).to include "Giant Spider"
+      expect(screen).to include "HP [##########] 35/35"
+    end
+
+    it "renders useful town sublocation commands in the left panel" do
+      game = TextAdventures::Game.new
+      game.handle("go blacksmith")
+
+      screen = renderer.render(game)
+
+      expect(screen).to include "Blacksmith"
+      expect(screen).to include "Weapons"
+      expect(screen).to include " buy <weapon>"
+      expect(screen).to include " sell <weapon>"
     end
   end
 end
