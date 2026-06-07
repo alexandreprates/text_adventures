@@ -7,6 +7,7 @@ RSpec.describe "text_adventures binary" do
 
   it "runs a playable terminal session through the binary" do
     output, error, status = Open3.capture3(
+      { "TEXT_ADVENTURES_SCREEN" => "0" },
       binary,
       stdin_data: <<~COMMANDS
         level
@@ -33,7 +34,7 @@ RSpec.describe "text_adventures binary" do
 
   it "plays a visible dungeon enemy and map loot loop through the binary" do
     output, error, status = Open3.capture3(
-      { "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      { "TEXT_ADVENTURES_SCREEN" => "0", "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
       binary,
       stdin_data: <<~COMMANDS
         go ruins
@@ -77,7 +78,7 @@ RSpec.describe "text_adventures binary" do
 
   it "plays with game mode shortcuts through the binary" do
     output, error, status = Open3.capture3(
-      { "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      { "TEXT_ADVENTURES_SCREEN" => "0", "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
       binary,
       stdin_data: <<~COMMANDS
         go priest
@@ -114,9 +115,9 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "Thanks for playing."
   end
 
-  it "renders the terminal screen UI through the binary when enabled" do
+  it "renders the terminal screen UI through the binary by default" do
     output, error, status = Open3.capture3(
-      { "TEXT_ADVENTURES_SCREEN" => "1", "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
+      { "TEXT_ADVENTURES_COLOR" => "0", "TEXT_ADVENTURES_RANDOM_SEED" => "0" },
       binary,
       stdin_data: <<~COMMANDS
         go ruins

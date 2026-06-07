@@ -35,7 +35,7 @@ RSpec.describe TextAdventures::CLI do
     input = StringIO.new("inventory\nquit\n")
     output = StringIO.new
 
-    described_class.new(input: input, output: output).run
+    described_class.new(input: input, output: output, screen_renderer: nil).run
 
     text = output.string
     expect(text).to include "Welcome to Text Adventures"
@@ -48,7 +48,7 @@ RSpec.describe TextAdventures::CLI do
     input = StringIO.new("go ruins\nquit\n")
     output = StringIO.new
 
-    described_class.new(input: input, output: output).run
+    described_class.new(input: input, output: output, screen_renderer: nil).run
 
     expect(output.string).to include "Town > You go to Ruins."
     expect(output.string).to include "Ruins L1 > "
@@ -58,7 +58,7 @@ RSpec.describe TextAdventures::CLI do
     output = StringIO.new
     line_reader = FakeLineReader.new(["go ruins", "quit"])
 
-    described_class.new(output: output, line_reader: line_reader).run
+    described_class.new(output: output, line_reader: line_reader, screen_renderer: nil).run
 
     expect(line_reader.prompts).to eq [
       "\nTown > ",
@@ -72,7 +72,7 @@ RSpec.describe TextAdventures::CLI do
     output = StringIO.new
     line_reader = FakeLineReader.new(["game", "quit"])
 
-    described_class.new(output: output, line_reader: line_reader).run
+    described_class.new(output: output, line_reader: line_reader, screen_renderer: nil).run
 
     expect(line_reader.prompts).to eq [
       "\nTown > ",

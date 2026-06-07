@@ -64,28 +64,31 @@ bin/text_adventures
 
 Use `quit` or `exit` to leave the game.
 
+The binary starts with the fixed-width screen UI and ANSI color enabled by
+default.
+
 For deterministic dungeon behavior during manual testing, set a random seed:
 
 ```sh
 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
 ```
 
-To try the fixed-width terminal screen UI, enable screen rendering:
+To run the classic text response format instead of the screen UI:
 
 ```sh
-TEXT_ADVENTURES_SCREEN=1 bin/text_adventures
+TEXT_ADVENTURES_SCREEN=0 bin/text_adventures
 ```
 
-Both flags can be combined for repeatable screen UI exploration:
+To keep the screen UI but disable ANSI color:
 
 ```sh
-TEXT_ADVENTURES_SCREEN=1 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+TEXT_ADVENTURES_COLOR=0 bin/text_adventures
 ```
 
-Optional ANSI color can be enabled for the screen UI:
+Flags can be combined for repeatable classic text exploration:
 
 ```sh
-TEXT_ADVENTURES_SCREEN=1 TEXT_ADVENTURES_COLOR=1 bin/text_adventures
+TEXT_ADVENTURES_SCREEN=0 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
 ```
 
 ## Running Tests
@@ -178,8 +181,9 @@ or use `0`, `cancel`, or `escape` to cancel.
 
 ## Terminal Screen UI
 
-The default output remains the classic text response format. An experimental
-fixed-width screen UI is available through `TEXT_ADVENTURES_SCREEN=1`.
+The default output is a fixed-width screen UI with ANSI color enabled. The
+classic text response format is still available through
+`TEXT_ADVENTURES_SCREEN=0`.
 
 The screen UI renders:
 
@@ -193,7 +197,7 @@ The screen UI renders:
 
 The dungeon screen centers the current 3x3 viewport inside the left panel and
 keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
-ANSI color is optional and disabled unless `TEXT_ADVENTURES_COLOR=1` is set.
+ANSI color can be disabled with `TEXT_ADVENTURES_COLOR=0`.
 
 Inventory and game-mode spell selection also use dedicated screen states:
 
