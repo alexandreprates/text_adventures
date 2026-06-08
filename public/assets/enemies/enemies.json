@@ -18,5 +18,10 @@
     "name": "Hobgoblin Soldier",
     "sprite": "/assets/enemies/sprites/hobgoblin_soldier.png",
     "source": "/assets/enemies/sources/hobgoblin_soldier.svg"
+  },
+  "orc_raider": {
+    "name": "Orc Raider",
+    "sprite": "/assets/enemies/sprites/orc_raider.png",
+    "source": "/assets/enemies/sources/orc_raider.svg"
   }
 }
