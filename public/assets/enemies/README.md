@@ -24,6 +24,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `dwarven_ghost`: Dwarven Ghost
 - `earth_elemental_ling`: Earth Elemental Ling
 - `elemental_spark`: Elemental Spark
+- `enchanted_armor`: Enchanted Armor
 - `fae_blade_dancer`: Fae Blade Dancer
 - `fire_elemental_ling`: Fire Elemental Ling
 - `forest_sprite`: Forest Sprite

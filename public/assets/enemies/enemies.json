@@ -233,5 +233,10 @@
     "name": "Cursed Paladin",
     "sprite": "/assets/enemies/sprites/cursed_paladin.png",
     "source": "/assets/enemies/sources/cursed_paladin.svg"
+  },
+  "enchanted_armor": {
+    "name": "Enchanted Armor",
+    "sprite": "/assets/enemies/sprites/enchanted_armor.png",
+    "source": "/assets/enemies/sources/enchanted_armor.svg"
   }
 }
