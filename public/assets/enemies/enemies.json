@@ -143,5 +143,10 @@
     "name": "Ogre Marauder",
     "sprite": "/assets/enemies/sprites/ogre_marauder.png",
     "source": "/assets/enemies/sources/ogre_marauder.svg"
+  },
+  "lizardfolk_scout": {
+    "name": "Lizardfolk Scout",
+    "sprite": "/assets/enemies/sprites/lizardfolk_scout.png",
+    "source": "/assets/enemies/sources/lizardfolk_scout.svg"
   }
 }
