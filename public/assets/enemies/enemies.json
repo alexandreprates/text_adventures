@@ -83,5 +83,10 @@
     "name": "Brimstone Imp",
     "sprite": "/assets/enemies/sprites/brimstone_imp.png",
     "source": "/assets/enemies/sources/brimstone_imp.svg"
+  },
+  "lesser_demon": {
+    "name": "Lesser Demon",
+    "sprite": "/assets/enemies/sprites/lesser_demon.png",
+    "source": "/assets/enemies/sources/lesser_demon.svg"
   }
 }
