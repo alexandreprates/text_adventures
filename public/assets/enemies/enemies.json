@@ -87,7 +87,7 @@
   "lesser_demon": {
     "name": "Lesser Demon",
     "sprite": "/assets/enemies/sprites/lesser_demon.png",
-    "source": "/assets/enemies/sources/lesser_demon.svg"
+    "source": "/assets/enemies/sources/lesser_demon.png"
   },
   "forest_sprite": {
     "name": "Forest Sprite",
