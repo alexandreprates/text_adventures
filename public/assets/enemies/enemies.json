@@ -47,7 +47,7 @@
   "gnoll_bonecaller": {
     "name": "Gnoll Bonecaller",
     "sprite": "/assets/enemies/sprites/gnoll_bonecaller.png",
-    "source": "/assets/enemies/sources/gnoll_bonecaller.svg"
+    "source": "/assets/enemies/sources/gnoll_bonecaller.png"
   },
   "skeleton_guard": {
     "name": "Skeleton Guard",
