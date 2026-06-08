@@ -12,7 +12,7 @@
   "goblin_hexer": {
     "name": "Goblin Hexer",
     "sprite": "/assets/enemies/sprites/goblin_hexer.png",
-    "source": "/assets/enemies/sources/goblin_hexer.svg"
+    "source": "/assets/enemies/sources/goblin_hexer.png"
   },
   "hobgoblin_soldier": {
     "name": "Hobgoblin Soldier",
