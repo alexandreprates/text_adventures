@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges">
+  <g id="dwarven_ghost" stroke="#15110f" stroke-width="4" stroke-linejoin="round" stroke-linecap="square">
+    
+      <path d="M42 104 L50 38 L80 38 L88 104 L76 92 L64 106 L52 92 Z" fill="#d8d1bf" opacity="0.82"/>
+      <rect x="54" y="52" width="8" height="8" fill="#2b2d31"/>
+      <rect x="68" y="52" width="8" height="8" fill="#2b2d31"/>
+      <rect x="54" y="74" width="22" height="6" fill="#76a7c8"/>
+    
+  </g>
+</svg>
