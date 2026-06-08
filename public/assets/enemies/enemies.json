@@ -148,5 +148,10 @@
     "name": "Lizardfolk Scout",
     "sprite": "/assets/enemies/sprites/lizardfolk_scout.png",
     "source": "/assets/enemies/sources/lizardfolk_scout.svg"
+  },
+  "naga_apprentice": {
+    "name": "Naga Apprentice",
+    "sprite": "/assets/enemies/sprites/naga_apprentice.png",
+    "source": "/assets/enemies/sources/naga_apprentice.svg"
   }
 }
