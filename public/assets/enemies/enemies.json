@@ -213,5 +213,10 @@
     "name": "Air Elemental Ling",
     "sprite": "/assets/enemies/sprites/air_elemental_ling.png",
     "source": "/assets/enemies/sources/air_elemental_ling.svg"
+  },
+  "dark_elf_assassin": {
+    "name": "Dark Elf Assassin",
+    "sprite": "/assets/enemies/sprites/dark_elf_assassin.png",
+    "source": "/assets/enemies/sources/dark_elf_assassin.svg"
   }
 }
