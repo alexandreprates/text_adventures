@@ -138,5 +138,10 @@
     "name": "Minotaur Guardian",
     "sprite": "/assets/enemies/sprites/minotaur_guardian.png",
     "source": "/assets/enemies/sources/minotaur_guardian.svg"
+  },
+  "ogre_marauder": {
+    "name": "Ogre Marauder",
+    "sprite": "/assets/enemies/sprites/ogre_marauder.png",
+    "source": "/assets/enemies/sources/ogre_marauder.svg"
   }
 }
