@@ -92,7 +92,7 @@
   "forest_sprite": {
     "name": "Forest Sprite",
     "sprite": "/assets/enemies/sprites/forest_sprite.png",
-    "source": "/assets/enemies/sources/forest_sprite.svg"
+    "source": "/assets/enemies/sources/forest_sprite.png"
   },
   "pixie_trickster": {
     "name": "Pixie Trickster",
