@@ -203,5 +203,10 @@
     "name": "Ice Elemental Ling",
     "sprite": "/assets/enemies/sprites/ice_elemental_ling.png",
     "source": "/assets/enemies/sources/ice_elemental_ling.svg"
+  },
+  "earth_elemental_ling": {
+    "name": "Earth Elemental Ling",
+    "sprite": "/assets/enemies/sprites/earth_elemental_ling.png",
+    "source": "/assets/enemies/sources/earth_elemental_ling.svg"
   }
 }

@@ -17,6 +17,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `dire_wolf`: Dire Wolf
 - `dragon_wyrmling`: Dragon Wyrmling
 - `dryad_thornweaver`: Dryad Thornweaver
+- `earth_elemental_ling`: Earth Elemental Ling
 - `elemental_spark`: Elemental Spark
 - `fae_blade_dancer`: Fae Blade Dancer
 - `fire_elemental_ling`: Fire Elemental Ling
