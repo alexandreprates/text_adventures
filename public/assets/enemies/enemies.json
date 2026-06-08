@@ -153,5 +153,10 @@
     "name": "Naga Apprentice",
     "sprite": "/assets/enemies/sprites/naga_apprentice.png",
     "source": "/assets/enemies/sources/naga_apprentice.svg"
+  },
+  "yuan_ti_cutthroat": {
+    "name": "Yuan-ti Cutthroat",
+    "sprite": "/assets/enemies/sprites/yuan_ti_cutthroat.png",
+    "source": "/assets/enemies/sources/yuan_ti_cutthroat.svg"
   }
 }

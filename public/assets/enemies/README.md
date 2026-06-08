@@ -41,6 +41,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `skeleton_archer`: Skeleton Archer
 - `skeleton_guard`: Skeleton Guard
 - `wight_knight`: Wight Knight
+- `yuan_ti_cutthroat`: Yuan-ti Cutthroat
 - `zombie_brute`: Zombie Brute
 
 ## Workflow
