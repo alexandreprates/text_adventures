@@ -43,5 +43,10 @@
     "name": "Gnoll Hunter",
     "sprite": "/assets/enemies/sprites/gnoll_hunter.png",
     "source": "/assets/enemies/sources/gnoll_hunter.svg"
+  },
+  "gnoll_bonecaller": {
+    "name": "Gnoll Bonecaller",
+    "sprite": "/assets/enemies/sprites/gnoll_bonecaller.png",
+    "source": "/assets/enemies/sources/gnoll_bonecaller.svg"
   }
 }
