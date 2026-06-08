@@ -23,5 +23,10 @@
     "name": "Orc Raider",
     "sprite": "/assets/enemies/sprites/orc_raider.png",
     "source": "/assets/enemies/sources/orc_raider.svg"
+  },
+  "orc_berserker": {
+    "name": "Orc Berserker",
+    "sprite": "/assets/enemies/sprites/orc_berserker.png",
+    "source": "/assets/enemies/sources/orc_berserker.svg"
   }
 }
