@@ -11,6 +11,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 
 ## Completed Sprites
 
+- `air_elemental_ling`: Air Elemental Ling
 - `basilisk_hatchling`: Basilisk Hatchling
 - `brimstone_imp`: Brimstone Imp
 - `cave_troll`: Cave Troll

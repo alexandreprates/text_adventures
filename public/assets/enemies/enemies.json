@@ -208,5 +208,10 @@
     "name": "Earth Elemental Ling",
     "sprite": "/assets/enemies/sprites/earth_elemental_ling.png",
     "source": "/assets/enemies/sources/earth_elemental_ling.svg"
+  },
+  "air_elemental_ling": {
+    "name": "Air Elemental Ling",
+    "sprite": "/assets/enemies/sprites/air_elemental_ling.png",
+    "source": "/assets/enemies/sources/air_elemental_ling.svg"
   }
 }
