@@ -67,7 +67,7 @@
   "ghoul_stalker": {
     "name": "Ghoul Stalker",
     "sprite": "/assets/enemies/sprites/ghoul_stalker.png",
-    "source": "/assets/enemies/sources/ghoul_stalker.svg"
+    "source": "/assets/enemies/sources/ghoul_stalker.png"
   },
   "zombie_brute": {
     "name": "Zombie Brute",
