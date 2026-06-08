@@ -13,6 +13,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 
 - `brimstone_imp`: Brimstone Imp
 - `dryad_thornweaver`: Dryad Thornweaver
+- `fae_blade_dancer`: Fae Blade Dancer
 - `forest_sprite`: Forest Sprite
 - `ghoul_stalker`: Ghoul Stalker
 - `giant_spider`: Giant Spider
