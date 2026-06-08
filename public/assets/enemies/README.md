@@ -23,6 +23,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `orc_raider`: Orc Raider
 - `skeleton_archer`: Skeleton Archer
 - `skeleton_guard`: Skeleton Guard
+- `wight_knight`: Wight Knight
 
 ## Workflow
 

@@ -58,5 +58,10 @@
     "name": "Skeleton Archer",
     "sprite": "/assets/enemies/sprites/skeleton_archer.png",
     "source": "/assets/enemies/sources/skeleton_archer.svg"
+  },
+  "wight_knight": {
+    "name": "Wight Knight",
+    "sprite": "/assets/enemies/sprites/wight_knight.png",
+    "source": "/assets/enemies/sources/wight_knight.svg"
   }
 }
