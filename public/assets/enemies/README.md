@@ -23,6 +23,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `gnoll_hunter`: Gnoll Hunter
 - `goblin_hexer`: Goblin Hexer
 - `goblin_skirmisher`: Goblin Skirmisher
+- `hill_giant_youth`: Hill Giant Youth
 - `hobgoblin_soldier`: Hobgoblin Soldier
 - `kobold_sparkmage`: Kobold Sparkmage
 - `kobold_trapper`: Kobold Trapper

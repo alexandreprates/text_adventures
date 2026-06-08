@@ -128,5 +128,10 @@
     "name": "Cave Troll",
     "sprite": "/assets/enemies/sprites/cave_troll.png",
     "source": "/assets/enemies/sources/cave_troll.svg"
+  },
+  "hill_giant_youth": {
+    "name": "Hill Giant Youth",
+    "sprite": "/assets/enemies/sprites/hill_giant_youth.png",
+    "source": "/assets/enemies/sources/hill_giant_youth.svg"
   }
 }
