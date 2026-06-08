@@ -33,5 +33,10 @@
     "name": "Kobold Trapper",
     "sprite": "/assets/enemies/sprites/kobold_trapper.png",
     "source": "/assets/enemies/sources/kobold_trapper.svg"
+  },
+  "kobold_sparkmage": {
+    "name": "Kobold Sparkmage",
+    "sprite": "/assets/enemies/sprites/kobold_sparkmage.png",
+    "source": "/assets/enemies/sources/kobold_sparkmage.svg"
   }
 }
