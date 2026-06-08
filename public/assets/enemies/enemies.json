@@ -103,5 +103,10 @@
     "name": "Satyr Duelist",
     "sprite": "/assets/enemies/sprites/satyr_duelist.png",
     "source": "/assets/enemies/sources/satyr_duelist.svg"
+  },
+  "dryad_thornweaver": {
+    "name": "Dryad Thornweaver",
+    "sprite": "/assets/enemies/sprites/dryad_thornweaver.png",
+    "source": "/assets/enemies/sources/dryad_thornweaver.svg"
   }
 }
