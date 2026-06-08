@@ -77,7 +77,7 @@
   "shadow_imp": {
     "name": "Shadow Imp",
     "sprite": "/assets/enemies/sprites/shadow_imp.png",
-    "source": "/assets/enemies/sources/shadow_imp.svg"
+    "source": "/assets/enemies/sources/shadow_imp.png"
   },
   "brimstone_imp": {
     "name": "Brimstone Imp",
