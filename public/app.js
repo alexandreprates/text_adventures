@@ -61,12 +61,12 @@ const LOCATION_ARTS = {
     alt: "Temple sanctuary with altar, healing fountain, candles, stained glass, and tome shelves"
   },
   blacksmith: {
-    src: "/assets/locations/merchant-district.png",
-    alt: "Merchant district with forge, weapon racks, armor displays, and trading counters"
+    src: "/assets/locations/blacksmith-workshop.png",
+    alt: "Blacksmith workshop with forge, anvil, tools, and weapon racks"
   },
   armorsmith: {
-    src: "/assets/locations/merchant-district.png",
-    alt: "Merchant district with forge, weapon racks, armor displays, and trading counters"
+    src: "/assets/locations/armorsmith-shop.png",
+    alt: "Armorsmith shop with armor stands, shields, helmets, and trading counter"
   }
 };
 

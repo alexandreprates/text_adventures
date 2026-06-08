@@ -16,7 +16,19 @@ The image represents the tavern as a warm rest and supply location, with a firep
 
 `merchant-district.png` is an original AI-generated pixel-art merchant/workshop scene created for Text Adventures.
 
-The image represents the blacksmith and armorsmith scenes with a forge, weapon racks, armor displays, counters, crates, and trading stalls.
+The image represents the broader merchant/workshop district with forge, weapon racks, armor displays, counters, crates, and trading stalls. It also acts as the source image for focused blacksmith and armorsmith crops.
+
+## Blacksmith Workshop
+
+`blacksmith-workshop.png` is a focused crop of `merchant-district.png` created for the blacksmith scene.
+
+The image emphasizes the forge, anvil, tools, and weapon racks so the blacksmith has a distinct visual identity from the armorsmith.
+
+## Armorsmith Shop
+
+`armorsmith-shop.png` is a focused crop of `merchant-district.png` created for the armorsmith scene.
+
+The image emphasizes armor stands, shields, helmets, and the trading counter so the armorsmith has a distinct visual identity from the blacksmith.
 
 ## Temple Sanctuary
 

@@ -13,6 +13,8 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/locations/village-hub.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/tavern-interior.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/merchant-district.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/blacksmith-workshop.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/armorsmith-shop.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/temple-sanctuary.png"))
   end
 
@@ -40,7 +42,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('const LOCATION_ARTS')
     expect(javascript).to include('"/assets/locations/village-hub.png"')
     expect(javascript).to include('"/assets/locations/tavern-interior.png"')
-    expect(javascript).to include('"/assets/locations/merchant-district.png"')
+    expect(javascript).to include('"/assets/locations/blacksmith-workshop.png"')
+    expect(javascript).to include('"/assets/locations/armorsmith-shop.png"')
     expect(javascript).to include('"/assets/locations/temple-sanctuary.png"')
     expect(javascript).to include('LOCATION_ARTS[state.scene]')
     expect(javascript).to include('"has-location-art"')
