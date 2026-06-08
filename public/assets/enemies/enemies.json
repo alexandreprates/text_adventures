@@ -113,5 +113,10 @@
     "name": "Fae Blade Dancer",
     "sprite": "/assets/enemies/sprites/fae_blade_dancer.png",
     "source": "/assets/enemies/sources/fae_blade_dancer.svg"
+  },
+  "dire_wolf": {
+    "name": "Dire Wolf",
+    "sprite": "/assets/enemies/sprites/dire_wolf.png",
+    "source": "/assets/enemies/sources/dire_wolf.svg"
   }
 }
