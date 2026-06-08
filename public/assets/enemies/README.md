@@ -31,6 +31,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `harpy_screecher`: Harpy Screecher
 - `hill_giant_youth`: Hill Giant Youth
 - `hobgoblin_soldier`: Hobgoblin Soldier
+- `ice_elemental_ling`: Ice Elemental Ling
 - `kobold_sparkmage`: Kobold Sparkmage
 - `kobold_trapper`: Kobold Trapper
 - `lesser_demon`: Lesser Demon

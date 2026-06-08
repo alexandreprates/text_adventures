@@ -198,5 +198,10 @@
     "name": "Fire Elemental Ling",
     "sprite": "/assets/enemies/sprites/fire_elemental_ling.png",
     "source": "/assets/enemies/sources/fire_elemental_ling.svg"
+  },
+  "ice_elemental_ling": {
+    "name": "Ice Elemental Ling",
+    "sprite": "/assets/enemies/sprites/ice_elemental_ling.png",
+    "source": "/assets/enemies/sources/ice_elemental_ling.svg"
   }
 }
