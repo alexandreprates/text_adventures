@@ -1,0 +1,7 @@
+{
+  "giant_spider": {
+    "name": "Giant Spider",
+    "sprite": "/assets/enemies/sprites/giant_spider.png",
+    "source": "/assets/enemies/sources/giant_spider.svg"
+  }
+}
