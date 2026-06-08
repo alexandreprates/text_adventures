@@ -98,5 +98,10 @@
     "name": "Pixie Trickster",
     "sprite": "/assets/enemies/sprites/pixie_trickster.png",
     "source": "/assets/enemies/sources/pixie_trickster.svg"
+  },
+  "satyr_duelist": {
+    "name": "Satyr Duelist",
+    "sprite": "/assets/enemies/sprites/satyr_duelist.png",
+    "source": "/assets/enemies/sources/satyr_duelist.svg"
   }
 }

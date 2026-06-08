@@ -26,6 +26,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `orc_berserker`: Orc Berserker
 - `orc_raider`: Orc Raider
 - `pixie_trickster`: Pixie Trickster
+- `satyr_duelist`: Satyr Duelist
 - `shadow_imp`: Shadow Imp
 - `skeleton_archer`: Skeleton Archer
 - `skeleton_guard`: Skeleton Guard
