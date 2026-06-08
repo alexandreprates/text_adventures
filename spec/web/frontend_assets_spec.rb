@@ -11,6 +11,9 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "map_renderer.js"))
     expect(File).to exist(File.join(public_root, "assets/tilesets/original-dungeon-tileset.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/village-hub.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/tavern-interior.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/merchant-district.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/temple-sanctuary.png"))
   end
 
   it "wires the frontend to the JSON API endpoints" do
@@ -33,8 +36,13 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('DungeonMapRenderer.create(elements.mapCanvas)')
     expect(javascript).to include('function showCanvasMap(mapRows)')
     expect(javascript).to include('function showTextMap()')
-    expect(javascript).to include('function showLocationArt()')
-    expect(javascript).to include('state.scene === "town"')
+    expect(javascript).to include('function showLocationArt(scene)')
+    expect(javascript).to include('const LOCATION_ARTS')
+    expect(javascript).to include('"/assets/locations/village-hub.png"')
+    expect(javascript).to include('"/assets/locations/tavern-interior.png"')
+    expect(javascript).to include('"/assets/locations/merchant-district.png"')
+    expect(javascript).to include('"/assets/locations/temple-sanctuary.png"')
+    expect(javascript).to include('LOCATION_ARTS[state.scene]')
     expect(javascript).to include('"has-location-art"')
     expect(javascript).to include('function isLoggableLine(line)')
     expect(javascript).to include('function quickCommandsFor(state)')

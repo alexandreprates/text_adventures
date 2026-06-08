@@ -47,6 +47,28 @@ const elements = {
 };
 
 const LOG_FALLBACK_LIMIT = 12;
+const LOCATION_ARTS = {
+  town: {
+    src: "/assets/locations/village-hub.png",
+    alt: "Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
+  },
+  tavern: {
+    src: "/assets/locations/tavern-interior.png",
+    alt: "Warm tavern interior with fireplace, bar, tables, potion shelves, and rented rooms"
+  },
+  priest: {
+    src: "/assets/locations/temple-sanctuary.png",
+    alt: "Temple sanctuary with altar, healing fountain, candles, stained glass, and tome shelves"
+  },
+  blacksmith: {
+    src: "/assets/locations/merchant-district.png",
+    alt: "Merchant district with forge, weapon racks, armor displays, and trading counters"
+  },
+  armorsmith: {
+    src: "/assets/locations/merchant-district.png",
+    alt: "Merchant district with forge, weapon racks, armor displays, and trading counters"
+  }
+};
 
 let currentState = null;
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
@@ -102,7 +124,7 @@ function renderMap(state) {
   };
 
   elements.mapGrid.textContent = (locationPanels[state.scene] || [state.scene_display_name || state.scene]).join("\n");
-  if (state.scene === "town") showLocationArt();
+  if (LOCATION_ARTS[state.scene]) showLocationArt(state.scene);
 }
 
 function showCanvasMap(mapRows) {
@@ -116,7 +138,10 @@ function showTextMap() {
   elements.mapStage.classList.remove("has-canvas-map", "has-location-art");
 }
 
-function showLocationArt() {
+function showLocationArt(scene) {
+  const locationArt = LOCATION_ARTS[scene];
+  elements.locationArt.src = locationArt.src;
+  elements.locationArt.alt = locationArt.alt;
   elements.mapStage.classList.add("has-location-art");
 }
 
