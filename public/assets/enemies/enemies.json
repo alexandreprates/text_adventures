@@ -122,7 +122,7 @@
   "owlbear_cub": {
     "name": "Owlbear Cub",
     "sprite": "/assets/enemies/sprites/owlbear_cub.png",
-    "source": "/assets/enemies/sources/owlbear_cub.svg"
+    "source": "/assets/enemies/sources/owlbear_cub.png"
   },
   "cave_troll": {
     "name": "Cave Troll",
