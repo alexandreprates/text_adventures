@@ -107,7 +107,7 @@
   "dryad_thornweaver": {
     "name": "Dryad Thornweaver",
     "sprite": "/assets/enemies/sprites/dryad_thornweaver.png",
-    "source": "/assets/enemies/sources/dryad_thornweaver.svg"
+    "source": "/assets/enemies/sources/dryad_thornweaver.png"
   },
   "fae_blade_dancer": {
     "name": "Fae Blade Dancer",
