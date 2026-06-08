@@ -117,7 +117,7 @@
   "dire_wolf": {
     "name": "Dire Wolf",
     "sprite": "/assets/enemies/sprites/dire_wolf.png",
-    "source": "/assets/enemies/sources/dire_wolf.svg"
+    "source": "/assets/enemies/sources/dire_wolf.png"
   },
   "owlbear_cub": {
     "name": "Owlbear Cub",
