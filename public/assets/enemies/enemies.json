@@ -88,5 +88,10 @@
     "name": "Lesser Demon",
     "sprite": "/assets/enemies/sprites/lesser_demon.png",
     "source": "/assets/enemies/sources/lesser_demon.svg"
+  },
+  "forest_sprite": {
+    "name": "Forest Sprite",
+    "sprite": "/assets/enemies/sprites/forest_sprite.png",
+    "source": "/assets/enemies/sources/forest_sprite.svg"
   }
 }

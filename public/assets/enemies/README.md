@@ -12,6 +12,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 ## Completed Sprites
 
 - `brimstone_imp`: Brimstone Imp
+- `forest_sprite`: Forest Sprite
 - `ghoul_stalker`: Ghoul Stalker
 - `giant_spider`: Giant Spider
 - `gnoll_bonecaller`: Gnoll Bonecaller
