@@ -188,5 +188,10 @@
     "name": "Dragon Wyrmling",
     "sprite": "/assets/enemies/sprites/dragon_wyrmling.png",
     "source": "/assets/enemies/sources/dragon_wyrmling.svg"
+  },
+  "elemental_spark": {
+    "name": "Elemental Spark",
+    "sprite": "/assets/enemies/sprites/elemental_spark.png",
+    "source": "/assets/enemies/sources/elemental_spark.svg"
   }
 }
