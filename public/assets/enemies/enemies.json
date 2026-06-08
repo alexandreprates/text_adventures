@@ -72,7 +72,7 @@
   "zombie_brute": {
     "name": "Zombie Brute",
     "sprite": "/assets/enemies/sprites/zombie_brute.png",
-    "source": "/assets/enemies/sources/zombie_brute.svg"
+    "source": "/assets/enemies/sources/zombie_brute.png"
   },
   "shadow_imp": {
     "name": "Shadow Imp",
