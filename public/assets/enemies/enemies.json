@@ -133,5 +133,10 @@
     "name": "Hill Giant Youth",
     "sprite": "/assets/enemies/sprites/hill_giant_youth.png",
     "source": "/assets/enemies/sources/hill_giant_youth.svg"
+  },
+  "minotaur_guardian": {
+    "name": "Minotaur Guardian",
+    "sprite": "/assets/enemies/sprites/minotaur_guardian.png",
+    "source": "/assets/enemies/sources/minotaur_guardian.svg"
   }
 }

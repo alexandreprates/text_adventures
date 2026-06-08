@@ -28,6 +28,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `kobold_sparkmage`: Kobold Sparkmage
 - `kobold_trapper`: Kobold Trapper
 - `lesser_demon`: Lesser Demon
+- `minotaur_guardian`: Minotaur Guardian
 - `orc_berserker`: Orc Berserker
 - `orc_raider`: Orc Raider
 - `owlbear_cub`: Owlbear Cub
