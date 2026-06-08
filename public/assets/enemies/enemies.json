@@ -53,5 +53,10 @@
     "name": "Skeleton Guard",
     "sprite": "/assets/enemies/sprites/skeleton_guard.png",
     "source": "/assets/enemies/sources/skeleton_guard.svg"
+  },
+  "skeleton_archer": {
+    "name": "Skeleton Archer",
+    "sprite": "/assets/enemies/sprites/skeleton_archer.png",
+    "source": "/assets/enemies/sources/skeleton_archer.svg"
   }
 }
