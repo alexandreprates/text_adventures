@@ -22,7 +22,16 @@
             <h2 id="map-title">Map</h2>
             <span id="prompt-label">Town</span>
           </div>
-          <pre class="map-grid" id="map-grid" aria-live="polite"></pre>
+          <div class="map-stage" id="map-stage">
+            <canvas
+              class="map-canvas"
+              id="map-canvas"
+              width="576"
+              height="480"
+              aria-label="Dungeon map"
+            ></canvas>
+            <pre class="map-grid" id="map-grid" aria-live="polite"></pre>
+          </div>
           <div class="quick-actions" id="quick-actions" aria-label="Quick actions"></div>
         </section>
 
@@ -94,6 +103,7 @@
       </form>
     </div>
 
+    <script src="/map_renderer.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

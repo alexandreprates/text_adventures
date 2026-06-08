@@ -23,6 +23,8 @@ const elements = {
   serverStatus: document.querySelector("#server-status"),
   promptLabel: document.querySelector("#prompt-label"),
   gameId: document.querySelector("#game-id"),
+  mapStage: document.querySelector("#map-stage"),
+  mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
   quickActions: document.querySelector("#quick-actions"),
   hpText: document.querySelector("#hp-text"),
@@ -46,6 +48,7 @@ const elements = {
 const LOG_FALLBACK_LIMIT = 12;
 
 let currentState = null;
+const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
 async function parseResponse(response) {
   const text = await response.text();
@@ -84,10 +87,11 @@ function renderHeader(state) {
 
 function renderMap(state) {
   if (state.scene === "ruins" && state.dungeon?.map?.length) {
-    elements.mapGrid.textContent = state.dungeon.map.join("\n");
+    showCanvasMap(state.dungeon.map);
     return;
   }
 
+  showTextMap();
   const locationPanels = {
     town: ["Town of Nee'Peh", "", "Tavern", "Aluriel's Priest", "Blacksmith", "Armorsmith", "Ruins"],
     tavern: ["Tavern", "", "Rest in a rented room", "Buy or sell potions", "Return to town"],
@@ -97,6 +101,16 @@ function renderMap(state) {
   };
 
   elements.mapGrid.textContent = (locationPanels[state.scene] || [state.scene_display_name || state.scene]).join("\n");
+}
+
+function showCanvasMap(mapRows) {
+  elements.mapStage.classList.add("has-canvas-map");
+  elements.mapGrid.textContent = mapRows.join("\n");
+  dungeonMapRenderer.render(mapRows);
+}
+
+function showTextMap() {
+  elements.mapStage.classList.remove("has-canvas-map");
 }
 
 function renderPlayer(player, inputMode) {
