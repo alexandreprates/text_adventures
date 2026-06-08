@@ -173,5 +173,10 @@
     "name": "Griffin Fledgling",
     "sprite": "/assets/enemies/sprites/griffin_fledgling.png",
     "source": "/assets/enemies/sources/griffin_fledgling.svg"
+  },
+  "manticore_whelp": {
+    "name": "Manticore Whelp",
+    "sprite": "/assets/enemies/sprites/manticore_whelp.png",
+    "source": "/assets/enemies/sources/manticore_whelp.svg"
   }
 }
