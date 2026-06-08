@@ -8,5 +8,10 @@
     "name": "Goblin Skirmisher",
     "sprite": "/assets/enemies/sprites/goblin_skirmisher.png",
     "source": "/assets/enemies/sources/goblin_skirmisher.svg"
+  },
+  "goblin_hexer": {
+    "name": "Goblin Hexer",
+    "sprite": "/assets/enemies/sprites/goblin_hexer.png",
+    "source": "/assets/enemies/sources/goblin_hexer.svg"
   }
 }
