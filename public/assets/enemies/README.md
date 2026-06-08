@@ -15,6 +15,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `goblin_hexer`: Goblin Hexer
 - `goblin_skirmisher`: Goblin Skirmisher
 - `hobgoblin_soldier`: Hobgoblin Soldier
+- `kobold_trapper`: Kobold Trapper
 - `orc_berserker`: Orc Berserker
 - `orc_raider`: Orc Raider
 

@@ -28,5 +28,10 @@
     "name": "Orc Berserker",
     "sprite": "/assets/enemies/sprites/orc_berserker.png",
     "source": "/assets/enemies/sources/orc_berserker.svg"
+  },
+  "kobold_trapper": {
+    "name": "Kobold Trapper",
+    "sprite": "/assets/enemies/sprites/kobold_trapper.png",
+    "source": "/assets/enemies/sources/kobold_trapper.svg"
   }
 }
