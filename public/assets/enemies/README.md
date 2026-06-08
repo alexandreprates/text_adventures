@@ -15,6 +15,7 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `basilisk_hatchling`: Basilisk Hatchling
 - `brimstone_imp`: Brimstone Imp
 - `cave_troll`: Cave Troll
+- `crystal_golem`: Crystal Golem
 - `cursed_paladin`: Cursed Paladin
 - `dark_elf_arcanist`: Dark Elf Arcanist
 - `dark_elf_assassin`: Dark Elf Assassin

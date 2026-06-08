@@ -238,5 +238,10 @@
     "name": "Enchanted Armor",
     "sprite": "/assets/enemies/sprites/enchanted_armor.png",
     "source": "/assets/enemies/sources/enchanted_armor.svg"
+  },
+  "crystal_golem": {
+    "name": "Crystal Golem",
+    "sprite": "/assets/enemies/sprites/crystal_golem.png",
+    "source": "/assets/enemies/sources/crystal_golem.svg"
   }
 }
