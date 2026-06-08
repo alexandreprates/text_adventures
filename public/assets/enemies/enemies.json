@@ -3,5 +3,10 @@
     "name": "Giant Spider",
     "sprite": "/assets/enemies/sprites/giant_spider.png",
     "source": "/assets/enemies/sources/giant_spider.svg"
+  },
+  "goblin_skirmisher": {
+    "name": "Goblin Skirmisher",
+    "sprite": "/assets/enemies/sprites/goblin_skirmisher.png",
+    "source": "/assets/enemies/sources/goblin_skirmisher.svg"
   }
 }
