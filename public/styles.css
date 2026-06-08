@@ -197,6 +197,16 @@ h3 {
   image-rendering: pixelated;
 }
 
+.location-art {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 430px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
 .map-grid {
   width: 100%;
   min-height: 315px;
@@ -220,6 +230,11 @@ h3 {
   display: block;
 }
 
+.map-stage.has-location-art .location-art {
+  display: block;
+}
+
+.map-stage.has-location-art .map-grid,
 .map-stage.has-canvas-map .map-grid {
   position: absolute;
   width: 1px;

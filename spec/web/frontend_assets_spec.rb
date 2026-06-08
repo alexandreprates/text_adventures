@@ -10,6 +10,7 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "app.js"))
     expect(File).to exist(File.join(public_root, "map_renderer.js"))
     expect(File).to exist(File.join(public_root, "assets/tilesets/original-dungeon-tileset.png"))
+    expect(File).to exist(File.join(public_root, "assets/locations/village-hub.png"))
   end
 
   it "wires the frontend to the JSON API endpoints" do
@@ -19,6 +20,8 @@ RSpec.describe "Frontend assets" do
 
     expect(html).to include('<link rel="stylesheet" href="/styles.css">')
     expect(html).to include('<canvas')
+    expect(html).to include('id="location-art"')
+    expect(html).to include('src="/assets/locations/village-hub.png"')
     expect(html).to include('id="map-canvas"')
     expect(html).to include('<script src="/map_renderer.js"></script>')
     expect(html).to include('<script src="/app.js"></script>')
@@ -30,6 +33,9 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('DungeonMapRenderer.create(elements.mapCanvas)')
     expect(javascript).to include('function showCanvasMap(mapRows)')
     expect(javascript).to include('function showTextMap()')
+    expect(javascript).to include('function showLocationArt()')
+    expect(javascript).to include('state.scene === "town"')
+    expect(javascript).to include('"has-location-art"')
     expect(javascript).to include('function isLoggableLine(line)')
     expect(javascript).to include('function quickCommandsFor(state)')
     expect(javascript).to include('function ruinsCommands(state)')

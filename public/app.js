@@ -24,6 +24,7 @@ const elements = {
   promptLabel: document.querySelector("#prompt-label"),
   gameId: document.querySelector("#game-id"),
   mapStage: document.querySelector("#map-stage"),
+  locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
   quickActions: document.querySelector("#quick-actions"),
@@ -101,16 +102,22 @@ function renderMap(state) {
   };
 
   elements.mapGrid.textContent = (locationPanels[state.scene] || [state.scene_display_name || state.scene]).join("\n");
+  if (state.scene === "town") showLocationArt();
 }
 
 function showCanvasMap(mapRows) {
   elements.mapStage.classList.add("has-canvas-map");
+  elements.mapStage.classList.remove("has-location-art");
   elements.mapGrid.textContent = mapRows.join("\n");
   dungeonMapRenderer.render(mapRows);
 }
 
 function showTextMap() {
-  elements.mapStage.classList.remove("has-canvas-map");
+  elements.mapStage.classList.remove("has-canvas-map", "has-location-art");
+}
+
+function showLocationArt() {
+  elements.mapStage.classList.add("has-location-art");
 }
 
 function renderPlayer(player, inputMode) {
