@@ -63,5 +63,10 @@
     "name": "Wight Knight",
     "sprite": "/assets/enemies/sprites/wight_knight.png",
     "source": "/assets/enemies/sources/wight_knight.svg"
+  },
+  "ghoul_stalker": {
+    "name": "Ghoul Stalker",
+    "sprite": "/assets/enemies/sprites/ghoul_stalker.png",
+    "source": "/assets/enemies/sources/ghoul_stalker.svg"
   }
 }
