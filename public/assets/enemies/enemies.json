@@ -218,5 +218,10 @@
     "name": "Dark Elf Assassin",
     "sprite": "/assets/enemies/sprites/dark_elf_assassin.png",
     "source": "/assets/enemies/sources/dark_elf_assassin.svg"
+  },
+  "dark_elf_arcanist": {
+    "name": "Dark Elf Arcanist",
+    "sprite": "/assets/enemies/sprites/dark_elf_arcanist.png",
+    "source": "/assets/enemies/sources/dark_elf_arcanist.svg"
   }
 }
