@@ -38,5 +38,10 @@
     "name": "Kobold Sparkmage",
     "sprite": "/assets/enemies/sprites/kobold_sparkmage.png",
     "source": "/assets/enemies/sources/kobold_sparkmage.svg"
+  },
+  "gnoll_hunter": {
+    "name": "Gnoll Hunter",
+    "sprite": "/assets/enemies/sprites/gnoll_hunter.png",
+    "source": "/assets/enemies/sources/gnoll_hunter.svg"
   }
 }
