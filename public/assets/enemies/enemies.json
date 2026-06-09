@@ -157,7 +157,7 @@
   "yuan_ti_cutthroat": {
     "name": "Yuan-ti Cutthroat",
     "sprite": "/assets/enemies/sprites/yuan_ti_cutthroat.png",
-    "source": "/assets/enemies/sources/yuan_ti_cutthroat.svg"
+    "source": "/assets/enemies/sources/yuan_ti_cutthroat.png"
   },
   "basilisk_hatchling": {
     "name": "Basilisk Hatchling",
