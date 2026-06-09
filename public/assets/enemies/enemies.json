@@ -222,7 +222,7 @@
   "dark_elf_arcanist": {
     "name": "Dark Elf Arcanist",
     "sprite": "/assets/enemies/sprites/dark_elf_arcanist.png",
-    "source": "/assets/enemies/sources/dark_elf_arcanist.svg"
+    "source": "/assets/enemies/sources/dark_elf_arcanist.png"
   },
   "dwarven_ghost": {
     "name": "Dwarven Ghost",
