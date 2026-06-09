@@ -162,7 +162,7 @@
   "basilisk_hatchling": {
     "name": "Basilisk Hatchling",
     "sprite": "/assets/enemies/sprites/basilisk_hatchling.png",
-    "source": "/assets/enemies/sources/basilisk_hatchling.svg"
+    "source": "/assets/enemies/sources/basilisk_hatchling.png"
   },
   "harpy_screecher": {
     "name": "Harpy Screecher",
