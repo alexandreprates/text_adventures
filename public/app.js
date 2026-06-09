@@ -110,7 +110,7 @@ function renderHeader(state) {
 
 function renderMap(state) {
   if (state.scene === "ruins" && state.dungeon?.map?.length) {
-    showCanvasMap(state.dungeon.map);
+    showCanvasMap(state.dungeon);
     return;
   }
 
@@ -127,11 +127,12 @@ function renderMap(state) {
   if (LOCATION_ARTS[state.scene]) showLocationArt(state.scene);
 }
 
-function showCanvasMap(mapRows) {
+function showCanvasMap(dungeon) {
   elements.mapStage.classList.add("has-canvas-map");
   elements.mapStage.classList.remove("has-location-art");
+  const mapRows = dungeon.map;
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(mapRows);
+  dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
 }
 
 function showTextMap() {

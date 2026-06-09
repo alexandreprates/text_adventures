@@ -102,6 +102,12 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       y: 2,
       creature_id: "giant_spider"
     )
+    expect(state.dig(:dungeon, :visible_enemies)).to include(
+      x: 4,
+      y: 2,
+      creature_id: "giant_spider",
+      map_position: { x: 10, y: 7 }
+    )
     expect(state.dig(:dungeon, :nearby_loot, :items)).to include(
       hash_including(name: "potion of heal", display_name: "Potion of Heal")
     )

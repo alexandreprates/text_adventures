@@ -3,6 +3,7 @@ globalThis.DungeonMapRenderer = (() => {
   const TILESET_ROWS = 4;
   const TILE_SIZE = 32;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
+  const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
 
   const TILE_INDEXES = {
     floor: [0, 0],
@@ -45,7 +46,7 @@ globalThis.DungeonMapRenderer = (() => {
     " ": "floor",
     "?": "fog",
     "x": "player",
-    "E": "goblin",
+    "E": "floor",
     "@": "lootBag"
   };
 
@@ -62,12 +63,19 @@ globalThis.DungeonMapRenderer = (() => {
   function create(canvas) {
     const context = canvas?.getContext?.("2d");
     const tileset = new Image();
+    const enemyImages = new Map();
     const renderer = {
       ready: false,
+      enemiesReady: false,
       failed: false,
-      render(mapRows) {
+      enemyManifest: {},
+      lastMapRows: [],
+      lastOptions: {},
+      render(mapRows, options = {}) {
         if (!context || !Array.isArray(mapRows) || mapRows.length === 0) return false;
 
+        renderer.lastMapRows = mapRows;
+        renderer.lastOptions = options;
         const rows = normalizeRows(mapRows);
         const columns = Math.max(...rows.map(row => row.length));
         canvas.width = columns * TILE_SIZE;
@@ -76,11 +84,14 @@ globalThis.DungeonMapRenderer = (() => {
         context.imageSmoothingEnabled = false;
         context.clearRect(0, 0, canvas.width, canvas.height);
 
+        const enemyPositions = enemyPositionSet(options.enemies || []);
         rows.forEach((row, y) => {
           [...row.padEnd(columns, "?")].forEach((symbol, x) => {
-            drawSymbol(context, tileset, renderer.ready, symbol, x, y);
+            const tileSymbol = symbol === "E" && enemyPositions.has(positionKey(x, y)) ? "." : symbol;
+            drawSymbol(context, tileset, renderer.ready, tileSymbol, x, y);
           });
         });
+        drawEnemies(context, renderer, enemyImages, options.enemies || []);
 
         return true;
       }
@@ -95,6 +106,7 @@ globalThis.DungeonMapRenderer = (() => {
       canvas.dispatchEvent(new CustomEvent("tileset:failed"));
     };
     tileset.src = TILESET_PATH;
+    loadEnemyManifest(renderer, enemyImages, canvas);
 
     return renderer;
   }
@@ -115,8 +127,77 @@ globalThis.DungeonMapRenderer = (() => {
     context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
 
+  function loadEnemyManifest(renderer, enemyImages, canvas) {
+    fetch(ENEMY_MANIFEST_PATH)
+      .then(response => (response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`))))
+      .then(manifest => {
+        renderer.enemyManifest = manifest;
+        renderer.enemiesReady = true;
+        canvas.dispatchEvent(new CustomEvent("enemies:ready"));
+        rerender(renderer);
+      })
+      .catch(() => {
+        renderer.enemiesReady = false;
+        canvas.dispatchEvent(new CustomEvent("enemies:failed"));
+      });
+  }
+
+  function drawEnemies(context, renderer, enemyImages, enemies) {
+    enemies.forEach(enemy => {
+      const mapPosition = enemy.map_position;
+      if (!mapPosition) return;
+
+      const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
+      if (image?.complete && image.naturalWidth > 0) {
+        drawEnemyImage(context, image, mapPosition.x, mapPosition.y);
+        return;
+      }
+
+      drawTile(context, null, "goblin", mapPosition.x, mapPosition.y);
+    });
+  }
+
+  function enemyPositionSet(enemies) {
+    return new Set(enemies.map(enemy => enemy.map_position).filter(Boolean).map(position => positionKey(position.x, position.y)));
+  }
+
+  function positionKey(x, y) {
+    return `${x},${y}`;
+  }
+
+  function imageForEnemy(renderer, enemyImages, creatureId) {
+    const entry = renderer.enemyManifest[creatureId];
+    if (!entry?.sprite) return null;
+    if (enemyImages.has(creatureId)) return enemyImages.get(creatureId);
+
+    const image = new Image();
+    image.onload = () => rerender(renderer);
+    image.src = entry.sprite;
+    enemyImages.set(creatureId, image);
+    return image;
+  }
+
+  function drawEnemyImage(context, image, x, y) {
+    context.drawImage(
+      image,
+      x * TILE_SIZE,
+      y * TILE_SIZE,
+      TILE_SIZE,
+      TILE_SIZE
+    );
+  }
+
+  function rerender(renderer) {
+    if (renderer.lastMapRows.length) renderer.render(renderer.lastMapRows, renderer.lastOptions);
+  }
+
   function drawTile(context, tileset, tileName, x, y) {
     const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.fog;
+    if (!tileset) {
+      context.fillStyle = FALLBACK_COLORS.E;
+      context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      return;
+    }
     const sourceWidth = tileset.naturalWidth / TILESET_COLUMNS;
     const sourceHeight = tileset.naturalHeight / TILESET_ROWS;
 
@@ -137,6 +218,7 @@ globalThis.DungeonMapRenderer = (() => {
     create,
     symbolTiles: SYMBOL_TILES,
     tileIndexes: TILE_INDEXES,
-    tilesetPath: TILESET_PATH
+    tilesetPath: TILESET_PATH,
+    enemyManifestPath: ENEMY_MANIFEST_PATH
   };
 })();

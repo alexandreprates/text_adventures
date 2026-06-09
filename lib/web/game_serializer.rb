@@ -136,6 +136,7 @@ module TextAdventures
           map: dungeon.render(view: :viewport).lines.drop(1).map(&:chomp),
           player_position: position_state(dungeon.current_global_position),
           visible_enemy: enemy_position_state(dungeon.adjacent_enemy_position),
+          visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
         }
       end
@@ -188,6 +189,15 @@ module TextAdventures
         state = position_state(position)
         state[:creature_id] = creature_id
         state
+      end
+
+      def visible_enemy_states
+        game.dungeon.visible_enemies.map do |enemy|
+          position_state(enemy.fetch(:position)).merge(
+            creature_id: enemy.fetch(:creature_id),
+            map_position: position_state(enemy.fetch(:render_position))
+          )
+        end
       end
 
       def loot_position_state(position)
