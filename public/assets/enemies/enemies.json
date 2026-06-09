@@ -167,7 +167,7 @@
   "harpy_screecher": {
     "name": "Harpy Screecher",
     "sprite": "/assets/enemies/sprites/harpy_screecher.png",
-    "source": "/assets/enemies/sources/harpy_screecher.svg"
+    "source": "/assets/enemies/sources/harpy_screecher.png"
   },
   "griffin_fledgling": {
     "name": "Griffin Fledgling",
