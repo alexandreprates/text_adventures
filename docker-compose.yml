@@ -1,0 +1,9 @@
+services:
+  server:
+    build: .
+    image: text_adventures:latest
+    environment:
+      TEXT_ADVENTURES_HOST: 0.0.0.0
+      TEXT_ADVENTURES_PORT: 4567
+    ports:
+      - "3000:4567"

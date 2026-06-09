@@ -1,0 +1,7 @@
+.git
+.bundle
+.serena
+tmp
+vendor/bundle
+coverage
+.rspec_status

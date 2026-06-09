@@ -1,12 +1,19 @@
-from ruby:2-alpine
-label maintainer "Alexandre Prates <ajfprates@gmail.com>"
+FROM ruby:alpine
+LABEL maintainer="Alexandre Prates <ajfprates@gmail.com>"
 
-add . /text_adventures
+WORKDIR /text_adventures
 
-workdir /text_adventures
+COPY Gemfile Gemfile.lock ./
 
-run apk add --no-cache build-base && \
+RUN apk add --no-cache --virtual .build-deps build-base && \
   bundle install && \
-  apk del build-base
+  apk del .build-deps
 
-cmd ["bundle", "exec", "rake"]
+COPY . .
+
+ENV TEXT_ADVENTURES_HOST=0.0.0.0 \
+  TEXT_ADVENTURES_PORT=4567
+
+EXPOSE 4567
+
+CMD ["./bin/text_adventures", "server"]
