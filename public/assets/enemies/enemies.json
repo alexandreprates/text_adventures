@@ -227,7 +227,7 @@
   "dwarven_ghost": {
     "name": "Dwarven Ghost",
     "sprite": "/assets/enemies/sprites/dwarven_ghost.png",
-    "source": "/assets/enemies/sources/dwarven_ghost.svg"
+    "source": "/assets/enemies/sources/dwarven_ghost.png"
   },
   "cursed_paladin": {
     "name": "Cursed Paladin",
