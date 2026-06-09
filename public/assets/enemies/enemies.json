@@ -177,7 +177,7 @@
   "manticore_whelp": {
     "name": "Manticore Whelp",
     "sprite": "/assets/enemies/sprites/manticore_whelp.png",
-    "source": "/assets/enemies/sources/manticore_whelp.svg"
+    "source": "/assets/enemies/sources/manticore_whelp.png"
   },
   "wyvern_juvenile": {
     "name": "Wyvern Juvenile",
