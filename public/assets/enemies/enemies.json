@@ -192,7 +192,7 @@
   "elemental_spark": {
     "name": "Elemental Spark",
     "sprite": "/assets/enemies/sprites/elemental_spark.png",
-    "source": "/assets/enemies/sources/elemental_spark.svg"
+    "source": "/assets/enemies/sources/elemental_spark.png"
   },
   "fire_elemental_ling": {
     "name": "Fire Elemental Ling",
