@@ -182,7 +182,7 @@
   "wyvern_juvenile": {
     "name": "Wyvern Juvenile",
     "sprite": "/assets/enemies/sprites/wyvern_juvenile.png",
-    "source": "/assets/enemies/sources/wyvern_juvenile.svg"
+    "source": "/assets/enemies/sources/wyvern_juvenile.png"
   },
   "dragon_wyrmling": {
     "name": "Dragon Wyrmling",
