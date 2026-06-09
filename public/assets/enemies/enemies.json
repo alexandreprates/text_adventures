@@ -207,7 +207,7 @@
   "earth_elemental_ling": {
     "name": "Earth Elemental Ling",
     "sprite": "/assets/enemies/sprites/earth_elemental_ling.png",
-    "source": "/assets/enemies/sources/earth_elemental_ling.svg"
+    "source": "/assets/enemies/sources/earth_elemental_ling.png"
   },
   "air_elemental_ling": {
     "name": "Air Elemental Ling",
