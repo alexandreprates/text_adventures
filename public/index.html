@@ -25,7 +25,10 @@
       </header>
 
       <nav class="terminal-tabs" aria-label="Game sections">
-        <button class="terminal-tab active" type="button">[J]ogo</button>
+        <button class="terminal-tab game-tab active" type="button">[J]ogo</button>
+        <button class="terminal-tab" data-tab="inventory" type="button">[I]nventario</button>
+        <button class="terminal-tab" data-tab="spells" type="button">[M]agias</button>
+        <button class="terminal-tab" data-tab="skills" type="button">[H]abilidades</button>
       </nav>
 
       <main class="game-layout">
@@ -112,11 +115,6 @@
               <span id="collection-title-label">═══ INVENTARIO</span>
               <span id="collection-title-count">(<span id="inventory-count">0/26 slots</span>)</span>
               <span id="collection-title-tail">══</span>
-            </div>
-            <div class="tabs" aria-label="Character panels">
-              <button class="tab active" data-tab="inventory" type="button">[I]nventario</button>
-              <button class="tab" data-tab="spells" type="button">[M]agias</button>
-              <button class="tab" data-tab="skills" type="button">[H]abilidades</button>
             </div>
             <div class="tab-panel" id="inventory-tab">
               <ul id="inventory-list"></ul>

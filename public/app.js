@@ -62,7 +62,7 @@ const elements = {
   footerCharacter: document.querySelector("#footer-character"),
   footerLocation: document.querySelector("#footer-location"),
   footerDanger: document.querySelector("#footer-danger"),
-  tabs: document.querySelectorAll(".tab"),
+  tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
 
@@ -501,7 +501,7 @@ function syncNavigationForCommand(command) {
   } else if (normalizedCommand === "skills" || normalizedCommand === "level") {
     selectTab("skills");
   } else {
-    selectTab("inventory");
+    selectTab("inventory", { syncTop: false });
     activateTopTab(0);
     elements.commandInput.focus();
   }
@@ -521,13 +521,15 @@ elements.commandForm.addEventListener("submit", event => {
 
 elements.newGameButton.addEventListener("click", startGame);
 
-elements.tabs.forEach(tab => tab.addEventListener("click", () => selectTab(tab.dataset.tab)));
-
 function selectTab(name) {
+  const options = arguments[1] || {};
+  const syncTop = options.syncTop ?? true;
   elements.tabs.forEach(button => button.classList.toggle("active", button.dataset.tab === name));
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
   updateCollectionTitle(name);
+  const topIndex = ["inventory", "spells", "skills"].indexOf(name);
+  if (syncTop && topIndex >= 0) activateTopTab(topIndex + 1);
 }
 
 function updateCollectionTitle(name) {
@@ -539,8 +541,12 @@ function updateCollectionTitle(name) {
 
 elements.terminalTabs.forEach((tab, index) => {
   tab.addEventListener("click", () => {
-    activateTopTab(index);
-    selectTab("inventory");
+    if (tab.dataset.tab) {
+      selectTab(tab.dataset.tab);
+    } else {
+      activateTopTab(index);
+      selectTab("inventory", { syncTop: false });
+    }
     elements.commandInput.focus();
   });
 });

@@ -133,6 +133,10 @@ pre {
   background: var(--panel);
 }
 
+.game-tab {
+  margin-right: auto;
+}
+
 .terminal-tab {
   min-height: 30px;
   padding: 4px 16px;
@@ -461,29 +465,6 @@ pre {
   border-bottom: 1px solid var(--border);
 }
 
-.tabs {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-.tab {
-  min-height: 28px;
-  padding: 2px 6px;
-  border-left: 2px solid transparent;
-  color: var(--green-dim);
-  font-size: 11px;
-  text-align: left;
-}
-
-.tab.active {
-  border-left-color: var(--amber);
-  background: var(--panel-active);
-  color: var(--amber);
-}
-
 .tab-panel.hidden {
   display: none;
 }
@@ -672,7 +653,6 @@ pre {
   }
 
   .ghost-button,
-  .tab,
   .quick-actions button,
   .command-bar input,
   .command-bar button {
