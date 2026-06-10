@@ -529,7 +529,7 @@ function selectTab(name) {
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
   updateCollectionTitle(name);
   const topIndex = ["inventory", "spells", "skills"].indexOf(name);
-  if (syncTop && topIndex >= 0) activateTopTab(topIndex + 1);
+  if (syncTop && topIndex >= 0) activateTopTab(topIndex);
 }
 
 function updateCollectionTitle(name) {

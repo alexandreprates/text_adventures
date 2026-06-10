@@ -128,13 +128,10 @@ pre {
 .terminal-tabs {
   display: flex;
   gap: 0;
+  justify-content: flex-end;
   padding: 4px 12px 0;
   border-bottom: 1px solid var(--border);
   background: var(--panel);
-}
-
-.game-tab {
-  margin-right: auto;
 }
 
 .terminal-tab {
