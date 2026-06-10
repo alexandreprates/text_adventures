@@ -10,93 +10,100 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand-lockup">
-          <span aria-hidden="true">☠</span>
-          <p class="eyebrow">Dungeon Terminal v2.3</p>
+        <div class="topbar-left">
+          <span class="brand-icon" aria-hidden="true">☠</span>
+          <p class="eyebrow">TextAvetre v2.3</p>
           <h1 class="sr-only" id="scene-title">Starting adventure</h1>
-          <span class="session-chip" id="game-id">No session</span>
+          <span class="session-chip" id="game-id">[PARTIDA ----]</span>
         </div>
-        <div class="run-metrics" aria-label="Run metrics">
-          <span><b>♥</b> <span id="top-health">HP --/--</span></span>
-          <span><b>◆</b> <span id="top-enemies">Enemies 0</span></span>
-          <span>Mode <strong id="top-mode">Text</strong></span>
-          <span id="server-status">Connecting</span>
+        <div class="topbar-right" aria-label="Run metrics">
+          <span class="metric metric-danger">♥ <span id="top-health">HP --/--</span></span>
+          <span class="metric">◆ <span id="top-enemies">INIMIGOS: 0</span></span>
+          <span class="metric">MODO: <strong id="top-mode">TEXT</strong></span>
+          <span class="metric" id="server-status">CONNECTING</span>
+          <span class="metric" id="clock">--:--:--</span>
         </div>
       </header>
 
       <nav class="terminal-tabs" aria-label="Game sections">
-        <button class="terminal-tab active" type="button">[ ] Game</button>
-        <button class="terminal-tab" type="button">[I] Inventory</button>
-        <button class="terminal-tab" type="button">[M] Spells</button>
-        <button class="terminal-tab" type="button">[H] Skills</button>
+        <button class="terminal-tab active" type="button">[J]ogo</button>
+        <button class="terminal-tab" type="button">[I]nventario</button>
+        <button class="terminal-tab" type="button">[M]agias</button>
+        <button class="terminal-tab" type="button">[H]abilidades</button>
       </nav>
 
       <main class="game-layout">
         <aside class="left-column" aria-label="Adventurer status">
-          <section class="terminal-panel identity-panel">
-            <div class="character-card">
-              <span class="corner top-left"></span>
-              <span class="corner top-right"></span>
-              <span class="corner bottom-left"></span>
-              <span class="corner bottom-right"></span>
-              <p id="character-name">Adventurer</p>
-              <small id="character-class">Terminal Delver</small>
+          <section class="terminal-panel character-panel">
+            <div class="character-frame">
+              <div class="frame-line">╔══════════════════╗</div>
+              <div class="frame-name" id="character-name">ADVENTURER</div>
+              <div class="frame-class" id="character-class">Terminal Delver</div>
+              <div class="frame-line">╚══════════════════╝</div>
             </div>
 
-            <div class="vital-stack">
-              <div class="vital-row danger">
+            <div class="vitals">
+              <div class="bar-row danger">
                 <span>HP</span>
-                <meter id="health-meter" min="0" max="1" value="0"></meter>
+                <span class="ascii-bar" id="health-bar">[          ]</span>
                 <strong id="health-value">--/--</strong>
               </div>
-              <div class="vital-row mana">
+              <div class="bar-row mana">
                 <span>ATK</span>
-                <meter id="attack-meter" min="0" max="1" value="0"></meter>
+                <span class="ascii-bar" id="attack-bar">[          ]</span>
                 <strong id="attack-value">--</strong>
               </div>
-              <div class="vital-row xp">
+              <div class="bar-row xp">
                 <span>XP</span>
-                <meter id="xp-meter" min="0" max="1" value="0"></meter>
+                <span class="ascii-bar" id="xp-bar">[          ]</span>
                 <strong id="xp-value">0</strong>
               </div>
             </div>
 
-            <dl class="stat-grid">
-              <div><dt>Level</dt><dd id="level-value">--</dd></div>
-              <div><dt>Gold</dt><dd id="gold-value">--</dd></div>
-              <div><dt>Defense</dt><dd id="defense-value">--</dd></div>
-              <div><dt>Status</dt><dd id="status-value">Clear</dd></div>
+            <dl class="run-stats">
+              <div><dt>NIVEL</dt><dd id="level-value">--</dd></div>
+              <div><dt>OURO</dt><dd id="gold-value">--</dd></div>
+              <div><dt>ANDAR</dt><dd id="floor-value">--</dd></div>
             </dl>
 
-            <div class="section-title">Equipment</div>
+            <div class="section-label">── ATRIBUTOS ──</div>
+            <dl class="attribute-grid">
+              <div><dt>ATQ</dt><dd id="attack-value-small">--</dd></div>
+              <div><dt>DEF</dt><dd id="defense-value">--</dd></div>
+              <div><dt>STA</dt><dd id="status-value">Clear</dd></div>
+              <div><dt>MOD</dt><dd id="mode-value">TEXT</dd></div>
+            </dl>
+
+            <div class="section-label">── EQUIPAMENTO ──</div>
             <pre class="terminal-output status-output" id="status-output" aria-live="polite"></pre>
           </section>
 
           <section class="terminal-panel minimap-panel">
-            <div class="panel-heading">
-              <h2>Mini-map</h2>
-              <span id="minimap-legend">@ you  &gt; stairs  E enemy</span>
+            <div class="panel-title">═ MINI-MAPA ══════</div>
+            <pre class="mini-map" id="mini-map" aria-live="polite">##########
+#..@....>#
+##########</pre>
+            <div class="mini-legend">
+              <span>@=voce</span>
+              <span>&gt;=escada</span>
+              <span>E=inimigo</span>
             </div>
-            <pre class="mini-map" id="mini-map" aria-live="polite">########
-#..@..#
-#....E#
-########</pre>
           </section>
         </aside>
 
         <section class="center-column" aria-labelledby="map-title">
           <section class="terminal-panel map-panel">
-            <div class="panel-heading map-heading">
-              <h2 id="map-title">Masmorra Profunda</h2>
+            <div class="map-heading">
+              <h2 id="map-title">═══ MASMORRA PROFUNDA ═══</h2>
               <span id="prompt-label">Town</span>
-              <span id="movement-hint">WASD/HJKL/↑↓←→ to move</span>
+              <span id="movement-hint">WASD/HJKL/↑↓←→ para mover</span>
             </div>
             <div class="map-stage" id="map-stage">
               <img
                 class="location-art"
                 id="location-art"
-                src="/assets/locations/village-hub.png"
-                alt="Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
+                src="/assets/figma/dungeon-terminal-reference.png"
+                alt="Dungeon terminal reference artwork"
               >
               <canvas
                 class="map-canvas"
@@ -110,20 +117,15 @@
           </section>
 
           <section class="terminal-panel log-panel" aria-labelledby="log-title">
-            <div class="panel-heading">
-              <h2 id="log-title">Message Log</h2>
-              <button class="ghost-button" id="new-game-button" type="button">New game</button>
-            </div>
+            <div class="panel-title" id="log-title">═══ LOG DE MENSAGENS ══════════════════════════════</div>
+            <button class="ghost-button" id="new-game-button" type="button">New game</button>
             <pre class="terminal-output message-log" id="message-log" aria-live="polite"></pre>
           </section>
         </section>
 
         <aside class="right-column">
           <section class="terminal-panel inventory-panel" aria-labelledby="inventory-title">
-            <div class="panel-heading">
-              <h2 id="inventory-title">Inventory</h2>
-              <span id="inventory-count">0 slots</span>
-            </div>
+            <div class="panel-title" id="inventory-title">═══ INVENTARIO (<span id="inventory-count">0/26 slots</span>) ══</div>
             <div class="tabs">
               <button class="tab active" data-tab="inventory" type="button">Inventory</button>
               <button class="tab" data-tab="spells" type="button">Spells</button>
@@ -131,6 +133,10 @@
             </div>
             <div class="tab-panel" id="inventory-tab">
               <ul id="inventory-list"></ul>
+              <div class="carry-block">
+                Peso: <span id="carry-weight">0.0 / 150 lbs</span>
+                <div class="carry-bar" id="carry-bar">░░░░░░░░░░░░░░░</div>
+              </div>
             </div>
             <div class="tab-panel hidden" id="spells-tab">
               <ul id="spells-list"></ul>
@@ -141,23 +147,20 @@
           </section>
 
           <section class="terminal-panel command-panel">
-            <div class="panel-heading">
-              <h2>Commands</h2>
-              <span>Keyboard ready</span>
-            </div>
+            <div class="panel-title">═ COMANDOS ════</div>
             <div class="quick-actions" id="quick-actions" aria-label="Quick actions"></div>
           </section>
         </aside>
       </main>
 
       <form class="command-bar" id="command-form">
-        <label for="command-input">Command</label>
+        <label for="command-input">COMMAND</label>
         <input id="command-input" name="command" autocomplete="off" placeholder="go ruins, attack, inventory, cast fireball">
         <button type="submit">Send</button>
       </form>
 
       <footer class="status-strip">
-        <span id="footer-character">Adventurer</span>
+        <span id="footer-character">Adventurer | Level 1</span>
         <span id="footer-location">Starting adventure</span>
         <span id="footer-danger">Difficulty: Normal</span>
       </footer>

@@ -16,6 +16,7 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/locations/blacksmith-workshop.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/armorsmith-shop.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/temple-sanctuary.png"))
+    expect(File).to exist(File.join(public_root, "assets/figma/dungeon-terminal-reference.png"))
   end
 
   it "wires the frontend to the JSON API endpoints" do
@@ -26,7 +27,7 @@ RSpec.describe "Frontend assets" do
     expect(html).to include('<link rel="stylesheet" href="/styles.css">')
     expect(html).to include('<canvas')
     expect(html).to include('id="location-art"')
-    expect(html).to include('src="/assets/locations/village-hub.png"')
+    expect(html).to include('src="/assets/figma/dungeon-terminal-reference.png"')
     expect(html).to include('id="map-canvas"')
     expect(html).to include('<script src="/map_renderer.js"></script>')
     expect(html).to include('<script src="/app.js"></script>')
@@ -41,7 +42,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('function showTextMap()')
     expect(javascript).to include('function showLocationArt(scene)')
     expect(javascript).to include('const LOCATION_ARTS')
-    expect(javascript).to include('"/assets/locations/village-hub.png"')
+    expect(javascript).to include('"/assets/figma/dungeon-terminal-reference.png"')
     expect(javascript).to include('"/assets/locations/tavern-interior.png"')
     expect(javascript).to include('"/assets/locations/blacksmith-workshop.png"')
     expect(javascript).to include('"/assets/locations/armorsmith-shop.png"')

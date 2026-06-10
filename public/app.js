@@ -28,15 +28,19 @@ const elements = {
   gameId: document.querySelector("#game-id"),
   characterName: document.querySelector("#character-name"),
   characterClass: document.querySelector("#character-class"),
-  healthMeter: document.querySelector("#health-meter"),
+  clock: document.querySelector("#clock"),
+  healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
-  attackMeter: document.querySelector("#attack-meter"),
+  attackBar: document.querySelector("#attack-bar"),
   attackValue: document.querySelector("#attack-value"),
-  xpMeter: document.querySelector("#xp-meter"),
+  attackValueSmall: document.querySelector("#attack-value-small"),
+  xpBar: document.querySelector("#xp-bar"),
   xpValue: document.querySelector("#xp-value"),
   levelValue: document.querySelector("#level-value"),
   goldValue: document.querySelector("#gold-value"),
+  floorValue: document.querySelector("#floor-value"),
   defenseValue: document.querySelector("#defense-value"),
+  modeValue: document.querySelector("#mode-value"),
   statusValue: document.querySelector("#status-value"),
   miniMap: document.querySelector("#mini-map"),
   mapStage: document.querySelector("#map-stage"),
@@ -48,6 +52,8 @@ const elements = {
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
   inventoryCount: document.querySelector("#inventory-count"),
+  carryWeight: document.querySelector("#carry-weight"),
+  carryBar: document.querySelector("#carry-bar"),
   spellsList: document.querySelector("#spells-list"),
   skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
@@ -63,8 +69,8 @@ const elements = {
 const LOG_FALLBACK_LIMIT = 12;
 const LOCATION_ARTS = {
   town: {
-    src: "/assets/locations/village-hub.png",
-    alt: "Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
+    src: "/assets/figma/dungeon-terminal-reference.png",
+    alt: "Dungeon terminal reference artwork"
   },
   tavern: {
     src: "/assets/locations/tavern-interior.png",
@@ -123,10 +129,10 @@ function renderHeader(state) {
 
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.promptLabel.textContent = state.prompt;
-  elements.gameId.textContent = api.gameId ? `[Run #${api.gameId.slice(0, 4).toUpperCase()}]` : "No session";
+  elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
   elements.topHealth.textContent = `HP ${health.current}/${health.max}`;
-  elements.topEnemies.textContent = `Enemies ${enemyCount}`;
-  elements.topMode.textContent = state.input_mode;
+  elements.topEnemies.textContent = `INIMIGOS: ${enemyCount}`;
+  elements.topMode.textContent = state.input_mode.toUpperCase();
   elements.footerCharacter.textContent = `${state.player.name} | Level ${state.player.level}`;
   elements.footerLocation.textContent = `${sceneLabel} | ${state.prompt}`;
   elements.footerDanger.textContent = state.scene === "ruins" ? "Difficulty: Dungeon" : "Difficulty: Town";
@@ -181,20 +187,20 @@ function renderStatus(state) {
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
   const xpTarget = nextSkillTarget(player.skills);
 
-  elements.characterName.textContent = player.name;
+  elements.characterName.textContent = player.name.toUpperCase();
   elements.characterClass.textContent = classLine(player);
-  elements.healthMeter.max = health.max || 1;
-  elements.healthMeter.value = health.current;
+  elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
-  elements.attackMeter.max = 40;
-  elements.attackMeter.value = Math.min(player.attack, 40);
+  elements.attackBar.innerHTML = asciiBar(player.attack, 40, "mana");
   elements.attackValue.textContent = String(player.attack);
-  elements.xpMeter.max = xpTarget || 1;
-  elements.xpMeter.value = Math.min(player.xp, xpTarget || 1);
+  elements.attackValueSmall.textContent = String(player.attack);
+  elements.xpBar.innerHTML = asciiBar(player.xp, xpTarget || 1, "xp");
   elements.xpValue.textContent = String(player.xp);
   elements.levelValue.textContent = String(player.level);
   elements.goldValue.textContent = `$ ${player.gold} gp`;
+  elements.floorValue.textContent = state.dungeon?.level ? `B${state.dungeon.level}F` : "--";
   elements.defenseValue.textContent = String(player.defense);
+  elements.modeValue.textContent = state.input_mode.toUpperCase();
   elements.statusValue.textContent = statuses;
 
   elements.statusOutput.textContent = [
@@ -208,30 +214,44 @@ function renderStatus(state) {
 function renderCollections(player) {
   const inventoryCount = (player.inventory || []).reduce((total, item) => total + item.quantity, 0);
   elements.inventoryCount.textContent = `${inventoryCount}/26 slots`;
-  renderList(elements.inventoryList, player.inventory, item =>
-    `${item.display_name} x${item.quantity}${item.type ? ` · ${item.type}` : ""}`
-  );
-  renderList(elements.spellsList, player.spells, spell =>
-    `${spell.display_name} Lv ${spell.level} - ${spell.description}`
-  );
-  const skills = Object.entries(player.skills || {}).map(([name, skill]) => ({
-    label: `${labelize(name)} Lv ${skill.level} (${skill.xp}/${skill.next_level_xp} XP)`
+  elements.carryWeight.textContent = `${(inventoryCount * 2.9).toFixed(1)} / 150 lbs`;
+  elements.carryBar.textContent = `${"█".repeat(Math.min(15, Math.ceil(inventoryCount / 2)))}${"░".repeat(Math.max(0, 15 - Math.ceil(inventoryCount / 2)))}`;
+  renderList(elements.inventoryList, player.inventory, item => ({
+    label: item.display_name,
+    meta: item.quantity > 1 ? `x${item.quantity}` : "",
+    type: item.type || ""
   }));
-  renderList(elements.skillsList, skills, skill => skill.label);
+  renderList(elements.spellsList, player.spells, spell => ({
+    label: `${spell.display_name} Lv ${spell.level}`,
+    meta: spell.kind,
+    type: spell.description
+  }));
+  const skills = Object.entries(player.skills || {}).map(([name, skill]) => ({
+    label: labelize(name),
+    meta: `Lv ${skill.level}`,
+    type: `${skill.xp}/${skill.next_level_xp} XP`
+  }));
+  renderList(elements.skillsList, skills, skill => skill);
 }
 
 function renderList(target, entries, formatter) {
   target.innerHTML = "";
   if (!entries || entries.length === 0) {
     const empty = document.createElement("li");
-    empty.textContent = "Nothing here yet";
+    empty.innerHTML = `<span class="item-key">-</span><span>Nothing here yet</span><span class="item-type"></span>`;
     target.appendChild(empty);
     return;
   }
 
-  entries.forEach(entry => {
+  entries.forEach((entry, index) => {
+    const details = formatter(entry);
     const item = document.createElement("li");
-    item.textContent = formatter(entry);
+    item.innerHTML = [
+      `<span class="item-key">${letterForIndex(index)})</span>`,
+      `<span>${details.label}</span>`,
+      `<span class="item-type">${details.meta || details.type || ""}</span>`
+    ].join("");
+    if (details.type && details.meta) item.title = details.type;
     target.appendChild(item);
   });
 }
@@ -245,7 +265,7 @@ function renderLog(response, history) {
 
 function renderMiniMap(state) {
   if (state.scene === "ruins" && state.dungeon?.map?.length) {
-    elements.miniMap.textContent = state.dungeon.map.join("\n");
+    elements.miniMap.textContent = compactDungeonMap(state.dungeon.map).join("\n");
     return;
   }
 
@@ -257,6 +277,41 @@ function renderMiniMap(state) {
     armorsmith: ["########", "#..@..A#", "#..#...#", "########"]
   };
   elements.miniMap.textContent = (maps[state.scene] || ["####", "#@.#", "####"]).join("\n");
+}
+
+function compactDungeonMap(rows) {
+  const normalizedRows = rows.map(row => String(row));
+  const meaningfulCells = [];
+  normalizedRows.forEach((row, y) => {
+    [...row].forEach((cell, x) => {
+      if (cell !== "?") meaningfulCells.push({ x, y });
+    });
+  });
+  if (meaningfulCells.length === 0) return normalizedRows.slice(0, 9);
+
+  const minY = Math.max(0, Math.min(...meaningfulCells.map(cell => cell.y)) - 2);
+  const maxY = Math.min(normalizedRows.length - 1, Math.max(...meaningfulCells.map(cell => cell.y)) + 2);
+  const minX = Math.max(0, Math.min(...meaningfulCells.map(cell => cell.x)) - 2);
+  const maxX = Math.max(...meaningfulCells.map(cell => cell.x)) + 2;
+
+  return normalizedRows.slice(minY, maxY + 1).map(row => row.slice(minX, maxX + 1));
+}
+
+function asciiBar(current, max, kind) {
+  const width = 10;
+  const ratio = max ? Math.max(0, Math.min(1, current / max)) : 0;
+  const filled = Math.round(ratio * width);
+  const colorClass = kind ? `bar-fill-${kind}` : "bar-fill";
+  return [
+    '<span class="bar-bracket">[</span>',
+    `<span class="${colorClass}">${"|".repeat(filled)}</span>`,
+    `<span class="bar-empty">${" ".repeat(width - filled)}</span>`,
+    '<span class="bar-bracket">]</span>'
+  ].join("");
+}
+
+function letterForIndex(index) {
+  return "abcdefghijklmnopqrstuvwxyz"[index] || "?";
 }
 
 function isLoggableLine(line) {
@@ -276,8 +331,9 @@ function renderQuickActions(state = currentState) {
   quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = label;
+    button.textContent = commandLabel(label, command, accessibleLabel);
     button.dataset.command = command;
+    button.dataset.shortcut = shortcutForCommand(command, label);
     if (accessibleLabel) {
       button.setAttribute("aria-label", accessibleLabel);
       button.title = accessibleLabel;
@@ -352,6 +408,34 @@ function inputModeCommand(state) {
   return state.input_mode === "game" ? ["Text Mode", "text"] : ["Game Mode", "game"];
 }
 
+function commandLabel(label, command, accessibleLabel) {
+  if (/^go (up|right|down|left)$/.test(command)) return accessibleLabel?.replace(/^Go /, "Move ") || label;
+  if (command === "attack") return "Attack";
+  if (command === "loot") return "Collect loot";
+  if (command === "inventory") return "Open inventory";
+  if (command === "spellbook") return "Open spellbook";
+  if (command === "game") return "Enable game mode";
+  if (command === "text") return "Enable text mode";
+  return label;
+}
+
+function shortcutForCommand(command, label) {
+  const shortcuts = {
+    "go up": "w/k/↑",
+    "go right": "d/l/→",
+    "go down": "s/j/↓",
+    "go left": "a/h/←",
+    attack: "a",
+    loot: "l",
+    inventory: "i",
+    spellbook: "m",
+    game: "g",
+    text: "t"
+  };
+
+  return shortcuts[command] || label.slice(0, 1).toLowerCase();
+}
+
 function suggestedItemCommands(player) {
   const equippedNames = [
     player.equipment.weapon?.name,
@@ -418,6 +502,7 @@ async function startGame() {
   try {
     const payload = await api.createGame();
     selectTab("inventory");
+    activateTopTab(0);
     render(payload);
     setStatus("Online");
     elements.commandInput.focus();
@@ -464,7 +549,7 @@ function selectTab(name) {
 
 elements.terminalTabs.forEach((tab, index) => {
   tab.addEventListener("click", () => {
-    elements.terminalTabs.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
+    activateTopTab(index);
     if (index === 0) {
       elements.commandInput.focus();
       return;
@@ -474,5 +559,20 @@ elements.terminalTabs.forEach((tab, index) => {
   });
 });
 
+function activateTopTab(index) {
+  elements.terminalTabs.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
+}
+
+function updateClock() {
+  if (!elements.clock) return;
+  elements.clock.textContent = new Date().toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
 renderQuickActions();
 startGame();
