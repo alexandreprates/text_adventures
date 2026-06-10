@@ -18,7 +18,8 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -58,7 +59,12 @@ button[data-kind="danger"] {
 .app-shell {
   width: min(1180px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 20px 0;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 14px 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
 }
 
 .topbar {
@@ -66,7 +72,7 @@ button[data-kind="danger"] {
   justify-content: space-between;
   align-items: end;
   gap: 16px;
-  padding: 0 0 16px;
+  padding: 0 0 10px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -86,7 +92,7 @@ p {
 }
 
 h1 {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1.2;
 }
 
@@ -116,15 +122,14 @@ h3 {
 
 .game-layout {
   display: grid;
-  grid-template-columns: minmax(420px, 1.35fr) minmax(280px, 0.75fr);
-  grid-template-areas:
-    "map status"
-    "log inventory";
+  grid-template-columns: minmax(480px, 1.25fr) minmax(360px, 0.75fr);
   gap: 14px;
-  margin-top: 16px;
+  min-height: 0;
 }
 
+.play-panel,
 .map-panel,
+.side-panel,
 .status-panel,
 .log-panel,
 .inventory-panel {
@@ -134,26 +139,45 @@ h3 {
   box-shadow: 0 14px 30px var(--shadow);
 }
 
+.play-panel {
+  min-height: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
 .map-panel {
-  grid-area: map;
-  min-height: 430px;
-  padding: 14px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
-.status-panel {
-  grid-area: status;
-  padding: 14px;
+.side-panel {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  display: grid;
+  grid-template-rows: auto minmax(190px, 1fr) minmax(120px, 0.55fr);
+  gap: 12px;
+  background: transparent;
 }
 
+.status-panel,
 .log-panel {
-  grid-area: log;
   padding: 14px;
-  min-height: 270px;
+  min-height: 0;
 }
 
 .inventory-panel {
-  grid-area: inventory;
-  min-height: 270px;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .panel-heading {
@@ -177,7 +201,8 @@ h3 {
 .map-stage {
   position: relative;
   width: 100%;
-  min-height: 315px;
+  height: 100%;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,8 +216,8 @@ h3 {
   display: none;
   width: 100%;
   max-width: 100%;
-  height: auto;
-  max-height: 430px;
+  height: 100%;
+  max-height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
 }
@@ -201,15 +226,15 @@ h3 {
   display: none;
   width: 100%;
   max-width: 100%;
-  height: auto;
-  max-height: 430px;
-  object-fit: contain;
+  height: 100%;
+  max-height: 100%;
+  object-fit: cover;
   image-rendering: pixelated;
 }
 
 .map-grid {
   width: 100%;
-  min-height: 315px;
+  min-height: 100%;
   margin: 0;
   padding: 18px;
   display: flex;
@@ -249,9 +274,8 @@ h3 {
 
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
-  margin-top: 12px;
 }
 
 .meter {
@@ -281,7 +305,7 @@ h3 {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
@@ -305,12 +329,19 @@ h3 {
 }
 
 .compact-section {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .compact-section p {
   color: var(--text);
   line-height: 1.45;
+}
+
+.status-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .message-log {
@@ -319,7 +350,8 @@ h3 {
   margin: 0;
   display: grid;
   gap: 8px;
-  max-height: 330px;
+  max-height: none;
+  height: calc(100% - 40px);
   overflow: auto;
   padding-right: 4px;
 }
@@ -361,6 +393,8 @@ h3 {
 
 .tab-panel {
   padding: 14px;
+  min-height: 0;
+  overflow: auto;
 }
 
 .tab-panel.hidden {
@@ -383,13 +417,10 @@ h3 {
 }
 
 .command-bar {
-  position: sticky;
-  bottom: 0;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  margin-top: 14px;
   padding: 12px;
   background: rgba(16, 18, 20, 0.94);
   border: 1px solid var(--line);
@@ -417,9 +448,16 @@ h3 {
 }
 
 @media (max-width: 860px) {
+  body {
+    overflow: auto;
+  }
+
   .app-shell {
     width: min(100vw - 20px, 720px);
+    height: auto;
+    min-height: auto;
     padding: 10px 0;
+    display: block;
   }
 
   .topbar {
@@ -429,20 +467,27 @@ h3 {
 
   .game-layout {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "map"
-      "status"
-      "log"
-      "inventory";
+    margin-top: 12px;
   }
 
+  .play-panel,
+  .side-panel,
   .map-panel {
     min-height: auto;
   }
 
+  .side-panel {
+    grid-template-rows: auto;
+  }
+
   .map-stage,
   .map-grid {
-    min-height: 240px;
+    min-height: 220px;
+  }
+
+  .map-stage {
+    height: auto;
+    aspect-ratio: 4 / 3;
   }
 
   .map-grid {
@@ -455,10 +500,19 @@ h3 {
   }
 
   .message-log {
+    height: auto;
     max-height: 260px;
   }
 
+  .stats-grid,
+  .status-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .command-bar {
+    position: sticky;
+    bottom: 0;
     grid-template-columns: 1fr;
+    margin-top: 12px;
   }
 }

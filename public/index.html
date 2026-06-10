@@ -17,89 +17,95 @@
       </header>
 
       <main class="game-layout">
-        <section class="map-panel" aria-labelledby="map-title">
-          <div class="panel-heading">
-            <h2 id="map-title">Map</h2>
-            <span id="prompt-label">Town</span>
-          </div>
-          <div class="map-stage" id="map-stage">
-            <img
-              class="location-art"
-              id="location-art"
-              src="/assets/locations/village-hub.png"
-              alt="Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
-            >
-            <canvas
-              class="map-canvas"
-              id="map-canvas"
-              width="576"
-              height="480"
-              aria-label="Dungeon map"
-            ></canvas>
-            <pre class="map-grid" id="map-grid" aria-live="polite"></pre>
+        <section class="play-panel" aria-labelledby="map-title">
+          <div class="map-panel">
+            <div class="panel-heading">
+              <h2 id="map-title">Map</h2>
+              <span id="prompt-label">Town</span>
+            </div>
+            <div class="map-stage" id="map-stage">
+              <img
+                class="location-art"
+                id="location-art"
+                src="/assets/locations/village-hub.png"
+                alt="Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
+              >
+              <canvas
+                class="map-canvas"
+                id="map-canvas"
+                width="576"
+                height="480"
+                aria-label="Dungeon map"
+              ></canvas>
+              <pre class="map-grid" id="map-grid" aria-live="polite"></pre>
+            </div>
           </div>
           <div class="quick-actions" id="quick-actions" aria-label="Quick actions"></div>
         </section>
 
-        <aside class="status-panel" aria-labelledby="status-title">
-          <div class="panel-heading">
-            <h2 id="status-title">Adventurer</h2>
-            <span id="game-id">No session</span>
-          </div>
-
-          <div class="meter">
-            <div class="meter-label">
-              <span>HP</span>
-              <strong id="hp-text">0/0</strong>
+        <aside class="side-panel">
+          <section class="status-panel" aria-labelledby="status-title">
+            <div class="panel-heading">
+              <h2 id="status-title">Adventurer</h2>
+              <span id="game-id">No session</span>
             </div>
-            <div class="meter-track"><div class="meter-fill" id="hp-fill"></div></div>
-          </div>
 
-          <div class="stats-grid">
-            <div><span>Level</span><strong id="level-text">1</strong></div>
-            <div><span>XP</span><strong id="xp-text">0</strong></div>
-            <div><span>Gold</span><strong id="gold-text">0</strong></div>
-            <div><span>Mode</span><strong id="mode-text">text</strong></div>
-          </div>
+            <div class="meter">
+              <div class="meter-label">
+                <span>HP</span>
+                <strong id="hp-text">0/0</strong>
+              </div>
+              <div class="meter-track"><div class="meter-fill" id="hp-fill"></div></div>
+            </div>
 
-          <section class="compact-section">
-            <h3>Equipment</h3>
-            <p id="equipment-text">No equipment</p>
+            <div class="stats-grid">
+              <div><span>Level</span><strong id="level-text">1</strong></div>
+              <div><span>XP</span><strong id="xp-text">0</strong></div>
+              <div><span>Gold</span><strong id="gold-text">0</strong></div>
+              <div><span>Mode</span><strong id="mode-text">text</strong></div>
+            </div>
+
+            <div class="status-details">
+              <section class="compact-section">
+                <h3>Equipment</h3>
+                <p id="equipment-text">No equipment</p>
+              </section>
+
+              <section class="compact-section">
+                <h3>Battle</h3>
+                <p id="battle-text">No active enemy</p>
+              </section>
+            </div>
           </section>
 
-          <section class="compact-section">
-            <h3>Battle</h3>
-            <p id="battle-text">No active enemy</p>
+          <section class="log-panel" aria-labelledby="log-title">
+            <div class="panel-heading">
+              <h2 id="log-title">Message Log</h2>
+              <button class="ghost-button" id="new-game-button" type="button">New game</button>
+            </div>
+            <ol class="message-log" id="message-log"></ol>
+          </section>
+
+          <section class="inventory-panel" aria-labelledby="inventory-title">
+            <div class="tabs">
+              <button class="tab active" data-tab="inventory" type="button">Inventory</button>
+              <button class="tab" data-tab="spells" type="button">Spells</button>
+              <button class="tab" data-tab="skills" type="button">Skills</button>
+            </div>
+            <div class="tab-panel" id="inventory-tab">
+              <h2 id="inventory-title">Inventory</h2>
+              <ul id="inventory-list"></ul>
+            </div>
+            <div class="tab-panel hidden" id="spells-tab">
+              <h2>Spells</h2>
+              <ul id="spells-list"></ul>
+            </div>
+            <div class="tab-panel hidden" id="skills-tab">
+              <h2>Skills</h2>
+              <ul id="skills-list"></ul>
+            </div>
           </section>
         </aside>
-
-        <section class="log-panel" aria-labelledby="log-title">
-          <div class="panel-heading">
-            <h2 id="log-title">Message Log</h2>
-            <button class="ghost-button" id="new-game-button" type="button">New game</button>
-          </div>
-          <ol class="message-log" id="message-log"></ol>
-        </section>
-
-        <section class="inventory-panel" aria-labelledby="inventory-title">
-          <div class="tabs">
-            <button class="tab active" data-tab="inventory" type="button">Inventory</button>
-            <button class="tab" data-tab="spells" type="button">Spells</button>
-            <button class="tab" data-tab="skills" type="button">Skills</button>
-          </div>
-          <div class="tab-panel" id="inventory-tab">
-            <h2 id="inventory-title">Inventory</h2>
-            <ul id="inventory-list"></ul>
-          </div>
-          <div class="tab-panel hidden" id="spells-tab">
-            <h2>Spells</h2>
-            <ul id="spells-list"></ul>
-          </div>
-          <div class="tab-panel hidden" id="skills-tab">
-            <h2>Skills</h2>
-            <ul id="skills-list"></ul>
-          </div>
-        </section>
       </main>
 
       <form class="command-bar" id="command-form">
