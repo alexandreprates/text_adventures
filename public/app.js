@@ -21,8 +21,6 @@ const api = {
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
   serverStatus: document.querySelector("#server-status"),
-  topHealth: document.querySelector("#top-health"),
-  topEnemies: document.querySelector("#top-enemies"),
   topMode: document.querySelector("#top-mode"),
   promptLabel: document.querySelector("#prompt-label"),
   gameId: document.querySelector("#game-id"),
@@ -121,15 +119,11 @@ function render(payload) {
 }
 
 function renderHeader(state) {
-  const health = state.player.health;
-  const enemyCount = state.dungeon?.visible_enemies?.length || (state.battle?.active ? 1 : 0);
   const sceneLabel = state.scene_display_name || state.scene;
 
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.promptLabel.textContent = state.prompt;
   elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
-  elements.topHealth.textContent = `HP ${health.current}/${health.max}`;
-  elements.topEnemies.textContent = `INIMIGOS: ${enemyCount}`;
   elements.topMode.textContent = state.input_mode.toUpperCase();
   elements.footerCharacter.textContent = `${state.player.name} | Level ${state.player.level}`;
   elements.footerLocation.textContent = `${sceneLabel} | ${state.prompt}`;
