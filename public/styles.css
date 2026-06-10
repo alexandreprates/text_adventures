@@ -179,7 +179,6 @@ pre {
 
 .character-panel,
 .inventory-panel,
-.command-panel,
 .log-panel {
   padding: 10px;
 }
@@ -442,18 +441,13 @@ pre {
   font-size: 12px;
 }
 
-.inventory-panel,
-.command-panel {
+.inventory-panel {
   font-size: 12px;
   line-height: 1.6;
 }
 
 .inventory-panel {
   flex: 1;
-}
-
-.command-panel {
-  min-height: 272px;
 }
 
 .panel-title {
@@ -505,27 +499,6 @@ pre {
 
 .carry-bar {
   color: var(--border);
-}
-
-.quick-actions {
-  display: grid;
-  gap: 1px;
-}
-
-.quick-actions button {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 8px;
-  min-height: 22px;
-  padding: 1px 4px;
-  color: var(--green);
-  font-size: 12px;
-  text-align: left;
-}
-
-.quick-actions button::before {
-  content: attr(data-shortcut);
-  color: var(--amber);
 }
 
 .command-bar {
@@ -650,13 +623,8 @@ pre {
   }
 
   .ghost-button,
-  .quick-actions button,
   .command-bar input,
   .command-bar button {
     min-height: 44px;
-  }
-
-  .quick-actions {
-    gap: 4px;
   }
 }

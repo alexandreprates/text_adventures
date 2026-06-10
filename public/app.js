@@ -121,7 +121,6 @@ function render(payload) {
   renderMap(state);
   renderStatus(state);
   renderCollections(state.player);
-  renderQuickActions(state);
   updateCommandPlaceholder(state);
   renderLog(payload.response, state.history);
 }
@@ -566,5 +565,4 @@ function updateClock() {
 
 updateClock();
 setInterval(updateClock, 1000);
-renderQuickActions();
 startGame();
