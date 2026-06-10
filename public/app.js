@@ -226,10 +226,14 @@ function isLoggableLine(line) {
 
 function renderQuickActions(state = currentState) {
   elements.quickActions.innerHTML = "";
-  quickCommandsFor(state).forEach(([label, command, kind]) => {
+  quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
+    if (accessibleLabel) {
+      button.setAttribute("aria-label", accessibleLabel);
+      button.title = accessibleLabel;
+    }
     if (kind) button.dataset.kind = kind;
     button.addEventListener("click", () => runCommand(command));
     elements.quickActions.appendChild(button);
@@ -277,10 +281,10 @@ function quickCommandsFor(state) {
 
 function ruinsCommands(state) {
   const commands = [
-    ["North", "go up"],
-    ["East", "go right"],
-    ["South", "go down"],
-    ["West", "go left"]
+    ["↑", "go up", null, "Go north"],
+    ["→", "go right", null, "Go east"],
+    ["↓", "go down", null, "Go south"],
+    ["←", "go left", null, "Go west"]
   ];
 
   if (state.battle?.active) {
