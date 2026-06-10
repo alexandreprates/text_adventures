@@ -42,7 +42,6 @@ const elements = {
   defenseValue: document.querySelector("#defense-value"),
   modeValue: document.querySelector("#mode-value"),
   statusValue: document.querySelector("#status-value"),
-  miniMap: document.querySelector("#mini-map"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
@@ -114,7 +113,6 @@ function render(payload) {
   currentState = state;
   renderHeader(state);
   renderMap(state);
-  renderMiniMap(state);
   renderStatus(state);
   renderCollections(state.player);
   renderQuickActions(state);
@@ -261,40 +259,6 @@ function renderLog(response, history) {
   const lines = sourceLines.filter(isLoggableLine);
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
-}
-
-function renderMiniMap(state) {
-  if (state.scene === "ruins" && state.dungeon?.map?.length) {
-    elements.miniMap.textContent = compactDungeonMap(state.dungeon.map).join("\n");
-    return;
-  }
-
-  const maps = {
-    town: ["###########", "#T..P..B..#", "#..M..A...#", "#.....>...#", "###########"],
-    tavern: ["########", "#..@..T#", "#......#", "########"],
-    priest: ["########", "#..@..P#", "#..+...#", "########"],
-    blacksmith: ["########", "#..@..B#", "#..#...#", "########"],
-    armorsmith: ["########", "#..@..A#", "#..#...#", "########"]
-  };
-  elements.miniMap.textContent = (maps[state.scene] || ["####", "#@.#", "####"]).join("\n");
-}
-
-function compactDungeonMap(rows) {
-  const normalizedRows = rows.map(row => String(row));
-  const meaningfulCells = [];
-  normalizedRows.forEach((row, y) => {
-    [...row].forEach((cell, x) => {
-      if (cell !== "?") meaningfulCells.push({ x, y });
-    });
-  });
-  if (meaningfulCells.length === 0) return normalizedRows.slice(0, 9);
-
-  const minY = Math.max(0, Math.min(...meaningfulCells.map(cell => cell.y)) - 2);
-  const maxY = Math.min(normalizedRows.length - 1, Math.max(...meaningfulCells.map(cell => cell.y)) + 2);
-  const minX = Math.max(0, Math.min(...meaningfulCells.map(cell => cell.x)) - 2);
-  const maxX = Math.max(...meaningfulCells.map(cell => cell.x)) + 2;
-
-  return normalizedRows.slice(minY, maxY + 1).map(row => row.slice(minX, maxX + 1));
 }
 
 function asciiBar(current, max, kind) {
