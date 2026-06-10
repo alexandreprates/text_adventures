@@ -634,6 +634,7 @@ pre {
   }
 
   .terminal-tab {
+    min-height: 44px;
     width: 50%;
   }
 
@@ -649,5 +650,16 @@ pre {
 
   .map-panel {
     min-height: 360px;
+  }
+
+  .ghost-button,
+  .quick-actions button,
+  .command-bar input,
+  .command-bar button {
+    min-height: 44px;
+  }
+
+  .quick-actions {
+    gap: 4px;
   }
 }

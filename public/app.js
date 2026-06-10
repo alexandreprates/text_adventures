@@ -48,6 +48,9 @@ const elements = {
   statusOutput: document.querySelector("#status-output"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
+  collectionTitleLabel: document.querySelector("#collection-title-label"),
+  collectionTitleCount: document.querySelector("#collection-title-count"),
+  collectionTitleTail: document.querySelector("#collection-title-tail"),
   inventoryCount: document.querySelector("#inventory-count"),
   carryWeight: document.querySelector("#carry-weight"),
   carryBar: document.querySelector("#carry-bar"),
@@ -64,6 +67,11 @@ const elements = {
 };
 
 const LOG_FALLBACK_LIMIT = 12;
+const COLLECTION_TITLES = {
+  inventory: ["═══ INVENTARIO", "══"],
+  spells: ["═══ MAGIAS", "════"],
+  skills: ["═══ HABILIDADES", "═══"]
+};
 const LOCATION_ARTS = {
   town: {
     src: "/assets/figma/dungeon-terminal-reference.png",
@@ -476,10 +484,25 @@ async function runCommand(command) {
   try {
     const payload = await api.sendCommand(command);
     render(payload);
+    syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {
     setStatus("Error", true);
     showError(error);
+  }
+}
+
+function syncNavigationForCommand(command) {
+  const normalizedCommand = command.trim().toLowerCase();
+  if (normalizedCommand === "inventory") {
+    selectTab("inventory");
+  } else if (normalizedCommand === "spellbook") {
+    selectTab("spells");
+  } else if (normalizedCommand === "skills" || normalizedCommand === "level") {
+    selectTab("skills");
+  } else {
+    activateTopTab(0);
+    elements.commandInput.focus();
   }
 }
 
@@ -503,6 +526,16 @@ function selectTab(name) {
   elements.tabs.forEach(button => button.classList.toggle("active", button.dataset.tab === name));
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
+  updateCollectionTitle(name);
+  const topIndex = ["inventory", "spells", "skills"].indexOf(name);
+  if (topIndex >= 0) activateTopTab(topIndex + 1);
+}
+
+function updateCollectionTitle(name) {
+  const [label, tail] = COLLECTION_TITLES[name] || COLLECTION_TITLES.inventory;
+  elements.collectionTitleLabel.textContent = label;
+  elements.collectionTitleTail.textContent = tail;
+  elements.collectionTitleCount.hidden = name !== "inventory";
 }
 
 elements.terminalTabs.forEach((tab, index) => {
