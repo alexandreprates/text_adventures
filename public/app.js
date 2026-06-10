@@ -21,8 +21,24 @@ const api = {
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
   serverStatus: document.querySelector("#server-status"),
+  topHealth: document.querySelector("#top-health"),
+  topEnemies: document.querySelector("#top-enemies"),
+  topMode: document.querySelector("#top-mode"),
   promptLabel: document.querySelector("#prompt-label"),
   gameId: document.querySelector("#game-id"),
+  characterName: document.querySelector("#character-name"),
+  characterClass: document.querySelector("#character-class"),
+  healthMeter: document.querySelector("#health-meter"),
+  healthValue: document.querySelector("#health-value"),
+  attackMeter: document.querySelector("#attack-meter"),
+  attackValue: document.querySelector("#attack-value"),
+  xpMeter: document.querySelector("#xp-meter"),
+  xpValue: document.querySelector("#xp-value"),
+  levelValue: document.querySelector("#level-value"),
+  goldValue: document.querySelector("#gold-value"),
+  defenseValue: document.querySelector("#defense-value"),
+  statusValue: document.querySelector("#status-value"),
+  miniMap: document.querySelector("#mini-map"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
@@ -31,12 +47,17 @@ const elements = {
   statusOutput: document.querySelector("#status-output"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
+  inventoryCount: document.querySelector("#inventory-count"),
   spellsList: document.querySelector("#spells-list"),
   skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
   newGameButton: document.querySelector("#new-game-button"),
-  tabs: document.querySelectorAll(".tab")
+  footerCharacter: document.querySelector("#footer-character"),
+  footerLocation: document.querySelector("#footer-location"),
+  footerDanger: document.querySelector("#footer-danger"),
+  tabs: document.querySelectorAll(".tab"),
+  terminalTabs: document.querySelectorAll(".terminal-tab")
 };
 
 const LOG_FALLBACK_LIMIT = 12;
@@ -87,6 +108,7 @@ function render(payload) {
   currentState = state;
   renderHeader(state);
   renderMap(state);
+  renderMiniMap(state);
   renderStatus(state);
   renderCollections(state.player);
   renderQuickActions(state);
@@ -95,9 +117,19 @@ function render(payload) {
 }
 
 function renderHeader(state) {
+  const health = state.player.health;
+  const enemyCount = state.dungeon?.visible_enemies?.length || (state.battle?.active ? 1 : 0);
+  const sceneLabel = state.scene_display_name || state.scene;
+
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.promptLabel.textContent = state.prompt;
-  elements.gameId.textContent = api.gameId ? `ID ${api.gameId.slice(0, 8)}` : "No session";
+  elements.gameId.textContent = api.gameId ? `[Run #${api.gameId.slice(0, 4).toUpperCase()}]` : "No session";
+  elements.topHealth.textContent = `HP ${health.current}/${health.max}`;
+  elements.topEnemies.textContent = `Enemies ${enemyCount}`;
+  elements.topMode.textContent = state.input_mode;
+  elements.footerCharacter.textContent = `${state.player.name} | Level ${state.player.level}`;
+  elements.footerLocation.textContent = `${sceneLabel} | ${state.prompt}`;
+  elements.footerDanger.textContent = state.scene === "ruins" ? "Difficulty: Dungeon" : "Difficulty: Town";
 }
 
 function renderMap(state) {
@@ -147,26 +179,37 @@ function renderStatus(state) {
     ? `${state.battle.enemy.display_name} HP ${state.battle.enemy.health.current}/${state.battle.enemy.health.max}`
     : "none";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
+  const xpTarget = nextSkillTarget(player.skills);
+
+  elements.characterName.textContent = player.name;
+  elements.characterClass.textContent = classLine(player);
+  elements.healthMeter.max = health.max || 1;
+  elements.healthMeter.value = health.current;
+  elements.healthValue.textContent = `${health.current}/${health.max}`;
+  elements.attackMeter.max = 40;
+  elements.attackMeter.value = Math.min(player.attack, 40);
+  elements.attackValue.textContent = String(player.attack);
+  elements.xpMeter.max = xpTarget || 1;
+  elements.xpMeter.value = Math.min(player.xp, xpTarget || 1);
+  elements.xpValue.textContent = String(player.xp);
+  elements.levelValue.textContent = String(player.level);
+  elements.goldValue.textContent = `$ ${player.gold} gp`;
+  elements.defenseValue.textContent = String(player.defense);
+  elements.statusValue.textContent = statuses;
 
   elements.statusOutput.textContent = [
-    `NAME  ${player.name}`,
-    `MODE  ${state.input_mode}`,
-    "",
-    `HP    ${healthBar(health.current, health.max)} ${health.current}/${health.max}`,
-    `LVL   ${player.level}`,
-    `XP    ${player.xp}`,
-    `GOLD  ${player.gold}`,
-    "",
-    `WEAP  ${weapon}`,
-    `ARMR  ${armor}`,
-    `STAT  ${statuses}`,
-    `BTTL  ${battle}`
+    `ARM ${weapon}`,
+    `DEF ${armor}`,
+    `BTTL ${battle}`,
+    `MODE ${state.input_mode.toUpperCase()}`
   ].join("\n");
 }
 
 function renderCollections(player) {
+  const inventoryCount = (player.inventory || []).reduce((total, item) => total + item.quantity, 0);
+  elements.inventoryCount.textContent = `${inventoryCount}/26 slots`;
   renderList(elements.inventoryList, player.inventory, item =>
-    `${item.quantity}x ${item.display_name}${item.type ? ` (${item.type})` : ""}`
+    `${item.display_name} x${item.quantity}${item.type ? ` · ${item.type}` : ""}`
   );
   renderList(elements.spellsList, player.spells, spell =>
     `${spell.display_name} Lv ${spell.level} - ${spell.description}`
@@ -200,6 +243,22 @@ function renderLog(response, history) {
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
 }
 
+function renderMiniMap(state) {
+  if (state.scene === "ruins" && state.dungeon?.map?.length) {
+    elements.miniMap.textContent = state.dungeon.map.join("\n");
+    return;
+  }
+
+  const maps = {
+    town: ["###########", "#T..P..B..#", "#..M..A...#", "#.....>...#", "###########"],
+    tavern: ["########", "#..@..T#", "#......#", "########"],
+    priest: ["########", "#..@..P#", "#..+...#", "########"],
+    blacksmith: ["########", "#..@..B#", "#..#...#", "########"],
+    armorsmith: ["########", "#..@..A#", "#..#...#", "########"]
+  };
+  elements.miniMap.textContent = (maps[state.scene] || ["####", "#@.#", "####"]).join("\n");
+}
+
 function isLoggableLine(line) {
   const trimmed = line.trim();
   if (!trimmed) return false;
@@ -218,6 +277,7 @@ function renderQuickActions(state = currentState) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
+    button.dataset.command = command;
     if (accessibleLabel) {
       button.setAttribute("aria-label", accessibleLabel);
       button.title = accessibleLabel;
@@ -336,6 +396,17 @@ function labelize(value) {
   return value.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function classLine(player) {
+  const weaponClass = player.equipment.weapon?.weapon_class;
+  if (weaponClass) return `${labelize(weaponClass)} Delver`;
+  return "Terminal Delver";
+}
+
+function nextSkillTarget(skills = {}) {
+  const firstSkill = Object.values(skills)[0];
+  return firstSkill?.next_level_xp || 50;
+}
+
 function healthBar(current, max) {
   const width = 12;
   const filled = max ? Math.round(Math.max(0, Math.min(1, current / max)) * width) : 0;
@@ -390,6 +461,18 @@ function selectTab(name) {
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
 }
+
+elements.terminalTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => {
+    elements.terminalTabs.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
+    if (index === 0) {
+      elements.commandInput.focus();
+      return;
+    }
+
+    selectTab(["inventory", "spells", "skills"][index - 1]);
+  });
+});
 
 renderQuickActions();
 startGame();
