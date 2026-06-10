@@ -28,14 +28,7 @@ const elements = {
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
   quickActions: document.querySelector("#quick-actions"),
-  hpText: document.querySelector("#hp-text"),
-  hpFill: document.querySelector("#hp-fill"),
-  levelText: document.querySelector("#level-text"),
-  xpText: document.querySelector("#xp-text"),
-  goldText: document.querySelector("#gold-text"),
-  modeText: document.querySelector("#mode-text"),
-  equipmentText: document.querySelector("#equipment-text"),
-  battleText: document.querySelector("#battle-text"),
+  statusOutput: document.querySelector("#status-output"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
   spellsList: document.querySelector("#spells-list"),
@@ -94,8 +87,7 @@ function render(payload) {
   currentState = state;
   renderHeader(state);
   renderMap(state);
-  renderPlayer(state.player, state.input_mode);
-  renderBattle(state.battle);
+  renderStatus(state);
   renderCollections(state.player);
   renderQuickActions(state);
   updateCommandPlaceholder(state);
@@ -146,29 +138,30 @@ function showLocationArt(scene) {
   elements.mapStage.classList.add("has-location-art");
 }
 
-function renderPlayer(player, inputMode) {
+function renderStatus(state) {
+  const player = state.player;
   const health = player.health;
-  const hpPercent = health.max ? Math.max(0, Math.min(100, (health.current / health.max) * 100)) : 0;
-  elements.hpText.textContent = `${health.current}/${health.max}`;
-  elements.hpFill.style.width = `${hpPercent}%`;
-  elements.levelText.textContent = player.level;
-  elements.xpText.textContent = player.xp;
-  elements.goldText.textContent = player.gold;
-  elements.modeText.textContent = inputMode;
-
   const weapon = player.equipment.weapon?.display_name || "Unarmed";
   const armor = player.equipment.armor?.display_name || "No armor";
-  elements.equipmentText.textContent = `${weapon} | ${armor}`;
-}
+  const battle = state.battle?.active && state.battle.enemy
+    ? `${state.battle.enemy.display_name} HP ${state.battle.enemy.health.current}/${state.battle.enemy.health.max}`
+    : "none";
+  const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
-function renderBattle(battle) {
-  if (!battle.active || !battle.enemy) {
-    elements.battleText.textContent = "No active enemy";
-    return;
-  }
-
-  const enemy = battle.enemy;
-  elements.battleText.textContent = `${enemy.display_name} HP ${enemy.health.current}/${enemy.health.max}`;
+  elements.statusOutput.textContent = [
+    `NAME  ${player.name}`,
+    `MODE  ${state.input_mode}`,
+    "",
+    `HP    ${healthBar(health.current, health.max)} ${health.current}/${health.max}`,
+    `LVL   ${player.level}`,
+    `XP    ${player.xp}`,
+    `GOLD  ${player.gold}`,
+    "",
+    `WEAP  ${weapon}`,
+    `ARMR  ${armor}`,
+    `STAT  ${statuses}`,
+    `BTTL  ${battle}`
+  ].join("\n");
 }
 
 function renderCollections(player) {
@@ -203,13 +196,8 @@ function renderList(target, entries, formatter) {
 function renderLog(response, history) {
   const sourceLines = response?.lines?.length ? response.lines : history.flatMap(entry => entry.lines).slice(-LOG_FALLBACK_LIMIT);
   const lines = sourceLines.filter(isLoggableLine);
-  elements.messageLog.innerHTML = "";
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
-  visibleLines.forEach(line => {
-    const item = document.createElement("li");
-    item.textContent = line || " ";
-    elements.messageLog.appendChild(item);
-  });
+  elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
 }
 
 function isLoggableLine(line) {
@@ -348,6 +336,12 @@ function labelize(value) {
   return value.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function healthBar(current, max) {
+  const width = 12;
+  const filled = max ? Math.round(Math.max(0, Math.min(1, current / max)) * width) : 0;
+  return `[${"#".repeat(filled)}${".".repeat(width - filled)}]`;
+}
+
 async function startGame() {
   setStatus("Connecting");
   try {
@@ -376,10 +370,7 @@ async function runCommand(command) {
 }
 
 function showError(error) {
-  elements.messageLog.innerHTML = "";
-  const item = document.createElement("li");
-  item.textContent = error.message;
-  elements.messageLog.appendChild(item);
+  elements.messageLog.textContent = `! ${error.message}`;
 }
 
 elements.commandForm.addEventListener("submit", event => {

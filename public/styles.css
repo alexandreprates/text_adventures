@@ -3,6 +3,8 @@
   --bg: #101214;
   --panel: #191d21;
   --panel-2: #20262b;
+  --terminal: #0a0d0f;
+  --terminal-text: #d8e0d2;
   --text: #f0ede5;
   --muted: #aab0b5;
   --line: #343c43;
@@ -278,91 +280,31 @@ h3 {
   gap: 8px;
 }
 
-.meter {
-  margin-bottom: 14px;
-}
-
-.meter-label {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-.meter-track {
-  height: 12px;
-  background: #0d0f11;
-  border: 1px solid var(--line);
+.terminal-output {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  background: var(--terminal);
+  border: 1px solid #263238;
   border-radius: 6px;
-  overflow: hidden;
+  color: var(--terminal-text);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
 }
 
-.meter-fill {
-  width: 0;
-  height: 100%;
-  background: linear-gradient(90deg, var(--danger), var(--accent));
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.stats-grid div,
-.compact-section {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 10px;
-}
-
-.stats-grid span {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.stats-grid strong {
-  display: block;
-  margin-top: 2px;
-}
-
-.compact-section {
-  margin-top: 0;
-}
-
-.compact-section p {
-  color: var(--text);
-  line-height: 1.45;
-}
-
-.status-details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
+.status-output {
+  height: calc(100% - 34px);
+  padding: 12px;
+  overflow: auto;
 }
 
 .message-log {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 8px;
-  max-height: none;
   height: calc(100% - 40px);
   overflow: auto;
-  padding-right: 4px;
-}
-
-.message-log li {
-  border-left: 3px solid var(--accent);
-  background: var(--panel-2);
-  border-radius: 6px;
-  padding: 9px 10px;
-  white-space: pre-wrap;
-  color: var(--text);
+  padding: 12px;
 }
 
 .ghost-button {
@@ -499,14 +441,10 @@ h3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .message-log {
+  .message-log,
+  .status-output {
     height: auto;
     max-height: 260px;
-  }
-
-  .stats-grid,
-  .status-details {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .command-bar {
