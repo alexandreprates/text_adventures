@@ -501,6 +501,7 @@ function syncNavigationForCommand(command) {
   } else if (normalizedCommand === "skills" || normalizedCommand === "level") {
     selectTab("skills");
   } else {
+    selectTab("inventory", { syncTop: false });
     activateTopTab(0);
     elements.commandInput.focus();
   }
@@ -523,12 +524,14 @@ elements.newGameButton.addEventListener("click", startGame);
 elements.tabs.forEach(tab => tab.addEventListener("click", () => selectTab(tab.dataset.tab)));
 
 function selectTab(name) {
+  const options = arguments[1] || {};
+  const syncTop = options.syncTop ?? true;
   elements.tabs.forEach(button => button.classList.toggle("active", button.dataset.tab === name));
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
   updateCollectionTitle(name);
   const topIndex = ["inventory", "spells", "skills"].indexOf(name);
-  if (topIndex >= 0) activateTopTab(topIndex + 1);
+  if (syncTop && topIndex >= 0) activateTopTab(topIndex + 1);
 }
 
 function updateCollectionTitle(name) {
@@ -542,6 +545,7 @@ elements.terminalTabs.forEach((tab, index) => {
   tab.addEventListener("click", () => {
     activateTopTab(index);
     if (index === 0) {
+      selectTab("inventory", { syncTop: false });
       elements.commandInput.focus();
       return;
     }
