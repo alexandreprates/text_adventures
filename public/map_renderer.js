@@ -2,6 +2,7 @@ globalThis.DungeonMapRenderer = (() => {
   const TILESET_COLUMNS = 8;
   const TILESET_ROWS = 4;
   const TILE_SIZE = 32;
+  const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
 
@@ -75,6 +76,7 @@ globalThis.DungeonMapRenderer = (() => {
       ready: false,
       enemiesReady: false,
       failed: false,
+      animationFrame: null,
       enemyManifest: {},
       lastMapRows: [],
       lastOptions: {},
@@ -101,6 +103,36 @@ globalThis.DungeonMapRenderer = (() => {
         drawEnemies(context, renderer, enemyImages, options.enemies || []);
 
         return true;
+      },
+      animateAttack(source) {
+        if (!context || !renderer.lastMapRows.length) return false;
+
+        const points = combatPoints(renderer, source);
+        if (!points) return false;
+
+        if (renderer.animationFrame) cancelAnimationFrame(renderer.animationFrame);
+        const startedAt = performance.now();
+
+        function drawFrame(now) {
+          const progress = Math.min(1, (now - startedAt) / ATTACK_ANIMATION_MS);
+          renderer.render(renderer.lastMapRows, renderer.lastOptions);
+          drawAttackTrace(context, points.from, points.to, progress, source);
+
+          if (progress < 1) {
+            renderer.animationFrame = requestAnimationFrame(drawFrame);
+          } else {
+            renderer.animationFrame = null;
+            renderer.render(renderer.lastMapRows, renderer.lastOptions);
+          }
+        }
+
+        renderer.animationFrame = requestAnimationFrame(drawFrame);
+        return true;
+      },
+      clearAttackAnimation() {
+        if (renderer.animationFrame) cancelAnimationFrame(renderer.animationFrame);
+        renderer.animationFrame = null;
+        rerender(renderer);
       }
     };
 
@@ -225,6 +257,68 @@ globalThis.DungeonMapRenderer = (() => {
       TILE_SIZE,
       TILE_SIZE
     );
+  }
+
+  function combatPoints(renderer, source) {
+    const player = findSymbolPosition(renderer.lastMapRows, "x");
+    const enemy = firstEnemyPosition(renderer.lastOptions.enemies || []) || findSymbolPosition(renderer.lastMapRows, "E");
+    if (!player || !enemy) return null;
+
+    return source === "enemy"
+      ? { from: tileCenter(enemy), to: tileCenter(player) }
+      : { from: tileCenter(player), to: tileCenter(enemy) };
+  }
+
+  function firstEnemyPosition(enemies) {
+    const enemy = enemies.find(entry => entry.map_position);
+    return enemy?.map_position || null;
+  }
+
+  function findSymbolPosition(mapRows, symbol) {
+    for (let y = 0; y < mapRows.length; y += 1) {
+      const x = String(mapRows[y]).indexOf(symbol);
+      if (x >= 0) return { x, y };
+    }
+    return null;
+  }
+
+  function tileCenter(position) {
+    return {
+      x: (position.x * TILE_SIZE) + (TILE_SIZE / 2),
+      y: (position.y * TILE_SIZE) + (TILE_SIZE / 2)
+    };
+  }
+
+  function drawAttackTrace(context, from, to, progress, source) {
+    const eased = 1 - ((1 - progress) ** 2);
+    const head = interpolatePoint(from, to, eased);
+    const tail = interpolatePoint(from, to, Math.max(0, eased - 0.28));
+    const color = source === "enemy" ? "255, 51, 51" : "255, 242, 102";
+
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    context.lineCap = "round";
+    context.strokeStyle = `rgba(${color}, ${1 - (progress * 0.45)})`;
+    context.shadowColor = `rgba(${color}, 0.8)`;
+    context.shadowBlur = 12;
+    context.lineWidth = 5;
+    context.beginPath();
+    context.moveTo(tail.x, tail.y);
+    context.lineTo(head.x, head.y);
+    context.stroke();
+
+    context.fillStyle = `rgba(${color}, ${1 - (progress * 0.25)})`;
+    context.beginPath();
+    context.arc(head.x, head.y, 4 + (progress * 5), 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+
+  function interpolatePoint(from, to, progress) {
+    return {
+      x: from.x + ((to.x - from.x) * progress),
+      y: from.y + ((to.y - from.y) * progress)
+    };
   }
 
   function rerender(renderer) {
