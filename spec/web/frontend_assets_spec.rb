@@ -83,6 +83,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('elements.statusValue.classList.toggle("status-clear"')
     expect(javascript).to include('classProgressLines(player.skills)')
     expect(javascript).to include('function classProgressLines(skills = {})')
+    expect(javascript).not_to include('BTTL ${battle}')
+    expect(javascript).not_to include('MODE ${state.input_mode.toUpperCase()}')
     expect(javascript).to include('locationPanels')
     expect(javascript).to include('/^[?#.xE@]+$/')
     expect(styles).to include('"https://fonts.googleapis.com/css2?family=VT323&display=swap"')

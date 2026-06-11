@@ -178,9 +178,6 @@ function renderStatus(state) {
   const health = player.health;
   const weapon = player.equipment.weapon?.display_name || "Unarmed";
   const armor = player.equipment.armor?.display_name || "No armor";
-  const battle = state.battle?.active && state.battle.enemy
-    ? `${state.battle.enemy.display_name} HP ${state.battle.enemy.health.current}/${state.battle.enemy.health.max}`
-    : "none";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
   elements.characterName.textContent = player.name.toUpperCase();
@@ -194,9 +191,7 @@ function renderStatus(state) {
 
   elements.statusOutput.textContent = [
     `ARM ${weapon}`,
-    `DEF ${armor}`,
-    `BTTL ${battle}`,
-    `MODE ${state.input_mode.toUpperCase()}`
+    `DEF ${armor}`
   ].join("\n");
 }
 
