@@ -38,6 +38,8 @@ RSpec.describe "Frontend assets" do
     expect(html).to include('id="enemy-panel"')
     expect(html).to include('id="enemy-health-bar"')
     expect(html).to include('id="enemy-status-value"')
+    expect(html).not_to include('[H]abilidades')
+    expect(html).not_to include('id="skills-tab"')
     expect(html).not_to include('class="run-stats"')
     expect(html).not_to include('class="attribute-grid"')
     expect(html).to include('<script src="/map_renderer.js"></script>')

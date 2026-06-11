@@ -46,7 +46,6 @@ const elements = {
   collectionTitleLabel: document.querySelector("#collection-title-label"),
   collectionTitleTail: document.querySelector("#collection-title-tail"),
   spellsList: document.querySelector("#spells-list"),
-  skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
   tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
@@ -57,8 +56,7 @@ const DUNGEON_MAP_ZOOM = 1.3;
 const COMBAT_FEEDBACK_STEP_MS = 520;
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
-  spells: ["═══ MAGIAS", "════"],
-  skills: ["═══ HABILIDADES", "═══"]
+  spells: ["═══ MAGIAS", "════"]
 };
 const LOCATION_ARTS = {
   town: {
@@ -260,12 +258,6 @@ function renderCollections(player) {
     meta: spell.kind,
     type: spell.description
   }));
-  const skills = Object.entries(player.skills || {}).map(([name, skill]) => ({
-    label: labelize(name),
-    meta: `Lv ${skill.level}`,
-    type: `${skill.xp}/${skill.next_level_xp} XP`
-  }));
-  renderList(elements.skillsList, skills, skill => skill);
 }
 
 function renderList(target, entries, formatter) {
@@ -565,8 +557,6 @@ function syncNavigationForCommand(command) {
     selectTab("inventory");
   } else if (normalizedCommand === "spellbook") {
     selectTab("spells");
-  } else if (normalizedCommand === "skills" || normalizedCommand === "level") {
-    selectTab("skills");
   } else {
     selectTab("inventory", { syncTop: false });
     activateTopTab(0);
@@ -629,7 +619,7 @@ function selectTab(name) {
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
   updateCollectionTitle(name);
-  const topIndex = ["inventory", "spells", "skills"].indexOf(name);
+  const topIndex = ["inventory", "spells"].indexOf(name);
   if (syncTop && topIndex >= 0) activateTopTab(topIndex);
 }
 
