@@ -69,24 +69,26 @@ module TextAdventures
       end
 
       def handle_socket(socket)
+        request = nil
+        response_status = nil
+        response_body_bytes = 0
+
         request = read_request(socket)
         return unless request
 
         static_response = static_response_for(request)
-        return write_raw_response(socket, **static_response) if static_response
+        response = static_response || router_response_for(request)
+        response_status = response.fetch(:status)
+        response_body_bytes = response.fetch(:body).bytesize
 
-        response = router.call(
-          method: request.fetch(:method),
-          path: request.fetch(:path),
-          body: request.fetch(:body)
-        )
-        write_response(socket, response)
+        write_raw_response(socket, **response)
       rescue StandardError => error
-        write_response(
-          socket,
-          JsonResponse.error("internal_server_error", error.message, status: 500)
-        )
+        response = raw_response_for(JsonResponse.error("internal_server_error", error.message, status: 500))
+        response_status = response.fetch(:status)
+        response_body_bytes = response.fetch(:body).bytesize
+        write_raw_response(socket, **response)
       ensure
+        log_access(socket, request, response_status, response_body_bytes) if request && response_status
         socket.close unless socket.closed?
       end
 
@@ -101,7 +103,9 @@ module TextAdventures
         {
           method: method,
           path: URI.parse(raw_path.to_s).path,
-          body: body
+          headers: headers,
+          body: body,
+          request_line: request_line.strip
         }
       end
 
@@ -115,11 +119,6 @@ module TextAdventures
           headers[key.downcase] = value.to_s.strip if key
         end
         headers
-      end
-
-      def write_response(socket, response)
-        body = response.json
-        write_raw_response(socket, status: response.status, headers: response.headers, body: body)
       end
 
       def write_raw_response(socket, status:, headers:, body:)
@@ -155,6 +154,49 @@ module TextAdventures
         return nil unless File.file?(full_path)
 
         full_path
+      end
+
+      def router_response_for(request)
+        raw_response_for(
+          router.call(
+            method: request.fetch(:method),
+            path: request.fetch(:path),
+            body: request.fetch(:body)
+          )
+        )
+      end
+
+      def raw_response_for(response)
+        {
+          status: response.status,
+          headers: response.headers,
+          body: response.json
+        }
+      end
+
+      def log_access(socket, request, status, body_bytes)
+        output.puts [
+          remote_address(socket),
+          "-",
+          "-",
+          "[#{Time.now.strftime('%d/%b/%Y:%H:%M:%S %z')}]",
+          %("#{access_log_value(request.fetch(:request_line))}"),
+          status,
+          body_bytes,
+          %("#{access_log_value(request.fetch(:headers).fetch('referer', '-'))}"),
+          %("#{access_log_value(request.fetch(:headers).fetch('user-agent', '-'))}")
+        ].join(" ")
+        output.flush if output.respond_to?(:flush)
+      end
+
+      def remote_address(socket)
+        socket.peeraddr.fetch(3)
+      rescue StandardError
+        "-"
+      end
+
+      def access_log_value(value)
+        value.to_s.empty? ? "-" : value.to_s.gsub(/["\\]/) { |character| "\\#{character}" }
       end
 
       def reason_phrase(status)

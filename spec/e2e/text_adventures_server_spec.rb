@@ -72,7 +72,34 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "logs requests to stdout in nginx combined log style" do
+    output = capture_server_output do |port|
+      response = request_json(port, Net::HTTP::Get, "/styles.css")
+      expect(response.code).to eq "200"
+    end
+
+    expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "GET /styles\.css HTTP/1\.1" 200 \d+ "-" "[^"]*"})
+  end
+
   def with_server
+    server = start_server
+    yield server.fetch(:port)
+  ensure
+    stop_server(server) if server
+  end
+
+  def capture_server_output
+    server = start_server
+    output = nil
+    begin
+      yield server.fetch(:port)
+    ensure
+      output = stop_server(server)
+    end
+    output
+  end
+
+  def start_server
     port = available_port
     stdin, stdout, stderr, wait_thread = Open3.popen3(
       {
@@ -84,12 +111,20 @@ RSpec.describe "text_adventures server binary" do
     )
     stdin.close
     wait_for_server(port)
-    yield port
-  ensure
+
+    { port: port, stdout: stdout, stderr: stderr, wait_thread: wait_thread }
+  end
+
+  def stop_server(server)
+    wait_thread = server.fetch(:wait_thread)
     Process.kill("TERM", wait_thread.pid) if wait_thread&.alive?
     wait_thread&.value
+    stdout = server.fetch(:stdout)
+    stderr = server.fetch(:stderr)
+    output = stdout.read.to_s
     stdout&.close
     stderr&.close
+    output
   end
 
   def available_port
