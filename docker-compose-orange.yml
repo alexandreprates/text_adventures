@@ -16,8 +16,6 @@ services:
       cloudflare:
         aliases:
           - text-adventures
-    ports:
-      - "3000:3000"
 
 networks:
   cloudflare:
