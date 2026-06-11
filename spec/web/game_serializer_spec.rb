@@ -82,6 +82,13 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
+  it "serializes the complete command history" do
+    12.times { game.handle("look") }
+
+    expect(state.fetch(:history).size).to eq 12
+    expect(state.fetch(:history).map { |entry| entry.fetch(:command) }).to all(eq "look")
+  end
+
   it "serializes dungeon state, adjacent enemies, nearby loot, and active battle" do
     game.handle("go ruins")
     dungeon = game.dungeon

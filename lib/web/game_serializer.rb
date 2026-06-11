@@ -1,8 +1,6 @@
 module TextAdventures
   module Web
     class GameSerializer
-      HISTORY_LIMIT = 10
-
       def initialize(game)
         @game = game
       end
@@ -173,7 +171,7 @@ module TextAdventures
       end
 
       def history_state
-        game.history.last(HISTORY_LIMIT).map do |entry|
+        game.history.map do |entry|
           {
             command: entry.command,
             response: entry.response.to_s,

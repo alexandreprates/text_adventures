@@ -59,7 +59,6 @@ const elements = {
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
 
-const LOG_FALLBACK_LIMIT = 12;
 const DUNGEON_MAP_ZOOM = 1.3;
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
@@ -90,6 +89,7 @@ const LOCATION_ARTS = {
 };
 
 let currentState = null;
+let openingLogLines = [];
 const commandHistory = {
   entries: [],
   index: 0,
@@ -259,10 +259,14 @@ function renderList(target, entries, formatter) {
 }
 
 function renderLog(response, history) {
-  const sourceLines = response?.lines?.length ? response.lines : history.flatMap(entry => entry.lines).slice(-LOG_FALLBACK_LIMIT);
+  if (!history.length && response?.lines?.length) openingLogLines = response.lines;
+
+  const historyLines = history.flatMap(entry => entry.lines);
+  const sourceLines = [...openingLogLines, ...historyLines];
   const lines = sourceLines.filter(isLoggableLine);
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
+  elements.messageLog.scrollTop = elements.messageLog.scrollHeight;
 }
 
 function asciiBar(current, max, kind) {
