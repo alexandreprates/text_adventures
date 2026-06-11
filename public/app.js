@@ -33,6 +33,8 @@ const elements = {
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
+  mapZoomIn: document.querySelector("#map-zoom-in"),
+  mapZoomOut: document.querySelector("#map-zoom-out"),
   quickActions: document.querySelector("#quick-actions"),
   classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
@@ -51,7 +53,11 @@ const elements = {
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
 
-const DUNGEON_MAP_ZOOM = 1.3;
+const DUNGEON_MAP_BASE_ZOOM = 1.3;
+const LOCATION_ART_BASE_ZOOM = 1.12;
+const MAP_ZOOM_STEP = 0.12;
+const MAP_ZOOM_MIN = 0.76;
+const MAP_ZOOM_MAX = 1.96;
 const COMBAT_FEEDBACK_STEP_MS = 520;
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
@@ -81,6 +87,7 @@ const LOCATION_ARTS = {
 };
 
 let currentState = null;
+let mapZoom = 1;
 let openingLogLines = [];
 let combatFeedbackTimers = [];
 const commandHistory = {
@@ -147,6 +154,7 @@ function renderMap(state) {
 function showCanvasMap(dungeon) {
   elements.mapStage.classList.add("has-canvas-map");
   elements.mapStage.classList.remove("has-location-art");
+  elements.locationArt.style.transform = "";
   const mapRows = dungeon.map;
   elements.mapGrid.textContent = mapRows.join("\n");
   dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
@@ -155,12 +163,14 @@ function showCanvasMap(dungeon) {
 
 function showTextMap() {
   elements.mapStage.classList.remove("has-canvas-map", "has-location-art");
+  elements.locationArt.style.transform = "";
 }
 
 function showLocationArt(scene) {
   const locationArt = LOCATION_ARTS[scene];
   elements.locationArt.src = locationArt.src;
   elements.locationArt.alt = locationArt.alt;
+  applyLocationArtZoom();
   elements.mapStage.classList.add("has-location-art");
 }
 
@@ -171,9 +181,30 @@ function resizeCanvasMap() {
   const scale = Math.min(
     elements.mapStage.clientWidth / canvas.width,
     elements.mapStage.clientHeight / canvas.height
-  ) * DUNGEON_MAP_ZOOM;
+  ) * DUNGEON_MAP_BASE_ZOOM * mapZoom;
   canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
   canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
+}
+
+function applyLocationArtZoom() {
+  const scale = LOCATION_ART_BASE_ZOOM * mapZoom;
+  elements.locationArt.style.transform = `scale(${scale.toFixed(2)})`;
+}
+
+function updateMapZoomControls() {
+  elements.mapZoomOut.disabled = mapZoom <= MAP_ZOOM_MIN;
+  elements.mapZoomIn.disabled = mapZoom >= MAP_ZOOM_MAX;
+}
+
+function setMapZoom(nextZoom) {
+  mapZoom = Math.max(MAP_ZOOM_MIN, Math.min(MAP_ZOOM_MAX, Math.round(nextZoom * 100) / 100));
+  if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();
+  if (elements.mapStage.classList.contains("has-location-art")) applyLocationArtZoom();
+  updateMapZoomControls();
+}
+
+function adjustMapZoom(direction) {
+  setMapZoom(mapZoom + (direction * MAP_ZOOM_STEP));
 }
 
 function renderStatus(state) {
@@ -598,6 +629,10 @@ elements.commandInput.addEventListener("keydown", event => {
     recallCommand(1);
   }
 });
+
+elements.mapZoomIn.addEventListener("click", () => adjustMapZoom(1));
+elements.mapZoomOut.addEventListener("click", () => adjustMapZoom(-1));
+updateMapZoomControls();
 
 window.addEventListener("resize", () => {
   if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();

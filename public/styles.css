@@ -386,6 +386,34 @@ pre {
   user-select: none;
 }
 
+.map-zoom-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(2, 30px);
+  gap: 4px;
+}
+
+.map-zoom-button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 8, 0.88);
+  color: var(--green);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.map-zoom-button:disabled {
+  color: var(--green-dim);
+  opacity: 0.44;
+  cursor: default;
+}
+
 .map-canvas {
   display: none;
   width: auto;
@@ -417,6 +445,7 @@ pre {
   background: #000;
   object-fit: contain;
   image-rendering: pixelated;
+  transform-origin: center;
 }
 
 .map-stage.has-location-art {
