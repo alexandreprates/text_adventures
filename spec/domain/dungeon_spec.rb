@@ -228,6 +228,19 @@ RSpec.describe TextAdventures::Dungeon do
       ]
     end
 
+    it "renders the floor descent marker on open tiles" do
+      descending = described_class.new(floor_exit_position: described_class::Position.new(x: 5, y: 2))
+
+      expect(descending.render(view: :full).lines.map(&:chomp)).to eq [
+        "Ruins Level 1",
+        "######",
+        "######",
+        "##.x.>",
+        "######",
+        "######"
+      ]
+    end
+
     it "renders the player above entity markers" do
       position = described_class::Position.new(x: 3, y: 2)
 
@@ -341,6 +354,15 @@ RSpec.describe TextAdventures::Dungeon do
       expect(result.from).to have_attributes(x: 3, y: 2)
       expect(result.to).to have_attributes(x: 4, y: 2)
       expect(dungeon.player_position).to have_attributes(x: 4, y: 2)
+    end
+
+    it "detects when the player steps onto the floor descent" do
+      descending = described_class.new(floor_exit_position: described_class::Position.new(x: 4, y: 2))
+
+      result = descending.move("right")
+
+      expect(result).to be_success
+      expect(descending).to be_player_on_descent
     end
 
     it "moves the player inside the current revealed block" do
@@ -482,6 +504,19 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.enemies).to eq({})
     end
 
+    it "spawns enemies from the current dungeon level pool" do
+      edge_dungeon = described_class.new(
+        level: 6,
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 0, 0, 0])
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to be_success
+      expect(edge_dungeon.enemies.values).to include "orc_berserker"
+    end
+
     it "rejects movement into an already revealed incompatible neighbor" do
       edge_dungeon = described_class.new(
         revealed_blocks: {
@@ -510,6 +545,33 @@ RSpec.describe TextAdventures::Dungeon do
         message: "Unknown direction: sideways."
       )
       expect(dungeon.player_position).to have_attributes(x: 3, y: 2)
+    end
+  end
+
+  describe "#advance_level!" do
+    it "moves to the next level and resets transient dungeon state" do
+      descending = described_class.new(
+        floor_exit_position: described_class::Position.new(x: 4, y: 2)
+      )
+      descending.place_enemy(described_class::Position.new(x: 5, y: 2), "giant_spider")
+      descending.drop_loot(described_class::Position.new(x: 2, y: 2), [test_loot])
+
+      descending.advance_level!
+
+      expect(descending.level).to eq 2
+      expect(descending.current_block_position).to have_attributes(x: 0, y: 0)
+      expect(descending.player_position).to have_attributes(x: 3, y: 2)
+      expect(descending.floor_exit_position).to be_nil
+      expect(descending.enemies).to eq({})
+      expect(descending.dropped_loot).to eq({})
+      expect(descending.render(view: :full).lines.map(&:chomp)).to eq [
+        "Ruins Level 2",
+        "######",
+        "######",
+        "##.x..",
+        "######",
+        "######"
+      ]
     end
   end
 end

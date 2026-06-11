@@ -35,6 +35,35 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "descends to the next dungeon level over HTTP commands" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/games", seed: 5)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+      body = nil
+
+      [
+        "go ruins",
+        "go right",
+        "go right",
+        "go right",
+        "go right",
+        "go right",
+        "go up",
+        "go up",
+        "go right"
+      ].each do |command|
+        command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: command)
+        expect(command_response.code).to eq "200"
+        body = JSON.parse(command_response.body)
+      end
+
+      expect(body.dig("response", "lines")).to include "You descend deeper into the ruins."
+      expect(body.dig("state", "prompt")).to eq "Ruins L2"
+      expect(body.dig("state", "dungeon", "level")).to eq 2
+      expect(body.dig("state", "dungeon", "entrance_portal")).to be_nil
+    end
+  end
+
   it "serves the browser frontend assets" do
     with_server do |port|
       index_response = request_json(port, Net::HTTP::Get, "/")

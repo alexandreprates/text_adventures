@@ -473,6 +473,34 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.current_scene_name).to eq :town
   end
 
+  it "descends to the next level when the player steps onto the floor exit" do
+    descending_dungeon = TextAdventures::Dungeon.new(
+      floor_exit_position: TextAdventures::Dungeon::Position.new(x: 4, y: 2)
+    )
+    descending_scene = described_class.new(dungeon: descending_dungeon)
+    descending_game = TextAdventures::Game.new(current_scene: descending_scene, random: random)
+
+    response = descending_game.handle("go right")
+
+    expect(response).to include "You move right."
+    expect(response).to include "You descend deeper into the ruins."
+    expect(response).to include "Ruins Level 2"
+    expect(descending_game.current_scene_name).to eq :ruins
+    expect(descending_dungeon.level).to eq 2
+    expect(descending_dungeon.player_position).to have_attributes(x: 3, y: 2)
+    expect(descending_dungeon.floor_exit_position).to be_nil
+  end
+
+  it "still blocks direct town return after descending" do
+    dungeon.advance_level!
+
+    expect(game.handle("go town")).to eq <<~TEXT.chomp
+      The ruins hold you in place.
+      Return to the entrance portal to go back to Nee'Peh.
+    TEXT
+    expect(game.current_scene_name).to eq :ruins
+  end
+
   it "rejects invalid movement targets" do
     expect(game.handle("go sideways")).to eq <<~TEXT.chomp
       You cannot go sideways inside the ruins.

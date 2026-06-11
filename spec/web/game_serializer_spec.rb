@@ -106,6 +106,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:dungeon, :map)).to include(a_string_including("##.xE."))
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
+    expect(state.dig(:dungeon, :descent)).to be_nil
     expect(state.dig(:dungeon, :visible_enemy)).to eq(
       x: 4,
       y: 2,
@@ -127,6 +128,14 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       health: { current: 35, max: 35 },
       xp_reward: 67
     )
+  end
+
+  it "serializes dungeon descent markers" do
+    game.handle("go ruins")
+    game.dungeon.instance_variable_set(:@floor_exit_position, TextAdventures::Dungeon::Position.new(x: 4, y: 2))
+
+    expect(state.dig(:dungeon, :descent)).to eq(x: 4, y: 2)
+    expect(state.dig(:dungeon, :map)).to include(a_string_including("##.x>."))
   end
 
   it "serializes pending merchant confirmation" do

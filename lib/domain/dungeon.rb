@@ -12,6 +12,7 @@ module TextAdventures
     ENEMY = "E".freeze
     LOOT = "@".freeze
     PORTAL = "P".freeze
+    DESCENT = ">".freeze
     FLOOR = ".".freeze
     UNREVEALED = "?".freeze
     ENEMY_SPAWN_CHANCE = 50
@@ -35,13 +36,15 @@ module TextAdventures
     DEFAULT_BLOCK_POSITION = BlockPosition.new(x: 0, y: 0).freeze
     DEFAULT_ENTRANCE_PORTAL_POSITION = Position.new(x: 3, y: 2).freeze
 
-    attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :random, :enemies, :dropped_loot
+    attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :floor_exit_position,
+                :random, :enemies, :dropped_loot
 
     def initialize(
       level: DEFAULT_LEVEL,
       revealed_blocks: nil,
       player_position: DEFAULT_PLAYER_POSITION,
       current_block_position: DEFAULT_BLOCK_POSITION,
+      floor_exit_position: nil,
       enemies: {},
       dropped_loot: {},
       random: Random.new
@@ -50,6 +53,7 @@ module TextAdventures
       @revealed_blocks = normalize_revealed_blocks(revealed_blocks)
       @player_position = Position.new(x: player_position.x, y: player_position.y)
       @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
+      @floor_exit_position = normalize_optional_position(floor_exit_position)
       @enemies = normalize_entity_hash(enemies)
       @dropped_loot = normalize_entity_hash(dropped_loot)
       @random = random
@@ -95,15 +99,40 @@ module TextAdventures
     end
 
     def entrance_portal_position
+      return nil unless level == DEFAULT_LEVEL
+
       global_position(DEFAULT_ENTRANCE_PORTAL_POSITION, DEFAULT_BLOCK_POSITION)
     end
 
     def portal_at?(position)
+      return false unless entrance_portal_position
+
       position_key(position) == position_key(entrance_portal_position)
     end
 
     def player_on_entrance_portal?
       portal_at?(current_global_position)
+    end
+
+    def descent_at?(position)
+      return false unless floor_exit_position
+
+      position_key(position) == position_key(floor_exit_position)
+    end
+
+    def player_on_descent?
+      descent_at?(current_global_position)
+    end
+
+    def advance_level!
+      @level += 1
+      @revealed_blocks = normalize_revealed_blocks(nil)
+      @current_block_position = BlockPosition.new(x: DEFAULT_BLOCK_POSITION.x, y: DEFAULT_BLOCK_POSITION.y)
+      @player_position = Position.new(x: DEFAULT_PLAYER_POSITION.x, y: DEFAULT_PLAYER_POSITION.y)
+      @floor_exit_position = nil
+      @enemies = {}
+      @dropped_loot = {}
+      self
     end
 
     def global_position(local_position, block_position = current_block_position)
@@ -216,6 +245,8 @@ module TextAdventures
             LOOT
           elsif portal_at?(render_position)
             PORTAL
+          elsif descent_at?(render_position)
+            DESCENT
           else
             rendered_tile(tile)
           end
@@ -277,6 +308,13 @@ module TextAdventures
 
       x, y = key
       [Integer(x), Integer(y)]
+    end
+
+    def normalize_optional_position(value)
+      return nil unless value
+
+      key = normalize_position_key(value)
+      Position.new(x: key[0], y: key[1])
     end
 
     def validate_player_position!
@@ -344,6 +382,7 @@ module TextAdventures
 
       selected = select_reveal_block(candidates)
       revealed_blocks[block_position.key] = selected
+      maybe_place_descent_in_block(block_position, selected, direction)
       maybe_place_enemy_in_block(block_position, selected, direction)
       selected
     end
@@ -362,23 +401,50 @@ module TextAdventures
     def maybe_place_enemy_in_block(block_position, block, direction)
       return if random.rand(100) >= ENEMY_SPAWN_CHANCE
 
-      creature_ids = ContentCatalog.creature_ids
+      creature_ids = ContentCatalog.creature_ids_for_level(level)
       creature_id = creature_ids[random.rand(creature_ids.length)]
       position = enemy_spawn_position(block_position, block, direction)
       place_enemy(position, creature_id) if position
     end
 
+    def maybe_place_descent_in_block(block_position, block, direction)
+      return if floor_exit_position
+
+      @floor_exit_position = descent_position_in_block(block_position, block, direction)
+    end
+
+    def descent_position_in_block(block_position, block, direction)
+      entry_key = position_key(global_position(entry_position_for(direction), block_position))
+      candidates = open_positions_in_block(block_position, block).reject do |position|
+        key = position_key(position)
+        key == entry_key || key == position_key(current_global_position)
+      end
+
+      candidates.max_by { |position| distance(position_key(position), entry_key) }
+    end
+
     def enemy_spawn_position(block_position, block, direction)
       entry_key = position_key(global_position(entry_position_for(direction), block_position))
-      candidates = block.tiles.each_with_index.flat_map do |row, y|
+      candidates = open_positions_in_block(block_position, block).reject do |position|
+        key = position_key(position)
+        key == entry_key || key == position_key(current_global_position) || descent_at?(position)
+      end
+
+      candidates[random.rand(candidates.length)] unless candidates.empty?
+    end
+
+    def open_positions_in_block(block_position, block)
+      block.tiles.each_with_index.flat_map do |row, y|
         row.each_char.with_index.filter_map do |tile, x|
           next unless tile == DungeonBlock::OPEN
 
           global_position(Position.new(x: x, y: y), block_position)
         end
-      end.reject { |position| position_key(position) == entry_key || position_key(position) == position_key(current_global_position) }
+      end
+    end
 
-      candidates[random.rand(candidates.length)] unless candidates.empty?
+    def distance(a, b)
+      (a[0] - b[0]).abs + (a[1] - b[1]).abs
     end
 
     def compatible_with_neighbors?(block_position, block)

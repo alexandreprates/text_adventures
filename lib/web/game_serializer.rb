@@ -134,7 +134,8 @@ module TextAdventures
           level: dungeon.level,
           map: dungeon.render(view: :viewport).lines.drop(1).map(&:chomp),
           player_position: position_state(dungeon.current_global_position),
-          entrance_portal: position_state(dungeon.entrance_portal_position),
+          entrance_portal: optional_position_state(dungeon.entrance_portal_position),
+          descent: optional_position_state(dungeon.floor_exit_position),
           visible_enemy: enemy_position_state(dungeon.adjacent_enemy_position),
           visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
@@ -212,6 +213,10 @@ module TextAdventures
           x: position.x,
           y: position.y
         }
+      end
+
+      def optional_position_state(position)
+        position_state(position) if position
       end
 
       def equipment_name(equipment)

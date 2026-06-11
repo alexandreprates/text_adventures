@@ -143,6 +143,7 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('"x": "player"')
     expect(renderer).to include('portal: [7, 3]')
     expect(renderer).to include('"P": "portal"')
+    expect(renderer).to include('">": "stairsDown"')
     expect(renderer).to include('"/assets/enemies/enemies.json"')
     expect(renderer).to include('"E": "floor"')
     expect(renderer).to include('"@": "lootBag"')

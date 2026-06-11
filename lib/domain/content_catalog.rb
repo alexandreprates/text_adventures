@@ -3,6 +3,43 @@ require "yaml"
 module TextAdventures
   class ContentCatalog
     DATA_DIRECTORY = File.join(ROOT, "data")
+    LEVEL_CREATURE_POOLS = [
+      {
+        range: 1..2,
+        ids: %w[
+          giant_spider goblin_skirmisher goblin_hexer kobold_trapper
+          kobold_sparkmage skeleton_guard skeleton_archer forest_sprite
+        ]
+      },
+      {
+        range: 3..5,
+        ids: %w[
+          hobgoblin_soldier orc_raider gnoll_hunter gnoll_bonecaller
+          ghoul_stalker shadow_imp brimstone_imp lizardfolk_scout
+          harpy_screecher elemental_spark
+        ]
+      },
+      {
+        range: 6..8,
+        ids: %w[
+          orc_berserker wight_knight zombie_brute satyr_duelist
+          dryad_thornweaver fae_blade_dancer dire_wolf naga_apprentice
+          yuan_ti_cutthroat fire_elemental_ling ice_elemental_ling
+          air_elemental_ling
+        ]
+      },
+      {
+        range: 9..999,
+        ids: %w[
+          lesser_demon owlbear_cub cave_troll hill_giant_youth
+          minotaur_guardian ogre_marauder basilisk_hatchling
+          griffin_fledgling manticore_whelp wyvern_juvenile
+          dragon_wyrmling earth_elemental_ling dark_elf_assassin
+          dark_elf_arcanist dwarven_ghost cursed_paladin enchanted_armor
+          crystal_golem lich_acolyte
+        ]
+      }
+    ].freeze
 
     def self.item(id)
       new.item(id)
@@ -18,6 +55,10 @@ module TextAdventures
 
     def self.creature_ids
       new.creature_ids
+    end
+
+    def self.creature_ids_for_level(level)
+      new.creature_ids_for_level(level)
     end
 
     def self.shop(id)
@@ -56,6 +97,14 @@ module TextAdventures
 
     def creature_ids
       creatures_data.fetch("creatures").keys
+    end
+
+    def creature_ids_for_level(level)
+      normalized_level = [Integer(level), 1].max
+      pool = LEVEL_CREATURE_POOLS.find { |entry| entry.fetch(:range).cover?(normalized_level) } ||
+             LEVEL_CREATURE_POOLS.last
+
+      pool.fetch(:ids)
     end
 
     def shop(id)

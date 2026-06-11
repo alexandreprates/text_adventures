@@ -98,6 +98,18 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(described_class.creature_ids).to include("giant_spider")
     end
 
+    it "exposes dungeon creature pools by level" do
+      expect(described_class.creature_ids_for_level(1)).to include("giant_spider", "goblin_skirmisher")
+      expect(described_class.creature_ids_for_level(6)).to include("orc_berserker", "wight_knight")
+      expect(described_class.creature_ids_for_level(10)).to include("lesser_demon", "dragon_wyrmling")
+    end
+
+    it "keeps every level creature pool backed by the creature roster" do
+      pooled_ids = [1, 3, 6, 9].flat_map { |level| described_class.creature_ids_for_level(level) }
+
+      expect(pooled_ids - described_class.creature_ids).to eq []
+    end
+
     it "builds creatures from YAML definitions" do
       creature = described_class.creature("giant_spider")
 

@@ -62,18 +62,43 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "You go to Ruins."
     expect(lines).to include "??????##.x..??????"
     expect(lines).to include "??????##.P.x??????"
-    expect(lines).to include "########.E##??????"
-    expect(lines).to include "##.P........??????"
-    expect(lines).to include "########xE##??????"
-    expect(output).to include "You see a Giant Spider"
-    expect(output).to include "A Giant Spider is about to attack you!"
-    expect(output).to include "Giant Spider dies."
+    expect(lines).to include "########E>##??????"
+    expect(lines).to include "########x.##??????"
+    expect(output).to include "You see a Skeleton Guard"
+    expect(output).to include "A Skeleton Guard is about to attack you!"
+    expect(output).to include "Skeleton Guard dies."
     expect(output).to include "[loot dropped]"
-    expect(lines).to include "########x@##??????"
+    expect(lines).to include "########@>##??????"
     expect(output).to include "You collect the loot."
-    expect(output).to include "[1x Tome of Freezing added to inventory]"
+    expect(output).to include "[1x Chain Shirt added to inventory]"
+    expect(after_collection.lines.map(&:chomp)).to include "########.>##??????"
     expect(after_collection.lines.map(&:chomp)).to include "########x.##??????"
     expect(output).to include "Thanks for playing."
+  end
+
+  it "descends to the next dungeon level through the binary" do
+    output, error, status = Open3.capture3(
+      { "TEXT_ADVENTURES_SCREEN" => "0", "TEXT_ADVENTURES_RANDOM_SEED" => "5" },
+      binary,
+      stdin_data: <<~COMMANDS
+        go ruins
+        go right
+        go right
+        go right
+        go right
+        go right
+        go up
+        go up
+        go right
+        quit
+      COMMANDS
+    )
+
+    expect(status).to be_success
+    expect(error).to eq ""
+    expect(output).to include "You descend deeper into the ruins."
+    expect(output).to include "Ruins Level 2"
+    expect(output).to include "Ruins L2 >"
   end
 
   it "plays with game mode shortcuts through the binary" do
