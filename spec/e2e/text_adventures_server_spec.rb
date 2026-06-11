@@ -40,12 +40,14 @@ RSpec.describe "text_adventures server binary" do
       index_response = request_json(port, Net::HTTP::Get, "/")
       expect(index_response.code).to eq "200"
       expect(index_response["Content-Type"]).to include "text/html"
+      expect(index_response["Cache-Control"]).to eq "no-cache"
       expect(index_response.body).to include '<main class="game-layout">'
       expect(index_response.body).to include '<script src="/app.js"></script>'
 
       styles_response = request_json(port, Net::HTTP::Get, "/styles.css")
       expect(styles_response.code).to eq "200"
       expect(styles_response["Content-Type"]).to include "text/css"
+      expect(styles_response["Cache-Control"]).to eq "no-cache"
       expect(styles_response.body).to include ".game-layout"
 
       app_response = request_json(port, Net::HTTP::Get, "/app.js")
@@ -72,6 +74,35 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "versions browser asset URLs when an asset version is configured" do
+    with_server("TEXT_ADVENTURES_ASSET_VERSION" => "test-sha") do |port|
+      index_response = request_json(port, Net::HTTP::Get, "/")
+      expect(index_response.body).to include '<link rel="stylesheet" href="/styles.css?v=test-sha">'
+      expect(index_response.body).to include 'src="/assets/locations/village-hub.png?v=test-sha"'
+      expect(index_response.body).to include '<script src="/map_renderer.js?v=test-sha"></script>'
+      expect(index_response.body).to include '<script src="/app.js?v=test-sha"></script>'
+      expect(index_response["Cache-Control"]).to eq "no-cache"
+
+      app_response = request_json(port, Net::HTTP::Get, "/app.js?v=test-sha")
+      expect(app_response.body).to include '"/assets/locations/village-hub.png?v=test-sha"'
+      expect(app_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+
+      renderer_response = request_json(port, Net::HTTP::Get, "/map_renderer.js?v=test-sha")
+      expect(renderer_response.body).to include '"/assets/tilesets/original-dungeon-tileset.png?v=test-sha"'
+      expect(renderer_response.body).to include '"/assets/enemies/enemies.json?v=test-sha"'
+      expect(renderer_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+
+      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json?v=test-sha")
+      enemies = JSON.parse(enemies_response.body)
+      expect(enemies.dig("giant_spider", "sprite")).to eq "/assets/enemies/sprites/giant_spider.png?v=test-sha"
+      expect(enemies_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+
+      image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png?v=test-sha")
+      expect(image_response["Content-Type"]).to include "image/png"
+      expect(image_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+    end
+  end
+
   it "logs requests to stdout in nginx combined log style" do
     output = capture_server_output do |port|
       response = request_json(port, Net::HTTP::Get, "/styles.css")
@@ -81,15 +112,15 @@ RSpec.describe "text_adventures server binary" do
     expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "GET /styles\.css HTTP/1\.1" 200 \d+ "-" "[^"]*"})
   end
 
-  def with_server
-    server = start_server
+  def with_server(env = {})
+    server = start_server(env)
     yield server.fetch(:port)
   ensure
     stop_server(server) if server
   end
 
-  def capture_server_output
-    server = start_server
+  def capture_server_output(env = {})
+    server = start_server(env)
     output = nil
     begin
       yield server.fetch(:port)
@@ -99,13 +130,13 @@ RSpec.describe "text_adventures server binary" do
     output
   end
 
-  def start_server
+  def start_server(env = {})
     port = available_port
     stdin, stdout, stderr, wait_thread = Open3.popen3(
       {
         "TEXT_ADVENTURES_HOST" => "127.0.0.1",
         "TEXT_ADVENTURES_PORT" => port.to_s
-      },
+      }.merge(env),
       binary,
       "server"
     )
