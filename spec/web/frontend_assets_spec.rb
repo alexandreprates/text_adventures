@@ -87,6 +87,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('elements.statusValue.classList.toggle("status-clear"')
     expect(javascript).to include('classProgressLines(player.skills)')
     expect(javascript).to include('function classProgressLines(skills = {})')
+    expect(javascript).to include('plainAsciiBar(skill.xp, skill.next_level_xp)')
+    expect(javascript).to include('function plainAsciiBar(current, max)')
     expect(javascript).to include('function renderEnemyStatus(battle)')
     expect(javascript).to include('elements.enemyPanel.classList.toggle("hidden", !enemy)')
     expect(javascript).not_to include('BTTL ${battle}')

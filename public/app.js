@@ -457,9 +457,16 @@ function classLine(player) {
 
 function classProgressLines(skills = {}) {
   return Object.entries(skills).map(([name, skill]) => {
-    const progress = `${skill.xp}/${skill.next_level_xp} XP`;
-    return `${labelize(name)} Lv ${skill.level} ${progress}`;
+    const progress = `${skill.xp}/${skill.next_level_xp}`;
+    return `${labelize(name)} ${skill.level} ${plainAsciiBar(skill.xp, skill.next_level_xp)} ${progress}`;
   });
+}
+
+function plainAsciiBar(current, max) {
+  const width = 5;
+  const ratio = max ? Math.max(0, Math.min(1, current / max)) : 0;
+  const filled = Math.round(ratio * width);
+  return `[${"|".repeat(filled)}${" ".repeat(width - filled)}]`;
 }
 
 function healthBar(current, max) {
