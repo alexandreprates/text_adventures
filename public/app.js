@@ -35,6 +35,7 @@ const elements = {
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
   quickActions: document.querySelector("#quick-actions"),
+  classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
@@ -189,6 +190,7 @@ function renderStatus(state) {
   elements.statusValue.textContent = statuses;
   elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
+  elements.classOutput.textContent = classProgressLines(player.skills).join("\n");
 
   elements.statusOutput.textContent = [
     `ARM ${weapon}`,
@@ -437,6 +439,13 @@ function classLine(player) {
   const weaponClass = player.equipment.weapon?.weapon_class;
   if (weaponClass) return `${labelize(weaponClass)} Delver`;
   return "Terminal Delver";
+}
+
+function classProgressLines(skills = {}) {
+  return Object.entries(skills).map(([name, skill]) => {
+    const progress = `${skill.xp}/${skill.next_level_xp} XP`;
+    return `${labelize(name)} Lv ${skill.level} ${progress}`;
+  });
 }
 
 function healthBar(current, max) {

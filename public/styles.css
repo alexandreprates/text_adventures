@@ -307,11 +307,16 @@ pre {
   overflow: auto;
 }
 
+.class-output,
 .status-output {
   border-top: 1px solid var(--border);
   padding-top: 6px;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.class-output {
+  margin-bottom: 8px;
 }
 
 .map-panel {
