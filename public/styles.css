@@ -221,7 +221,15 @@ pre {
   align-items: center;
 }
 
+.status-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 7px;
+  align-items: start;
+}
+
 .bar-row span:first-child,
+.status-row span:first-child,
 .section-label,
 .run-stats dt,
 .attribute-grid dt,
@@ -232,6 +240,21 @@ pre {
 .bar-row strong {
   text-align: right;
   font-weight: 400;
+}
+
+.status-row strong {
+  min-width: 0;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.status-clear {
+  color: var(--green);
+}
+
+.status-alert {
+  color: var(--amber);
 }
 
 .danger span:first-child,

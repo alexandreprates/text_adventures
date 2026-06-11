@@ -29,10 +29,7 @@ const elements = {
   clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
-  attackBar: document.querySelector("#attack-bar"),
-  attackValue: document.querySelector("#attack-value"),
   attackValueSmall: document.querySelector("#attack-value-small"),
-  xpBar: document.querySelector("#xp-bar"),
   xpValue: document.querySelector("#xp-value"),
   levelValue: document.querySelector("#level-value"),
   goldValue: document.querySelector("#gold-value"),
@@ -191,16 +188,12 @@ function renderStatus(state) {
     ? `${state.battle.enemy.display_name} HP ${state.battle.enemy.health.current}/${state.battle.enemy.health.max}`
     : "none";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
-  const xpTarget = nextSkillTarget(player.skills);
 
   elements.characterName.textContent = player.name.toUpperCase();
   elements.characterClass.textContent = classLine(player);
   elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
-  elements.attackBar.innerHTML = asciiBar(player.attack, 40, "mana");
-  elements.attackValue.textContent = String(player.attack);
   elements.attackValueSmall.textContent = String(player.attack);
-  elements.xpBar.innerHTML = asciiBar(player.xp, xpTarget || 1, "xp");
   elements.xpValue.textContent = String(player.xp);
   elements.levelValue.textContent = String(player.level);
   elements.goldValue.textContent = `$ ${player.gold} gp`;
@@ -208,6 +201,8 @@ function renderStatus(state) {
   elements.defenseValue.textContent = String(player.defense);
   elements.modeValue.textContent = state.input_mode.toUpperCase();
   elements.statusValue.textContent = statuses;
+  elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
+  elements.statusValue.classList.toggle("status-clear", statuses === "clear");
 
   elements.statusOutput.textContent = [
     `ARM ${weapon}`,
@@ -456,11 +451,6 @@ function classLine(player) {
   const weaponClass = player.equipment.weapon?.weapon_class;
   if (weaponClass) return `${labelize(weaponClass)} Delver`;
   return "Terminal Delver";
-}
-
-function nextSkillTarget(skills = {}) {
-  const firstSkill = Object.values(skills)[0];
-  return firstSkill?.next_level_xp || 50;
 }
 
 function healthBar(current, max) {
