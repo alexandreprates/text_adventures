@@ -9,5 +9,9 @@ services:
       TEXT_ADVENTURES_HOST: 0.0.0.0
       TEXT_ADVENTURES_PORT: 4567
       TEXT_ADVENTURES_ASSET_VERSION: ${TEXT_ADVENTURES_ASSET_VERSION:-dev}
+    networks:
+      default:
+        aliases:
+          - text-adventures
     ports:
       - "3000:4567"
