@@ -52,6 +52,11 @@ RSpec.describe "text_adventures server binary" do
       expect(app_response.code).to eq "200"
       expect(app_response["Content-Type"]).to include "text/javascript"
       expect(app_response.body).to include 'fetch("/games"'
+
+      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json")
+      expect(enemies_response.code).to eq "200"
+      expect(enemies_response["Content-Type"]).to include "application/json"
+      expect(JSON.parse(enemies_response.body)).to include "giant_spider"
     end
   end
 
