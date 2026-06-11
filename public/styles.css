@@ -500,7 +500,7 @@ pre {
 
 .tab-panel li {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px;
   padding: 1px 4px;
   border-left: 2px solid transparent;
@@ -510,10 +510,6 @@ pre {
 .tab-panel li:hover {
   border-left-color: var(--amber);
   background: var(--panel-active);
-}
-
-.item-key {
-  color: var(--amber);
 }
 
 .item-type {

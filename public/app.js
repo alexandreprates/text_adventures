@@ -264,16 +264,15 @@ function renderList(target, entries, formatter) {
   target.innerHTML = "";
   if (!entries || entries.length === 0) {
     const empty = document.createElement("li");
-    empty.innerHTML = `<span class="item-key">-</span><span>Nothing here yet</span><span class="item-type"></span>`;
+    empty.innerHTML = '<span>Nothing here yet</span><span class="item-type"></span>';
     target.appendChild(empty);
     return;
   }
 
-  entries.forEach((entry, index) => {
+  entries.forEach(entry => {
     const details = formatter(entry);
     const item = document.createElement("li");
     item.innerHTML = [
-      `<span class="item-key">${letterForIndex(index)})</span>`,
       `<span>${details.label}</span>`,
       `<span class="item-type">${details.meta || details.type || ""}</span>`
     ].join("");
@@ -304,10 +303,6 @@ function asciiBar(current, max, kind) {
     `<span class="bar-empty">${" ".repeat(width - filled)}</span>`,
     '<span class="bar-bracket">]</span>'
   ].join("");
-}
-
-function letterForIndex(index) {
-  return "abcdefghijklmnopqrstuvwxyz"[index] || "?";
 }
 
 function isLoggableLine(line) {
