@@ -23,6 +23,7 @@ RSpec.describe "Frontend assets" do
     html = File.read(File.join(public_root, "index.html"))
     javascript = File.read(File.join(public_root, "app.js"))
     renderer = File.read(File.join(public_root, "map_renderer.js"))
+    styles = File.read(File.join(public_root, "styles.css"))
 
     expect(html).to include('<link rel="stylesheet" href="/styles.css">')
     expect(html).to include('<canvas')
@@ -71,6 +72,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('event.key === "ArrowDown"')
     expect(javascript).to include('locationPanels')
     expect(javascript).to include('/^[?#.xE@]+$/')
+    expect(styles).to include('"https://fonts.googleapis.com/css2?family=VT323&display=swap"')
+    expect(styles).to include('--mono: "VT323"')
     expect(renderer).to include('globalThis.DungeonMapRenderer')
     expect(renderer).to include('"/assets/tilesets/original-dungeon-tileset.png"')
     expect(renderer).to include('"#": "wall"')

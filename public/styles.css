@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
 :root {
   color-scheme: dark;
   --bg: #080c08;
@@ -15,7 +17,7 @@
   --cyan: #00ccff;
   --blue: #44aaff;
   --purple: #cc44ff;
-  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --mono: "VT323", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 * {
