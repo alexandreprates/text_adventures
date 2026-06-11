@@ -67,8 +67,8 @@ const COLLECTION_TITLES = {
 };
 const LOCATION_ARTS = {
   town: {
-    src: "/assets/figma/dungeon-terminal-reference.png",
-    alt: "Dungeon terminal reference artwork"
+    src: "/assets/locations/village-hub.png",
+    alt: "Village hub with paths to the tavern, temple, shops, and ruins"
   },
   tavern: {
     src: "/assets/locations/tavern-interior.png",
