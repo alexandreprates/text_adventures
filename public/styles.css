@@ -68,7 +68,7 @@ pre {
   height: 100dvh;
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   background: var(--bg);
 }
 
@@ -85,8 +85,7 @@ pre {
 }
 
 .topbar-left,
-.topbar-right,
-.status-strip {
+.topbar-right {
   display: flex;
   align-items: center;
   gap: 22px;
@@ -112,8 +111,7 @@ pre {
 }
 
 .metric-danger,
-.metric strong,
-#footer-danger {
+.metric strong {
   color: var(--red);
 }
 
@@ -537,15 +535,6 @@ pre {
   color: var(--green);
 }
 
-.status-strip {
-  min-height: 26px;
-  justify-content: space-between;
-  padding: 4px 12px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-  font-size: 12px;
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -570,8 +559,7 @@ pre {
 
   .topbar,
   .topbar-left,
-  .topbar-right,
-  .status-strip {
+  .topbar-right {
     flex-wrap: wrap;
   }
 
@@ -596,8 +584,7 @@ pre {
 @media (max-width: 640px) {
   .topbar,
   .topbar-left,
-  .topbar-right,
-  .status-strip {
+  .topbar-right {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;

@@ -59,9 +59,6 @@ const elements = {
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
   newGameButton: document.querySelector("#new-game-button"),
-  footerCharacter: document.querySelector("#footer-character"),
-  footerLocation: document.querySelector("#footer-location"),
-  footerDanger: document.querySelector("#footer-danger"),
   tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
@@ -126,15 +123,10 @@ function render(payload) {
 }
 
 function renderHeader(state) {
-  const sceneLabel = state.scene_display_name || state.scene;
-
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.promptLabel.textContent = state.prompt;
   elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
   elements.topMode.textContent = state.input_mode.toUpperCase();
-  elements.footerCharacter.textContent = `${state.player.name} | Level ${state.player.level}`;
-  elements.footerLocation.textContent = `${sceneLabel} | ${state.prompt}`;
-  elements.footerDanger.textContent = state.scene === "ruins" ? "Difficulty: Dungeon" : "Difficulty: Town";
 }
 
 function renderMap(state) {
