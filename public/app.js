@@ -20,9 +20,9 @@ const api = {
 
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
+  mapTitle: document.querySelector("#map-title"),
   serverStatus: document.querySelector("#server-status"),
   topMode: document.querySelector("#top-mode"),
-  promptLabel: document.querySelector("#prompt-label"),
   gameId: document.querySelector("#game-id"),
   characterName: document.querySelector("#character-name"),
   characterClass: document.querySelector("#character-class"),
@@ -50,8 +50,6 @@ const elements = {
   inventoryList: document.querySelector("#inventory-list"),
   collectionTitleLabel: document.querySelector("#collection-title-label"),
   collectionTitleTail: document.querySelector("#collection-title-tail"),
-  carryWeight: document.querySelector("#carry-weight"),
-  carryBar: document.querySelector("#carry-bar"),
   spellsList: document.querySelector("#spells-list"),
   skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
@@ -122,7 +120,7 @@ function render(payload) {
 
 function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
-  elements.promptLabel.textContent = state.prompt;
+  elements.mapTitle.textContent = `═══ ${state.prompt} ═══`;
   elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
   elements.topMode.textContent = state.input_mode.toUpperCase();
 }
@@ -201,9 +199,6 @@ function renderStatus(state) {
 }
 
 function renderCollections(player) {
-  const inventoryCount = (player.inventory || []).reduce((total, item) => total + item.quantity, 0);
-  elements.carryWeight.textContent = `${(inventoryCount * 2.9).toFixed(1)} / 150 lbs`;
-  elements.carryBar.textContent = `${"█".repeat(Math.min(15, Math.ceil(inventoryCount / 2)))}${"░".repeat(Math.max(0, 15 - Math.ceil(inventoryCount / 2)))}`;
   renderList(elements.inventoryList, player.inventory, item => ({
     label: item.display_name,
     meta: item.quantity > 1 ? `x${item.quantity}` : "",
