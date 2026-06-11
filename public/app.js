@@ -90,6 +90,11 @@ const LOCATION_ARTS = {
 };
 
 let currentState = null;
+const commandHistory = {
+  entries: [],
+  index: 0,
+  draft: ""
+};
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
 async function parseResponse(response) {
@@ -508,12 +513,44 @@ function showError(error) {
   elements.messageLog.textContent = `! ${error.message}`;
 }
 
+function recordCommand(command) {
+  if (commandHistory.entries[commandHistory.entries.length - 1] !== command) commandHistory.entries.push(command);
+  commandHistory.index = commandHistory.entries.length;
+  commandHistory.draft = "";
+}
+
+function recallCommand(direction) {
+  if (!commandHistory.entries.length) return;
+
+  if (commandHistory.index === commandHistory.entries.length) {
+    commandHistory.draft = elements.commandInput.value;
+  }
+
+  commandHistory.index = Math.max(
+    0,
+    Math.min(commandHistory.entries.length, commandHistory.index + direction)
+  );
+  elements.commandInput.value = commandHistory.entries[commandHistory.index] || commandHistory.draft;
+  elements.commandInput.setSelectionRange(elements.commandInput.value.length, elements.commandInput.value.length);
+}
+
 elements.commandForm.addEventListener("submit", event => {
   event.preventDefault();
   const command = elements.commandInput.value.trim();
   if (!command) return;
+  recordCommand(command);
   elements.commandInput.value = "";
   runCommand(command);
+});
+
+elements.commandInput.addEventListener("keydown", event => {
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    recallCommand(-1);
+  } else if (event.key === "ArrowDown") {
+    event.preventDefault();
+    recallCommand(1);
+  }
 });
 
 elements.newGameButton.addEventListener("click", startGame);
