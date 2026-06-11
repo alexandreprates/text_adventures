@@ -49,9 +49,7 @@ const elements = {
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
   collectionTitleLabel: document.querySelector("#collection-title-label"),
-  collectionTitleCount: document.querySelector("#collection-title-count"),
   collectionTitleTail: document.querySelector("#collection-title-tail"),
-  inventoryCount: document.querySelector("#inventory-count"),
   carryWeight: document.querySelector("#carry-weight"),
   carryBar: document.querySelector("#carry-bar"),
   spellsList: document.querySelector("#spells-list"),
@@ -204,7 +202,6 @@ function renderStatus(state) {
 
 function renderCollections(player) {
   const inventoryCount = (player.inventory || []).reduce((total, item) => total + item.quantity, 0);
-  elements.inventoryCount.textContent = `${inventoryCount}/26 slots`;
   elements.carryWeight.textContent = `${(inventoryCount * 2.9).toFixed(1)} / 150 lbs`;
   elements.carryBar.textContent = `${"█".repeat(Math.min(15, Math.ceil(inventoryCount / 2)))}${"░".repeat(Math.max(0, 15 - Math.ceil(inventoryCount / 2)))}`;
   renderList(elements.inventoryList, player.inventory, item => ({
@@ -527,7 +524,6 @@ function updateCollectionTitle(name) {
   const [label, tail] = COLLECTION_TITLES[name] || COLLECTION_TITLES.inventory;
   elements.collectionTitleLabel.textContent = label;
   elements.collectionTitleTail.textContent = tail;
-  elements.collectionTitleCount.hidden = name !== "inventory";
 }
 
 elements.terminalTabs.forEach((tab, index) => {
