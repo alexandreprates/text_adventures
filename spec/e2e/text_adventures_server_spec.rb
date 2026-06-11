@@ -57,6 +57,18 @@ RSpec.describe "text_adventures server binary" do
       expect(enemies_response.code).to eq "200"
       expect(enemies_response["Content-Type"]).to include "application/json"
       expect(JSON.parse(enemies_response.body)).to include "giant_spider"
+
+      location_image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png")
+      expect(location_image_response.code).to eq "200"
+      expect(location_image_response["Content-Type"]).to include "image/png"
+
+      source_image_response = request_json(port, Net::HTTP::Get, "/assets/enemies/sources/crystal_golem.svg")
+      expect(source_image_response.code).to eq "200"
+      expect(source_image_response["Content-Type"]).to include "image/svg+xml"
+
+      readme_response = request_json(port, Net::HTTP::Get, "/assets/enemies/README.md")
+      expect(readme_response.code).to eq "200"
+      expect(readme_response["Content-Type"]).to include "text/markdown"
     end
   end
 
