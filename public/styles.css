@@ -414,8 +414,13 @@ pre {
   display: none;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  background: #000;
+  object-fit: contain;
   image-rendering: pixelated;
+}
+
+.map-stage.has-location-art {
+  background: #000;
 }
 
 .map-stage.has-location-art .location-art {
