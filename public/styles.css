@@ -367,6 +367,9 @@ pre {
 
 .map-stage.has-canvas-map .map-canvas {
   display: block;
+  flex: none;
+  max-width: none;
+  max-height: none;
 }
 
 .location-art {

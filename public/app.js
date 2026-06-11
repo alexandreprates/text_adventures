@@ -60,6 +60,7 @@ const elements = {
 };
 
 const LOG_FALLBACK_LIMIT = 12;
+const DUNGEON_MAP_ZOOM = 1.3;
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
   spells: ["═══ MAGIAS", "════"],
@@ -171,7 +172,7 @@ function resizeCanvasMap() {
   const scale = Math.min(
     elements.mapStage.clientWidth / canvas.width,
     elements.mapStage.clientHeight / canvas.height
-  );
+  ) * DUNGEON_MAP_ZOOM;
   canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
   canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
 }
