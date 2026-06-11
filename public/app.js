@@ -20,30 +20,47 @@ const api = {
 
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
+  mapTitle: document.querySelector("#map-title"),
   serverStatus: document.querySelector("#server-status"),
-  promptLabel: document.querySelector("#prompt-label"),
+  topMode: document.querySelector("#top-mode"),
   gameId: document.querySelector("#game-id"),
+  characterClass: document.querySelector("#character-class"),
+  clock: document.querySelector("#clock"),
+  healthBar: document.querySelector("#health-bar"),
+  healthValue: document.querySelector("#health-value"),
+  statusValue: document.querySelector("#status-value"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
   quickActions: document.querySelector("#quick-actions"),
+  classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
+  enemyPanel: document.querySelector("#enemy-panel"),
+  enemyHealthBar: document.querySelector("#enemy-health-bar"),
+  enemyHealthValue: document.querySelector("#enemy-health-value"),
+  enemyStatusValue: document.querySelector("#enemy-status-value"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
+  collectionTitleLabel: document.querySelector("#collection-title-label"),
+  collectionTitleTail: document.querySelector("#collection-title-tail"),
   spellsList: document.querySelector("#spells-list"),
-  skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
-  newGameButton: document.querySelector("#new-game-button"),
-  tabs: document.querySelectorAll(".tab")
+  tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
+  terminalTabs: document.querySelectorAll(".terminal-tab")
 };
 
-const LOG_FALLBACK_LIMIT = 12;
+const DUNGEON_MAP_ZOOM = 1.3;
+const COMBAT_FEEDBACK_STEP_MS = 520;
+const COLLECTION_TITLES = {
+  inventory: ["═══ INVENTARIO", "══"],
+  spells: ["═══ MAGIAS", "════"]
+};
 const LOCATION_ARTS = {
   town: {
     src: "/assets/locations/village-hub.png",
-    alt: "Town of Nee'Peh with tavern, shops, temple, market, and ruins entrance"
+    alt: "Village hub with paths to the tavern, temple, shops, and ruins"
   },
   tavern: {
     src: "/assets/locations/tavern-interior.png",
@@ -64,6 +81,13 @@ const LOCATION_ARTS = {
 };
 
 let currentState = null;
+let openingLogLines = [];
+let combatFeedbackTimers = [];
+const commandHistory = {
+  entries: [],
+  index: 0,
+  draft: ""
+};
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
 async function parseResponse(response) {
@@ -89,15 +113,16 @@ function render(payload) {
   renderMap(state);
   renderStatus(state);
   renderCollections(state.player);
-  renderQuickActions(state);
   updateCommandPlaceholder(state);
   renderLog(payload.response, state.history);
+  playCombatFeedback(payload.response);
 }
 
 function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
-  elements.promptLabel.textContent = state.prompt;
-  elements.gameId.textContent = api.gameId ? `ID ${api.gameId.slice(0, 8)}` : "No session";
+  elements.mapTitle.textContent = `═══ ${state.prompt} ═══`;
+  elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
+  elements.topMode.textContent = state.input_mode.toUpperCase();
 }
 
 function renderMap(state) {
@@ -125,6 +150,7 @@ function showCanvasMap(dungeon) {
   const mapRows = dungeon.map;
   elements.mapGrid.textContent = mapRows.join("\n");
   dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
+  resizeCanvasMap();
 }
 
 function showTextMap() {
@@ -138,66 +164,143 @@ function showLocationArt(scene) {
   elements.mapStage.classList.add("has-location-art");
 }
 
+function resizeCanvasMap() {
+  const canvas = elements.mapCanvas;
+  if (!canvas.width || !canvas.height) return;
+
+  const scale = Math.min(
+    elements.mapStage.clientWidth / canvas.width,
+    elements.mapStage.clientHeight / canvas.height
+  ) * DUNGEON_MAP_ZOOM;
+  canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
+  canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
+}
+
 function renderStatus(state) {
   const player = state.player;
   const health = player.health;
   const weapon = player.equipment.weapon?.display_name || "Unarmed";
   const armor = player.equipment.armor?.display_name || "No armor";
-  const battle = state.battle?.active && state.battle.enemy
-    ? `${state.battle.enemy.display_name} HP ${state.battle.enemy.health.current}/${state.battle.enemy.health.max}`
-    : "none";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
+  elements.characterClass.textContent = classLine(player);
+  elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
+  elements.healthValue.textContent = `${health.current}/${health.max}`;
+  elements.statusValue.textContent = statuses;
+  elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
+  elements.statusValue.classList.toggle("status-clear", statuses === "clear");
+  renderClassProgress(player.skills);
+
   elements.statusOutput.textContent = [
-    `NAME  ${player.name}`,
-    `MODE  ${state.input_mode}`,
-    "",
-    `HP    ${healthBar(health.current, health.max)} ${health.current}/${health.max}`,
-    `LVL   ${player.level}`,
-    `XP    ${player.xp}`,
-    `GOLD  ${player.gold}`,
-    "",
-    `WEAP  ${weapon}`,
-    `ARMR  ${armor}`,
-    `STAT  ${statuses}`,
-    `BTTL  ${battle}`
+    `ARM ${weapon}`,
+    `DEF ${armor}`
   ].join("\n");
+  renderEnemyStatus(state.battle);
+}
+
+function renderEnemyStatus(battle) {
+  const enemy = battle?.active ? battle.enemy : null;
+  elements.enemyPanel.classList.toggle("hidden", !enemy);
+  if (!enemy) return;
+
+  const health = enemy.health;
+  const statuses = enemy.statuses?.length ? enemy.statuses.join(", ") : "clear";
+  elements.enemyHealthBar.innerHTML = asciiBar(health.current, health.max, "danger");
+  elements.enemyHealthValue.textContent = `${health.current}/${health.max}`;
+  elements.enemyStatusValue.textContent = statuses;
+  elements.enemyStatusValue.classList.toggle("status-alert", statuses !== "clear");
+  elements.enemyStatusValue.classList.toggle("status-clear", statuses === "clear");
+}
+
+function playCombatFeedback(response) {
+  const exchanges = combatExchanges(response?.lines || []);
+  clearCombatFeedback();
+  if (!exchanges.length) return;
+
+  exchanges.forEach((exchange, index) => {
+    combatFeedbackTimers.push(setTimeout(() => showCombatExchange(exchange), index * COMBAT_FEEDBACK_STEP_MS));
+  });
+  combatFeedbackTimers.push(setTimeout(clearCombatFeedback, exchanges.length * COMBAT_FEEDBACK_STEP_MS));
+}
+
+function combatExchanges(lines) {
+  return lines.flatMap(line => {
+    if (/^You (attack|cast) .+ causing \d+ of damage/.test(line)) {
+      return [{ source: "player" }];
+    }
+    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(line)) {
+      return [{ source: "enemy" }];
+    }
+    return [];
+  });
+}
+
+function showCombatExchange(exchange) {
+  dungeonMapRenderer.animateAttack(exchange.source);
+}
+
+function clearCombatFeedback() {
+  combatFeedbackTimers.forEach(timer => clearTimeout(timer));
+  combatFeedbackTimers = [];
+  dungeonMapRenderer.clearAttackAnimation();
 }
 
 function renderCollections(player) {
-  renderList(elements.inventoryList, player.inventory, item =>
-    `${item.quantity}x ${item.display_name}${item.type ? ` (${item.type})` : ""}`
-  );
-  renderList(elements.spellsList, player.spells, spell =>
-    `${spell.display_name} Lv ${spell.level} - ${spell.description}`
-  );
-  const skills = Object.entries(player.skills || {}).map(([name, skill]) => ({
-    label: `${labelize(name)} Lv ${skill.level} (${skill.xp}/${skill.next_level_xp} XP)`
+  renderList(elements.inventoryList, player.inventory, item => ({
+    label: item.display_name,
+    meta: item.quantity > 1 ? `x${item.quantity}` : "",
+    type: item.type || ""
   }));
-  renderList(elements.skillsList, skills, skill => skill.label);
+  renderList(elements.spellsList, player.spells, spell => ({
+    label: `${spell.display_name} Lv ${spell.level}`,
+    meta: spell.kind,
+    type: spell.description
+  }));
 }
 
 function renderList(target, entries, formatter) {
   target.innerHTML = "";
   if (!entries || entries.length === 0) {
     const empty = document.createElement("li");
-    empty.textContent = "Nothing here yet";
+    empty.innerHTML = '<span>Nothing here yet</span><span class="item-type"></span>';
     target.appendChild(empty);
     return;
   }
 
   entries.forEach(entry => {
+    const details = formatter(entry);
     const item = document.createElement("li");
-    item.textContent = formatter(entry);
+    item.innerHTML = [
+      `<span>${details.label}</span>`,
+      `<span class="item-type">${details.meta || details.type || ""}</span>`
+    ].join("");
+    if (details.type && details.meta) item.title = details.type;
     target.appendChild(item);
   });
 }
 
 function renderLog(response, history) {
-  const sourceLines = response?.lines?.length ? response.lines : history.flatMap(entry => entry.lines).slice(-LOG_FALLBACK_LIMIT);
+  if (!history.length && response?.lines?.length) openingLogLines = response.lines;
+
+  const historyLines = history.flatMap(entry => entry.lines);
+  const sourceLines = [...openingLogLines, ...historyLines];
   const lines = sourceLines.filter(isLoggableLine);
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
+  elements.messageLog.scrollTop = elements.messageLog.scrollHeight;
+}
+
+function asciiBar(current, max, kind) {
+  const width = 10;
+  const ratio = max ? Math.max(0, Math.min(1, current / max)) : 0;
+  const filled = Math.round(ratio * width);
+  const colorClass = kind ? `bar-fill-${kind}` : "bar-fill";
+  return [
+    '<span class="bar-bracket">[</span>',
+    `<span class="${colorClass}">${"|".repeat(filled)}</span>`,
+    `<span class="bar-empty">${" ".repeat(width - filled)}</span>`,
+    '<span class="bar-bracket">]</span>'
+  ].join("");
 }
 
 function isLoggableLine(line) {
@@ -217,7 +320,9 @@ function renderQuickActions(state = currentState) {
   quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = label;
+    button.textContent = commandLabel(label, command, accessibleLabel);
+    button.dataset.command = command;
+    button.dataset.shortcut = shortcutForCommand(command, label);
     if (accessibleLabel) {
       button.setAttribute("aria-label", accessibleLabel);
       button.title = accessibleLabel;
@@ -292,6 +397,34 @@ function inputModeCommand(state) {
   return state.input_mode === "game" ? ["Text Mode", "text"] : ["Game Mode", "game"];
 }
 
+function commandLabel(label, command, accessibleLabel) {
+  if (/^go (up|right|down|left)$/.test(command)) return accessibleLabel?.replace(/^Go /, "Move ") || label;
+  if (command === "attack") return "Attack";
+  if (command === "loot") return "Collect loot";
+  if (command === "inventory") return "Open inventory";
+  if (command === "spellbook") return "Open spellbook";
+  if (command === "game") return "Enable game mode";
+  if (command === "text") return "Enable text mode";
+  return label;
+}
+
+function shortcutForCommand(command, label) {
+  const shortcuts = {
+    "go up": "w/k/↑",
+    "go right": "d/l/→",
+    "go down": "s/j/↓",
+    "go left": "a/h/←",
+    attack: "a",
+    loot: "l",
+    inventory: "i",
+    spellbook: "m",
+    game: "g",
+    text: "t"
+  };
+
+  return shortcuts[command] || label.slice(0, 1).toLowerCase();
+}
+
 function suggestedItemCommands(player) {
   const equippedNames = [
     player.equipment.weapon?.name,
@@ -336,6 +469,44 @@ function labelize(value) {
   return value.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function classLine(player) {
+  return player.current_class || "Adventurer";
+}
+
+function renderClassProgress(skills = {}) {
+  elements.classOutput.innerHTML = "";
+  Object.entries(skills).forEach(([name, skill]) => {
+    const row = document.createElement("div");
+    row.className = "class-row";
+
+    const label = document.createElement("span");
+    label.className = "class-name";
+    label.textContent = labelize(name);
+
+    const level = document.createElement("span");
+    level.className = "class-level";
+    level.textContent = String(skill.level);
+
+    const bar = document.createElement("span");
+    bar.className = "class-bar";
+    bar.textContent = plainAsciiBar(skill.xp, skill.next_level_xp);
+
+    const xp = document.createElement("span");
+    xp.className = "class-xp";
+    xp.textContent = `${skill.xp}/${skill.next_level_xp}`;
+
+    row.append(label, level, bar, xp);
+    elements.classOutput.appendChild(row);
+  });
+}
+
+function plainAsciiBar(current, max) {
+  const width = 5;
+  const ratio = max ? Math.max(0, Math.min(1, current / max)) : 0;
+  const filled = Math.round(ratio * width);
+  return `[${"|".repeat(filled)}${" ".repeat(width - filled)}]`;
+}
+
 function healthBar(current, max) {
   const width = 12;
   const filled = max ? Math.round(Math.max(0, Math.min(1, current / max)) * width) : 0;
@@ -347,6 +518,7 @@ async function startGame() {
   try {
     const payload = await api.createGame();
     selectTab("inventory");
+    activateTopTab(0);
     render(payload);
     setStatus("Online");
     elements.commandInput.focus();
@@ -362,6 +534,7 @@ async function runCommand(command) {
   try {
     const payload = await api.sendCommand(command);
     render(payload);
+    syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {
     setStatus("Error", true);
@@ -369,27 +542,109 @@ async function runCommand(command) {
   }
 }
 
+function syncNavigationForCommand(command) {
+  const normalizedCommand = command.trim().toLowerCase();
+  if (normalizedCommand === "inventory") {
+    selectTab("inventory");
+  } else if (normalizedCommand === "spellbook") {
+    selectTab("spells");
+  } else {
+    selectTab("inventory", { syncTop: false });
+    activateTopTab(0);
+    elements.commandInput.focus();
+  }
+}
+
 function showError(error) {
   elements.messageLog.textContent = `! ${error.message}`;
+}
+
+function recordCommand(command) {
+  if (commandHistory.entries[commandHistory.entries.length - 1] !== command) commandHistory.entries.push(command);
+  commandHistory.index = commandHistory.entries.length;
+  commandHistory.draft = "";
+}
+
+function recallCommand(direction) {
+  if (!commandHistory.entries.length) return;
+
+  if (commandHistory.index === commandHistory.entries.length) {
+    commandHistory.draft = elements.commandInput.value;
+  }
+
+  commandHistory.index = Math.max(
+    0,
+    Math.min(commandHistory.entries.length, commandHistory.index + direction)
+  );
+  elements.commandInput.value = commandHistory.entries[commandHistory.index] || commandHistory.draft;
+  elements.commandInput.setSelectionRange(elements.commandInput.value.length, elements.commandInput.value.length);
 }
 
 elements.commandForm.addEventListener("submit", event => {
   event.preventDefault();
   const command = elements.commandInput.value.trim();
   if (!command) return;
+  recordCommand(command);
   elements.commandInput.value = "";
   runCommand(command);
 });
 
-elements.newGameButton.addEventListener("click", startGame);
+elements.commandInput.addEventListener("keydown", event => {
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    recallCommand(-1);
+  } else if (event.key === "ArrowDown") {
+    event.preventDefault();
+    recallCommand(1);
+  }
+});
 
-elements.tabs.forEach(tab => tab.addEventListener("click", () => selectTab(tab.dataset.tab)));
+window.addEventListener("resize", () => {
+  if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();
+});
 
 function selectTab(name) {
+  const options = arguments[1] || {};
+  const syncTop = options.syncTop ?? true;
   elements.tabs.forEach(button => button.classList.toggle("active", button.dataset.tab === name));
   document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.add("hidden"));
   document.querySelector(`#${name}-tab`).classList.remove("hidden");
+  updateCollectionTitle(name);
+  const topIndex = ["inventory", "spells"].indexOf(name);
+  if (syncTop && topIndex >= 0) activateTopTab(topIndex);
 }
 
-renderQuickActions();
+function updateCollectionTitle(name) {
+  const [label, tail] = COLLECTION_TITLES[name] || COLLECTION_TITLES.inventory;
+  elements.collectionTitleLabel.textContent = label;
+  elements.collectionTitleTail.textContent = tail;
+}
+
+elements.terminalTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => {
+    if (tab.dataset.tab) {
+      selectTab(tab.dataset.tab);
+    } else {
+      activateTopTab(index);
+      selectTab("inventory", { syncTop: false });
+    }
+    elements.commandInput.focus();
+  });
+});
+
+function activateTopTab(index) {
+  elements.terminalTabs.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
+}
+
+function updateClock() {
+  if (!elements.clock) return;
+  elements.clock.textContent = new Date().toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+updateClock();
+setInterval(updateClock, 1000);
 startGame();

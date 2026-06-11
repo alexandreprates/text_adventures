@@ -68,6 +68,10 @@ module TextAdventures
       progression.overall_level
     end
 
+    def current_class
+      progression.current_class
+    end
+
     def take_damage(amount)
       self.health = health - amount
       self

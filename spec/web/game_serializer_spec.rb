@@ -21,6 +21,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       name: "Adventurer",
       health: { current: 30, max: 30 },
       gold: 100,
+      current_class: "Adventurer",
       level: 1,
       xp: 0,
       attack: 11,
@@ -80,6 +81,13 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       command: "c",
       lines: ["Choose a spell:", " 1 - Fireball", " 0 - cancel"]
     )
+  end
+
+  it "serializes the complete command history" do
+    12.times { game.handle("look") }
+
+    expect(state.fetch(:history).size).to eq 12
+    expect(state.fetch(:history).map { |entry| entry.fetch(:command) }).to all(eq "look")
   end
 
   it "serializes dungeon state, adjacent enemies, nearby loot, and active battle" do

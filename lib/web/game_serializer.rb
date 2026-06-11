@@ -1,8 +1,6 @@
 module TextAdventures
   module Web
     class GameSerializer
-      HISTORY_LIMIT = 10
-
       def initialize(game)
         @game = game
       end
@@ -52,6 +50,7 @@ module TextAdventures
             max: player.health.max
           },
           gold: player.gold,
+          current_class: player.current_class,
           level: player.overall_level,
           xp: player.overall_experience,
           attack: player.attack,
@@ -173,7 +172,7 @@ module TextAdventures
       end
 
       def history_state
-        game.history.last(HISTORY_LIMIT).map do |entry|
+        game.history.map do |entry|
           {
             command: entry.command,
             response: entry.response.to_s,
