@@ -231,8 +231,6 @@ pre {
 .bar-row span:first-child,
 .status-row span:first-child,
 .section-label,
-.run-stats dt,
-.attribute-grid dt,
 .panel-title {
   color: var(--green-dim);
 }
@@ -294,32 +292,6 @@ pre {
 
 .bar-empty {
   color: var(--border);
-}
-
-.run-stats,
-.attribute-grid {
-  display: grid;
-  gap: 2px;
-  margin: 0 0 8px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-}
-
-.run-stats div,
-.attribute-grid div {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.run-stats dd,
-.attribute-grid dd {
-  margin: 0;
-  color: var(--amber);
-}
-
-.attribute-grid {
-  grid-template-columns: 1fr 1fr;
 }
 
 .section-label {

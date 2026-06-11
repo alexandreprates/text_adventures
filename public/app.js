@@ -29,13 +29,6 @@ const elements = {
   clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
-  attackValueSmall: document.querySelector("#attack-value-small"),
-  xpValue: document.querySelector("#xp-value"),
-  levelValue: document.querySelector("#level-value"),
-  goldValue: document.querySelector("#gold-value"),
-  floorValue: document.querySelector("#floor-value"),
-  defenseValue: document.querySelector("#defense-value"),
-  modeValue: document.querySelector("#mode-value"),
   statusValue: document.querySelector("#status-value"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
@@ -193,13 +186,6 @@ function renderStatus(state) {
   elements.characterClass.textContent = classLine(player);
   elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
-  elements.attackValueSmall.textContent = String(player.attack);
-  elements.xpValue.textContent = String(player.xp);
-  elements.levelValue.textContent = String(player.level);
-  elements.goldValue.textContent = `$ ${player.gold} gp`;
-  elements.floorValue.textContent = state.dungeon?.level ? `B${state.dungeon.level}F` : "--";
-  elements.defenseValue.textContent = String(player.defense);
-  elements.modeValue.textContent = state.input_mode.toUpperCase();
   elements.statusValue.textContent = statuses;
   elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
