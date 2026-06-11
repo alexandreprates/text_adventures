@@ -240,6 +240,10 @@ pre {
   font-weight: 400;
 }
 
+.bar-row .ascii-bar {
+  justify-self: end;
+}
+
 .status-row strong {
   min-width: 0;
   font-weight: 400;
@@ -316,7 +320,34 @@ pre {
 }
 
 .class-output {
+  display: grid;
+  gap: 0;
   margin-bottom: 8px;
+}
+
+.class-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14px 48px 42px;
+  gap: 4px;
+  align-items: center;
+}
+
+.class-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.class-level,
+.class-bar,
+.class-xp {
+  justify-self: end;
+}
+
+.class-level,
+.class-xp {
+  color: var(--amber);
 }
 
 .enemy-panel {

@@ -191,7 +191,7 @@ function renderStatus(state) {
   elements.statusValue.textContent = statuses;
   elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
-  elements.classOutput.textContent = classProgressLines(player.skills).join("\n");
+  renderClassProgress(player.skills);
 
   elements.statusOutput.textContent = [
     `ARM ${weapon}`,
@@ -455,10 +455,30 @@ function classLine(player) {
   return "Terminal Delver";
 }
 
-function classProgressLines(skills = {}) {
-  return Object.entries(skills).map(([name, skill]) => {
-    const progress = `${skill.xp}/${skill.next_level_xp}`;
-    return `${labelize(name)} ${skill.level} ${plainAsciiBar(skill.xp, skill.next_level_xp)} ${progress}`;
+function renderClassProgress(skills = {}) {
+  elements.classOutput.innerHTML = "";
+  Object.entries(skills).forEach(([name, skill]) => {
+    const row = document.createElement("div");
+    row.className = "class-row";
+
+    const label = document.createElement("span");
+    label.className = "class-name";
+    label.textContent = labelize(name);
+
+    const level = document.createElement("span");
+    level.className = "class-level";
+    level.textContent = String(skill.level);
+
+    const bar = document.createElement("span");
+    bar.className = "class-bar";
+    bar.textContent = plainAsciiBar(skill.xp, skill.next_level_xp);
+
+    const xp = document.createElement("span");
+    xp.className = "class-xp";
+    xp.textContent = `${skill.xp}/${skill.next_level_xp}`;
+
+    row.append(label, level, bar, xp);
+    elements.classOutput.appendChild(row);
   });
 }
 
