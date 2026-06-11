@@ -15,7 +15,7 @@
   --cyan: #00ccff;
   --blue: #44aaff;
   --purple: #cc44ff;
-  --mono: "Share Tech Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 * {
@@ -37,7 +37,9 @@ body {
 }
 
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -100,7 +102,6 @@ pre {
 .eyebrow {
   font-size: 12px;
   letter-spacing: 2px;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
