@@ -150,6 +150,7 @@ function showCanvasMap(dungeon) {
   const mapRows = dungeon.map;
   elements.mapGrid.textContent = mapRows.join("\n");
   dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
+  resizeCanvasMap();
 }
 
 function showTextMap() {
@@ -161,6 +162,18 @@ function showLocationArt(scene) {
   elements.locationArt.src = locationArt.src;
   elements.locationArt.alt = locationArt.alt;
   elements.mapStage.classList.add("has-location-art");
+}
+
+function resizeCanvasMap() {
+  const canvas = elements.mapCanvas;
+  if (!canvas.width || !canvas.height) return;
+
+  const scale = Math.min(
+    elements.mapStage.clientWidth / canvas.width,
+    elements.mapStage.clientHeight / canvas.height
+  );
+  canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
+  canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
 }
 
 function renderStatus(state) {
@@ -503,6 +516,10 @@ elements.commandForm.addEventListener("submit", event => {
 });
 
 elements.newGameButton.addEventListener("click", startGame);
+
+window.addEventListener("resize", () => {
+  if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();
+});
 
 function selectTab(name) {
   const options = arguments[1] || {};
