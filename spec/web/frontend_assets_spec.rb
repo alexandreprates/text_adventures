@@ -89,6 +89,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('elements.statusValue.classList.toggle("status-clear"')
     expect(javascript).to include('renderClassProgress(player.skills)')
     expect(javascript).to include('function renderClassProgress(skills = {})')
+    expect(javascript).to include('player.current_class || "Adventurer"')
     expect(javascript).to include('plainAsciiBar(skill.xp, skill.next_level_xp)')
     expect(javascript).to include('row.className = "class-row"')
     expect(javascript).to include('function plainAsciiBar(current, max)')

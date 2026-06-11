@@ -21,6 +21,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       name: "Adventurer",
       health: { current: 30, max: 30 },
       gold: 100,
+      current_class: "Adventurer",
       level: 1,
       xp: 0,
       attack: 11,

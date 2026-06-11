@@ -7,6 +7,27 @@ module TextAdventures
       combat_magic
       nature_magic
     ].freeze
+    BASE_CLASS_NAME = "Adventurer".freeze
+    PURE_CLASS_NAMES = {
+      swordsmanship: "Blademaster",
+      spearmanship: "Dragoon",
+      dagger_mastery: "Nightblade",
+      combat_magic: "Arcanist",
+      nature_magic: "Druid"
+    }.freeze
+    HYBRID_CLASS_NAMES = {
+      %i[swordsmanship spearmanship] => "Warlord",
+      %i[swordsmanship dagger_mastery] => "Duelist",
+      %i[swordsmanship combat_magic] => "Spellblade",
+      %i[swordsmanship nature_magic] => "Warden",
+      %i[spearmanship dagger_mastery] => "Skirmisher",
+      %i[spearmanship combat_magic] => "Battlemage",
+      %i[spearmanship nature_magic] => "Sentinel",
+      %i[dagger_mastery combat_magic] => "Hexblade",
+      %i[dagger_mastery nature_magic] => "Ranger",
+      %i[combat_magic nature_magic] => "Mystic"
+    }.freeze
+    PURE_CLASS_LEVEL_LEAD = 2
 
     attr_reader :skill_experience
 
@@ -47,6 +68,16 @@ module TextAdventures
       level_for(overall_experience)
     end
 
+    def current_class
+      return BASE_CLASS_NAME if overall_experience.zero?
+
+      primary, secondary = ranked_skills.first(2)
+      level_lead = primary.fetch(:level) - secondary.fetch(:level)
+      return PURE_CLASS_NAMES.fetch(primary.fetch(:skill)) if level_lead >= PURE_CLASS_LEVEL_LEAD
+
+      HYBRID_CLASS_NAMES.fetch(class_pair(primary.fetch(:skill), secondary.fetch(:skill)))
+    end
+
     def xp_required_for(level)
       self.class.xp_required_for(level)
     end
@@ -71,6 +102,22 @@ module TextAdventures
       level = 1
       level += 1 while experience >= xp_required_for(level)
       level
+    end
+
+    def ranked_skills
+      SKILL_TRACKS.map do |skill|
+        {
+          skill: skill,
+          level: skill_level(skill),
+          xp: skill_xp(skill)
+        }
+      end.sort_by do |entry|
+        [-entry.fetch(:level), -entry.fetch(:xp), SKILL_TRACKS.index(entry.fetch(:skill))]
+      end
+    end
+
+    def class_pair(first, second)
+      [first, second].sort_by { |skill| SKILL_TRACKS.index(skill) }
     end
   end
 end

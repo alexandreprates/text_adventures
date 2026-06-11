@@ -472,9 +472,7 @@ function labelize(value) {
 }
 
 function classLine(player) {
-  const weaponClass = player.equipment.weapon?.weapon_class;
-  if (weaponClass) return `${labelize(weaponClass)} Delver`;
-  return "Terminal Delver";
+  return player.current_class || "Adventurer";
 }
 
 function renderClassProgress(skills = {}) {

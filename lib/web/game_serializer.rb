@@ -50,6 +50,7 @@ module TextAdventures
             max: player.health.max
           },
           gold: player.gold,
+          current_class: player.current_class,
           level: player.overall_level,
           xp: player.overall_experience,
           attack: player.attack,

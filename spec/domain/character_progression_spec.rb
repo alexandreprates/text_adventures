@@ -14,6 +14,7 @@ RSpec.describe TextAdventures::CharacterProgression do
     expect(progression.skill_levels.values).to all(eq 1)
     expect(progression.overall_experience).to eq 0
     expect(progression.overall_level).to eq 1
+    expect(progression.current_class).to eq "Adventurer"
   end
 
   it "normalizes injected skill experience" do
@@ -36,6 +37,28 @@ RSpec.describe TextAdventures::CharacterProgression do
     expect(progression.skill_level(:dagger_mastery)).to eq 2
     expect(progression.overall_experience).to eq 55
     expect(progression.overall_level).to eq 2
+  end
+
+  it "uses the two strongest nearby skill tracks to name the current class" do
+    progression.add_skill_xp(:swordsmanship, 55)
+    progression.add_skill_xp(:combat_magic, 50)
+
+    expect(progression.current_class).to eq "Spellblade"
+  end
+
+  it "uses a pure class when the strongest skill leads by at least two levels" do
+    progression.add_skill_xp(:dagger_mastery, 200)
+    progression.add_skill_xp(:nature_magic, 49)
+
+    expect(progression.current_class).to eq "Nightblade"
+  end
+
+  it "uses XP and track order to break current class ties deterministically" do
+    progression.add_skill_xp(:spearmanship, 75)
+    progression.add_skill_xp(:combat_magic, 75)
+    progression.add_skill_xp(:nature_magic, 80)
+
+    expect(progression.current_class).to eq "Sentinel"
   end
 
   it "uses the configured quadratic level curve" do
