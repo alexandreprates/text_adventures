@@ -155,7 +155,7 @@ pre {
 .game-layout {
   min-height: 0;
   display: grid;
-  grid-template-columns: 220px minmax(480px, 1fr) 200px;
+  grid-template-columns: 220px minmax(480px, 1fr) 260px;
   gap: 8px;
   padding: 8px;
 }
