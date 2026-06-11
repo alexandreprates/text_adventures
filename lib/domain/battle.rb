@@ -11,6 +11,13 @@ module TextAdventures
 
     attr_reader :creature, :random, :contributions
 
+    def self.enemy_damage_after_defense(raw_damage, defense)
+      return 0 unless raw_damage.positive?
+
+      mitigated = (raw_damage * 100.0 / (100 + defense.to_i)).ceil
+      [mitigated, 1].max
+    end
+
     def initialize(creature:, random: Random.new)
       @creature = creature
       @random = random
@@ -222,7 +229,7 @@ module TextAdventures
 
     def counterattack_lines(player)
       attack = enemy_attack
-      damage = [attack.damage_range.begin - player.defense, 0].max
+      damage = self.class.enemy_damage_after_defense(enemy_attack_damage(attack), player.defense)
       player.take_damage(damage)
 
       lines = ["#{creature.display_name} attacks you with #{attack.name} causing #{damage} of damage."]
@@ -235,6 +242,10 @@ module TextAdventures
 
     def enemy_attack
       creature.attacks[random.rand(creature.attacks.length)]
+    end
+
+    def enemy_attack_damage(attack)
+      attack.damage_range.begin + random.rand(attack.damage_range.size)
     end
 
     def poison_tick_lines(player)

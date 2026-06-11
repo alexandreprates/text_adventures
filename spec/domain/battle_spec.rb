@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe TextAdventures::Battle do
   BattleSequenceRandom = Struct.new(:values) do
     def rand(_max)
-      values.shift
+      values.shift || 0
     end
   end
 
@@ -28,11 +28,30 @@ RSpec.describe TextAdventures::Battle do
     end
 
     it "uses player defense to reduce enemy counterattack damage" do
+      heavy_attack = TextAdventures::Creature.new(
+        name: "Training Brute",
+        health: 20,
+        attacks: [
+          TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 20..20)
+        ]
+      )
       defended_player = TextAdventures::Character.new
+      exposed_player = TextAdventures::Character.new(equipped_armor: nil)
 
-      battle.attack(defended_player)
+      described_class.new(creature: heavy_attack, random: BattleSequenceRandom.new([99, 0, 0])).attack(defended_player)
+      described_class.new(
+        creature: TextAdventures::Creature.new(
+          name: "Training Brute",
+          health: 20,
+          attacks: [
+            TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 20..20)
+          ]
+        ),
+        random: BattleSequenceRandom.new([99, 0, 0])
+      ).attack(exposed_player)
 
-      expect(defended_player.health.current).to eq 30
+      expect(defended_player.health.current).to eq 13
+      expect(exposed_player.health.current).to eq 10
     end
 
     it "supports critical hits" do

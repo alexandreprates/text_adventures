@@ -9,7 +9,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
   RuinsSequenceRandom = Struct.new(:values) do
     def rand(_max)
-      values.shift
+      values.shift || 0
     end
   end
 
@@ -229,10 +229,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     expect(game.handle("attack")).to eq <<~TEXT.chomp
       You attack a Giant Spider causing 10 of damage.
-      Giant Spider attacks you with Bite causing 0 of damage.
+      Giant Spider attacks you with Bite causing 2 of damage.
 
       [Giant Spider HP: 25/35]
-      [Adventurer HP: 30/30]
+      [Adventurer HP: 28/30]
     TEXT
     expect(game.battle.creature.health.current).to eq 25
   end
@@ -246,10 +246,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     expect(game.handle("cast fireball")).to eq <<~TEXT.chomp
       You cast Fireball causing 11 of damage.
-      Giant Spider attacks you with Bite causing 0 of damage.
+      Giant Spider attacks you with Bite causing 2 of damage.
 
       [Giant Spider HP: 24/35]
-      [Adventurer HP: 30/30]
+      [Adventurer HP: 28/30]
     TEXT
     expect(game.battle.creature.health.current).to eq 24
   end
@@ -285,20 +285,20 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.handle("cast heal")).to eq <<~TEXT.chomp
       Poison deals 2 damage.
       You cast Heal and recover 10 health.
-      Giant Spider attacks you with Bite causing 0 of damage.
+      Giant Spider attacks you with Bite causing 2 of damage.
 
       [Giant Spider HP: 35/35]
-      [Adventurer HP: 26/30]
+      [Adventurer HP: 24/30]
     TEXT
-    expect(game.player.health.current).to eq 26
+    expect(game.player.health.current).to eq 24
 
     expect(game.handle("cast cure")).to eq <<~TEXT.chomp
       Poison deals 2 damage.
       You cast Cure and remove poison.
-      Giant Spider attacks you with Bite causing 0 of damage.
+      Giant Spider attacks you with Bite causing 2 of damage.
 
       [Giant Spider HP: 35/35]
-      [Adventurer HP: 24/30]
+      [Adventurer HP: 20/30]
     TEXT
     expect(game.player).to_not be_status(:poison)
   end
