@@ -471,16 +471,6 @@ pre {
   scrollbar-width: none;
 }
 
-.ghost-button {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  color: var(--green-dim);
-  font-size: 12px;
-}
-
 .inventory-panel {
   font-size: 12px;
   line-height: 1.6;
@@ -635,7 +625,6 @@ pre {
     min-height: 360px;
   }
 
-  .ghost-button,
   .command-bar input,
   .command-bar button {
     min-height: 44px;

@@ -49,7 +49,6 @@ const elements = {
   skillsList: document.querySelector("#skills-list"),
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
-  newGameButton: document.querySelector("#new-game-button"),
   tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
@@ -618,8 +617,6 @@ elements.commandInput.addEventListener("keydown", event => {
     recallCommand(1);
   }
 });
-
-elements.newGameButton.addEventListener("click", startGame);
 
 window.addEventListener("resize", () => {
   if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();
