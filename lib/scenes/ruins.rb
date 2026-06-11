@@ -48,7 +48,7 @@ module TextAdventures
           "",
           "Here you can:",
           " go <up|right|down|left> - to move around",
-          " go town - return to Nee'Peh",
+          " return to the entrance portal - go back to Nee'Peh",
           " look - to examine your surroundings",
           " attack - to attack an enemy",
           " spellbook - show the spells you can cast",
@@ -71,7 +71,7 @@ module TextAdventures
           "",
           "Movement:",
           " go <up|right|down|left> - move through open floor",
-          " go town - return to Nee'Peh when no enemy blocks you",
+          " return to the entrance portal - go back to Nee'Peh",
           " look - inspect the ruins and risk an encounter",
           " The map shows the 3x3 area around your current block.",
           "",
@@ -84,6 +84,7 @@ module TextAdventures
           " x - you",
           " E - enemy",
           " @ - loot",
+          " P - entrance portal",
           " . - open floor",
           " # - wall",
           " ? - unrevealed area"
@@ -97,12 +98,12 @@ module TextAdventures
       end
 
       def handle_movement(game, direction)
-        return back_to_town(game) if Item.normalize_name(direction) == "town"
-        return Town.route(game, direction) if Town.destination?(direction)
+        return portal_required_response if Item.normalize_name(direction) == "town" || Town.destination?(direction)
         return invalid_direction(direction) unless DIRECTIONS.include?(direction)
 
         result = dungeon.move(direction)
         return Response.new(result.message) unless result.success?
+        return back_to_town(game, result.message) if dungeon.player_on_entrance_portal?
 
         response = Response.new(
           result.message,
@@ -125,9 +126,21 @@ module TextAdventures
         )
       end
 
-      def back_to_town(game)
+      def portal_required_response
+        Response.new(
+          "The ruins hold you in place.",
+          "Return to the entrance portal to go back to Nee'Peh."
+        )
+      end
+
+      def back_to_town(game, movement_message)
         game.transition_to(Town.new)
-        Response.new("You leave the ruins and return to the town of Nee'Peh.")
+        Response.new(
+          movement_message,
+          "The entrance portal pulls you back to Nee'Peh.",
+          "",
+          Town.new.describe
+        )
       end
 
       def handle_active_encounter(game, command)

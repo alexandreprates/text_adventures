@@ -48,7 +48,8 @@ globalThis.DungeonMapRenderer = (() => {
     "?": "fog",
     "x": "player",
     "E": "floor",
-    "@": "lootBag"
+    "@": "lootBag",
+    "P": "portal"
   };
 
   const FALLBACK_COLORS = {
@@ -58,7 +59,8 @@ globalThis.DungeonMapRenderer = (() => {
     "?": "#08090b",
     "x": "#d9b45f",
     "E": "#d66f62",
-    "@": "#7fb7a7"
+    "@": "#7fb7a7",
+    "P": "#8f7bff"
   };
   const FOG_DOTS = [
     [3, 4, 10, 0.28],

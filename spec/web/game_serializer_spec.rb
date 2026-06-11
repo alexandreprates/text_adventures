@@ -105,6 +105,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:dungeon, :level)).to eq 1
     expect(state.dig(:dungeon, :map)).to include(a_string_including("##.xE."))
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
+    expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :visible_enemy)).to eq(
       x: 4,
       y: 2,

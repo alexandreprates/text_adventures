@@ -11,6 +11,7 @@ module TextAdventures
     PLAYER = "x".freeze
     ENEMY = "E".freeze
     LOOT = "@".freeze
+    PORTAL = "P".freeze
     FLOOR = ".".freeze
     UNREVEALED = "?".freeze
     ENEMY_SPAWN_CHANCE = 50
@@ -32,6 +33,7 @@ module TextAdventures
     DEFAULT_BLOCK_ID = "right_exit".freeze
     DEFAULT_PLAYER_POSITION = Position.new(x: 3, y: 2).freeze
     DEFAULT_BLOCK_POSITION = BlockPosition.new(x: 0, y: 0).freeze
+    DEFAULT_ENTRANCE_PORTAL_POSITION = Position.new(x: 3, y: 2).freeze
 
     attr_reader :level, :revealed_blocks, :player_position, :current_block_position, :random, :enemies, :dropped_loot
 
@@ -90,6 +92,18 @@ module TextAdventures
 
     def current_global_position
       global_position(player_position, current_block_position)
+    end
+
+    def entrance_portal_position
+      global_position(DEFAULT_ENTRANCE_PORTAL_POSITION, DEFAULT_BLOCK_POSITION)
+    end
+
+    def portal_at?(position)
+      position_key(position) == position_key(entrance_portal_position)
+    end
+
+    def player_on_entrance_portal?
+      portal_at?(current_global_position)
     end
 
     def global_position(local_position, block_position = current_block_position)
@@ -200,6 +214,8 @@ module TextAdventures
             ENEMY
           elsif loot_at(render_position)
             LOOT
+          elsif portal_at?(render_position)
+            PORTAL
           else
             rendered_tile(tile)
           end

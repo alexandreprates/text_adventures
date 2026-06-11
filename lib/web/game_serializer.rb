@@ -134,6 +134,7 @@ module TextAdventures
           level: dungeon.level,
           map: dungeon.render(view: :viewport).lines.drop(1).map(&:chomp),
           player_position: position_state(dungeon.current_global_position),
+          entrance_portal: position_state(dungeon.entrance_portal_position),
           visible_enemy: enemy_position_state(dungeon.adjacent_enemy_position),
           visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
