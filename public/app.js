@@ -24,7 +24,6 @@ const elements = {
   serverStatus: document.querySelector("#server-status"),
   topMode: document.querySelector("#top-mode"),
   gameId: document.querySelector("#game-id"),
-  characterName: document.querySelector("#character-name"),
   characterClass: document.querySelector("#character-class"),
   clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
@@ -184,7 +183,6 @@ function renderStatus(state) {
   const armor = player.equipment.armor?.display_name || "No armor";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
-  elements.characterName.textContent = player.name.toUpperCase();
   elements.characterClass.textContent = classLine(player);
   elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
