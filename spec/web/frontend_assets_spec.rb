@@ -81,6 +81,8 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('"/assets/enemies/enemies.json"')
     expect(renderer).to include('"E": "floor"')
     expect(renderer).to include('"@": "lootBag"')
+    expect(renderer).to include('function drawFog(context, x, y)')
+    expect(renderer).to include('drawFog(context, x, y)')
     expect(renderer).to include('function drawEnemies(context, renderer, enemyImages, enemies)')
     expect(renderer).to include('image.src = entry.sprite')
   end

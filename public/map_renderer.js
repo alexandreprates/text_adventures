@@ -59,6 +59,13 @@ globalThis.DungeonMapRenderer = (() => {
     "E": "#d66f62",
     "@": "#7fb7a7"
   };
+  const FOG_DOTS = [
+    [3, 4, 10, 0.28],
+    [15, 2, 12, 0.2],
+    [25, 9, 9, 0.16],
+    [7, 20, 13, 0.22],
+    [22, 24, 11, 0.18]
+  ];
 
   function create(canvas) {
     const context = canvas?.getContext?.("2d");
@@ -116,6 +123,11 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function drawSymbol(context, tileset, tilesetReady, symbol, x, y) {
+    if (symbol === "?") {
+      drawFog(context, x, y);
+      return;
+    }
+
     const tileName = SYMBOL_TILES[symbol] || "fog";
 
     if (tilesetReady) {
@@ -125,6 +137,34 @@ globalThis.DungeonMapRenderer = (() => {
 
     context.fillStyle = FALLBACK_COLORS[symbol] || FALLBACK_COLORS["?"];
     context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+
+  function drawFog(context, x, y) {
+    const originX = x * TILE_SIZE;
+    const originY = y * TILE_SIZE;
+    const noiseSeed = (x * 37 + y * 53) % 11;
+
+    context.fillStyle = "#020305";
+    context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+    context.fillStyle = "rgba(0, 0, 0, 0.55)";
+    context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+
+    FOG_DOTS.forEach(([dotX, dotY, radius, alpha], index) => {
+      const shiftedX = originX + ((dotX + noiseSeed + index * 3) % TILE_SIZE);
+      const shiftedY = originY + ((dotY + noiseSeed * 2 + index * 5) % TILE_SIZE);
+      const gradient = context.createRadialGradient(shiftedX, shiftedY, 0, shiftedX, shiftedY, radius);
+      gradient.addColorStop(0, `rgba(32, 36, 48, ${alpha})`);
+      gradient.addColorStop(0.55, `rgba(9, 11, 17, ${alpha * 0.55})`);
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      context.fillStyle = gradient;
+      context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+    });
+
+    context.fillStyle = "rgba(0, 0, 0, 0.38)";
+    context.fillRect(originX, originY, TILE_SIZE, 2);
+    context.fillRect(originX, originY + TILE_SIZE - 2, TILE_SIZE, 2);
+    context.fillRect(originX, originY, 2, TILE_SIZE);
+    context.fillRect(originX + TILE_SIZE - 2, originY, 2, TILE_SIZE);
   }
 
   function loadEnemyManifest(renderer, enemyImages, canvas) {
