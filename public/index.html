@@ -57,6 +57,19 @@
 
             <div class="section-label">── EQUIPAMENTO ──</div>
             <pre class="terminal-output status-output" id="status-output" aria-live="polite"></pre>
+
+            <div class="enemy-panel hidden" id="enemy-panel">
+              <div class="section-label">── ENEMY ──</div>
+              <div class="bar-row danger">
+                <span>HP</span>
+                <span class="ascii-bar" id="enemy-health-bar">[          ]</span>
+                <strong id="enemy-health-value">--/--</strong>
+              </div>
+              <div class="status-row">
+                <span>STATUS</span>
+                <strong id="enemy-status-value">clear</strong>
+              </div>
+            </div>
           </section>
         </aside>
 

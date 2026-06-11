@@ -37,6 +37,10 @@ const elements = {
   quickActions: document.querySelector("#quick-actions"),
   classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
+  enemyPanel: document.querySelector("#enemy-panel"),
+  enemyHealthBar: document.querySelector("#enemy-health-bar"),
+  enemyHealthValue: document.querySelector("#enemy-health-value"),
+  enemyStatusValue: document.querySelector("#enemy-status-value"),
   messageLog: document.querySelector("#message-log"),
   inventoryList: document.querySelector("#inventory-list"),
   collectionTitleLabel: document.querySelector("#collection-title-label"),
@@ -193,6 +197,21 @@ function renderStatus(state) {
     `ARM ${weapon}`,
     `DEF ${armor}`
   ].join("\n");
+  renderEnemyStatus(state.battle);
+}
+
+function renderEnemyStatus(battle) {
+  const enemy = battle?.active ? battle.enemy : null;
+  elements.enemyPanel.classList.toggle("hidden", !enemy);
+  if (!enemy) return;
+
+  const health = enemy.health;
+  const statuses = enemy.statuses?.length ? enemy.statuses.join(", ") : "clear";
+  elements.enemyHealthBar.innerHTML = asciiBar(health.current, health.max, "danger");
+  elements.enemyHealthValue.textContent = `${health.current}/${health.max}`;
+  elements.enemyStatusValue.textContent = statuses;
+  elements.enemyStatusValue.classList.toggle("status-alert", statuses !== "clear");
+  elements.enemyStatusValue.classList.toggle("status-clear", statuses === "clear");
 }
 
 function renderCollections(player) {

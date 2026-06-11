@@ -319,6 +319,16 @@ pre {
   margin-bottom: 8px;
 }
 
+.enemy-panel {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.enemy-panel .section-label {
+  color: var(--red);
+}
+
 .map-panel {
   flex: 1;
   display: grid;
@@ -455,8 +465,8 @@ pre {
   border-bottom: 1px solid var(--border);
 }
 
-.tab-panel.hidden {
-  display: none;
+.hidden {
+  display: none !important;
 }
 
 .tab-panel ul {
