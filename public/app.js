@@ -24,12 +24,14 @@ const elements = {
   serverStatus: document.querySelector("#server-status"),
   topMode: document.querySelector("#top-mode"),
   gameId: document.querySelector("#game-id"),
+  characterPanel: document.querySelector(".character-panel"),
   characterName: document.querySelector("#character-name"),
   characterClass: document.querySelector("#character-class"),
   clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
   statusValue: document.querySelector("#status-value"),
+  combatCue: document.querySelector("#combat-cue"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
@@ -55,6 +57,7 @@ const elements = {
 };
 
 const DUNGEON_MAP_ZOOM = 1.3;
+const COMBAT_FEEDBACK_STEP_MS = 650;
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
   spells: ["═══ MAGIAS", "════"],
@@ -85,6 +88,7 @@ const LOCATION_ARTS = {
 
 let currentState = null;
 let openingLogLines = [];
+let combatFeedbackTimers = [];
 const commandHistory = {
   entries: [],
   index: 0,
@@ -117,6 +121,7 @@ function render(payload) {
   renderCollections(state.player);
   updateCommandPlaceholder(state);
   renderLog(payload.response, state.history);
+  playCombatFeedback(payload.response);
 }
 
 function renderHeader(state) {
@@ -212,6 +217,58 @@ function renderEnemyStatus(battle) {
   elements.enemyStatusValue.textContent = statuses;
   elements.enemyStatusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.enemyStatusValue.classList.toggle("status-clear", statuses === "clear");
+}
+
+function playCombatFeedback(response) {
+  const exchanges = combatExchanges(response?.lines || []);
+  clearCombatFeedback();
+  if (!exchanges.length) return;
+
+  exchanges.forEach((exchange, index) => {
+    combatFeedbackTimers.push(setTimeout(() => showCombatExchange(exchange), index * COMBAT_FEEDBACK_STEP_MS));
+  });
+  combatFeedbackTimers.push(setTimeout(clearCombatFeedback, exchanges.length * COMBAT_FEEDBACK_STEP_MS));
+}
+
+function combatExchanges(lines) {
+  return lines.flatMap(line => {
+    if (/^You (attack|cast) .+ causing \d+ of damage/.test(line)) {
+      return [{ source: "player", target: "enemy", label: "PLAYER -> ENEMY" }];
+    }
+    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(line)) {
+      return [{ source: "enemy", target: "player", label: "ENEMY -> PLAYER" }];
+    }
+    return [];
+  });
+}
+
+function showCombatExchange(exchange) {
+  clearCombatClasses();
+  const source = combatPanelFor(exchange.source);
+  const target = combatPanelFor(exchange.target);
+  source?.classList.add("combat-source");
+  target?.classList.add("combat-target");
+  elements.combatCue.textContent = exchange.label;
+  elements.combatCue.classList.remove("hidden", "from-player", "from-enemy");
+  elements.combatCue.classList.add(exchange.source === "player" ? "from-player" : "from-enemy");
+}
+
+function combatPanelFor(side) {
+  return side === "player" ? elements.characterPanel : elements.enemyPanel;
+}
+
+function clearCombatFeedback() {
+  combatFeedbackTimers.forEach(timer => clearTimeout(timer));
+  combatFeedbackTimers = [];
+  clearCombatClasses();
+  elements.combatCue.textContent = "";
+  elements.combatCue.classList.add("hidden");
+  elements.combatCue.classList.remove("from-player", "from-enemy");
+}
+
+function clearCombatClasses() {
+  elements.characterPanel.classList.remove("combat-source", "combat-target");
+  elements.enemyPanel.classList.remove("combat-source", "combat-target");
 }
 
 function renderCollections(player) {
