@@ -80,13 +80,13 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(stock.count { |item| item.armor_class == :heavy }).to eq 5
     end
 
-    it "builds Tavern potion stock and accepts potion trades" do
+    it "builds Tavern potion stock and accepts potion and junk trades" do
       shop = described_class.shop("tavern")
 
       expect(shop).to include(
         name: :tavern,
         display_name: "Tavern",
-        accepted_types: [:potion]
+        accepted_types: [:potion, :junk]
       )
       expect(shop.fetch(:stock).map(&:display_name)).to eq ["Potion of Heal"]
     end
@@ -126,6 +126,13 @@ RSpec.describe TextAdventures::ContentCatalog do
         status_chance: 35
       )
       expect(creature.loot_table.map(&:display_name)).to eq ["Tome of Freezing"]
+      expect(creature.loot_profile).to have_attributes(
+        common_chance: 85,
+        rare_chance: 10,
+        gold_range: 1..6
+      )
+      expect(creature.loot_profile.common_items.map(&:display_name)).to eq ["Cracked Fang", "Torn Hide"]
+      expect(creature.loot_profile.rare_items.map(&:display_name)).to eq ["Tome of Freezing"]
     end
 
     it "requires every dungeon creature to have an XP reward" do

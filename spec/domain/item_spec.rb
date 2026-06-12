@@ -73,6 +73,20 @@ RSpec.describe TextAdventures::Item do
     end
   end
 
+  describe ".junk" do
+    subject(:item) { described_class.junk("Cracked Fang", price: 2) }
+
+    it "builds a sellable junk item" do
+      expect(item).to have_attributes(
+        name: "cracked fang",
+        display_name: "Cracked Fang",
+        price: 2,
+        type: :junk
+      )
+      expect(item).to be_junk
+    end
+  end
+
   describe ".normalize_name" do
     it "normalizes command-friendly names" do
       expect(described_class.normalize_name("  King's   Nep Sword!! ")).to eq "king s nep sword"

@@ -20,6 +20,18 @@ creatures:
     status_effects:
     - poison
     xp_reward: 67
+    common_loot:
+      chance: 85
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 10
+      items:
+      - tome_of_freezing
+    gold:
+      min: 1
+      max: 6
   goblin_skirmisher:
     name: Goblin Skirmisher
     health: 18
@@ -37,6 +49,18 @@ creatures:
     - rusty_dagger
     status_effects: []
     xp_reward: 30
+    common_loot:
+      chance: 85
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 10
+      items:
+      - rusty_dagger
+    gold:
+      min: 1
+      max: 6
   goblin_hexer:
     name: Goblin Hexer
     health: 22
@@ -54,6 +78,18 @@ creatures:
     - tome_of_cure
     status_effects: []
     xp_reward: 40
+    common_loot:
+      chance: 85
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 10
+      items:
+      - tome_of_cure
+    gold:
+      min: 1
+      max: 6
   hobgoblin_soldier:
     name: Hobgoblin Soldier
     health: 34
@@ -71,6 +107,18 @@ creatures:
     - hunting_spear
     status_effects: []
     xp_reward: 65
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - hunting_spear
+    gold:
+      min: 4
+      max: 12
   orc_raider:
     name: Orc Raider
     health: 42
@@ -88,6 +136,18 @@ creatures:
     - sword
     status_effects: []
     xp_reward: 74
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - sword
+    gold:
+      min: 4
+      max: 12
   orc_berserker:
     name: Orc Berserker
     health: 55
@@ -105,6 +165,18 @@ creatures:
     - greatsword
     status_effects: []
     xp_reward: 91
+    common_loot:
+      chance: 80
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 14
+      items:
+      - greatsword
+    gold:
+      min: 8
+      max: 20
   kobold_trapper:
     name: Kobold Trapper
     health: 20
@@ -122,6 +194,18 @@ creatures:
     - iron_dagger
     status_effects: []
     xp_reward: 40
+    common_loot:
+      chance: 85
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 10
+      items:
+      - iron_dagger
+    gold:
+      min: 1
+      max: 6
   kobold_sparkmage:
     name: Kobold Sparkmage
     health: 24
@@ -139,6 +223,18 @@ creatures:
     - tome_of_fireball
     status_effects: []
     xp_reward: 48
+    common_loot:
+      chance: 85
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 10
+      items:
+      - tome_of_fireball
+    gold:
+      min: 1
+      max: 6
   gnoll_hunter:
     name: Gnoll Hunter
     health: 38
@@ -156,6 +252,18 @@ creatures:
     - hunting_spear
     status_effects: []
     xp_reward: 67
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - hunting_spear
+    gold:
+      min: 4
+      max: 12
   gnoll_bonecaller:
     name: Gnoll Bonecaller
     health: 32
@@ -173,6 +281,18 @@ creatures:
     - tome_of_heal
     status_effects: []
     xp_reward: 61
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - tome_of_heal
+    gold:
+      min: 4
+      max: 12
   skeleton_guard:
     name: Skeleton Guard
     health: 28
@@ -190,6 +310,18 @@ creatures:
     - chain_shirt
     status_effects: []
     xp_reward: 59
+    common_loot:
+      chance: 85
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 10
+      items:
+      - chain_shirt
+    gold:
+      min: 1
+      max: 6
   skeleton_archer:
     name: Skeleton Archer
     health: 24
@@ -207,6 +339,18 @@ creatures:
     - curved_dagger
     status_effects: []
     xp_reward: 50
+    common_loot:
+      chance: 85
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 10
+      items:
+      - curved_dagger
+    gold:
+      min: 1
+      max: 6
   wight_knight:
     name: Wight Knight
     health: 58
@@ -224,6 +368,18 @@ creatures:
     - longsword
     status_effects: []
     xp_reward: 117
+    common_loot:
+      chance: 80
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 14
+      items:
+      - longsword
+    gold:
+      min: 8
+      max: 20
   ghoul_stalker:
     name: Ghoul Stalker
     health: 36
@@ -241,6 +397,18 @@ creatures:
     - potion_of_heal
     status_effects: []
     xp_reward: 68
+    common_loot:
+      chance: 82
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 12
+      items:
+      - potion_of_heal
+    gold:
+      min: 4
+      max: 12
   zombie_brute:
     name: Zombie Brute
     health: 60
@@ -258,6 +426,18 @@ creatures:
     - ring_mail
     status_effects: []
     xp_reward: 90
+    common_loot:
+      chance: 80
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 14
+      items:
+      - ring_mail
+    gold:
+      min: 8
+      max: 20
   shadow_imp:
     name: Shadow Imp
     health: 26
@@ -275,6 +455,18 @@ creatures:
     - shadow_dagger
     status_effects: []
     xp_reward: 60
+    common_loot:
+      chance: 82
+      items:
+      - fiendish_claw
+      - brimstone_ash
+    rare_loot:
+      chance: 12
+      items:
+      - shadow_dagger
+    gold:
+      min: 4
+      max: 12
   brimstone_imp:
     name: Brimstone Imp
     health: 30
@@ -292,6 +484,18 @@ creatures:
     - tome_of_fireball
     status_effects: []
     xp_reward: 62
+    common_loot:
+      chance: 82
+      items:
+      - fiendish_claw
+      - brimstone_ash
+    rare_loot:
+      chance: 12
+      items:
+      - tome_of_fireball
+    gold:
+      min: 4
+      max: 12
   lesser_demon:
     name: Lesser Demon
     health: 70
@@ -309,6 +513,18 @@ creatures:
     - plate_armor
     status_effects: []
     xp_reward: 127
+    common_loot:
+      chance: 78
+      items:
+      - fiendish_claw
+      - brimstone_ash
+    rare_loot:
+      chance: 16
+      items:
+      - plate_armor
+    gold:
+      min: 14
+      max: 32
   forest_sprite:
     name: Forest Sprite
     health: 18
@@ -326,6 +542,18 @@ creatures:
     - silken_guard
     status_effects: []
     xp_reward: 51
+    common_loot:
+      chance: 85
+      items:
+      - glimmer_dust
+      - thorn_fragment
+    rare_loot:
+      chance: 10
+      items:
+      - silken_guard
+    gold:
+      min: 1
+      max: 6
   pixie_trickster:
     name: Pixie Trickster
     health: 20
@@ -343,6 +571,18 @@ creatures:
     - tome_of_heal
     status_effects: []
     xp_reward: 61
+    common_loot:
+      chance: 85
+      items:
+      - glimmer_dust
+      - thorn_fragment
+    rare_loot:
+      chance: 10
+      items:
+      - tome_of_heal
+    gold:
+      min: 1
+      max: 6
   satyr_duelist:
     name: Satyr Duelist
     health: 40
@@ -360,6 +600,18 @@ creatures:
     - bastard_sword
     status_effects: []
     xp_reward: 80
+    common_loot:
+      chance: 80
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 14
+      items:
+      - bastard_sword
+    gold:
+      min: 8
+      max: 20
   dryad_thornweaver:
     name: Dryad Thornweaver
     health: 44
@@ -377,6 +629,18 @@ creatures:
     - scout_mail
     status_effects: []
     xp_reward: 89
+    common_loot:
+      chance: 80
+      items:
+      - glimmer_dust
+      - thorn_fragment
+    rare_loot:
+      chance: 14
+      items:
+      - scout_mail
+    gold:
+      min: 8
+      max: 20
   fae_blade_dancer:
     name: Fae Blade Dancer
     health: 46
@@ -394,6 +658,18 @@ creatures:
     - assassin_dagger
     status_effects: []
     xp_reward: 99
+    common_loot:
+      chance: 80
+      items:
+      - glimmer_dust
+      - thorn_fragment
+    rare_loot:
+      chance: 14
+      items:
+      - assassin_dagger
+    gold:
+      min: 8
+      max: 20
   dire_wolf:
     name: Dire Wolf
     health: 45
@@ -411,6 +687,18 @@ creatures:
     - leather_armor
     status_effects: []
     xp_reward: 83
+    common_loot:
+      chance: 80
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 14
+      items:
+      - leather_armor
+    gold:
+      min: 8
+      max: 20
   owlbear_cub:
     name: Owlbear Cub
     health: 62
@@ -428,6 +716,18 @@ creatures:
     - scale_mail
     status_effects: []
     xp_reward: 108
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - scale_mail
+    gold:
+      min: 14
+      max: 32
   cave_troll:
     name: Cave Troll
     health: 90
@@ -445,6 +745,18 @@ creatures:
     - half_plate
     status_effects: []
     xp_reward: 153
+    common_loot:
+      chance: 78
+      items:
+      - heavy_tooth
+      - cracked_horn
+    rare_loot:
+      chance: 16
+      items:
+      - half_plate
+    gold:
+      min: 14
+      max: 32
   hill_giant_youth:
     name: Hill Giant Youth
     health: 110
@@ -462,6 +774,18 @@ creatures:
     - halberd
     status_effects: []
     xp_reward: 184
+    common_loot:
+      chance: 78
+      items:
+      - heavy_tooth
+      - cracked_horn
+    rare_loot:
+      chance: 16
+      items:
+      - halberd
+    gold:
+      min: 14
+      max: 32
   minotaur_guardian:
     name: Minotaur Guardian
     health: 95
@@ -479,6 +803,18 @@ creatures:
     - splint_armor
     status_effects: []
     xp_reward: 171
+    common_loot:
+      chance: 78
+      items:
+      - heavy_tooth
+      - cracked_horn
+    rare_loot:
+      chance: 16
+      items:
+      - splint_armor
+    gold:
+      min: 14
+      max: 32
   ogre_marauder:
     name: Ogre Marauder
     health: 85
@@ -496,6 +832,18 @@ creatures:
     - brigandine
     status_effects: []
     xp_reward: 140
+    common_loot:
+      chance: 78
+      items:
+      - heavy_tooth
+      - cracked_horn
+    rare_loot:
+      chance: 16
+      items:
+      - brigandine
+    gold:
+      min: 14
+      max: 32
   lizardfolk_scout:
     name: Lizardfolk Scout
     health: 38
@@ -513,6 +861,18 @@ creatures:
     - spear
     status_effects: []
     xp_reward: 80
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - spear
+    gold:
+      min: 4
+      max: 12
   naga_apprentice:
     name: Naga Apprentice
     health: 52
@@ -530,6 +890,18 @@ creatures:
     - tome_of_ice_bolt
     status_effects: []
     xp_reward: 100
+    common_loot:
+      chance: 80
+      items:
+      - serpent_scale
+      - venom_sac
+    rare_loot:
+      chance: 14
+      items:
+      - tome_of_ice_bolt
+    gold:
+      min: 8
+      max: 20
   yuan_ti_cutthroat:
     name: Yuan-ti Cutthroat
     health: 48
@@ -550,6 +922,18 @@ creatures:
     status_effects:
     - poison
     xp_reward: 103
+    common_loot:
+      chance: 80
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 14
+      items:
+      - curved_dagger
+    gold:
+      min: 8
+      max: 20
   basilisk_hatchling:
     name: Basilisk Hatchling
     health: 65
@@ -567,6 +951,18 @@ creatures:
     - breastplate
     status_effects: []
     xp_reward: 126
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - breastplate
+    gold:
+      min: 14
+      max: 32
   harpy_screecher:
     name: Harpy Screecher
     health: 36
@@ -584,6 +980,18 @@ creatures:
     - padded_armor
     status_effects: []
     xp_reward: 73
+    common_loot:
+      chance: 82
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 12
+      items:
+      - padded_armor
+    gold:
+      min: 4
+      max: 12
   griffin_fledgling:
     name: Griffin Fledgling
     health: 74
@@ -601,6 +1009,18 @@ creatures:
     - iron_spear
     status_effects: []
     xp_reward: 136
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - iron_spear
+    gold:
+      min: 14
+      max: 32
   manticore_whelp:
     name: Manticore Whelp
     health: 78
@@ -618,6 +1038,18 @@ creatures:
     - chain_mail
     status_effects: []
     xp_reward: 143
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - chain_mail
+    gold:
+      min: 14
+      max: 32
   wyvern_juvenile:
     name: Wyvern Juvenile
     health: 105
@@ -638,6 +1070,18 @@ creatures:
     status_effects:
     - poison
     xp_reward: 199
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - dragon_lance
+    gold:
+      min: 14
+      max: 32
   dragon_wyrmling:
     name: Dragon Wyrmling
     health: 120
@@ -655,6 +1099,18 @@ creatures:
     - dragon_plate
     status_effects: []
     xp_reward: 216
+    common_loot:
+      chance: 78
+      items:
+      - cracked_fang
+      - torn_hide
+    rare_loot:
+      chance: 16
+      items:
+      - dragon_plate
+    gold:
+      min: 14
+      max: 32
   elemental_spark:
     name: Elemental Spark
     health: 28
@@ -672,6 +1128,18 @@ creatures:
     - tome_of_fireball
     status_effects: []
     xp_reward: 78
+    common_loot:
+      chance: 82
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 12
+      items:
+      - tome_of_fireball
+    gold:
+      min: 4
+      max: 12
   fire_elemental_ling:
     name: Fire Elemental Ling
     health: 50
@@ -689,6 +1157,18 @@ creatures:
     - tome_of_fireball
     status_effects: []
     xp_reward: 104
+    common_loot:
+      chance: 80
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 14
+      items:
+      - tome_of_fireball
+    gold:
+      min: 8
+      max: 20
   ice_elemental_ling:
     name: Ice Elemental Ling
     health: 50
@@ -706,6 +1186,18 @@ creatures:
     - tome_of_ice_bolt
     status_effects: []
     xp_reward: 104
+    common_loot:
+      chance: 80
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 14
+      items:
+      - tome_of_ice_bolt
+    gold:
+      min: 8
+      max: 20
   earth_elemental_ling:
     name: Earth Elemental Ling
     health: 75
@@ -723,6 +1215,18 @@ creatures:
     - plate_armor
     status_effects: []
     xp_reward: 149
+    common_loot:
+      chance: 78
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 16
+      items:
+      - plate_armor
+    gold:
+      min: 14
+      max: 32
   air_elemental_ling:
     name: Air Elemental Ling
     health: 44
@@ -740,6 +1244,18 @@ creatures:
     - silken_guard
     status_effects: []
     xp_reward: 105
+    common_loot:
+      chance: 80
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 14
+      items:
+      - silken_guard
+    gold:
+      min: 8
+      max: 20
   dark_elf_assassin:
     name: Dark Elf Assassin
     health: 58
@@ -757,6 +1273,18 @@ creatures:
     - assassin_dagger
     status_effects: []
     xp_reward: 128
+    common_loot:
+      chance: 78
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 16
+      items:
+      - assassin_dagger
+    gold:
+      min: 14
+      max: 32
   dark_elf_arcanist:
     name: Dark Elf Arcanist
     health: 52
@@ -774,6 +1302,18 @@ creatures:
     - tome_of_fireball
     status_effects: []
     xp_reward: 112
+    common_loot:
+      chance: 78
+      items:
+      - bent_coin
+      - chipped_blade
+    rare_loot:
+      chance: 16
+      items:
+      - tome_of_fireball
+    gold:
+      min: 14
+      max: 32
   dwarven_ghost:
     name: Dwarven Ghost
     health: 54
@@ -791,6 +1331,18 @@ creatures:
     - ring_mail
     status_effects: []
     xp_reward: 113
+    common_loot:
+      chance: 78
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 16
+      items:
+      - ring_mail
+    gold:
+      min: 14
+      max: 32
   cursed_paladin:
     name: Cursed Paladin
     health: 88
@@ -808,6 +1360,18 @@ creatures:
     - plate_armor
     status_effects: []
     xp_reward: 169
+    common_loot:
+      chance: 78
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 16
+      items:
+      - plate_armor
+    gold:
+      min: 14
+      max: 32
   enchanted_armor:
     name: Enchanted Armor
     health: 80
@@ -825,6 +1389,18 @@ creatures:
     - half_plate
     status_effects: []
     xp_reward: 165
+    common_loot:
+      chance: 78
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 16
+      items:
+      - half_plate
+    gold:
+      min: 14
+      max: 32
   crystal_golem:
     name: Crystal Golem
     health: 100
@@ -842,6 +1418,18 @@ creatures:
     - dragon_plate
     status_effects: []
     xp_reward: 196
+    common_loot:
+      chance: 78
+      items:
+      - arcane_shard
+      - elemental_residue
+    rare_loot:
+      chance: 16
+      items:
+      - dragon_plate
+    gold:
+      min: 14
+      max: 32
   lich_acolyte:
     name: Lich Acolyte
     health: 72
@@ -859,3 +1447,15 @@ creatures:
     - tome_of_cure
     status_effects: []
     xp_reward: 140
+    common_loot:
+      chance: 78
+      items:
+      - bone_shard
+      - grave_dust
+    rare_loot:
+      chance: 16
+      items:
+      - tome_of_cure
+    gold:
+      min: 14
+      max: 32

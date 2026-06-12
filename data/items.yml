@@ -215,3 +215,67 @@ items:
     name: Tome of Freezing
     price: 25
     spell: Ice Bolt
+  cracked_fang:
+    type: junk
+    name: Cracked Fang
+    price: 2
+  torn_hide:
+    type: junk
+    name: Torn Hide
+    price: 3
+  bent_coin:
+    type: junk
+    name: Bent Coin
+    price: 1
+  chipped_blade:
+    type: junk
+    name: Chipped Blade
+    price: 4
+  bone_shard:
+    type: junk
+    name: Bone Shard
+    price: 2
+  grave_dust:
+    type: junk
+    name: Grave Dust
+    price: 3
+  fiendish_claw:
+    type: junk
+    name: Fiendish Claw
+    price: 5
+  brimstone_ash:
+    type: junk
+    name: Brimstone Ash
+    price: 4
+  glimmer_dust:
+    type: junk
+    name: Glimmer Dust
+    price: 5
+  thorn_fragment:
+    type: junk
+    name: Thorn Fragment
+    price: 3
+  arcane_shard:
+    type: junk
+    name: Arcane Shard
+    price: 6
+  elemental_residue:
+    type: junk
+    name: Elemental Residue
+    price: 5
+  heavy_tooth:
+    type: junk
+    name: Heavy Tooth
+    price: 6
+  cracked_horn:
+    type: junk
+    name: Cracked Horn
+    price: 7
+  serpent_scale:
+    type: junk
+    name: Serpent Scale
+    price: 5
+  venom_sac:
+    type: junk
+    name: Venom Sac
+    price: 6

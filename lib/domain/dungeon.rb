@@ -186,7 +186,7 @@ module TextAdventures
     def drop_loot(position, items)
       key = position_key(position)
       validate_entity_position!(key)
-      dropped_loot[key] = Array(items)
+      dropped_loot[key] = LootDrop.coerce(items)
     end
 
     def loot_at(position)

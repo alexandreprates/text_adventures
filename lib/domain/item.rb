@@ -1,6 +1,6 @@
 module TextAdventures
   class Item
-    VALID_TYPES = %i[weapon armor potion tome].freeze
+    VALID_TYPES = %i[weapon armor potion tome junk].freeze
 
     attr_reader :name, :display_name, :price, :type,
                 :attack, :defense, :recovery, :spell, :armor_class,
@@ -27,6 +27,10 @@ module TextAdventures
 
     def self.tome(name, price:, spell:)
       new(name: name, price: price, type: :tome, spell: spell)
+    end
+
+    def self.junk(name, price:)
+      new(name: name, price: price, type: :junk)
     end
 
     def self.normalize_name(value)
@@ -83,6 +87,10 @@ module TextAdventures
 
     def tome?
       type == :tome
+    end
+
+    def junk?
+      type == :junk
     end
 
     private

@@ -97,7 +97,10 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     loot_position = dungeon.current_global_position
 
     dungeon.place_enemy(enemy_position, "giant_spider")
-    dungeon.drop_loot(loot_position, [TextAdventures::ContentCatalog.item("potion_of_heal")])
+    dungeon.drop_loot(
+      loot_position,
+      TextAdventures::LootDrop.new(items: [TextAdventures::ContentCatalog.item("potion_of_heal")], gold: 4)
+    )
     game.handle("look")
 
     expect(state.fetch(:scene)).to eq "ruins"
@@ -121,6 +124,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:dungeon, :nearby_loot, :items)).to include(
       hash_including(name: "potion of heal", display_name: "Potion of Heal")
     )
+    expect(state.dig(:dungeon, :nearby_loot, :gold)).to eq 4
     expect(state.fetch(:battle)).to include(active: true)
     expect(state.dig(:battle, :enemy)).to include(
       name: "giant spider",

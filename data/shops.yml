@@ -58,3 +58,4 @@ shops:
       - potion_of_heal
     accepted_types:
       - potion
+      - junk

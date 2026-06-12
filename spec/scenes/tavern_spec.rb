@@ -18,7 +18,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(response).to include "sleep - rent a room and fully recover health"
     expect(response).to include "show - view potions for sale"
     expect(response).to include "buy <item> - buy a potion"
-    expect(response).to include "sell <item> - sell a potion"
+    expect(response).to include "sell <item> - sell potions and junk"
     expect(response).to include "go town"
   end
 
@@ -62,6 +62,24 @@ RSpec.describe TextAdventures::Scenes::Tavern do
       [your gold is now 107]
     TEXT
     expect(game.player.inventory.quantity("potion of heal")).to eq 0
+  end
+
+  it "sells junk loot" do
+    game.player.inventory.add(TextAdventures::ContentCatalog.item("cracked_fang"))
+
+    expect(game.handle("sell cracked fang")).to eq <<~TEXT.chomp
+      I can give you 1g for this Cracked Fang.
+      Select your answer:
+       agree - sell item
+       no - keep item
+    TEXT
+
+    expect(game.handle("agree")).to eq <<~TEXT.chomp
+      You sold Cracked Fang at 1g.
+      [1x Cracked Fang removed from inventory]
+      [your gold is now 101]
+    TEXT
+    expect(game.player.inventory.quantity("cracked fang")).to eq 0
   end
 
   it "lets the player sleep in a rented room to fully recover health" do

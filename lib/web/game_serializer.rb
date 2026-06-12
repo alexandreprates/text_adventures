@@ -204,8 +204,11 @@ module TextAdventures
       def loot_position_state(position)
         return nil unless position
 
-        loot = game.dungeon.loot_at(position) || []
-        position_state(position).merge(items: loot.map { |item| item_state(item) })
+        loot = LootDrop.coerce(game.dungeon.loot_at(position))
+        position_state(position).merge(
+          items: loot.map { |item| item_state(item) },
+          gold: loot.gold
+        )
       end
 
       def position_state(position)

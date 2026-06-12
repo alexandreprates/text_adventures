@@ -232,10 +232,16 @@ module TextAdventures
       end
 
       def collect_loot_items(game, loot)
+        loot = LootDrop.coerce(loot)
         lines = ["You collect the loot."]
         loot.each do |item|
           game.player.inventory.add(item)
           lines << "[1x #{item.display_name} added to inventory]"
+        end
+        if loot.gold.positive?
+          game.player.gold += loot.gold
+          lines << "[#{loot.gold}g added to purse]"
+          lines << "[your gold is now #{game.player.gold}]"
         end
         Response.new(lines)
       end

@@ -351,7 +351,9 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(strong_game.battle).to be_nil
     expect(strong_game.pending_loot).to be_nil
     expect(dungeon.enemy_at(active_enemy_position)).to be_nil
-    expect(dungeon.loot_at(active_enemy_position)).to eq TextAdventures::Creature.giant_spider.loot_table
+    loot = dungeon.loot_at(active_enemy_position)
+    expect(loot.items.map(&:display_name)).to eq ["Cracked Fang", "Tome of Freezing"]
+    expect(loot.gold).to eq 1
   end
 
   it "collects victory loot once" do
@@ -366,6 +368,20 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.pending_loot).to be_nil
     expect(game.handle("loot")).to eq "There is no loot to collect."
     expect(game.player.inventory.quantity("tome of ice bolt")).to eq 1
+  end
+
+  it "collects victory gold with items" do
+    fang = TextAdventures::Item.junk("Cracked Fang", price: 2)
+    game.pending_loot = TextAdventures::LootDrop.new(items: [fang], gold: 4)
+
+    expect(game.handle("loot")).to eq <<~TEXT.chomp
+      You collect the loot.
+      [1x Cracked Fang added to inventory]
+      [4g added to purse]
+      [your gold is now 104]
+    TEXT
+    expect(game.player.inventory.quantity("cracked fang")).to eq 1
+    expect(game.player.gold).to eq 104
   end
 
   it "collects adjacent map loot once" do

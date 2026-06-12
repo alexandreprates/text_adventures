@@ -32,7 +32,7 @@ module TextAdventures
           " sleep - rent a room and fully recover health",
           " show - view potions for sale",
           " buy <item> - buy a potion",
-          " sell <item> - sell a potion",
+          " sell <item> - sell potions and junk",
           " go town - return to Nee'Peh"
         )
       end

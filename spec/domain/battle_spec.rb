@@ -82,7 +82,8 @@ RSpec.describe TextAdventures::Battle do
       response = battle.attack(strong_player)
 
       expect(response).to have_attributes(finished?: true)
-      expect(response.loot).to eq creature.loot_table
+      expect(response.loot.items.map(&:display_name)).to eq ["Cracked Fang", "Tome of Freezing"]
+      expect(response.loot.gold).to eq 1
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Giant Spider causing 39 of damage.
         Giant Spider dies.

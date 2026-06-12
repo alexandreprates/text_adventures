@@ -386,7 +386,10 @@ module TextAdventures
         loot = game.dungeon.loot_at(position)
         return "none" unless loot && !loot.empty?
 
-        loot.first.display_name
+        item = loot.first
+        return item.display_name if item
+
+        "#{loot.gold}g"
       end
 
       def equipment_name(equipment)

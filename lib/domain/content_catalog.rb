@@ -9,6 +9,7 @@ module TextAdventures
         ids: %w[
           giant_spider goblin_skirmisher goblin_hexer kobold_trapper
           kobold_sparkmage skeleton_guard skeleton_archer forest_sprite
+          pixie_trickster
         ]
       },
       {
@@ -91,6 +92,7 @@ module TextAdventures
         xp_reward: definition.fetch("xp_reward", 0),
         attacks: build_attacks(definition.fetch("attacks", [])),
         loot_table: items(definition.fetch("loot", [])),
+        loot_profile: build_loot_profile(definition),
         status_effects: symbol_list(definition.fetch("status_effects", []))
       )
     end
@@ -154,6 +156,8 @@ module TextAdventures
         Item.potion(name, price: price, recovery: definition.fetch("recovery"))
       when "tome"
         Item.tome(name, price: price, spell: definition.fetch("spell"))
+      when "junk"
+        Item.junk(name, price: price)
       else
         raise ArgumentError, "unknown item type: #{definition.fetch('type')}"
       end
@@ -169,6 +173,28 @@ module TextAdventures
           status_chance: definition["status_chance"]
         )
       end
+    end
+
+    def build_loot_profile(definition)
+      common = definition["common_loot"]
+      rare = definition["rare_loot"]
+      gold = definition["gold"]
+      return nil unless common || rare || gold
+
+      rare_item_ids = rare&.fetch("items", nil) || definition.fetch("loot", [])
+      Creature::LootProfile.new(
+        common_chance: common&.fetch("chance", 0).to_i,
+        common_items: items(common&.fetch("items", []) || []),
+        rare_chance: rare&.fetch("chance", 0).to_i,
+        rare_items: items(rare_item_ids),
+        gold_range: build_gold_range(gold)
+      )
+    end
+
+    def build_gold_range(definition)
+      return 0..0 unless definition
+
+      definition.fetch("min").to_i..definition.fetch("max").to_i
     end
 
     def build_dungeon_block(id, definition)

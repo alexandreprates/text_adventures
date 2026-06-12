@@ -38,7 +38,7 @@ module TextAdventures
       if creature.dead?
         lines << "#{creature.display_name} dies."
         lines.concat award_xp_lines(player)
-        return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
+        return Result.new(lines: lines, finished?: true, loot: roll_loot)
       end
 
       lines.concat enemy_turn_lines(player)
@@ -68,7 +68,7 @@ module TextAdventures
       if creature.dead?
         lines << "#{creature.display_name} dies."
         lines.concat award_xp_lines(player)
-        return Result.new(lines: lines, finished?: true, loot: creature.loot_table)
+        return Result.new(lines: lines, finished?: true, loot: roll_loot)
       end
 
       lines.concat enemy_turn_lines(player)
@@ -114,9 +114,34 @@ module TextAdventures
       Result.new(
         lines: lines + ["You have fallen."],
         finished?: true,
-        loot: [],
+        loot: LootDrop.empty,
         player_defeated?: true
       )
+    end
+
+    def roll_loot
+      profile = creature.loot_profile
+      return LootDrop.new(items: creature.loot_table) unless profile
+
+      items = []
+      items << random_item(profile.common_items) if roll_chance?(profile.common_chance) && profile.common_items.any?
+      items << random_item(profile.rare_items) if roll_chance?(profile.rare_chance) && profile.rare_items.any?
+
+      LootDrop.new(items: items.compact, gold: roll_gold(profile.gold_range))
+    end
+
+    def roll_chance?(chance)
+      chance.to_i.positive? && random.rand(100) < chance.to_i
+    end
+
+    def random_item(items)
+      items[random.rand(items.length)]
+    end
+
+    def roll_gold(range)
+      return 0 unless range && range.end.positive?
+
+      range.begin + random.rand(range.size)
     end
 
     def record_contribution(skill, amount)

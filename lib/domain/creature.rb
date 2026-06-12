@@ -9,9 +9,10 @@ module TextAdventures
         command_name == Creature.normalize_name(query)
       end
     end
+    LootProfile = Struct.new(:common_chance, :common_items, :rare_chance, :rare_items, :gold_range, keyword_init: true)
 
     attr_reader :name, :display_name, :health, :attacks, :defense, :xp_reward,
-                :loot_table, :status_effects, :active_statuses
+                :loot_table, :loot_profile, :status_effects, :active_statuses
 
     def self.giant_spider
       ContentCatalog.creature("giant_spider")
@@ -29,6 +30,7 @@ module TextAdventures
       xp_reward: 0,
       attacks: [],
       loot_table: [],
+      loot_profile: nil,
       status_effects: [],
       active_statuses: []
     )
@@ -39,6 +41,13 @@ module TextAdventures
       @xp_reward = xp_reward
       @attacks = attacks.freeze
       @loot_table = loot_table.freeze
+      @loot_profile = loot_profile || LootProfile.new(
+        common_chance: 0,
+        common_items: [],
+        rare_chance: 100,
+        rare_items: loot_table,
+        gold_range: 0..0
+      )
       @status_effects = status_effects.freeze
       @active_statuses = active_statuses.map { |status| normalize_status(status) }.uniq
     end
