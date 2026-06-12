@@ -221,6 +221,7 @@ function renderStatus(state) {
   renderClassProgress(player.skills);
 
   elements.statusOutput.textContent = [
+    `GLD ${player.gold}`,
     equipmentLine("ARM", player.equipment.weapon, "Unarmed", "DMG", "attack"),
     equipmentLine("DEF", player.equipment.armor, "No armor", "DEF", "defense")
   ].join("\n");

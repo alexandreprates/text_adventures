@@ -107,6 +107,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('event.key === "ArrowDown"')
     expect(javascript).to include('elements.statusValue.classList.toggle("status-alert"')
     expect(javascript).to include('elements.statusValue.classList.toggle("status-clear"')
+    expect(javascript).to include('`GLD ${player.gold}`')
     expect(javascript).to include('equipmentLine("ARM", player.equipment.weapon, "Unarmed", "DMG", "attack")')
     expect(javascript).to include('equipmentLine("DEF", player.equipment.armor, "No armor", "DEF", "defense")')
     expect(javascript).to include('function equipmentLine(label, item, fallbackName, statLabel, statKey)')
