@@ -284,12 +284,14 @@ function renderCollections(player) {
   renderList(elements.inventoryList, player.inventory, item => ({
     label: item.display_name,
     meta: item.quantity > 1 ? `x${item.quantity}` : "",
-    type: item.type || ""
+    type: item.type || "",
+    commandValue: item.name
   }));
   renderList(elements.spellsList, player.spells, spell => ({
     label: `${spell.display_name} Lv ${spell.level}`,
     meta: spell.kind,
-    type: spell.description
+    type: spell.description,
+    commandValue: spell.name
   }));
 }
 
@@ -305,13 +307,26 @@ function renderList(target, entries, formatter) {
   entries.forEach(entry => {
     const details = formatter(entry);
     const item = document.createElement("li");
-    item.innerHTML = [
-      `<span>${details.label}</span>`,
-      `<span class="item-type">${details.meta || details.type || ""}</span>`
-    ].join("");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "collection-item-command";
+    button.textContent = details.label;
+    button.addEventListener("click", () => fillCommandInput(details.commandValue || details.label));
+
+    const meta = document.createElement("span");
+    meta.className = "item-type";
+    meta.textContent = details.meta || details.type || "";
+
+    item.append(button, meta);
     if (details.type && details.meta) item.title = details.type;
     target.appendChild(item);
   });
+}
+
+function fillCommandInput(value) {
+  elements.commandInput.value = value;
+  elements.commandInput.focus();
+  elements.commandInput.setSelectionRange(value.length, value.length);
 }
 
 function renderLog(response, history) {

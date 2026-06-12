@@ -541,6 +541,22 @@ pre {
   background: var(--panel-active);
 }
 
+.collection-item-command {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.collection-item-command:hover,
+.collection-item-command:focus-visible {
+  background: transparent;
+  color: var(--amber);
+}
+
 .item-type {
   color: var(--green-dim);
 }
