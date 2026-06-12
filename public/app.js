@@ -210,8 +210,6 @@ function adjustMapZoom(direction) {
 function renderStatus(state) {
   const player = state.player;
   const health = player.health;
-  const weapon = player.equipment.weapon?.display_name || "Unarmed";
-  const armor = player.equipment.armor?.display_name || "No armor";
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
   elements.characterClass.textContent = classLine(player);
@@ -223,10 +221,16 @@ function renderStatus(state) {
   renderClassProgress(player.skills);
 
   elements.statusOutput.textContent = [
-    `ARM ${weapon}`,
-    `DEF ${armor}`
+    equipmentLine("ARM", player.equipment.weapon, "Unarmed", "DMG", "attack"),
+    equipmentLine("DEF", player.equipment.armor, "No armor", "DEF", "defense")
   ].join("\n");
   renderEnemyStatus(state.battle);
+}
+
+function equipmentLine(label, item, fallbackName, statLabel, statKey) {
+  const name = item?.display_name || fallbackName;
+  const statValue = item?.[statKey] || 0;
+  return `${label} ${name} (${statLabel} ${statValue})`;
 }
 
 function renderEnemyStatus(battle) {
