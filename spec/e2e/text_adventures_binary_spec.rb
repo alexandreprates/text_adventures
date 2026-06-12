@@ -132,7 +132,7 @@ RSpec.describe "text_adventures binary" do
     expect(output).to include "Game mode enabled."
     expect(output).to include "Ruins L1 [game] > You move right."
     expect(output).to include "Ruins L1 [game] > There is no enemy to attack."
-    expect(output).to include "Currently you have nothing."
+    expect(output).to include "5x Potion of Heal"
     expect(output).to include "There is no loot to collect."
     expect(output).to include "Choose a spell:"
     expect(output).to include " 1 - Fireball"

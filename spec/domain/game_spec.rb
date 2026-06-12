@@ -101,7 +101,7 @@ RSpec.describe TextAdventures::Game do
 
       expect(response).to eq <<~TEXT.chomp
         Currently you have:
-         2x Potion of Heal (Recovery 20 Health)
+         7x Potion of Heal (Recovery 20 Health)
         Equipped:
          weapon: Sword (Atk: 10)
          armor: Leather Armor (Def: 20)
@@ -109,10 +109,10 @@ RSpec.describe TextAdventures::Game do
       expect(scene.handled_command).to be_nil
     end
 
-    it "renders an explicit empty inventory through the global command" do
+    it "renders the starter inventory through the global command" do
       game = described_class.new(current_scene: TestScene.new(response: "scene response"))
 
-      expect(game.handle("inventory")).to include "Currently you have nothing."
+      expect(game.handle("inventory")).to include "5x Potion of Heal"
     end
 
     it "handles spellbook as a global player command" do
@@ -195,7 +195,7 @@ RSpec.describe TextAdventures::Game do
         [1x Potion of Heal removed from inventory]
       TEXT
       expect(game.player.health.current).to eq 30
-      expect(game.player.inventory.quantity("potion of heal")).to eq 0
+      expect(game.player.inventory.quantity("potion of heal")).to eq 5
     end
 
     it "uses tomes to teach a new spell and consumes them" do
@@ -232,7 +232,8 @@ RSpec.describe TextAdventures::Game do
     end
 
     it "rejects missing or unusable inventory items" do
-      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      player = TextAdventures::Character.new(inventory: TextAdventures::Inventory.new)
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"), player: player)
       sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
       game.player.inventory.add(sword)
 
@@ -252,7 +253,7 @@ RSpec.describe TextAdventures::Game do
         Dropped Potion of Heal.
         [1x Potion of Heal removed from inventory]
       TEXT
-      expect(game.player.inventory.quantity("potion of heal")).to eq 1
+      expect(game.player.inventory.quantity("potion of heal")).to eq 6
     end
 
     it "returns a clear message when dropping a missing item" do
@@ -352,7 +353,7 @@ RSpec.describe TextAdventures::Game do
 
       game.handle("game")
 
-      expect(game.handle("i")).to include "Currently you have nothing."
+      expect(game.handle("i")).to include "5x Potion of Heal"
       expect(scene.handled_command).to be_nil
     end
 

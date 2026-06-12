@@ -27,8 +27,10 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       attack: 11,
       defense: 20,
       statuses: [],
-      inventory: [],
       spells: []
+    )
+    expect(state.dig(:player, :inventory)).to include(
+      hash_including(name: "potion of heal", display_name: "Potion of Heal", quantity: 5)
     )
     expect(state.dig(:player, :equipment, :weapon)).to include(
       name: "sword",

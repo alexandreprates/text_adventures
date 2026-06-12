@@ -152,7 +152,8 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     game.handle("buy sword")
 
     expect(game.handle("inventory")).to eq <<~TEXT.chomp
-      Currently you have nothing.
+      Currently you have:
+       5x Potion of Heal (Recovery 20 Health)
       Equipped:
        weapon: Sword (Atk: 10)
        armor: Leather Armor (Def: 20)

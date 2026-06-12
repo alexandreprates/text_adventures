@@ -222,7 +222,7 @@ RSpec.describe TextAdventures::UI::ScreenRenderer do
       expect(lines[1]).to include "Text Adventures - Town of Nee'Peh [text] - Inventory"
       expect(screen).to include "Equipped"
       expect(screen).to include "Bag"
-      expect(screen).to include "1 1x Potion of Heal"
+      expect(screen).to include "1 6x Potion of Heal"
       expect(screen).to include "Skills"
       expect(screen).to include "use/equip/drop <item> | h help | continue with any command"
     end

@@ -43,7 +43,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
       [1x Potion of Heal added to inventory]
       [your gold is now 90]
     TEXT
-    expect(game.player.inventory.quantity("potion of heal")).to eq 1
+    expect(game.player.inventory.quantity("potion of heal")).to eq 6
   end
 
   it "sells healing potions" do
@@ -61,7 +61,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
       [1x Potion of Heal removed from inventory]
       [your gold is now 107]
     TEXT
-    expect(game.player.inventory.quantity("potion of heal")).to eq 0
+    expect(game.player.inventory.quantity("potion of heal")).to eq 5
   end
 
   it "sells junk loot" do

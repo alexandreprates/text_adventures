@@ -8,6 +8,7 @@ module TextAdventures
     DEFAULT_GOLD = 100
     DEFAULT_BASE_ATTACK = 1
     DEFAULT_BASE_DEFENSE = 0
+    STARTER_POTION_QUANTITY = 5
     STARTER_WEAPON = Equipment.new(name: "Sword", attack: 10, defense: 0).freeze
     STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 20).freeze
 
@@ -29,7 +30,7 @@ module TextAdventures
       equipped_weapon: STARTER_WEAPON,
       equipped_armor: STARTER_ARMOR,
       spells: [],
-      inventory: Inventory.new,
+      inventory: nil,
       status_effects: [],
       progression: CharacterProgression.new
     )
@@ -41,10 +42,16 @@ module TextAdventures
       @equipped_weapon = equipped_weapon
       @equipped_armor = equipped_armor
       @spells = {}
-      @inventory = inventory
+      @inventory = inventory || self.class.starter_inventory
       @status_effects = normalize_statuses(status_effects)
       @progression = progression
       spells.each { |spell| learn_spell(spell) }
+    end
+
+    def self.starter_inventory
+      Inventory.new.tap do |inventory|
+        inventory.add(Item.potion("Potion of Heal", price: 10, recovery: 20), quantity: STARTER_POTION_QUANTITY)
+      end
     end
 
     def gain_skill_xp(skill, amount)

@@ -218,7 +218,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       [Adventurer HP: 30/30]
     TEXT
     expect(game.handle("go right")).to eq "You cannot move while Giant Spider blocks your path."
-    expect(game.handle("inventory")).to include "Currently you have nothing."
+    expect(game.handle("inventory")).to include "5x Potion of Heal"
   end
 
   it "attacks during active encounters and keeps battle active while the creature lives" do

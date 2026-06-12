@@ -27,7 +27,7 @@ RSpec.describe TextAdventures::Character do
 
     it "starts with an inventory" do
       expect(character.inventory).to be_a TextAdventures::Inventory
-      expect(character.inventory).to be_empty
+      expect(character.inventory.quantity("potion of heal")).to eq 5
     end
 
     it "starts without active status effects" do
@@ -295,9 +295,10 @@ RSpec.describe TextAdventures::Character do
   end
 
   describe "#inventory_report" do
-    it "renders an empty inventory with equipped items" do
+    it "renders the starter inventory with equipped items" do
       expect(character.inventory_report).to eq <<~TEXT.chomp
-        Currently you have nothing.
+        Currently you have:
+         5x Potion of Heal (Recovery 20 Health)
         Equipped:
          weapon: Sword (Atk: 10)
          armor: Leather Armor (Def: 20)
@@ -314,7 +315,7 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.inventory_report).to eq <<~TEXT.chomp
         Currently you have:
-         2x Potion of Heal (Recovery 20 Health)
+         7x Potion of Heal (Recovery 20 Health)
          1x Sword (Atk: 10)
         Equipped:
          weapon: Sword (Atk: 10)
