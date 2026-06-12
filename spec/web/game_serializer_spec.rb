@@ -85,6 +85,27 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
+  it "serializes starter equipment returned to inventory after an equipment swap" do
+    game.player.inventory.add(TextAdventures::ContentCatalog.item("rusty_dagger"))
+    game.handle("equip rusty dagger")
+
+    expect(state.dig(:player, :equipment, :weapon)).to include(
+      name: "rusty dagger",
+      display_name: "Rusty Dagger",
+      attack: 6
+    )
+    expect(state.dig(:player, :inventory)).to include(
+      hash_including(
+        name: "sword",
+        display_name: "Sword",
+        type: "weapon",
+        attack: 10,
+        quantity: 1
+      )
+    )
+    expect(state.dig(:player, :inventory)).not_to include(hash_including(name: "rusty dagger"))
+  end
+
   it "serializes the complete command history" do
     12.times { game.handle("look") }
 

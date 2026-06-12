@@ -1,6 +1,61 @@
 module TextAdventures
   class Character
-    Equipment = Struct.new(:name, :attack, :defense, keyword_init: true)
+    Equipment = Struct.new(:name, :attack, :defense, keyword_init: true) do
+      def command_name
+        Item.normalize_name(name)
+      end
+
+      def display_name
+        name
+      end
+
+      def weapon?
+        attack.to_i.positive?
+      end
+
+      def armor?
+        !weapon? && defense.to_i.positive?
+      end
+
+      def potion?
+        false
+      end
+
+      def tome?
+        false
+      end
+
+      def junk?
+        false
+      end
+
+      def type
+        return :weapon if weapon?
+        return :armor if armor?
+
+        :equipment
+      end
+
+      def price
+        0
+      end
+
+      def recovery
+        0
+      end
+
+      def spell
+        nil
+      end
+
+      def armor_class
+        nil
+      end
+
+      def weapon_class
+        nil
+      end
+    end
     EquipResult = Struct.new(:success?, :item, :message, keyword_init: true)
 
     DEFAULT_NAME = "Adventurer".freeze

@@ -227,12 +227,17 @@ module TextAdventures
       item = player.inventory.find(query)
       return Response.new("You do not have #{query}.") unless item
 
+      previous_equipment = item.weapon? ? player.equipped_weapon : player.equipped_armor
       result = player.equip(item)
       return Response.new(result.message) unless result.success?
+      removal = player.inventory.remove(item.command_name)
+      player.inventory.add(previous_equipment) if previous_equipment
 
       Response.new(
         result.message,
-        equipment_stat_line(item)
+        equipment_stat_line(item),
+        "[#{removal.quantity}x #{removal.item.display_name} removed from inventory]",
+        previous_equipment && "[1x #{previous_equipment.display_name} added to inventory]"
       )
     end
 

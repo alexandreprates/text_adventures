@@ -25,6 +25,21 @@ RSpec.describe TextAdventures::Character do
       expect(character.equipped_armor).to have_attributes(name: "Leather Armor", defense: 20)
     end
 
+    it "keeps starter equipment compatible with inventory entries" do
+      expect(character.equipped_weapon).to have_attributes(
+        command_name: "sword",
+        display_name: "Sword",
+        weapon?: true,
+        armor?: false
+      )
+      expect(character.equipped_armor).to have_attributes(
+        command_name: "leather armor",
+        display_name: "Leather Armor",
+        weapon?: false,
+        armor?: true
+      )
+    end
+
     it "starts with an inventory" do
       expect(character.inventory).to be_a TextAdventures::Inventory
       expect(character.inventory.quantity("potion of heal")).to eq 5

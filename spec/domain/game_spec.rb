@@ -153,8 +153,12 @@ RSpec.describe TextAdventures::Game do
       expect(response).to eq <<~TEXT.chomp
         Equipped Spear.
         [your attack is now 23]
+        [1x Spear removed from inventory]
+        [1x Sword added to inventory]
       TEXT
       expect(game.player.equipped_weapon).to eq spear
+      expect(game.player.inventory.quantity("spear")).to eq 0
+      expect(game.player.inventory.quantity("sword")).to eq 1
       expect(scene.handled_command).to be_nil
     end
 
@@ -168,8 +172,12 @@ RSpec.describe TextAdventures::Game do
       expect(response).to eq <<~TEXT.chomp
         Equipped Iron Armor.
         [your defense is now 35]
+        [1x Iron Armor removed from inventory]
+        [1x Leather Armor added to inventory]
       TEXT
       expect(game.player.equipped_armor).to eq armor
+      expect(game.player.inventory.quantity("iron armor")).to eq 0
+      expect(game.player.inventory.quantity("leather armor")).to eq 1
     end
 
     it "rejects missing or non-equippable inventory items" do
@@ -262,18 +270,19 @@ RSpec.describe TextAdventures::Game do
       expect(game.handle("drop sword")).to eq "You do not have sword."
     end
 
-    it "protects equipped weapons and armor from being dropped" do
+    it "keeps equipped items out of the droppable inventory" do
       game = described_class.new(current_scene: TestScene.new(response: "scene response"))
       sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
       armor = TextAdventures::Item.armor("Iron Armor", price: 40, defense: 35)
       game.player.inventory.add(sword)
       game.player.inventory.add(armor)
-      game.player.equip(armor)
+      game.handle("equip iron armor")
 
       expect(game.handle("drop sword")).to eq "You cannot drop equipped Sword."
-      expect(game.handle("drop iron armor")).to eq "You cannot drop equipped Iron Armor."
+      expect(game.handle("drop iron armor")).to eq "You do not have iron armor."
       expect(game.player.inventory.quantity("sword")).to eq 1
-      expect(game.player.inventory.quantity("iron armor")).to eq 1
+      expect(game.player.inventory.quantity("iron armor")).to eq 0
+      expect(game.player.inventory.quantity("leather armor")).to eq 1
     end
 
     it "returns parser messages for unknown commands without delegating" do
