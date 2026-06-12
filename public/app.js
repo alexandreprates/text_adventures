@@ -220,12 +220,21 @@ function renderStatus(state) {
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
   renderClassProgress(player.skills);
 
-  elements.statusOutput.textContent = [
-    `GLD ${player.gold}`,
+  renderEquipmentPanel(player);
+  renderEnemyStatus(state.battle);
+}
+
+function renderEquipmentPanel(player) {
+  const lines = [
     equipmentLine("ARM", player.equipment.weapon, "Unarmed", "DMG", "attack"),
     equipmentLine("DEF", player.equipment.armor, "No armor", "DEF", "defense")
-  ].join("\n");
-  renderEnemyStatus(state.battle);
+  ];
+  const gold = document.createElement("span");
+  gold.className = "gold-line";
+  gold.textContent = `Gold    ${player.gold}`;
+
+  elements.statusOutput.textContent = "";
+  elements.statusOutput.append(gold, `\n${lines.join("\n")}`);
 }
 
 function equipmentLine(label, item, fallbackName, statLabel, statKey) {

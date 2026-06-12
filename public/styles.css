@@ -320,6 +320,10 @@ pre {
   margin-bottom: 8px;
 }
 
+.gold-line {
+  color: var(--amber);
+}
+
 .class-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 14px 48px 42px;
