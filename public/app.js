@@ -404,11 +404,6 @@ function quickCommandsFor(state) {
     ];
   }
 
-  const global = [
-    ["Inventario", "inventory"],
-    ["Magias", "spellbook"],
-    inputModeCommand(state)
-  ];
   const travel = [
     ["Cidade", "go town"],
     ["Ruinas", "go ruins"],
@@ -429,8 +424,7 @@ function quickCommandsFor(state) {
 
   return [
     ...(sceneCommands[state.scene] || travel),
-    ...battleItemCommands,
-    ...global
+    ...battleItemCommands
   ];
 }
 
@@ -453,10 +447,6 @@ function ruinsCommands(state) {
   if (state.dungeon?.nearby_loot) commands.push(["Coletar Loot", "loot", "primary"]);
 
   return commands;
-}
-
-function inputModeCommand(state) {
-  return state.input_mode === "game" ? ["Modo Texto", "text"] : ["Modo Game", "game"];
 }
 
 function commandLabel(label) {
