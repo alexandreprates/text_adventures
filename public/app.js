@@ -35,7 +35,7 @@ const elements = {
   mapGrid: document.querySelector("#map-grid"),
   mapZoomIn: document.querySelector("#map-zoom-in"),
   mapZoomOut: document.querySelector("#map-zoom-out"),
-  quickActions: document.querySelector("#quick-actions"),
+  contextCommands: document.querySelector("#context-commands"),
   classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
   enemyPanel: document.querySelector("#enemy-panel"),
@@ -119,6 +119,7 @@ function render(payload) {
   renderHeader(state);
   renderMap(state);
   renderStatus(state);
+  renderContextCommands(state);
   renderCollections(state.player);
   updateCommandPlaceholder(state);
   renderLog(payload.response, state.history);
@@ -375,12 +376,12 @@ function isLoggableLine(line) {
   return true;
 }
 
-function renderQuickActions(state = currentState) {
-  elements.quickActions.innerHTML = "";
+function renderContextCommands(state = currentState) {
+  elements.contextCommands.innerHTML = "";
   quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = commandLabel(label, command, accessibleLabel);
+    button.textContent = commandLabel(label);
     button.dataset.command = command;
     button.dataset.shortcut = shortcutForCommand(command, label);
     if (accessibleLabel) {
@@ -388,8 +389,8 @@ function renderQuickActions(state = currentState) {
       button.title = accessibleLabel;
     }
     if (kind) button.dataset.kind = kind;
-    button.addEventListener("click", () => runCommand(command));
-    elements.quickActions.appendChild(button);
+    button.addEventListener("click", () => fillCommandInput(command));
+    elements.contextCommands.appendChild(button);
   });
 }
 
@@ -398,30 +399,30 @@ function quickCommandsFor(state) {
 
   if (state.pending?.confirmation) {
     return [
-      ["Agree", "agree", "primary"],
-      ["No", "no", "danger"]
+      ["Confirmar", "agree", "primary"],
+      ["Cancelar", "no", "danger"]
     ];
   }
 
   const global = [
-    ["Inventory", "inventory"],
-    ["Spellbook", "spellbook"],
+    ["Inventario", "inventory"],
+    ["Magias", "spellbook"],
     inputModeCommand(state)
   ];
   const travel = [
-    ["Town", "go town"],
-    ["Ruins", "go ruins"],
-    ["Tavern", "go tavern"],
-    ["Priest", "go priest"],
-    ["Blacksmith", "go blacksmith"],
-    ["Armorsmith", "go armorsmith"]
+    ["Cidade", "go town"],
+    ["Ruinas", "go ruins"],
+    ["Taverna", "go tavern"],
+    ["Templo", "go priest"],
+    ["Ferreiro", "go blacksmith"],
+    ["Armeiro", "go armorsmith"]
   ];
   const sceneCommands = {
-    town: travel.filter(([label]) => label !== "Town"),
-    tavern: [["Rest", "rent room", "primary"], ["Show Stock", "show"], ["Town", "go town"]],
-    priest: [["Heal", "heal", "primary"], ["Cure", "cure"], ["Show Tomes", "show"], ["Town", "go town"]],
-    blacksmith: [["Show Weapons", "show", "primary"], ["Buy Dagger", "buy iron dagger"], ["Town", "go town"]],
-    armorsmith: [["Show Armors", "show", "primary"], ["Buy Padded", "buy padded armor"], ["Town", "go town"]],
+    town: travel.filter(([label]) => label !== "Cidade"),
+    tavern: [["Descansar", "rent room", "primary"], ["Comprar", "buy potion of heal"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
+    priest: [["Curar", "heal", "primary"], ["Remover Status", "cure"], ["Comprar", "buy tome of fireball"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
+    blacksmith: [["Comprar", "buy rusty dagger", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
+    armorsmith: [["Comprar", "buy padded armor", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
     ruins: ruinsCommands(state)
   };
 
@@ -434,37 +435,30 @@ function quickCommandsFor(state) {
 
 function ruinsCommands(state) {
   const commands = [
-    ["↑", "go up", null, "Go north"],
-    ["→", "go right", null, "Go east"],
-    ["↓", "go down", null, "Go south"],
-    ["←", "go left", null, "Go west"]
+    ["Go Up", "go up", null, "Go Up"],
+    ["Go Right", "go right", null, "Go Right"],
+    ["Go Down", "go down", null, "Go Down"],
+    ["Go Left", "go left", null, "Go Left"]
   ];
 
   if (state.battle?.active) {
     const firstDamageSpell = state.player.spells.find(spell => spell.kind === "damage");
-    if (firstDamageSpell) commands.push([`Cast ${firstDamageSpell.display_name}`, `cast ${firstDamageSpell.name}`, "primary"]);
-    commands.push(["Attack", "attack", "danger"]);
+    if (firstDamageSpell) commands.push([`Conjurar ${firstDamageSpell.display_name}`, `cast ${firstDamageSpell.name}`, "primary"]);
+    commands.push(["Atacar", "attack", "danger"]);
   } else {
-    commands.push(["Attack", "attack"]);
+    commands.push(["Atacar", "attack"]);
   }
 
-  if (state.dungeon?.nearby_loot) commands.push(["Loot", "loot", "primary"]);
+  if (state.dungeon?.nearby_loot) commands.push(["Coletar Loot", "loot", "primary"]);
 
   return commands;
 }
 
 function inputModeCommand(state) {
-  return state.input_mode === "game" ? ["Text Mode", "text"] : ["Game Mode", "game"];
+  return state.input_mode === "game" ? ["Modo Texto", "text"] : ["Modo Game", "game"];
 }
 
-function commandLabel(label, command, accessibleLabel) {
-  if (/^go (up|right|down|left)$/.test(command)) return accessibleLabel?.replace(/^Go /, "Move ") || label;
-  if (command === "attack") return "Attack";
-  if (command === "loot") return "Collect loot";
-  if (command === "inventory") return "Open inventory";
-  if (command === "spellbook") return "Open spellbook";
-  if (command === "game") return "Enable game mode";
-  if (command === "text") return "Enable text mode";
+function commandLabel(label) {
   return label;
 }
 

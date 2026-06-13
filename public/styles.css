@@ -179,6 +179,7 @@ pre {
 }
 
 .character-panel,
+.commands-panel,
 .inventory-panel,
 .log-panel {
   padding: 10px;
@@ -187,6 +188,11 @@ pre {
 .character-panel {
   font-size: 13px;
   line-height: 1.6;
+}
+
+.commands-panel {
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .character-frame {
@@ -563,6 +569,45 @@ pre {
 
 .item-type {
   color: var(--green-dim);
+}
+
+.context-commands {
+  display: grid;
+  gap: 4px;
+}
+
+.context-commands button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: 26px;
+  padding: 2px 6px;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--green);
+  font: inherit;
+  text-align: left;
+}
+
+.context-commands button::after {
+  content: attr(data-shortcut);
+  color: var(--green-dim);
+  text-align: right;
+}
+
+.context-commands button:hover,
+.context-commands button:focus-visible {
+  border-left-color: var(--amber);
+  background: var(--panel-active);
+  color: var(--amber);
+}
+
+.context-commands button[data-kind="primary"] {
+  color: var(--amber);
+}
+
+.context-commands button[data-kind="danger"] {
+  color: var(--danger);
 }
 
 .command-bar {
