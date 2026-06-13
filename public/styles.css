@@ -573,15 +573,15 @@ pre {
 
 .context-commands {
   display: grid;
-  gap: 4px;
+  gap: 1px;
 }
 
 .context-commands button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  min-height: 26px;
-  padding: 2px 6px;
+  gap: 6px;
+  min-height: 20px;
+  padding: 0 5px;
   border-left: 2px solid transparent;
   background: transparent;
   color: var(--green);
