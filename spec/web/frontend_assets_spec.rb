@@ -94,6 +94,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('["Vender", "sell"]')
     expect(javascript).to include('["Go Right", "go right", null, "Go Right"]')
     expect(javascript).to include('button.setAttribute("aria-label", accessibleLabel)')
+    expect(javascript).to include('const battleItemCommands = state.battle?.active ? suggestedItemCommands(state.player) : []')
+    expect(javascript).to include('...battleItemCommands')
     expect(javascript).to include('function inputModeCommand(state)')
     expect(javascript).to include('selectTab("inventory")')
     expect(javascript).to include('function selectTab(name)')

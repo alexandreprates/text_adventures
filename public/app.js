@@ -425,10 +425,11 @@ function quickCommandsFor(state) {
     armorsmith: [["Comprar", "buy padded armor", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
     ruins: ruinsCommands(state)
   };
+  const battleItemCommands = state.battle?.active ? suggestedItemCommands(state.player) : [];
 
   return [
     ...(sceneCommands[state.scene] || travel),
-    ...suggestedItemCommands(state.player),
+    ...battleItemCommands,
     ...global
   ];
 }
