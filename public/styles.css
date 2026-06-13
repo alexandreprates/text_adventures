@@ -332,7 +332,7 @@ pre {
 
 .class-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 14px 48px 42px;
+  grid-template-columns: minmax(0, 1fr) 14px 88px;
   gap: 4px;
   align-items: center;
 }
@@ -345,13 +345,11 @@ pre {
 }
 
 .class-level,
-.class-bar,
-.class-xp {
+.class-bar {
   justify-self: end;
 }
 
-.class-level,
-.class-xp {
+.class-level {
   color: var(--amber);
 }
 

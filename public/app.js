@@ -536,17 +536,13 @@ function renderClassProgress(skills = {}) {
     bar.className = "class-bar";
     bar.textContent = plainAsciiBar(skill.xp, skill.next_level_xp);
 
-    const xp = document.createElement("span");
-    xp.className = "class-xp";
-    xp.textContent = `${skill.xp}/${skill.next_level_xp}`;
-
-    row.append(label, level, bar, xp);
+    row.append(label, level, bar);
     elements.classOutput.appendChild(row);
   });
 }
 
 function plainAsciiBar(current, max) {
-  const width = 5;
+  const width = 10;
   const ratio = max ? Math.max(0, Math.min(1, current / max)) : 0;
   const filled = Math.round(ratio * width);
   return `[${"|".repeat(filled)}${" ".repeat(width - filled)}]`;
