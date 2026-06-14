@@ -29,7 +29,11 @@ RSpec.describe "text_adventures WebSocket server" do
         hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
       )
       expect(update).not_to have_key("response")
-      expect(update.dig("state", "scene")).to eq "ruins"
+      expect(update).not_to have_key("state")
+      expect(update.dig("patch", "scene")).to eq "ruins"
+      expect(update.dig("patch", "dungeon", "viewport", "entities")).to include(
+        hash_including("type" => "player")
+      )
     ensure
       socket&.close
     end

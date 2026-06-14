@@ -78,7 +78,7 @@ module TextAdventures
           type: "events",
           game_id: game_id,
           events: ResponseEvents.call(response),
-          state: serializer.new(game).to_h
+          patch: StatePatch.new(game, serializer: serializer).to_h
         )
       rescue JSON::ParserError
         write_json(socket, type: "error", error: { code: "invalid_json", message: "Message must be valid JSON." })
