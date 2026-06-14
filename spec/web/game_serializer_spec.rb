@@ -114,7 +114,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.fetch(:scene)).to eq "ruins"
     expect(state.fetch(:prompt)).to eq "Ruins L1"
     expect(state.dig(:dungeon, :level)).to eq 1
-    expect(state.dig(:dungeon, :map)).to include(a_string_including("##.xE."))
+    expect(state.fetch(:dungeon)).not_to have_key(:map)
     expect(state.dig(:dungeon, :viewport)).to include(
       width: 18,
       height: 15,
@@ -131,17 +131,8 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :descent)).to be_nil
-    expect(state.dig(:dungeon, :visible_enemy)).to eq(
-      x: 4,
-      y: 2,
-      creature_id: "giant_spider"
-    )
-    expect(state.dig(:dungeon, :visible_enemies)).to include(
-      x: 4,
-      y: 2,
-      creature_id: "giant_spider",
-      map_position: { x: 10, y: 7 }
-    )
+    expect(state.fetch(:dungeon)).not_to have_key(:visible_enemy)
+    expect(state.fetch(:dungeon)).not_to have_key(:visible_enemies)
     expect(state.dig(:dungeon, :nearby_loot, :items)).to include(
       hash_including(name: "potion of heal", display_name: "Potion of Heal")
     )
@@ -160,7 +151,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     game.dungeon.instance_variable_set(:@floor_exit_position, TextAdventures::Dungeon::Position.new(x: 4, y: 2))
 
     expect(state.dig(:dungeon, :descent)).to eq(x: 4, y: 2)
-    expect(state.dig(:dungeon, :map)).to include(a_string_including("##.x>."))
+    expect(state.fetch(:dungeon)).not_to have_key(:map)
     expect(state.dig(:dungeon, :viewport, :entities)).to include(
       { type: "descent", x: 10, y: 7 }
     )

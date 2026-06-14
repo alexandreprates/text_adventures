@@ -133,7 +133,7 @@ function renderHeader(state) {
 }
 
 function renderMap(state) {
-  if (state.scene === "ruins" && (state.dungeon?.viewport || state.dungeon?.map?.length)) {
+  if (state.scene === "ruins" && state.dungeon?.viewport) {
     showCanvasMap(state.dungeon);
     return;
   }
@@ -155,10 +155,41 @@ function showCanvasMap(dungeon) {
   elements.mapStage.classList.add("has-canvas-map");
   elements.mapStage.classList.remove("has-location-art");
   elements.locationArt.style.transform = "";
-  const mapRows = dungeon.map;
+  const mapRows = textRowsFromViewport(dungeon.viewport);
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(dungeon.viewport || mapRows, { enemies: dungeon.visible_enemies || [] });
+  dungeonMapRenderer.render(dungeon.viewport);
   resizeCanvasMap();
+}
+
+function textRowsFromViewport(viewport) {
+  const symbols = Array.from(String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?"));
+  const entitySymbols = { player: "x", enemy: "E", loot: "@", portal: "P", descent: ">" };
+  [...(viewport.entities || [])].sort(compareViewportEntities).forEach(entity => {
+    const symbol = entitySymbols[entity.type];
+    if (!symbol) return;
+
+    const index = (entity.y * viewport.width) + entity.x;
+    if (index >= 0 && index < symbols.length) symbols[index] = symbol;
+  });
+
+  return Array.from({ length: viewport.height }, (_, rowIndex) => {
+    const start = rowIndex * viewport.width;
+    return symbols.slice(start, start + viewport.width).join("");
+  });
+}
+
+function compareViewportEntities(left, right) {
+  return viewportEntityPriority(left.type) - viewportEntityPriority(right.type);
+}
+
+function viewportEntityPriority(type) {
+  return {
+    portal: 10,
+    descent: 10,
+    loot: 20,
+    enemy: 30,
+    player: 40
+  }[type] || 0;
 }
 
 function showTextMap() {
@@ -347,9 +378,7 @@ function renderLog(events) {
     messageLogLines = [...messageLogLines, ...eventLines].slice(-80);
   }
 
-  const sourceLines = messageLogLines;
-  const lines = sourceLines.filter(isLoggableLine);
-  const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
+  const visibleLines = messageLogLines.length ? messageLogLines : [" "];
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
   elements.messageLog.scrollTop = elements.messageLog.scrollHeight;
 }
@@ -371,18 +400,6 @@ function asciiBar(current, max, kind) {
     `<span class="bar-empty">${" ".repeat(width - filled)}</span>`,
     '<span class="bar-bracket">]</span>'
   ].join("");
-}
-
-function isLoggableLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed) return false;
-  if (/^[?#.xE@]+$/.test(trimmed)) return false;
-  if (/^Ruins Level \d+$/.test(trimmed)) return false;
-  if (/^(Here you can:|You can:|Global commands:|Destinations:)$/.test(trimmed)) return false;
-  if (/^(agree|no) - /.test(trimmed)) return false;
-  if (/^(go|show|buy|sell|sleep|rent room|rest|inventory|spellbook|level|skills|help|look|attack|loot|cast|equip|use|drop)\b/.test(trimmed)) return false;
-
-  return true;
 }
 
 function renderContextCommands(state = currentState) {

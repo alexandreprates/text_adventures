@@ -131,13 +131,10 @@ module TextAdventures
         map_rows = dungeon_map_rows(dungeon)
         {
           level: dungeon.level,
-          map: map_rows,
           viewport: dungeon_viewport_state(dungeon, map_rows),
           player_position: position_state(dungeon.current_global_position),
           entrance_portal: optional_position_state(dungeon.entrance_portal_position),
           descent: optional_position_state(dungeon.floor_exit_position),
-          visible_enemy: enemy_position_state(dungeon.adjacent_enemy_position),
-          visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
         }
       end
@@ -247,24 +244,6 @@ module TextAdventures
         {
           confirmation: !game.pending_confirmation.nil?
         }
-      end
-
-      def enemy_position_state(position)
-        return nil unless position
-
-        creature_id = game.dungeon.enemy_at(position)
-        state = position_state(position)
-        state[:creature_id] = creature_id
-        state
-      end
-
-      def visible_enemy_states
-        game.dungeon.visible_enemies.map do |enemy|
-          position_state(enemy.fetch(:position)).merge(
-            creature_id: enemy.fetch(:creature_id),
-            map_position: position_state(enemy.fetch(:render_position))
-          )
-        end
       end
 
       def loot_position_state(position)

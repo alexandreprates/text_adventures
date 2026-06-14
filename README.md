@@ -163,7 +163,19 @@ Successful action responses include typed events and semantic game state:
     "scene": "ruins",
     "prompt": "Ruins L1",
     "player": {},
-    "dungeon": {}
+    "dungeon": {
+      "level": 1,
+      "viewport": {
+        "width": 18,
+        "height": 15,
+        "origin": { "x": -6, "y": -5 },
+        "terrain": "????????...",
+        "entities": [
+          { "type": "player", "x": 9, "y": 7 },
+          { "type": "portal", "x": 9, "y": 7 }
+        ]
+      }
+    }
   }
 }
 ```

@@ -256,7 +256,7 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function drawEntities(context, renderer, enemyImages, entities) {
-    entities.forEach(entity => {
+    [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
       if (entity.type === "enemy") {
         drawEnemy(context, renderer, enemyImages, entity);
         return;
@@ -273,6 +273,20 @@ globalThis.DungeonMapRenderer = (() => {
     descent: "stairsDown",
     loot: "lootBag"
   };
+
+  function compareEntitiesForDrawing(left, right) {
+    return entityPriority(left.type) - entityPriority(right.type);
+  }
+
+  function entityPriority(type) {
+    return {
+      portal: 10,
+      descent: 10,
+      loot: 20,
+      enemy: 30,
+      player: 40
+    }[type] || 0;
+  }
 
   function drawEnemy(context, renderer, enemyImages, enemy) {
     const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
