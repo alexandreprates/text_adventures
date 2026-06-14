@@ -50,7 +50,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
-  it "serializes inventory and spells without repeating command history" do
+  it "serializes inventory and spells without command history" do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("iron_dagger"), quantity: 2)
     game.player.learn_spell(TextAdventures::Spell.fireball)
     game.handle("spellbook")
@@ -96,13 +96,6 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       )
     )
     expect(state.dig(:player, :inventory)).not_to include(hash_including(name: "rusty dagger"))
-  end
-
-  it "omits command history from compact web state" do
-    12.times { game.handle("look") }
-
-    expect(game.history.size).to eq 12
-    expect(state).not_to have_key(:history)
   end
 
   it "serializes dungeon state, adjacent enemies, nearby loot, and active battle" do

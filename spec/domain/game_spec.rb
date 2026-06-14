@@ -34,7 +34,6 @@ RSpec.describe TextAdventures::Game do
       expect(game.battle).to be_nil
       expect(game.pending_loot).to be_nil
       expect(game.active_enemy_position).to be_nil
-      expect(game.history).to eq []
     end
 
     it "accepts injected state dependencies" do
@@ -49,7 +48,6 @@ RSpec.describe TextAdventures::Game do
         battle: :battle,
         pending_loot: :loot,
         active_enemy_position: :enemy_position,
-        history: [:entry],
         random: random
       )
 
@@ -62,7 +60,6 @@ RSpec.describe TextAdventures::Game do
         battle: :battle,
         pending_loot: :loot,
         active_enemy_position: :enemy_position,
-        history: [:entry],
         random: random
       )
     end
@@ -302,16 +299,6 @@ RSpec.describe TextAdventures::Game do
         Start a new adventure to try again.
       TEXT
       expect(scene.handled_command).to be_nil
-    end
-
-    it "records command history" do
-      game = described_class.new(current_scene: TestScene.new(response: "done"))
-
-      game.handle("attack")
-
-      expect(game.history).to contain_exactly(
-        have_attributes(command: "attack", response: "done")
-      )
     end
 
     it "keeps responses deterministic when a random source is injected" do

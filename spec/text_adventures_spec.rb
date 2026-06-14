@@ -10,7 +10,6 @@ RSpec.describe TextAdventures do
       domain
       commands
       scenes
-      persistence
       web
     ]
   end

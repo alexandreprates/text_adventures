@@ -400,7 +400,7 @@ spec                         RSpec suite
 
 ## Development Notes
 
-- Keep gameplay logic independent from any future web layer.
+- Keep gameplay logic independent from web transport details.
 - Prefer adding content through YAML when possible.
 - Use seeded API runs for repeatable dungeon exploration tests.
 - Keep the JSON API layer thin; gameplay commands should continue to flow

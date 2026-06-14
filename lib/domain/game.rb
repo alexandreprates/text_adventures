@@ -1,6 +1,5 @@
 module TextAdventures
   class Game
-    HistoryEntry = Struct.new(:command, :response, keyword_init: true)
     GLOBAL_VERBS = %i[
       drop
       equip
@@ -11,7 +10,7 @@ module TextAdventures
       spellbook
       use
     ].freeze
-    attr_reader :player, :current_scene, :history, :random
+    attr_reader :player, :current_scene, :random
     attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position
 
     def initialize(
@@ -22,7 +21,6 @@ module TextAdventures
       battle: nil,
       pending_loot: nil,
       active_enemy_position: nil,
-      history: [],
       random: Random.new
     )
       @player = player
@@ -32,7 +30,6 @@ module TextAdventures
       @battle = battle
       @pending_loot = pending_loot
       @active_enemy_position = active_enemy_position
-      @history = history
       @random = random
     end
 
@@ -45,20 +42,12 @@ module TextAdventures
     end
 
     def handle(command_text)
-      original_command_text = command_text.to_s
-      command = CommandParser.parse(original_command_text)
+      command = CommandParser.parse(command_text.to_s)
       response = Response.render(command.unknown? ? handle_unknown_command(command) : handle_known_command(command))
-      response = append_pending_confirmation_hint(response, command)
-      finalize_response(original_command_text, response)
+      Response.render(append_pending_confirmation_hint(response, command))
     end
 
     private
-
-    def finalize_response(command_text, response)
-      rendered_response = Response.render(response)
-      record_history(command_text, rendered_response)
-      rendered_response
-    end
 
     def append_pending_confirmation_hint(response, command)
       return response unless pending_confirmation && GLOBAL_VERBS.include?(command.verb)
@@ -193,8 +182,5 @@ module TextAdventures
       Item.normalize_name(equipment.name)
     end
 
-    def record_history(command_text, response)
-      history << HistoryEntry.new(command: command_text, response: response)
-    end
   end
 end

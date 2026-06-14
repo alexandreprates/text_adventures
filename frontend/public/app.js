@@ -392,7 +392,7 @@ function renderContextCommands(state = currentState) {
   quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = commandLabel(label);
+    button.textContent = label;
     button.dataset.command = command;
     button.dataset.shortcut = shortcutForCommand(command, label);
     if (accessibleLabel) {
@@ -460,10 +460,6 @@ function ruinsCommands(state) {
   return commands;
 }
 
-function commandLabel(label) {
-  return label;
-}
-
 function shortcutForCommand(command, label) {
   const shortcuts = {
     "go up": "w/k/↑",
@@ -471,11 +467,7 @@ function shortcutForCommand(command, label) {
     "go down": "s/j/↓",
     "go left": "a/h/←",
     attack: "a",
-    loot: "l",
-    inventory: "i",
-    spellbook: "m",
-    game: "g",
-    text: "t"
+    loot: "l"
   };
 
   return shortcuts[command] || label.slice(0, 1).toLowerCase();
