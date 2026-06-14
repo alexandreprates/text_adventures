@@ -3,8 +3,11 @@ require 'spec_helper'
 RSpec.describe TextAdventures::Web::ActionCommand do
   it "maps standalone actions to commands" do
     expect(described_class.call("type" => "attack")).to eq "attack"
+    expect(described_class.call("type" => "inventory")).to eq "inventory"
     expect(described_class.call("type" => "loot")).to eq "loot"
+    expect(described_class.call("type" => "no")).to eq "no"
     expect(described_class.call("type" => "show")).to eq "show"
+    expect(described_class.call("type" => "spellbook")).to eq "spellbook"
   end
 
   it "maps targeted actions to semantic commands" do

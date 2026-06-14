@@ -129,14 +129,6 @@ curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/actions \
   -d '{"type":"travel","destination":"ruins"}'
 ```
 
-Command routes remain available as a compatibility layer:
-
-```sh
-curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/commands \
-  -H 'Content-Type: application/json' \
-  -d '{"command":"go ruins"}'
-```
-
 The gameplay WebSocket endpoint accepts action messages after a game is created:
 
 ```text
@@ -159,8 +151,8 @@ Delete a session:
 curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>
 ```
 
-Successful action and command responses include the compatibility text response,
-typed events, and semantic game state:
+Successful action responses include text response lines, typed events, and
+semantic game state:
 
 ```json
 {

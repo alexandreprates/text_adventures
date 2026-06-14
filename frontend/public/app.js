@@ -8,11 +8,11 @@ const api = {
     });
     return parseResponse(response);
   },
-  async sendCommand(command) {
-    const response = await fetch(`/api/games/${this.gameId}/commands`, {
+  async sendAction(action) {
+    const response = await fetch(`/api/games/${this.gameId}/actions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command })
+      body: JSON.stringify(action)
     });
     return parseResponse(response);
   }
@@ -520,6 +520,32 @@ function labelize(value) {
   return value.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function actionFromCommand(command) {
+  const normalized = command.trim().toLowerCase().replace(/\s+/g, " ");
+  const [rawVerb, ...targetParts] = normalized.split(" ");
+  const target = targetParts.join(" ");
+  const verb = { rent: "sleep", rest: "sleep", spell: "cast" }[rawVerb] || rawVerb;
+  const standalone = new Set(["agree", "attack", "cure", "heal", "help", "inventory", "level", "look", "loot", "no", "show", "skills", "sleep", "spellbook"]);
+
+  if (standalone.has(verb)) return { type: verb };
+  if (verb === "go") {
+    if (!target) throw new Error("Missing target for go.");
+    return ["up", "right", "down", "left"].includes(target) ?
+      { type: "move", direction: target } :
+      { type: "travel", destination: target };
+  }
+  if (["buy", "sell", "equip", "use", "drop"].includes(verb)) {
+    if (!target) throw new Error(`Missing target for ${verb}.`);
+    return { type: verb, item: target };
+  }
+  if (verb === "cast") {
+    if (!target) throw new Error("Missing target for cast.");
+    return { type: "cast", spell: target };
+  }
+
+  throw new Error(`Unsupported command: ${rawVerb}.`);
+}
+
 function classLine(player) {
   return player.current_class || "Adventurer";
 }
@@ -579,7 +605,7 @@ async function runCommand(command) {
   if (!api.gameId) return;
   setStatus("Sending");
   try {
-    const payload = await api.sendCommand(command);
+    const payload = await api.sendAction(actionFromCommand(command));
     render(payload);
     syncNavigationForCommand(command);
     setStatus("Online");

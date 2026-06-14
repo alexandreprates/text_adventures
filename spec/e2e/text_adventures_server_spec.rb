@@ -19,13 +19,13 @@ RSpec.describe "text_adventures server binary" do
       expect(created.dig("response", "lines")).to include "Welcome to Text Adventures"
       expect(created.fetch("events")).to include hash_including("type" => "message", "text" => "Welcome to Text Adventures")
 
-      command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: "go ruins")
-      expect(command_response.code).to eq "200"
-      command_body = JSON.parse(command_response.body)
-      expect(command_body.dig("response", "lines")).to include "You go to Ruins."
-      expect(command_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
-      expect(command_body.dig("state", "scene")).to eq "ruins"
-      expect(command_body.dig("state", "dungeon", "map")).to be_an Array
+      action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for("go ruins"))
+      expect(action_response.code).to eq "200"
+      action_body = JSON.parse(action_response.body)
+      expect(action_body.dig("response", "lines")).to include "You go to Ruins."
+      expect(action_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
+      expect(action_body.dig("state", "scene")).to eq "ruins"
+      expect(action_body.dig("state", "dungeon", "map")).to be_an Array
 
       state_response = request_json(port, Net::HTTP::Get, "/games/#{game_id}")
       expect(state_response.code).to eq "200"
@@ -37,7 +37,7 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
-  it "descends to the next dungeon level over HTTP commands" do
+  it "descends to the next dungeon level over HTTP actions" do
     with_server do |port|
       create_response = request_json(port, Net::HTTP::Post, "/games", seed: 5)
       game_id = JSON.parse(create_response.body).fetch("game_id")
@@ -54,9 +54,9 @@ RSpec.describe "text_adventures server binary" do
         "go up",
         "go right"
       ].each do |command|
-        command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: command)
-        expect(command_response.code).to eq "200"
-        body = JSON.parse(command_response.body)
+        action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for(command))
+        expect(action_response.code).to eq "200"
+        body = JSON.parse(action_response.body)
       end
 
       expect(body.dig("response", "lines")).to include "You descend deeper into the ruins."
@@ -85,9 +85,9 @@ RSpec.describe "text_adventures server binary" do
       expect(create_response.code).to eq "201"
 
       game_id = JSON.parse(create_response.body).fetch("game_id")
-      command_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/commands", command: "go ruins")
-      expect(command_response.code).to eq "200"
-      expect(JSON.parse(command_response.body).dig("state", "scene")).to eq "ruins"
+      action_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/actions", action_for("go ruins"))
+      expect(action_response.code).to eq "200"
+      expect(JSON.parse(action_response.body).dig("state", "scene")).to eq "ruins"
     end
   end
 
@@ -192,5 +192,13 @@ RSpec.describe "text_adventures server binary" do
       request.body = JSON.generate(body)
     end
     Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(request) }
+  end
+
+  def action_for(command)
+    verb, target = command.split(" ", 2)
+    return { type: "move", direction: target } if verb == "go" && %w[up right down left].include?(target)
+    return { type: "travel", destination: target } if verb == "go"
+
+    { type: verb }
   end
 end

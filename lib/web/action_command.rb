@@ -2,11 +2,20 @@ module TextAdventures
   module Web
     class ActionCommand
       ACTIONS = {
+        "agree" => { command: "agree" },
         "attack" => { command: "attack" },
+        "cure" => { command: "cure" },
+        "heal" => { command: "heal" },
+        "help" => { command: "help" },
+        "inventory" => { command: "inventory" },
+        "level" => { command: "level" },
         "loot" => { command: "loot" },
         "look" => { command: "look" },
+        "no" => { command: "no" },
         "show" => { command: "show" },
+        "skills" => { command: "skills" },
         "sleep" => { command: "sleep" },
+        "spellbook" => { command: "spellbook" },
         "move" => { verb: "go", field: "direction" },
         "travel" => { verb: "go", field: "destination" },
         "buy" => { verb: "buy", field: "item" },
