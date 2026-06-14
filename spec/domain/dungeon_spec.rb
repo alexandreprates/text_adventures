@@ -271,6 +271,32 @@ RSpec.describe TextAdventures::Dungeon do
     end
   end
 
+  describe "#viewport_state" do
+    it "returns structured terrain and entities without ASCII marker parsing" do
+      enemy_position = described_class::Position.new(x: 2, y: 2)
+      loot_position = described_class::Position.new(x: 5, y: 2)
+
+      dungeon.place_enemy(enemy_position, "giant_spider")
+      dungeon.drop_loot(loot_position, TextAdventures::LootDrop.new(items: [test_loot]))
+
+      viewport = dungeon.viewport_state
+
+      expect(viewport).to include(
+        width: 18,
+        height: 15,
+        origin: { x: -6, y: -5 }
+      )
+      expect(viewport.fetch(:terrain).length).to eq 270
+      expect(viewport.fetch(:terrain)).not_to match(/[xE@P> ]/)
+      expect(viewport.fetch(:entities)).to eq [
+        { type: "enemy", x: 8, y: 7, creature_id: "giant_spider" },
+        { type: "player", x: 9, y: 7 },
+        { type: "portal", x: 9, y: 7 },
+        { type: "loot", x: 11, y: 7 }
+      ]
+    end
+  end
+
   describe "entity state" do
     it "starts without visible enemies or dropped loot" do
       expect(dungeon.enemies).to eq({})

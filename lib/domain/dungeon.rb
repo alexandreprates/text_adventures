@@ -277,6 +277,21 @@ module TextAdventures
       end.sort_by { |enemy| [enemy.fetch(:render_position).y, enemy.fetch(:render_position).x] }
     end
 
+    def viewport_state
+      origin = render_origin_for(:viewport)
+      tiles = render_tiles_for(:viewport, origin)
+      render_width = tiles.first.length
+      render_height = tiles.length
+
+      {
+        width: render_width,
+        height: render_height,
+        origin: viewport_origin_state(origin),
+        terrain: viewport_terrain(tiles),
+        entities: viewport_entities(origin, render_width, render_height)
+      }
+    end
+
     private
 
     def validate_render_view!(view)
@@ -352,6 +367,61 @@ module TextAdventures
 
     def rendered_tile(tile)
       tile == DungeonBlock::OPEN ? FLOOR : tile
+    end
+
+    def viewport_origin_state(origin)
+      {
+        x: origin.x * width,
+        y: origin.y * height
+      }
+    end
+
+    def viewport_terrain(tiles)
+      tiles.map { |row| row.map { |tile| rendered_tile(tile) }.join }.join
+    end
+
+    def viewport_entities(origin, render_width, render_height)
+      entities = [
+        viewport_entity("player", current_global_position, origin, render_width, render_height),
+        viewport_entity("portal", entrance_portal_position, origin, render_width, render_height),
+        viewport_entity("descent", floor_exit_position, origin, render_width, render_height)
+      ]
+      entities.concat(viewport_loot_entities(origin, render_width, render_height))
+      entities.concat(enemy_viewport_entities(origin, render_width, render_height))
+      entities.compact.sort_by { |entity| [entity.fetch(:y), entity.fetch(:x), entity.fetch(:type)] }
+    end
+
+    def viewport_loot_entities(origin, render_width, render_height)
+      dropped_loot.keys.filter_map do |key|
+        viewport_entity("loot", Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
+      end
+    end
+
+    def enemy_viewport_entities(origin, render_width, render_height)
+      enemies.filter_map do |key, creature_id|
+        position = viewport_position(Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
+        next unless position
+
+        position.merge(
+          type: "enemy",
+          creature_id: creature_id
+        )
+      end
+    end
+
+    def viewport_entity(type, global_position, origin, render_width, render_height)
+      position = viewport_position(global_position, origin, render_width, render_height)
+      position&.merge(type: type)
+    end
+
+    def viewport_position(global_position, origin, render_width, render_height)
+      return nil unless global_position
+
+      render_x = global_position.x - (origin.x * width)
+      render_y = global_position.y - (origin.y * height)
+      return nil unless render_x.between?(0, render_width - 1) && render_y.between?(0, render_height - 1)
+
+      { x: render_x, y: render_y }
     end
 
     def current_position
