@@ -6,7 +6,7 @@ module TextAdventures
     class Server
       DEFAULT_HOST = "127.0.0.1".freeze
       DEFAULT_PORT = 4567
-      PUBLIC_ROOT = File.join(TextAdventures::ROOT, "public").freeze
+      DEFAULT_PUBLIC_ROOT = File.join(TextAdventures::ROOT, "frontend", "public").freeze
       CACHEABLE_ASSET_PATH_PATTERN = %r{/(?:assets/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+|styles\.css|app\.js|map_renderer\.js)}.freeze
       IMMUTABLE_CACHE_CONTROL = "public, max-age=31536000, immutable".freeze
       REVALIDATE_CACHE_CONTROL = "no-cache".freeze
@@ -35,15 +35,17 @@ module TextAdventures
           host: env.fetch("TEXT_ADVENTURES_HOST", DEFAULT_HOST),
           port: Integer(env.fetch("TEXT_ADVENTURES_PORT", DEFAULT_PORT)),
           router: Router.new(store: store),
+          public_root: env.fetch("TEXT_ADVENTURES_PUBLIC_ROOT", DEFAULT_PUBLIC_ROOT),
           asset_version: env.fetch("TEXT_ADVENTURES_ASSET_VERSION", "")
         )
       end
 
-      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, output: $stdout, asset_version: "")
+      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, output: $stdout, public_root: DEFAULT_PUBLIC_ROOT, asset_version: "")
         @host = host
         @port = Integer(port)
         @router = router
         @output = output
+        @public_root = File.expand_path(public_root)
         @asset_version = asset_version.to_s
         @running = true
         @server = nil
@@ -60,7 +62,7 @@ module TextAdventures
 
       private
 
-      attr_reader :host, :port, :router, :output, :server, :asset_version
+      attr_reader :host, :port, :router, :output, :server, :public_root, :asset_version
 
       def accept_loop
         while @running
@@ -156,8 +158,8 @@ module TextAdventures
         relative_path = path.sub(%r{\A/+}, "")
         return nil if relative_path.empty? || relative_path.include?("..")
 
-        full_path = File.expand_path(relative_path, PUBLIC_ROOT)
-        return nil unless full_path.start_with?("#{PUBLIC_ROOT}/")
+        full_path = File.expand_path(relative_path, public_root)
+        return nil unless full_path.start_with?("#{public_root}/")
         return nil unless File.file?(full_path)
 
         full_path

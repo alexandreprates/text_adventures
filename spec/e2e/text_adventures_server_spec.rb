@@ -82,7 +82,7 @@ RSpec.describe "text_adventures server binary" do
       app_response = request_json(port, Net::HTTP::Get, "/app.js")
       expect(app_response.code).to eq "200"
       expect(app_response["Content-Type"]).to include "text/javascript"
-      expect(app_response.body).to include 'fetch("/games"'
+      expect(app_response.body).to include 'fetch("/api/games"'
 
       enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json")
       expect(enemies_response.code).to eq "200"
@@ -100,6 +100,18 @@ RSpec.describe "text_adventures server binary" do
       readme_response = request_json(port, Net::HTTP::Get, "/assets/enemies/README.md")
       expect(readme_response.code).to eq "200"
       expect(readme_response["Content-Type"]).to include "text/markdown"
+    end
+  end
+
+  it "serves API-prefixed game routes for proxy deployments" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      expect(create_response.code).to eq "201"
+
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+      command_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/commands", command: "go ruins")
+      expect(command_response.code).to eq "200"
+      expect(JSON.parse(command_response.body).dig("state", "scene")).to eq "ruins"
     end
   end
 

@@ -21,6 +21,7 @@ module TextAdventures
       attr_reader :store, :serializer
 
       def route(method, path, body)
+        path = api_path(path)
         return create_game(body) if method == "POST" && path == "/games"
         return method_not_allowed if path == "/games"
 
@@ -40,6 +41,13 @@ module TextAdventures
         end
 
         JsonResponse.error("not_found", "Route not found.", status: 404)
+      end
+
+      def api_path(path)
+        return "" if path == "/api"
+        return path.delete_prefix("/api") if path.start_with?("/api/")
+
+        path
       end
 
       def create_game(body)

@@ -1,7 +1,7 @@
 const api = {
   gameId: null,
   async createGame() {
-    const response = await fetch("/games", {
+    const response = await fetch("/api/games", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({})
@@ -9,7 +9,7 @@ const api = {
     return parseResponse(response);
   },
   async sendCommand(command) {
-    const response = await fetch(`/games/${this.gameId}/commands`, {
+    const response = await fetch(`/api/games/${this.gameId}/commands`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ command })

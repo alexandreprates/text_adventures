@@ -1,4 +1,11 @@
-FROM ruby:alpine
+FROM nginx:alpine AS web
+
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/public /usr/share/nginx/html
+
+EXPOSE 3000
+
+FROM ruby:alpine AS app
 LABEL maintainer="Alexandre Prates <ajfprates@gmail.com>"
 
 ARG TEXT_ADVENTURES_ASSET_VERSION=dev

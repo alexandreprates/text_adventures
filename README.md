@@ -106,6 +106,19 @@ Open the browser frontend at:
 http://127.0.0.1:4567/
 ```
 
+The local Ruby server still serves the frontend for development convenience,
+but browser assets now live under `frontend/public/`. Container deployments use
+the Nginx web target as the public entrypoint and proxy API requests to the Ruby
+game server:
+
+```text
+/                 -> Nginx static frontend
+/assets/*         -> Nginx static assets
+/api/games        -> Ruby game API
+/api/games/:id    -> Ruby game API
+/ws               -> reserved WebSocket proxy route
+```
+
 Server configuration:
 
 ```sh
@@ -117,7 +130,7 @@ TEXT_ADVENTURES_RANDOM_SEED=0
 Create a game session:
 
 ```sh
-curl -sS -X POST http://127.0.0.1:4567/games \
+curl -sS -X POST http://127.0.0.1:4567/api/games \
   -H 'Content-Type: application/json' \
   -d '{"seed":0}'
 ```
@@ -125,7 +138,7 @@ curl -sS -X POST http://127.0.0.1:4567/games \
 Send a command:
 
 ```sh
-curl -sS -X POST http://127.0.0.1:4567/games/<game_id>/commands \
+curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/commands \
   -H 'Content-Type: application/json' \
   -d '{"command":"go ruins"}'
 ```
@@ -133,13 +146,13 @@ curl -sS -X POST http://127.0.0.1:4567/games/<game_id>/commands \
 Fetch state:
 
 ```sh
-curl -sS http://127.0.0.1:4567/games/<game_id>
+curl -sS http://127.0.0.1:4567/api/games/<game_id>
 ```
 
 Delete a session:
 
 ```sh
-curl -sS -X DELETE http://127.0.0.1:4567/games/<game_id>
+curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>
 ```
 
 Successful command responses include the command response and semantic game
@@ -173,12 +186,13 @@ Errors are returned as JSON:
 }
 ```
 
-The server also serves the static frontend assets from `public/`:
+The frontend source assets are checked in under `frontend/public/`:
 
 ```text
-public/index.html
-public/styles.css
-public/app.js
+frontend/public/index.html
+frontend/public/styles.css
+frontend/public/app.js
+frontend/nginx.conf
 ```
 
 ## Running Tests

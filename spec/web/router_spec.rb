@@ -60,6 +60,23 @@ RSpec.describe TextAdventures::Web::Router do
     expect(parsed(missing_response).dig("error", "code")).to eq "not_found"
   end
 
+  it "accepts API-prefixed game routes for reverse proxy deployments" do
+    create_response = router.call(method: "POST", path: "/api/games", body: '{"seed":0}')
+    game_id = parsed(create_response).fetch("game_id")
+
+    command_response = router.call(
+      method: "POST",
+      path: "/api/games/#{game_id}/commands",
+      body: '{"command":"go ruins"}'
+    )
+
+    expect(command_response.status).to eq 200
+    expect(parsed(command_response)).to include(
+      "response" => hash_including("lines" => include("You go to Ruins.")),
+      "state" => hash_including("scene" => "ruins")
+    )
+  end
+
   it "returns JSON errors for invalid requests" do
     create_response = router.call(method: "POST", path: "/games", body: "{}")
     game_id = parsed(create_response).fetch("game_id")

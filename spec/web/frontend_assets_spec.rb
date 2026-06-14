@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe "Frontend assets" do
   let(:root) { File.expand_path("../..", __dir__) }
-  let(:public_root) { File.join(root, "public") }
+  let(:public_root) { File.join(root, "frontend", "public") }
 
   it "checks in the HTML, CSS, and JavaScript frontend files" do
     expect(File).to exist(File.join(public_root, "index.html"))
@@ -49,8 +49,8 @@ RSpec.describe "Frontend assets" do
     expect(html).not_to include('class="attribute-grid"')
     expect(html).to include('<script src="/map_renderer.js"></script>')
     expect(html).to include('<script src="/app.js"></script>')
-    expect(javascript).to include('fetch("/games"')
-    expect(javascript).to include('fetch(`/games/${this.gameId}/commands`')
+    expect(javascript).to include('fetch("/api/games"')
+    expect(javascript).to include('fetch(`/api/games/${this.gameId}/commands`')
     expect(javascript).to include('state.scene === "ruins" && state.dungeon?.map?.length')
     expect(javascript).to include('showCanvasMap(state.dungeon)')
     expect(javascript).to include('mapRows.join("\\n")')
