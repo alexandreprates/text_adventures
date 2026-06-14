@@ -23,6 +23,8 @@ RSpec.describe "text_adventures server binary" do
       expect(action_response.code).to eq "200"
       action_body = JSON.parse(action_response.body)
       expect(action_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
+      expect(action_body.fetch("events").map { |event| event.fetch("text") }).not_to include(a_string_matching(/\A[?#.xE@P>]+\z/))
+      expect(action_body.fetch("events").map { |event| event.fetch("text") }).not_to include("Here you can:")
       expect(action_body).not_to have_key("response")
       expect(action_body.dig("state", "scene")).to eq "ruins"
       expect(action_body.dig("state", "dungeon", "map")).to be_an Array
@@ -60,6 +62,7 @@ RSpec.describe "text_adventures server binary" do
       end
 
       expect(body.fetch("events")).to include hash_including("type" => "movement", "text" => "You descend deeper into the ruins.")
+      expect(body.fetch("events").map { |event| event.fetch("text") }).not_to include(a_string_matching(/\A[?#.xE@P>]+\z/))
       expect(body.dig("state", "prompt")).to eq "Ruins L2"
       expect(body.dig("state", "dungeon", "level")).to eq 2
       expect(body.dig("state", "dungeon", "entrance_portal")).to be_nil

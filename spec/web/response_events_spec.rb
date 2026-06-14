@@ -31,4 +31,23 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       { type: "message", text: "What will you do now?" }
     ]
   end
+
+  it "skips map rows, section headings, command affordances, and map legends" do
+    events = described_class.call(<<~TEXT)
+      Ruins Level 2
+      ??????
+      ##.xE@
+      Here you can:
+       go <up|right|down|left> - to move around
+       attack - to attack an enemy
+      Movement:
+       P - entrance portal
+       ? - unrevealed area
+      You descend deeper into the ruins.
+    TEXT
+
+    expect(events).to eq [
+      { type: "movement", text: "You descend deeper into the ruins." }
+    ]
+  end
 end
