@@ -115,6 +115,19 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.fetch(:prompt)).to eq "Ruins L1"
     expect(state.dig(:dungeon, :level)).to eq 1
     expect(state.dig(:dungeon, :map)).to include(a_string_including("##.xE."))
+    expect(state.dig(:dungeon, :viewport)).to include(
+      width: 18,
+      height: 15,
+      origin: { x: -6, y: -5 }
+    )
+    expect(state.dig(:dungeon, :viewport, :terrain).length).to eq 270
+    expect(state.dig(:dungeon, :viewport, :terrain)).not_to match(/[xE@P> ]/)
+    expect(state.dig(:dungeon, :viewport, :entities)).to include(
+      { type: "player", x: 9, y: 7 },
+      { type: "portal", x: 9, y: 7 },
+      { type: "enemy", x: 10, y: 7, creature_id: "giant_spider" },
+      { type: "loot", x: 9, y: 7 }
+    )
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :descent)).to be_nil
@@ -148,6 +161,9 @@ RSpec.describe TextAdventures::Web::GameSerializer do
 
     expect(state.dig(:dungeon, :descent)).to eq(x: 4, y: 2)
     expect(state.dig(:dungeon, :map)).to include(a_string_including("##.x>."))
+    expect(state.dig(:dungeon, :viewport, :entities)).to include(
+      { type: "descent", x: 10, y: 7 }
+    )
   end
 
   it "serializes pending merchant confirmation" do

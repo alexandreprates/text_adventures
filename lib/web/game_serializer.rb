@@ -128,9 +128,11 @@ module TextAdventures
         dungeon = game.dungeon
         return nil unless dungeon
 
+        map_rows = dungeon_map_rows(dungeon)
         {
           level: dungeon.level,
-          map: dungeon.render(view: :viewport).lines.drop(1).map(&:chomp),
+          map: map_rows,
+          viewport: dungeon_viewport_state(dungeon, map_rows),
           player_position: position_state(dungeon.current_global_position),
           entrance_portal: optional_position_state(dungeon.entrance_portal_position),
           descent: optional_position_state(dungeon.floor_exit_position),
@@ -138,6 +140,83 @@ module TextAdventures
           visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
         }
+      end
+
+      def dungeon_map_rows(dungeon)
+        dungeon.render(view: :viewport).lines.drop(1).map(&:chomp)
+      end
+
+      def dungeon_viewport_state(dungeon, map_rows)
+        width = map_rows.map(&:length).max.to_i
+        height = map_rows.length
+        player_entity = entity_positions(map_rows, "x").first
+
+        {
+          width: width,
+          height: height,
+          origin: viewport_origin(dungeon, player_entity),
+          terrain: viewport_terrain(map_rows, width),
+          entities: viewport_entities(dungeon, map_rows, width, height)
+        }
+      end
+
+      def viewport_origin(dungeon, player_entity)
+        return nil unless player_entity
+
+        position = dungeon.current_global_position
+        {
+          x: position.x - player_entity.fetch(:x),
+          y: position.y - player_entity.fetch(:y)
+        }
+      end
+
+      def viewport_terrain(map_rows, width)
+        map_rows.map do |row|
+          row.ljust(width, "?").tr("xE@P> ", ".....")
+        end.join
+      end
+
+      def viewport_entities(dungeon, map_rows, width, height)
+        origin = viewport_origin(dungeon, entity_positions(map_rows, "x").first)
+        entities = []
+        entities.concat(entity_positions(map_rows, "x").map { |position| position.merge(type: "player") })
+        entities << viewport_entity("portal", dungeon.entrance_portal_position, origin, width, height)
+        entities << viewport_entity("descent", dungeon.floor_exit_position, origin, width, height)
+        entities << viewport_entity("loot", dungeon.nearby_loot_position, origin, width, height)
+        entities.concat(enemy_viewport_entities(dungeon))
+        entities.compact.sort_by { |entity| [entity.fetch(:y), entity.fetch(:x), entity.fetch(:type)] }
+      end
+
+      def viewport_entity(type, global_position, origin, width, height)
+        position = viewport_position(global_position, origin, width, height)
+        position&.merge(type: type)
+      end
+
+      def viewport_position(global_position, origin, width, height)
+        return nil unless global_position && origin
+
+        x = global_position.x - origin.fetch(:x)
+        y = global_position.y - origin.fetch(:y)
+        return nil unless x.between?(0, width - 1) && y.between?(0, height - 1)
+
+        { x: x, y: y }
+      end
+
+      def entity_positions(map_rows, symbol)
+        map_rows.each_with_index.flat_map do |row, y|
+          row.chars.each_with_index.filter_map do |character, x|
+            { x: x, y: y } if character == symbol
+          end
+        end
+      end
+
+      def enemy_viewport_entities(dungeon)
+        dungeon.visible_enemies.map do |enemy|
+          position_state(enemy.fetch(:render_position)).merge(
+            type: "enemy",
+            creature_id: enemy.fetch(:creature_id)
+          )
+        end
       end
 
       def battle_state

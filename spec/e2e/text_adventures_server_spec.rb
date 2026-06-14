@@ -28,6 +28,12 @@ RSpec.describe "text_adventures server binary" do
       expect(action_body).not_to have_key("response")
       expect(action_body.dig("state", "scene")).to eq "ruins"
       expect(action_body.dig("state", "dungeon", "map")).to be_an Array
+      expect(action_body.dig("state", "dungeon", "viewport")).to include(
+        "width" => 18,
+        "height" => 15,
+        "terrain" => a_string_matching(/\A[?#.]+\z/),
+        "entities" => include(hash_including("type" => "player"))
+      )
 
       state_response = request_json(port, Net::HTTP::Get, "/games/#{game_id}")
       expect(state_response.code).to eq "200"
