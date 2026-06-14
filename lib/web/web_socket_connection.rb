@@ -78,7 +78,6 @@ module TextAdventures
           type: "events",
           game_id: game_id,
           events: ResponseEvents.call(response),
-          response: response_payload(response),
           state: serializer.new(game).to_h
         )
       rescue JSON::ParserError
@@ -95,14 +94,6 @@ module TextAdventures
         end
 
         ActionCommand.call(message)
-      end
-
-      def response_payload(response)
-        text = response.to_s
-        {
-          text: text,
-          lines: text.lines.map(&:chomp)
-        }
       end
 
       def write_json(socket, payload)

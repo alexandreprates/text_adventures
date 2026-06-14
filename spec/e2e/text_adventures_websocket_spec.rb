@@ -28,6 +28,7 @@ RSpec.describe "text_adventures WebSocket server" do
       expect(update.fetch("events")).to include(
         hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
       )
+      expect(update).not_to have_key("response")
       expect(update.dig("state", "scene")).to eq "ruins"
     ensure
       socket&.close

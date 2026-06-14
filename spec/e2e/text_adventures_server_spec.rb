@@ -16,14 +16,14 @@ RSpec.describe "text_adventures server binary" do
       created = JSON.parse(create_response.body)
       game_id = created.fetch("game_id")
       expect(created.dig("state", "scene")).to eq "town"
-      expect(created.dig("response", "lines")).to include "Welcome to Text Adventures"
       expect(created.fetch("events")).to include hash_including("type" => "message", "text" => "Welcome to Text Adventures")
+      expect(created).not_to have_key("response")
 
       action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for("go ruins"))
       expect(action_response.code).to eq "200"
       action_body = JSON.parse(action_response.body)
-      expect(action_body.dig("response", "lines")).to include "You go to Ruins."
       expect(action_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
+      expect(action_body).not_to have_key("response")
       expect(action_body.dig("state", "scene")).to eq "ruins"
       expect(action_body.dig("state", "dungeon", "map")).to be_an Array
 
@@ -59,7 +59,7 @@ RSpec.describe "text_adventures server binary" do
         body = JSON.parse(action_response.body)
       end
 
-      expect(body.dig("response", "lines")).to include "You descend deeper into the ruins."
+      expect(body.fetch("events")).to include hash_including("type" => "movement", "text" => "You descend deeper into the ruins.")
       expect(body.dig("state", "prompt")).to eq "Ruins L2"
       expect(body.dig("state", "dungeon", "level")).to eq 2
       expect(body.dig("state", "dungeon", "entrance_portal")).to be_nil
@@ -106,7 +106,7 @@ RSpec.describe "text_adventures server binary" do
 
       expect(action_response.code).to eq "200"
       body = JSON.parse(action_response.body)
-      expect(body.dig("response", "lines")).to include "You go to Ruins."
+      expect(body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
       expect(body.dig("state", "scene")).to eq "ruins"
     end
   end

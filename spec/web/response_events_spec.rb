@@ -4,6 +4,7 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
   it "converts response lines into typed text events" do
     events = described_class.call(<<~TEXT)
       You move right.
+      You descend deeper into the ruins.
       You go to Ruins.
       You attack a Giant Spider causing 10 of damage.
       Giant Spider attacks you with fangs causing 2 of damage.
@@ -13,6 +14,7 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
 
     expect(events).to eq [
       { type: "movement", text: "You move right." },
+      { type: "movement", text: "You descend deeper into the ruins." },
       { type: "travel.changed_scene", text: "You go to Ruins." },
       { type: "combat.damage", text: "You attack a Giant Spider causing 10 of damage." },
       { type: "combat.damage", text: "Giant Spider attacks you with fangs causing 2 of damage." },

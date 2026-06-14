@@ -151,16 +151,11 @@ Delete a session:
 curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>
 ```
 
-Successful action responses include text response lines, typed events, and
-semantic game state:
+Successful action responses include typed events and semantic game state:
 
 ```json
 {
   "game_id": "abc123",
-  "response": {
-    "text": "You go to Ruins.",
-    "lines": ["You go to Ruins."]
-  },
   "events": [
     { "type": "travel.changed_scene", "text": "You go to Ruins." }
   ],

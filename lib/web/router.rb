@@ -86,19 +86,8 @@ module TextAdventures
           game_id: id,
           state: serializer.new(game).to_h
         }
-        if response
-          payload[:response] = response_payload(response)
-          payload[:events] = ResponseEvents.call(response)
-        end
+        payload[:events] = ResponseEvents.call(response) if response
         payload
-      end
-
-      def response_payload(response)
-        text = response.to_s
-        {
-          text: text,
-          lines: text.lines.map(&:chomp)
-        }
       end
 
       def find_game(id)

@@ -357,9 +357,7 @@ function renderLog(events) {
 function eventsFromPayload(payload) {
   if (Array.isArray(payload.events)) return payload.events;
 
-  return (payload.response?.lines || [])
-    .filter(line => line.trim())
-    .map(line => ({ type: "message", text: line.trim() }));
+  return [];
 }
 
 function asciiBar(current, max, kind) {
