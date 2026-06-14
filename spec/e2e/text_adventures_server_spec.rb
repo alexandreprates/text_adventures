@@ -64,42 +64,16 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
-  it "serves the browser frontend assets" do
+  it "leaves browser frontend assets to the web proxy" do
     with_server do |port|
       index_response = request_json(port, Net::HTTP::Get, "/")
-      expect(index_response.code).to eq "200"
-      expect(index_response["Content-Type"]).to include "text/html"
-      expect(index_response["Cache-Control"]).to eq "no-cache"
-      expect(index_response.body).to include '<main class="game-layout">'
-      expect(index_response.body).to include '<script src="/app.js"></script>'
+      expect(index_response.code).to eq "404"
+      expect(index_response["Content-Type"]).to include "application/json"
+      expect(JSON.parse(index_response.body).dig("error", "code")).to eq "not_found"
 
       styles_response = request_json(port, Net::HTTP::Get, "/styles.css")
-      expect(styles_response.code).to eq "200"
-      expect(styles_response["Content-Type"]).to include "text/css"
-      expect(styles_response["Cache-Control"]).to eq "no-cache"
-      expect(styles_response.body).to include ".game-layout"
-
-      app_response = request_json(port, Net::HTTP::Get, "/app.js")
-      expect(app_response.code).to eq "200"
-      expect(app_response["Content-Type"]).to include "text/javascript"
-      expect(app_response.body).to include 'fetch("/api/games"'
-
-      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json")
-      expect(enemies_response.code).to eq "200"
-      expect(enemies_response["Content-Type"]).to include "application/json"
-      expect(JSON.parse(enemies_response.body)).to include "giant_spider"
-
-      location_image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png")
-      expect(location_image_response.code).to eq "200"
-      expect(location_image_response["Content-Type"]).to include "image/png"
-
-      source_image_response = request_json(port, Net::HTTP::Get, "/assets/enemies/sources/crystal_golem.svg")
-      expect(source_image_response.code).to eq "200"
-      expect(source_image_response["Content-Type"]).to include "image/svg+xml"
-
-      readme_response = request_json(port, Net::HTTP::Get, "/assets/enemies/README.md")
-      expect(readme_response.code).to eq "200"
-      expect(readme_response["Content-Type"]).to include "text/markdown"
+      expect(styles_response.code).to eq "404"
+      expect(styles_response["Content-Type"]).to include "application/json"
     end
   end
 
@@ -115,42 +89,13 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
-  it "versions browser asset URLs when an asset version is configured" do
-    with_server("TEXT_ADVENTURES_ASSET_VERSION" => "test-sha") do |port|
-      index_response = request_json(port, Net::HTTP::Get, "/")
-      expect(index_response.body).to include '<link rel="stylesheet" href="/styles.css?v=test-sha">'
-      expect(index_response.body).to include 'src="/assets/locations/village-hub.png?v=test-sha"'
-      expect(index_response.body).to include '<script src="/map_renderer.js?v=test-sha"></script>'
-      expect(index_response.body).to include '<script src="/app.js?v=test-sha"></script>'
-      expect(index_response["Cache-Control"]).to eq "no-cache"
-
-      app_response = request_json(port, Net::HTTP::Get, "/app.js?v=test-sha")
-      expect(app_response.body).to include '"/assets/locations/village-hub.png?v=test-sha"'
-      expect(app_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
-
-      renderer_response = request_json(port, Net::HTTP::Get, "/map_renderer.js?v=test-sha")
-      expect(renderer_response.body).to include '"/assets/tilesets/original-dungeon-tileset.png?v=test-sha"'
-      expect(renderer_response.body).to include '"/assets/enemies/enemies.json?v=test-sha"'
-      expect(renderer_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
-
-      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json?v=test-sha")
-      enemies = JSON.parse(enemies_response.body)
-      expect(enemies.dig("giant_spider", "sprite")).to eq "/assets/enemies/sprites/giant_spider.png?v=test-sha"
-      expect(enemies_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
-
-      image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png?v=test-sha")
-      expect(image_response["Content-Type"]).to include "image/png"
-      expect(image_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
-    end
-  end
-
   it "logs requests to stdout in nginx combined log style" do
     output = capture_server_output do |port|
-      response = request_json(port, Net::HTTP::Get, "/styles.css")
-      expect(response.code).to eq "200"
+      response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      expect(response.code).to eq "201"
     end
 
-    expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "GET /styles\.css HTTP/1\.1" 200 \d+ "-" "[^"]*"})
+    expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "POST /api/games HTTP/1\.1" 201 \d+ "-" "[^"]*"})
   end
 
   def with_server(env = {})

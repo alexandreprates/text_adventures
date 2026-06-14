@@ -100,16 +100,26 @@ The same binary can run as a small JSON API for frontend clients:
 bin/text_adventures server
 ```
 
-Open the browser frontend at:
+When running the Ruby server directly, it exposes only the JSON API:
 
 ```text
-http://127.0.0.1:4567/
+http://127.0.0.1:4567/api/games
 ```
 
-The local Ruby server still serves the frontend for development convenience,
-but browser assets now live under `frontend/public/`. Container deployments use
-the Nginx web target as the public entrypoint and proxy API requests to the Ruby
-game server:
+For the full browser frontend, run the Compose stack and open the Nginx
+entrypoint:
+
+```sh
+docker compose up --build
+```
+
+```text
+http://127.0.0.1:3000/
+```
+
+Browser assets live under `frontend/public/`. Container deployments use the
+Nginx web target as the public entrypoint and proxy API requests to the Ruby game
+server:
 
 ```text
 /                 -> Nginx static frontend

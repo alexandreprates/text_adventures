@@ -3,13 +3,10 @@ services:
     build:
       context: .
       target: app
-      args:
-        TEXT_ADVENTURES_ASSET_VERSION: ${TEXT_ADVENTURES_ASSET_VERSION:-dev}
     image: text_adventures-server:${TEXT_ADVENTURES_ASSET_VERSION:-latest}
     environment:
       TEXT_ADVENTURES_HOST: 0.0.0.0
       TEXT_ADVENTURES_PORT: 4567
-      TEXT_ADVENTURES_ASSET_VERSION: ${TEXT_ADVENTURES_ASSET_VERSION:-dev}
 
   web:
     build:
