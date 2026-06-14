@@ -8,13 +8,6 @@ module TextAdventures
       new
     end
 
-    def self.coerce(value)
-      return value if value.is_a?(self)
-      return empty if value.nil?
-
-      new(items: Array(value))
-    end
-
     def initialize(items: [], gold: 0)
       @items = Array(items).freeze
       @gold = Integer(gold)
@@ -33,13 +26,7 @@ module TextAdventures
     end
 
     def ==(other)
-      if other.is_a?(Array)
-        gold.zero? && items == other
-      elsif other.is_a?(self.class)
-        gold == other.gold && items == other.items
-      else
-        false
-      end
+      other.is_a?(self.class) && gold == other.gold && items == other.items
     end
   end
 end

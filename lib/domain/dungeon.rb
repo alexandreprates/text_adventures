@@ -55,7 +55,7 @@ module TextAdventures
       @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
       @floor_exit_position = normalize_optional_position(floor_exit_position)
       @enemies = normalize_entity_hash(enemies)
-      @dropped_loot = normalize_entity_hash(dropped_loot)
+      @dropped_loot = normalize_loot_hash(dropped_loot)
       @random = random
       validate_current_block!
       validate_player_position!
@@ -183,10 +183,10 @@ module TextAdventures
       enemies[position_key(position)]
     end
 
-    def drop_loot(position, items)
+    def drop_loot(position, loot)
       key = position_key(position)
       validate_entity_position!(key)
-      dropped_loot[key] = LootDrop.coerce(items)
+      dropped_loot[key] = normalize_loot_drop(loot)
     end
 
     def loot_at(position)
@@ -194,7 +194,7 @@ module TextAdventures
     end
 
     def collect_loot_at(position)
-      dropped_loot.delete(position_key(position)) || []
+      dropped_loot.delete(position_key(position)) || LootDrop.empty
     end
 
     def dropped_loot?
@@ -294,6 +294,16 @@ module TextAdventures
 
     def normalize_entity_hash(value)
       value.to_h.transform_keys { |key| normalize_position_key(key) }
+    end
+
+    def normalize_loot_hash(value)
+      normalize_entity_hash(value).transform_values { |loot| normalize_loot_drop(loot) }
+    end
+
+    def normalize_loot_drop(value)
+      return value if value.is_a?(LootDrop)
+
+      raise ArgumentError, "dungeon loot must be a LootDrop"
     end
 
     def normalize_block_key(key)

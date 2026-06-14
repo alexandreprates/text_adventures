@@ -18,7 +18,7 @@ RSpec.describe TextAdventures::Battle do
       response = battle.attack(player)
 
       expect(response).to have_attributes(finished?: false)
-      expect(response.loot).to eq []
+      expect(response.loot).to be_empty
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Giant Spider causing 10 of damage.
         Giant Spider attacks you with Bite causing 2 of damage.
@@ -143,7 +143,8 @@ RSpec.describe TextAdventures::Battle do
 
       response = battle.attack(weak_player)
 
-      expect(response).to have_attributes(finished?: true, player_defeated?: true, loot: [])
+      expect(response).to have_attributes(finished?: true, player_defeated?: true)
+      expect(response.loot).to be_empty
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Giant Spider causing 10 of damage.
         Giant Spider attacks you with Bite causing 2 of damage.
@@ -158,7 +159,8 @@ RSpec.describe TextAdventures::Battle do
 
       response = battle.attack(poisoned_player)
 
-      expect(response).to have_attributes(finished?: true, player_defeated?: true, loot: [])
+      expect(response).to have_attributes(finished?: true, player_defeated?: true)
+      expect(response.loot).to be_empty
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         Poison deals 2 damage.
         You have fallen.

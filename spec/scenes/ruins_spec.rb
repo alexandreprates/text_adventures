@@ -358,7 +358,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
   it "collects victory loot once" do
     tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
-    game.pending_loot = [tome]
+    game.pending_loot = TextAdventures::LootDrop.new(items: [tome])
 
     expect(game.handle("loot")).to eq <<~TEXT.chomp
       You collect the loot.
@@ -386,7 +386,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
   it "collects adjacent map loot once" do
     tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
-    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), [tome])
+    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), TextAdventures::LootDrop.new(items: [tome]))
 
     expect(game.handle("loot")).to eq <<~TEXT.chomp
       You collect the loot.
@@ -399,7 +399,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
   it "collects map loot automatically when stepping onto it" do
     tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")
-    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), [tome])
+    dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 4, y: 2), TextAdventures::LootDrop.new(items: [tome]))
 
     expect(game.handle("go right")).to eq <<~TEXT.chomp
       You move right.
@@ -454,7 +454,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     )
     edge_scene = described_class.new(dungeon: edge_dungeon)
     edge_game = TextAdventures::Game.new(current_scene: edge_scene, random: random)
-    edge_dungeon.drop_loot(TextAdventures::Dungeon::Position.new(x: 8, y: 2), [TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")])
+    edge_dungeon.drop_loot(
+      TextAdventures::Dungeon::Position.new(x: 8, y: 2),
+      TextAdventures::LootDrop.new(items: [TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")])
+    )
 
     expect(edge_game.handle("loot")).to eq "There is loot on the map, but you need to reach it first."
   end
