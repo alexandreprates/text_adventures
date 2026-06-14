@@ -256,27 +256,6 @@ module TextAdventures
       lines.join("\n")
     end
 
-    def visible_enemies(view: :viewport)
-      validate_render_view!(view)
-      origin = render_origin_for(view)
-      tiles = render_tiles_for(view, origin)
-      max_y = tiles.length - 1
-      max_x = tiles.first.length - 1
-
-      enemies.filter_map do |key, creature_id|
-        position = Position.new(x: key[0], y: key[1])
-        render_x = position.x - (origin.x * width)
-        render_y = position.y - (origin.y * height)
-        next unless render_x.between?(0, max_x) && render_y.between?(0, max_y)
-
-        {
-          position: position,
-          render_position: Position.new(x: render_x, y: render_y),
-          creature_id: creature_id
-        }
-      end.sort_by { |enemy| [enemy.fetch(:render_position).y, enemy.fetch(:render_position).x] }
-    end
-
     def viewport_state
       origin = render_origin_for(:viewport)
       tiles = render_tiles_for(:viewport, origin)

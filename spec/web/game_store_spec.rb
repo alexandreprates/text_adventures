@@ -22,7 +22,7 @@ RSpec.describe TextAdventures::Web::GameStore do
     5.times { game.handle("go right") }
     game.handle("go up")
 
-    expect(game.dungeon.render(view: :viewport)).to include "E"
+    expect(game.dungeon.viewport_state.fetch(:entities)).to include(hash_including(type: "enemy"))
   end
 
   it "uses a default seed when no create seed is provided" do
@@ -33,6 +33,6 @@ RSpec.describe TextAdventures::Web::GameStore do
     5.times { game.handle("go right") }
     game.handle("go up")
 
-    expect(game.dungeon.render(view: :viewport)).to include "E"
+    expect(game.dungeon.viewport_state.fetch(:entities)).to include(hash_including(type: "enemy"))
   end
 end

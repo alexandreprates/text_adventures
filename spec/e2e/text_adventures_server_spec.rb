@@ -28,8 +28,6 @@ RSpec.describe "text_adventures server binary" do
       expect(action_body).not_to have_key("response")
       expect(action_body.dig("state", "scene")).to eq "ruins"
       expect(action_body.dig("state", "dungeon")).not_to have_key("map")
-      expect(action_body.dig("state", "dungeon")).not_to have_key("visible_enemy")
-      expect(action_body.dig("state", "dungeon")).not_to have_key("visible_enemies")
       expect(action_body.dig("state", "dungeon", "viewport")).to include(
         "width" => 18,
         "height" => 15,

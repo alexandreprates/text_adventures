@@ -131,8 +131,6 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :descent)).to be_nil
-    expect(state.fetch(:dungeon)).not_to have_key(:visible_enemy)
-    expect(state.fetch(:dungeon)).not_to have_key(:visible_enemies)
     expect(state.dig(:dungeon, :nearby_loot, :items)).to include(
       hash_including(name: "potion of heal", display_name: "Potion of Heal")
     )
