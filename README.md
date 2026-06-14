@@ -121,7 +121,15 @@ curl -sS -X POST http://127.0.0.1:4567/api/games \
   -d '{"seed":0}'
 ```
 
-Send a command:
+Send a structured action:
+
+```sh
+curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/actions \
+  -H 'Content-Type: application/json' \
+  -d '{"type":"travel","destination":"ruins"}'
+```
+
+Command routes remain available as a compatibility layer:
 
 ```sh
 curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/commands \

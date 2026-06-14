@@ -77,6 +77,30 @@ RSpec.describe TextAdventures::Web::Router do
     )
   end
 
+  it "executes structured actions while keeping command routes available" do
+    create_response = router.call(method: "POST", path: "/api/games", body: '{"seed":0}')
+    game_id = parsed(create_response).fetch("game_id")
+
+    action_response = router.call(
+      method: "POST",
+      path: "/api/games/#{game_id}/actions",
+      body: '{"type":"travel","destination":"ruins"}'
+    )
+
+    expect(action_response.status).to eq 200
+    expect(parsed(action_response)).to include(
+      "response" => hash_including("lines" => include("You go to Ruins.")),
+      "state" => hash_including("scene" => "ruins")
+    )
+
+    command_response = router.call(
+      method: "POST",
+      path: "/api/games/#{game_id}/commands",
+      body: '{"command":"look"}'
+    )
+    expect(command_response.status).to eq 200
+  end
+
   it "returns JSON errors for invalid requests" do
     create_response = router.call(method: "POST", path: "/games", body: "{}")
     game_id = parsed(create_response).fetch("game_id")
@@ -88,6 +112,10 @@ RSpec.describe TextAdventures::Web::Router do
     missing_command = router.call(method: "POST", path: "/games/#{game_id}/commands", body: "{}")
     expect(missing_command.status).to eq 400
     expect(parsed(missing_command).dig("error", "code")).to eq "missing_command"
+
+    missing_action = router.call(method: "POST", path: "/api/games/#{game_id}/actions", body: "{}")
+    expect(missing_action.status).to eq 400
+    expect(parsed(missing_action).dig("error", "message")).to eq "Action type is required."
 
     missing_route = router.call(method: "GET", path: "/missing", body: nil)
     expect(missing_route.status).to eq 404

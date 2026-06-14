@@ -40,6 +40,13 @@ module TextAdventures
           return method_not_allowed
         end
 
+        if path.match?(%r{\A/games/[^/]+/actions\z})
+          game_id = path.split("/")[2]
+          return execute_action(game_id, body) if method == "POST"
+
+          return method_not_allowed
+        end
+
         JsonResponse.error("not_found", "Route not found.", status: 404)
       end
 
@@ -73,6 +80,16 @@ module TextAdventures
         command = payload["command"].to_s
         return JsonResponse.error("missing_command", "Request body must include command.", status: 400) if command.strip.empty?
 
+        response = game.handle(command)
+        JsonResponse.success(game_payload(id, game, response: response))
+      end
+
+      def execute_action(id, body)
+        game = find_game(id)
+        return game_not_found unless game
+
+        payload = parse_required_json(body)
+        command = ActionCommand.call(payload)
         response = game.handle(command)
         JsonResponse.success(game_payload(id, game, response: response))
       end

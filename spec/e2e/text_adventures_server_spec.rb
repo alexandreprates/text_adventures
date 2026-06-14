@@ -89,6 +89,26 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "executes structured actions over HTTP" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+
+      action_response = request_json(
+        port,
+        Net::HTTP::Post,
+        "/api/games/#{game_id}/actions",
+        type: "travel",
+        destination: "ruins"
+      )
+
+      expect(action_response.code).to eq "200"
+      body = JSON.parse(action_response.body)
+      expect(body.dig("response", "lines")).to include "You go to Ruins."
+      expect(body.dig("state", "scene")).to eq "ruins"
+    end
+  end
+
   it "logs requests to stdout in nginx combined log style" do
     output = capture_server_output do |port|
       response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
