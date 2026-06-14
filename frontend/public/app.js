@@ -133,7 +133,7 @@ function renderHeader(state) {
 }
 
 function renderMap(state) {
-  if (state.scene === "ruins" && state.dungeon?.map?.length) {
+  if (state.scene === "ruins" && (state.dungeon?.viewport || state.dungeon?.map?.length)) {
     showCanvasMap(state.dungeon);
     return;
   }
@@ -157,7 +157,7 @@ function showCanvasMap(dungeon) {
   elements.locationArt.style.transform = "";
   const mapRows = dungeon.map;
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
+  dungeonMapRenderer.render(dungeon.viewport || mapRows, { enemies: dungeon.visible_enemies || [] });
   resizeCanvasMap();
 }
 

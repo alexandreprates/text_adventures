@@ -57,10 +57,10 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('function actionFromCommand(command)')
     expect(javascript).to include('api.sendAction(actionFromCommand(command))')
     expect(javascript).not_to include('/commands')
-    expect(javascript).to include('state.scene === "ruins" && state.dungeon?.map?.length')
+    expect(javascript).to include('state.scene === "ruins" && (state.dungeon?.viewport || state.dungeon?.map?.length)')
     expect(javascript).to include('showCanvasMap(state.dungeon)')
     expect(javascript).to include('mapRows.join("\\n")')
-    expect(javascript).to include('dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] })')
+    expect(javascript).to include('dungeonMapRenderer.render(dungeon.viewport || mapRows, { enemies: dungeon.visible_enemies || [] })')
     expect(javascript).to include('DungeonMapRenderer.create(elements.mapCanvas)')
     expect(javascript).to include('const DUNGEON_MAP_BASE_ZOOM = 1.3')
     expect(javascript).to include('const LOCATION_ART_BASE_ZOOM = 1.12')
@@ -197,7 +197,9 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('animateAttack(source)')
     expect(renderer).to include('clearAttackAnimation()')
     expect(renderer).to include('function drawAttackTrace(context, from, to, progress, source)')
-    expect(renderer).to include('function drawEnemies(context, renderer, enemyImages, enemies)')
+    expect(renderer).to include('function rowsFromViewport(viewport)')
+    expect(renderer).to include('function drawEntities(context, renderer, enemyImages, entities)')
+    expect(renderer).to include('const ENTITY_TILES')
     expect(renderer).to include('image.src = entry.sprite')
   end
 end
