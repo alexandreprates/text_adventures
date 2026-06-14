@@ -6,6 +6,7 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       You move right.
       You go to Ruins.
       You attack a Giant Spider causing 10 of damage.
+      Giant Spider attacks you with fangs causing 2 of damage.
       Equipped Iron Armor.
       Unknown command: dance.
     TEXT
@@ -14,6 +15,7 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       { type: "movement", text: "You move right." },
       { type: "travel.changed_scene", text: "You go to Ruins." },
       { type: "combat.damage", text: "You attack a Giant Spider causing 10 of damage." },
+      { type: "combat.damage", text: "Giant Spider attacks you with fangs causing 2 of damage." },
       { type: "inventory.equipped", text: "Equipped Iron Armor." },
       { type: "error.invalid_action", text: "Unknown command: dance." }
     ]

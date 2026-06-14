@@ -114,6 +114,7 @@ function setStatus(text, error = false) {
 function render(payload) {
   api.gameId = payload.game_id || api.gameId;
   const state = payload.state;
+  const events = eventsFromPayload(payload);
   currentState = state;
   renderHeader(state);
   renderMap(state);
@@ -121,8 +122,8 @@ function render(payload) {
   renderContextCommands(state);
   renderCollections(state.player);
   updateCommandPlaceholder(state);
-  renderLog(payload.response);
-  playCombatFeedback(payload.response);
+  renderLog(events);
+  playCombatFeedback(events);
 }
 
 function renderHeader(state) {
@@ -256,8 +257,8 @@ function renderEnemyStatus(battle) {
   elements.enemyStatusValue.classList.toggle("status-clear", statuses === "clear");
 }
 
-function playCombatFeedback(response) {
-  const exchanges = combatExchanges(response?.lines || []);
+function playCombatFeedback(events) {
+  const exchanges = combatExchanges(events);
   clearCombatFeedback();
   if (!exchanges.length) return;
 
@@ -267,12 +268,14 @@ function playCombatFeedback(response) {
   combatFeedbackTimers.push(setTimeout(clearCombatFeedback, exchanges.length * COMBAT_FEEDBACK_STEP_MS));
 }
 
-function combatExchanges(lines) {
-  return lines.flatMap(line => {
-    if (/^You (attack|cast) .+ causing \d+ of damage/.test(line)) {
+function combatExchanges(events) {
+  return events.flatMap(event => {
+    if (event.type !== "combat.damage") return [];
+
+    if (/^You (attack|cast) /.test(event.text)) {
       return [{ source: "player" }];
     }
-    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(line)) {
+    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(event.text)) {
       return [{ source: "enemy" }];
     }
     return [];
@@ -338,9 +341,10 @@ function fillCommandInput(value) {
   elements.commandInput.setSelectionRange(value.length, value.length);
 }
 
-function renderLog(response) {
-  if (response?.lines?.length) {
-    messageLogLines = [...messageLogLines, ...response.lines].slice(-80);
+function renderLog(events) {
+  const eventLines = events.map(event => event.text);
+  if (eventLines.length) {
+    messageLogLines = [...messageLogLines, ...eventLines].slice(-80);
   }
 
   const sourceLines = messageLogLines;
@@ -348,6 +352,14 @@ function renderLog(response) {
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
   elements.messageLog.scrollTop = elements.messageLog.scrollHeight;
+}
+
+function eventsFromPayload(payload) {
+  if (Array.isArray(payload.events)) return payload.events;
+
+  return (payload.response?.lines || [])
+    .filter(line => line.trim())
+    .map(line => ({ type: "message", text: line.trim() }));
 }
 
 function asciiBar(current, max, kind) {
