@@ -11,21 +11,8 @@ module TextAdventures
       spellbook
       use
     ].freeze
-    INPUT_MODES = %i[text game].freeze
-    GAME_MODE_COMMANDS = {
-      "w" => "go up",
-      "s" => "go down",
-      "a" => "go left",
-      "d" => "go right",
-      "" => "attack",
-      " " => "attack",
-      "i" => "inventory",
-      "l" => "loot"
-    }.freeze
-
-    attr_reader :player, :current_scene, :history, :random, :input_mode
-    attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position,
-                  :pending_game_spell_choices
+    attr_reader :player, :current_scene, :history, :random
+    attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position
 
     def initialize(
       player: Character.new,
@@ -35,8 +22,6 @@ module TextAdventures
       battle: nil,
       pending_loot: nil,
       active_enemy_position: nil,
-      input_mode: :text,
-      pending_game_spell_choices: nil,
       history: [],
       random: Random.new
     )
@@ -47,8 +32,6 @@ module TextAdventures
       @battle = battle
       @pending_loot = pending_loot
       @active_enemy_position = active_enemy_position
-      @input_mode = validate_input_mode(input_mode)
-      @pending_game_spell_choices = pending_game_spell_choices
       @history = history
       @random = random
     end
@@ -61,19 +44,9 @@ module TextAdventures
       @current_scene = scene
     end
 
-    def game_mode?
-      input_mode == :game
-    end
-
     def handle(command_text)
       original_command_text = command_text.to_s
-      mode_response = handle_input_mode_command(original_command_text)
-      return finalize_response(original_command_text, mode_response) if mode_response
-
-      command_text = translated_command_text(original_command_text)
-      return finalize_response(original_command_text, command_text.fetch(:response)) if command_text.key?(:response)
-
-      command = CommandParser.parse(command_text.fetch(:command))
+      command = CommandParser.parse(original_command_text)
       response = Response.render(command.unknown? ? handle_unknown_command(command) : handle_known_command(command))
       response = append_pending_confirmation_hint(response, command)
       finalize_response(original_command_text, response)
@@ -81,106 +54,10 @@ module TextAdventures
 
     private
 
-    def validate_input_mode(value)
-      mode = value.to_sym
-      return mode if INPUT_MODES.include?(mode)
-
-      raise ArgumentError, "unknown input mode: #{value}"
-    end
-
     def finalize_response(command_text, response)
       rendered_response = Response.render(response)
       record_history(command_text, rendered_response)
       rendered_response
-    end
-
-    def handle_input_mode_command(command_text)
-      normalized = normalize_game_input(command_text)
-      case normalized
-      when "game"
-        @input_mode = :game
-        self.pending_game_spell_choices = nil
-        game_mode_enabled_response
-      when "text", "commands"
-        @input_mode = :text
-        self.pending_game_spell_choices = nil
-        Response.new("Text command mode enabled.")
-      end
-    end
-
-    def translated_command_text(command_text)
-      return { command: command_text } unless game_mode?
-
-      spell_selection = handle_pending_game_spell_selection(command_text)
-      return spell_selection if spell_selection
-
-      normalized = normalize_game_input(command_text)
-      return { response: game_mode_help_response } if ["h", "?"].include?(normalized)
-      return { response: game_spell_choices_response } if normalized == "c"
-
-      mapped_command = GAME_MODE_COMMANDS[normalized]
-      return { command: mapped_command } if mapped_command
-
-      { command: command_text }
-    end
-
-    def normalize_game_input(command_text)
-      command_text.to_s.downcase.strip.squeeze(" ")
-    end
-
-    def game_mode_enabled_response
-      Response.new(
-        "Game mode enabled.",
-        "Controls: W/A/S/D move, Enter attacks, I inventory, L loot, C cast, H help.",
-        "Type text to return to text commands."
-      )
-    end
-
-    def game_mode_help_response
-      Response.new(
-        "Game mode help",
-        " W/A/S/D - move",
-        " Enter - attack",
-        " I - inventory",
-        " L - loot",
-        " C - cast a numbered spell",
-        " text - return to text commands"
-      )
-    end
-
-    def game_spell_choices_response
-      choices = game_spell_choices
-      return Response.new("You cannot cast any spells yet.") if choices.empty?
-
-      self.pending_game_spell_choices = choices
-      Response.new(
-        "Choose a spell:",
-        choices.each_with_index.map { |spell, index| " #{index + 1} - #{spell.display_name}" },
-        " 0 - cancel"
-      )
-    end
-
-    def game_spell_choices
-      player.spells.values.sort_by(&:display_name)
-    end
-
-    def handle_pending_game_spell_selection(command_text)
-      choices = pending_game_spell_choices
-      return nil unless choices
-
-      normalized = normalize_game_input(command_text)
-      if ["0", "cancel", "escape"].include?(normalized)
-        self.pending_game_spell_choices = nil
-        return { response: Response.new("Spell casting canceled.") }
-      end
-
-      selected_index = Integer(normalized, exception: false)
-      unless selected_index&.between?(1, choices.length)
-        return { response: Response.new("Choose a spell number from 1 to #{choices.length}, or 0 to cancel.") }
-      end
-
-      self.pending_game_spell_choices = nil
-      { command: "cast #{choices[selected_index - 1].command_name}" }
     end
 
     def append_pending_confirmation_hint(response, command)

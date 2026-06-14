@@ -154,7 +154,6 @@ state:
   "state": {
     "scene": "ruins",
     "prompt": "Ruins L1",
-    "input_mode": "text",
     "player": {},
     "dungeon": {}
   }
@@ -207,11 +206,6 @@ skills          show progression by skill track
 equip <item>    equip a carried weapon or armor
 use <item>      use a potion or tome
 drop <item>     drop a carried item
-game            enable game input mode
-text            return to text command mode
-commands        return to text command mode
-quit            exit the game
-exit            exit the game
 ```
 
 Town and shop commands:

@@ -22,7 +22,6 @@ const elements = {
   sceneTitle: document.querySelector("#scene-title"),
   mapTitle: document.querySelector("#map-title"),
   serverStatus: document.querySelector("#server-status"),
-  topMode: document.querySelector("#top-mode"),
   gameId: document.querySelector("#game-id"),
   characterClass: document.querySelector("#character-class"),
   clock: document.querySelector("#clock"),
@@ -130,7 +129,6 @@ function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.mapTitle.textContent = `═══ ${state.prompt} ═══`;
   elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
-  elements.topMode.textContent = state.input_mode.toUpperCase();
 }
 
 function renderMap(state) {
@@ -491,11 +489,6 @@ function suggestedItemCommands(player) {
 function updateCommandPlaceholder(state) {
   if (state.pending?.confirmation) {
     elements.commandInput.placeholder = "agree or no";
-    return;
-  }
-
-  if (state.input_mode === "game") {
-    elements.commandInput.placeholder = "w/a/s/d, Enter, i, l, c, text";
     return;
   }
 

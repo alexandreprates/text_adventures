@@ -10,10 +10,9 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       scene: "town",
       scene_display_name: "Town",
       prompt: "Town",
-      input_mode: "text",
       dungeon: nil,
       battle: { active: false, enemy: nil },
-      pending: { confirmation: false, spell_choices: [] },
+      pending: { confirmation: false },
       history: []
     )
 
@@ -51,11 +50,10 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
-  it "serializes inventory, spells, pending spell choices, and history" do
+  it "serializes inventory, spells, and history" do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("iron_dagger"), quantity: 2)
     game.player.learn_spell(TextAdventures::Spell.fireball)
-    game.handle("game")
-    game.handle("c")
+    game.handle("spellbook")
 
     expect(state.dig(:player, :inventory)).to include(
       hash_including(
@@ -74,14 +72,11 @@ RSpec.describe TextAdventures::Web::GameSerializer do
         kind: "damage"
       )
     ]
-    expect(state.dig(:pending, :spell_choices)).to match [
-      hash_including(name: "fireball", display_name: "Fireball")
-    ]
-    expect(state.fetch(:input_mode)).to eq "game"
-    expect(state.fetch(:prompt)).to eq "Town [game]"
+    expect(state.fetch(:pending)).to eq(confirmation: false)
+    expect(state.fetch(:prompt)).to eq "Town"
     expect(state.fetch(:history).last).to include(
-      command: "c",
-      lines: ["Choose a spell:", " 1 - Fireball", " 0 - cancel"]
+      command: "spellbook",
+      lines: include("You can cast:")
     )
   end
 

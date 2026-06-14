@@ -10,7 +10,6 @@ module TextAdventures
           scene: game.current_scene_name.to_s,
           scene_display_name: scene_display_name,
           prompt: prompt,
-          input_mode: game.input_mode.to_s,
           player: player_state,
           dungeon: dungeon_state,
           battle: battle_state,
@@ -38,7 +37,7 @@ module TextAdventures
                   scene_display_name
                 end
 
-        game.game_mode? ? "#{label} [game]" : label
+        label
       end
 
       def player_state
@@ -168,8 +167,7 @@ module TextAdventures
 
       def pending_state
         {
-          confirmation: !game.pending_confirmation.nil?,
-          spell_choices: spells_state(game.pending_game_spell_choices || [])
+          confirmation: !game.pending_confirmation.nil?
         }
       end
 
