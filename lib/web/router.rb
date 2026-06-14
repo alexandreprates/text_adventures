@@ -105,7 +105,10 @@ module TextAdventures
           game_id: id,
           state: serializer.new(game).to_h
         }
-        payload[:response] = response_payload(response) if response
+        if response
+          payload[:response] = response_payload(response)
+          payload[:events] = ResponseEvents.call(response)
+        end
         payload
       end
 

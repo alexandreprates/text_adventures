@@ -17,11 +17,13 @@ RSpec.describe "text_adventures server binary" do
       game_id = created.fetch("game_id")
       expect(created.dig("state", "scene")).to eq "town"
       expect(created.dig("response", "lines")).to include "Welcome to Text Adventures"
+      expect(created.fetch("events")).to include hash_including("type" => "message", "text" => "Welcome to Text Adventures")
 
       command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: "go ruins")
       expect(command_response.code).to eq "200"
       command_body = JSON.parse(command_response.body)
       expect(command_body.dig("response", "lines")).to include "You go to Ruins."
+      expect(command_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
       expect(command_body.dig("state", "scene")).to eq "ruins"
       expect(command_body.dig("state", "dungeon", "map")).to be_an Array
 

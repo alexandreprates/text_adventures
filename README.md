@@ -149,8 +149,8 @@ Delete a session:
 curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>
 ```
 
-Successful command responses include the command response and semantic game
-state:
+Successful action and command responses include the compatibility text response,
+typed events, and semantic game state:
 
 ```json
 {
@@ -159,6 +159,9 @@ state:
     "text": "You go to Ruins.",
     "lines": ["You go to Ruins."]
   },
+  "events": [
+    { "type": "travel.changed_scene", "text": "You go to Ruins." }
+  ],
   "state": {
     "scene": "ruins",
     "prompt": "Ruins L1",

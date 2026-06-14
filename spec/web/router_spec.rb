@@ -21,6 +21,9 @@ RSpec.describe TextAdventures::Web::Router do
       "response" => hash_including(
         "lines" => include("Welcome to Text Adventures")
       ),
+      "events" => include(
+        hash_including("type" => "message", "text" => "Welcome to Text Adventures")
+      ),
       "state" => hash_including(
         "scene" => "town",
         "player" => hash_including("name" => "Adventurer")
@@ -41,6 +44,7 @@ RSpec.describe TextAdventures::Web::Router do
     expect(command_response.status).to eq 200
     expect(parsed(command_response)).to include(
       "response" => hash_including("lines" => include("You go to Ruins.")),
+      "events" => include(hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")),
       "state" => hash_including(
         "scene" => "ruins",
         "prompt" => "Ruins L1",
