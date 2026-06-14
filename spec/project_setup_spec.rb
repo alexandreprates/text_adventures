@@ -15,7 +15,7 @@ RSpec.describe "Project dependency setup" do
     lockfile = File.read(File.join(root, "Gemfile.lock"))
     parser = Bundler::LockfileParser.new(lockfile)
 
-    expect(parser.dependencies.keys).to contain_exactly("rake", "rspec")
+    expect(parser.dependencies.keys).to contain_exactly("base64", "rake", "rspec")
     expect(parser.specs.map(&:name)).to include("rake", "rspec")
   end
 

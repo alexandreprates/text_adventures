@@ -21,14 +21,16 @@ module TextAdventures
         new(
           host: env.fetch("TEXT_ADVENTURES_HOST", DEFAULT_HOST),
           port: Integer(env.fetch("TEXT_ADVENTURES_PORT", DEFAULT_PORT)),
-          router: Router.new(store: store)
+          router: Router.new(store: store),
+          web_socket: WebSocketConnection.new(store: store)
         )
       end
 
-      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, output: $stdout)
+      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, web_socket: nil, output: $stdout)
         @host = host
         @port = Integer(port)
         @router = router
+        @web_socket = web_socket
         @output = output
         @running = true
         @server = nil
@@ -45,7 +47,7 @@ module TextAdventures
 
       private
 
-      attr_reader :host, :port, :router, :output, :server
+      attr_reader :host, :port, :router, :web_socket, :output, :server
 
       def accept_loop
         while @running
@@ -65,6 +67,12 @@ module TextAdventures
 
         request = read_request(socket)
         return unless request
+
+        if web_socket_request?(request)
+          response_status = 101
+          web_socket.handle(socket, request)
+          return
+        end
 
         response = router_response_for(request)
         response_status = response.fetch(:status)
@@ -129,6 +137,17 @@ module TextAdventures
             body: request.fetch(:body)
           )
         )
+      end
+
+      def web_socket_request?(request)
+        return false unless web_socket
+        return false unless request.fetch(:method) == "GET"
+        return false unless request.fetch(:path) == "/ws"
+
+        headers = request.fetch(:headers)
+        headers.fetch("upgrade", "").downcase == "websocket" &&
+          headers.fetch("connection", "").downcase.include?("upgrade") &&
+          headers.key?("sec-websocket-key")
       end
 
       def raw_response_for(response)

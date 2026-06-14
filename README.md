@@ -137,6 +137,16 @@ curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/commands \
   -d '{"command":"go ruins"}'
 ```
 
+The gameplay WebSocket endpoint accepts action messages after a game is created:
+
+```text
+ws://127.0.0.1:4567/ws?game_id=<game_id>
+```
+
+```json
+{ "type": "action", "action": "travel", "destination": "ruins" }
+```
+
 Fetch state:
 
 ```sh
