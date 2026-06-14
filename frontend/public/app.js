@@ -87,7 +87,7 @@ const LOCATION_ARTS = {
 
 let currentState = null;
 let mapZoom = 1;
-let openingLogLines = [];
+let messageLogLines = [];
 let combatFeedbackTimers = [];
 const commandHistory = {
   entries: [],
@@ -121,7 +121,7 @@ function render(payload) {
   renderContextCommands(state);
   renderCollections(state.player);
   updateCommandPlaceholder(state);
-  renderLog(payload.response, state.history);
+  renderLog(payload.response);
   playCombatFeedback(payload.response);
 }
 
@@ -338,11 +338,12 @@ function fillCommandInput(value) {
   elements.commandInput.setSelectionRange(value.length, value.length);
 }
 
-function renderLog(response, history) {
-  if (!history.length && response?.lines?.length) openingLogLines = response.lines;
+function renderLog(response) {
+  if (response?.lines?.length) {
+    messageLogLines = [...messageLogLines, ...response.lines].slice(-80);
+  }
 
-  const historyLines = history.flatMap(entry => entry.lines);
-  const sourceLines = [...openingLogLines, ...historyLines];
+  const sourceLines = messageLogLines;
   const lines = sourceLines.filter(isLoggableLine);
   const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");

@@ -13,8 +13,7 @@ module TextAdventures
           player: player_state,
           dungeon: dungeon_state,
           battle: battle_state,
-          pending: pending_state,
-          history: history_state
+          pending: pending_state
         }
       end
 
@@ -169,16 +168,6 @@ module TextAdventures
         {
           confirmation: !game.pending_confirmation.nil?
         }
-      end
-
-      def history_state
-        game.history.map do |entry|
-          {
-            command: entry.command,
-            response: entry.response.to_s,
-            lines: entry.response.to_s.lines.map(&:chomp)
-          }
-        end
       end
 
       def enemy_position_state(position)

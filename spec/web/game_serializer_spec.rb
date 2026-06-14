@@ -12,9 +12,9 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       prompt: "Town",
       dungeon: nil,
       battle: { active: false, enemy: nil },
-      pending: { confirmation: false },
-      history: []
+      pending: { confirmation: false }
     )
+    expect(state).not_to have_key(:history)
 
     expect(state.fetch(:player)).to include(
       name: "Adventurer",
@@ -50,7 +50,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
-  it "serializes inventory, spells, and history" do
+  it "serializes inventory and spells without repeating command history" do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("iron_dagger"), quantity: 2)
     game.player.learn_spell(TextAdventures::Spell.fireball)
     game.handle("spellbook")
@@ -74,10 +74,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     ]
     expect(state.fetch(:pending)).to eq(confirmation: false)
     expect(state.fetch(:prompt)).to eq "Town"
-    expect(state.fetch(:history).last).to include(
-      command: "spellbook",
-      lines: include("You can cast:")
-    )
+    expect(state).not_to have_key(:history)
   end
 
   it "serializes starter equipment returned to inventory after an equipment swap" do
@@ -101,11 +98,11 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:player, :inventory)).not_to include(hash_including(name: "rusty dagger"))
   end
 
-  it "serializes the complete command history" do
+  it "omits command history from compact web state" do
     12.times { game.handle("look") }
 
-    expect(state.fetch(:history).size).to eq 12
-    expect(state.fetch(:history).map { |entry| entry.fetch(:command) }).to all(eq "look")
+    expect(game.history.size).to eq 12
+    expect(state).not_to have_key(:history)
   end
 
   it "serializes dungeon state, adjacent enemies, nearby loot, and active battle" do

@@ -81,9 +81,10 @@ RSpec.describe "Frontend assets" do
     expect(javascript.scan('elements.locationArt.style.transform = ""').length).to eq 2
     expect(javascript).to include('"has-location-art"')
     expect(javascript).to include('function isLoggableLine(line)')
-    expect(javascript).to include('let openingLogLines = []')
-    expect(javascript).to include('const historyLines = history.flatMap(entry => entry.lines)')
-    expect(javascript).to include('const sourceLines = [...openingLogLines, ...historyLines]')
+    expect(javascript).to include('let messageLogLines = []')
+    expect(javascript).to include('messageLogLines = [...messageLogLines, ...response.lines].slice(-80)')
+    expect(javascript).to include('const sourceLines = messageLogLines')
+    expect(javascript).not_to include('state.history')
     expect(javascript).to include('function quickCommandsFor(state)')
     expect(javascript).to include('contextCommands: document.querySelector("#context-commands")')
     expect(javascript).to include('renderContextCommands(state)')

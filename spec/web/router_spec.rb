@@ -26,6 +26,7 @@ RSpec.describe TextAdventures::Web::Router do
         "player" => hash_including("name" => "Adventurer")
       )
     )
+    expect(parsed(response).fetch("state")).not_to have_key("history")
   end
 
   it "fetches game state, executes commands, and deletes sessions" do
