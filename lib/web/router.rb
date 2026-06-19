@@ -14,6 +14,8 @@ module TextAdventures
         JsonResponse.error("invalid_json", "Request body must be valid JSON.", status: 400)
       rescue ArgumentError => error
         JsonResponse.error("invalid_request", error.message, status: 400)
+      rescue GameStore::CapacityExceeded => error
+        JsonResponse.error("server_busy", error.message, status: 503)
       end
 
       private
@@ -22,6 +24,7 @@ module TextAdventures
 
       def route(method, path, body)
         path = api_path(path)
+        return health if method == "GET" && path == "/health"
         return create_game(body) if method == "POST" && path == "/games"
         return method_not_allowed if path == "/games"
 
@@ -59,20 +62,24 @@ module TextAdventures
       end
 
       def game_state(id)
-        game = find_game(id)
-        return game_not_found unless game
+        payload = store.with_game(id) do |game|
+          game_payload(id, game)
+        end
+        return game_not_found unless payload
 
-        JsonResponse.success(game_payload(id, game))
+        JsonResponse.success(payload)
       end
 
       def execute_action(id, body)
-        game = find_game(id)
-        return game_not_found unless game
-
         payload = parse_required_json(body)
-        command = ActionCommand.call(payload)
-        response = game.handle(command)
-        JsonResponse.success(game_payload(id, game, response: response))
+        response_payload = store.with_game(id) do |game|
+          command = ActionCommand.call(payload)
+          response = game.handle(command)
+          game_payload(id, game, response: response)
+        end
+        return game_not_found unless response_payload
+
+        JsonResponse.success(response_payload)
       end
 
       def delete_game(id)
@@ -90,8 +97,13 @@ module TextAdventures
         payload
       end
 
-      def find_game(id)
-        store.fetch(id)
+      def health
+        JsonResponse.success(
+          {
+            status: "ok",
+            sessions: store.stats
+          }
+        )
       end
 
       def parse_optional_json(body)

@@ -99,9 +99,11 @@ RSpec.describe "text_adventures WebSocket server" do
   def wait_for_server(port)
     Timeout.timeout(5) do
       loop do
-        Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) { true }
-        break
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+        response = Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) do |http|
+          http.get("/api/health")
+        end
+        break if response.code == "200"
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Net::OpenTimeout, Net::ReadTimeout
         sleep 0.05
       end
     end

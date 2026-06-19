@@ -27,9 +27,14 @@ RSpec.describe "Project dependency setup" do
 
     expect(dockerfile).to include("FROM nginx:alpine AS web")
     expect(dockerfile).to include("FROM ruby:alpine AS app")
+    expect(dockerfile).to include("HEALTHCHECK")
+    expect(dockerfile).to include("/api/health")
     expect(compose).to include("target: app")
     expect(compose).to include("target: web")
+    expect(compose).to include("TEXT_ADVENTURES_MAX_CONNECTIONS")
+    expect(compose).to include("condition: service_healthy")
     expect(orange_compose).to include("cloudflare:")
+    expect(orange_compose).to include("condition: service_healthy")
     expect(nginx_config).to include("proxy_pass http://server:4567")
     expect(nginx_config).to include("location /api/")
     expect(nginx_config).to include("location /ws")
@@ -43,5 +48,7 @@ RSpec.describe "Project dependency setup" do
     expect(agent_instructions).to include("bin/text_adventures` starts the Ruby JSON API and WebSocket game server")
     expect(readme).to include("The game is playable through the browser frontend served by Nginx")
     expect(readme).to include("bin/text_adventures          JSON API server entrypoint")
+    expect(readme).to include("TEXT_ADVENTURES_SESSION_TTL_SECONDS")
+    expect(readme).to include("curl -sS http://127.0.0.1:4567/api/health")
   end
 end

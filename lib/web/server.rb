@@ -1,4 +1,5 @@
 require "socket"
+require "timeout"
 require "uri"
 
 module TextAdventures
@@ -13,22 +14,44 @@ module TextAdventures
         400 => "Bad Request",
         404 => "Not Found",
         405 => "Method Not Allowed",
-        500 => "Internal Server Error"
+        500 => "Internal Server Error",
+        503 => "Service Unavailable"
       }.freeze
+      DEFAULT_MAX_CONNECTIONS = 50
+      DEFAULT_READ_TIMEOUT_SECONDS = 5
 
       def self.from_env(env = ENV)
-        store = GameStore.new(default_seed: env["TEXT_ADVENTURES_RANDOM_SEED"])
+        store = GameStore.new(
+          default_seed: env["TEXT_ADVENTURES_RANDOM_SEED"],
+          session_ttl_seconds: env.fetch("TEXT_ADVENTURES_SESSION_TTL_SECONDS", GameStore::DEFAULT_SESSION_TTL_SECONDS),
+          max_sessions: env.fetch("TEXT_ADVENTURES_MAX_SESSIONS", GameStore::DEFAULT_MAX_SESSIONS)
+        )
         new(
           host: env.fetch("TEXT_ADVENTURES_HOST", DEFAULT_HOST),
           port: Integer(env.fetch("TEXT_ADVENTURES_PORT", DEFAULT_PORT)),
+          max_connections: Integer(env.fetch("TEXT_ADVENTURES_MAX_CONNECTIONS", DEFAULT_MAX_CONNECTIONS)),
+          read_timeout_seconds: Integer(env.fetch("TEXT_ADVENTURES_READ_TIMEOUT_SECONDS", DEFAULT_READ_TIMEOUT_SECONDS)),
           router: Router.new(store: store),
-          web_socket: WebSocketConnection.new(store: store)
+          web_socket: WebSocketConnection.new(
+            store: store,
+            idle_timeout_seconds: Integer(env.fetch("TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS", WebSocketConnection::DEFAULT_IDLE_TIMEOUT_SECONDS))
+          )
         )
       end
 
-      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, web_socket: nil, output: $stdout)
+      def initialize(
+        host: DEFAULT_HOST,
+        port: DEFAULT_PORT,
+        max_connections: DEFAULT_MAX_CONNECTIONS,
+        read_timeout_seconds: DEFAULT_READ_TIMEOUT_SECONDS,
+        router: Router.new,
+        web_socket: nil,
+        output: $stdout
+      )
         @host = host
         @port = Integer(port)
+        @max_connections = Integer(max_connections)
+        @read_timeout_seconds = Integer(read_timeout_seconds)
         @router = router
         @web_socket = web_socket
         @output = output
@@ -50,13 +73,17 @@ module TextAdventures
 
       private
 
-      attr_reader :host, :port, :router, :web_socket, :output, :server
+      attr_reader :host, :port, :max_connections, :read_timeout_seconds, :router, :web_socket, :output, :server
 
       def accept_loop
         while @running
           begin
             socket = server.accept
-            spawn_worker(socket)
+            if connection_capacity_available?
+              spawn_worker(socket)
+            else
+              reject_over_capacity(socket)
+            end
           rescue IOError, Errno::EBADF
             break unless @running
           end
@@ -96,7 +123,8 @@ module TextAdventures
 
         write_raw_response(socket, **response)
       rescue StandardError => error
-        response = raw_response_for(JsonResponse.error("internal_server_error", error.message, status: 500))
+        log_error(error)
+        response = raw_response_for(JsonResponse.error("internal_server_error", "Internal server error.", status: 500))
         response_status = response.fetch(:status)
         response_body_bytes = response.fetch(:body).bytesize
         write_raw_response(socket, **response)
@@ -125,23 +153,36 @@ module TextAdventures
         active_workers.each(&:join)
       end
 
+      def connection_capacity_available?
+        connection_mutex.synchronize { connections.length < max_connections }
+      end
+
+      def reject_over_capacity(socket)
+        response = raw_response_for(JsonResponse.error("server_busy", "Server is busy. Try again later.", status: 503))
+        write_raw_response(socket, **response)
+      ensure
+        socket.close unless socket.closed?
+      end
+
       def read_request(socket)
-        request_line = socket.gets.to_s
-        return nil if request_line.strip.empty?
+        Timeout.timeout(read_timeout_seconds) do
+          request_line = socket.gets.to_s
+          return nil if request_line.strip.empty?
 
-        method, raw_path = request_line.split
-        uri = URI.parse(raw_path.to_s)
-        headers = read_headers(socket)
-        body = socket.read(headers.fetch("content-length", "0").to_i).to_s
+          method, raw_path = request_line.split
+          uri = URI.parse(raw_path.to_s)
+          headers = read_headers(socket)
+          body = socket.read(headers.fetch("content-length", "0").to_i).to_s
 
-        {
-          method: method,
-          path: uri.path,
-          query: uri.query.to_s,
-          headers: headers,
-          body: body,
-          request_line: request_line.strip
-        }
+          {
+            method: method,
+            path: uri.path,
+            query: uri.query.to_s,
+            headers: headers,
+            body: body,
+            request_line: request_line.strip
+          }
+        end
       end
 
       def read_headers(socket)
@@ -217,6 +258,13 @@ module TextAdventures
 
       def access_log_value(value)
         value.to_s.empty? ? "-" : value.to_s.gsub(/["\\]/) { |character| "\\#{character}" }
+      end
+
+      def log_error(error)
+        output.puts "ERROR #{error.class}: #{access_log_value(error.message)}"
+        output.flush if output.respond_to?(:flush)
+      rescue StandardError
+        nil
       end
 
       def reason_phrase(status)

@@ -156,8 +156,13 @@ function handleSocketClose(socket) {
   if (api.socket !== socket) return;
 
   api.socket = null;
-  rejectPendingAction(new Error("WebSocket connection closed."));
-  if (currentState) setStatus("Offline", true);
+  const error = new Error("Connection lost. Type new to start a new game.");
+  rejectPendingAction(error);
+  if (currentState) {
+    setStatus("Offline", true);
+    showError(error);
+    elements.commandInput.placeholder = "new";
+  }
 }
 
 function resolvePendingAction(payload) {
@@ -694,12 +699,23 @@ async function startGame() {
   }
 }
 
+async function startNewGame() {
+  api.disconnectGame();
+  currentState = null;
+  messageLogLines = [];
+  elements.commandInput.value = "";
+  await startGame();
+}
+
 async function runCommand(command) {
+  if (command.trim().toLowerCase() === "new") {
+    await startNewGame();
+    return;
+  }
   if (!api.gameId) return;
   setStatus("Sending");
   try {
-    const payload = await api.sendAction(actionFromCommand(command));
-    render(payload);
+    await api.sendAction(actionFromCommand(command));
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {

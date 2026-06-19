@@ -29,6 +29,19 @@ RSpec.describe TextAdventures::Web::Router do
     expect(parsed(response).fetch("state")).not_to have_key("history")
   end
 
+  it "returns health metadata" do
+    response = router.call(method: "GET", path: "/api/health", body: nil)
+
+    expect(response.status).to eq 200
+    expect(parsed(response)).to include(
+      "status" => "ok",
+      "sessions" => hash_including(
+        "active_sessions" => 0,
+        "max_sessions" => TextAdventures::Web::GameStore::DEFAULT_MAX_SESSIONS
+      )
+    )
+  end
+
   it "fetches game state, executes actions, and deletes sessions" do
     create_response = router.call(method: "POST", path: "/games", body: "")
     game_id = parsed(create_response).fetch("game_id")
@@ -122,5 +135,15 @@ RSpec.describe TextAdventures::Web::Router do
     wrong_method = router.call(method: "GET", path: "/games", body: nil)
     expect(wrong_method.status).to eq 405
     expect(parsed(wrong_method).dig("error", "code")).to eq "method_not_allowed"
+  end
+
+  it "returns a service unavailable error when the session store is full" do
+    full_store = TextAdventures::Web::GameStore.new(id_generator: -> { "game-1" }, max_sessions: 0)
+    router = described_class.new(store: full_store)
+
+    response = router.call(method: "POST", path: "/api/games", body: "{}")
+
+    expect(response.status).to eq 503
+    expect(parsed(response).dig("error", "code")).to eq "server_busy"
   end
 end

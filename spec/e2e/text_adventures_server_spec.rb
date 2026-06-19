@@ -100,6 +100,33 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "serves health metadata for readiness checks" do
+    with_server do |port|
+      response = request_json(port, Net::HTTP::Get, "/api/health")
+
+      expect(response.code).to eq "200"
+      expect(JSON.parse(response.body)).to include(
+        "status" => "ok",
+        "sessions" => hash_including("active_sessions" => 0)
+      )
+    end
+  end
+
+  it "returns a controlled overload response when the connection limit is reached" do
+    with_server("TEXT_ADVENTURES_MAX_CONNECTIONS" => "1") do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+      socket = open_websocket(port, game_id)
+
+      response = request_json(port, Net::HTTP::Get, "/api/health")
+
+      expect(response.code).to eq "503"
+      expect(JSON.parse(response.body).dig("error", "code")).to eq "server_busy"
+    ensure
+      socket&.close
+    end
+  end
+
   it "executes structured actions over HTTP" do
     with_server do |port|
       create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
@@ -185,9 +212,11 @@ RSpec.describe "text_adventures server binary" do
   def wait_for_server(port)
     Timeout.timeout(5) do
       loop do
-        Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) { true }
-        break
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+        response = Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) do |http|
+          http.get("/api/health")
+        end
+        break if response.code == "200"
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Net::OpenTimeout, Net::ReadTimeout
         sleep 0.05
       end
     end
@@ -201,6 +230,33 @@ RSpec.describe "text_adventures server binary" do
       request.body = JSON.generate(body)
     end
     Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(request) }
+  end
+
+  def open_websocket(port, game_id)
+    socket = TCPSocket.new("127.0.0.1", port)
+    key = ["test-websocket-key"].pack("m0")
+    socket.write <<~REQUEST.gsub("\n", "\r\n")
+      GET /ws?game_id=#{game_id} HTTP/1.1
+      Host: 127.0.0.1:#{port}
+      Upgrade: websocket
+      Connection: Upgrade
+      Sec-WebSocket-Key: #{key}
+      Sec-WebSocket-Version: 13
+
+    REQUEST
+    read_http_headers(socket)
+    socket
+  end
+
+  def read_http_headers(socket)
+    lines = []
+    while (line = socket.gets)
+      line = line.chomp
+      break if line.empty?
+
+      lines << line
+    end
+    lines
   end
 
   def action_for(command)

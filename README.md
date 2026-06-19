@@ -111,6 +111,20 @@ Server configuration:
 TEXT_ADVENTURES_HOST=127.0.0.1
 TEXT_ADVENTURES_PORT=4567
 TEXT_ADVENTURES_RANDOM_SEED=0
+TEXT_ADVENTURES_MAX_CONNECTIONS=50
+TEXT_ADVENTURES_MAX_SESSIONS=100
+TEXT_ADVENTURES_SESSION_TTL_SECONDS=1800
+TEXT_ADVENTURES_READ_TIMEOUT_SECONDS=5
+TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS=60
+```
+
+Sessions are stored in memory and expire after `TEXT_ADVENTURES_SESSION_TTL_SECONDS`
+without access. They are not persisted across process restarts.
+
+Readiness check:
+
+```sh
+curl -sS http://127.0.0.1:4567/api/health
 ```
 
 Create a game session:
