@@ -39,6 +39,26 @@ RSpec.describe "text_adventures WebSocket server" do
     end
   end
 
+  it "continues serving HTTP requests while a WebSocket remains open" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+
+      socket = open_websocket(port, game_id)
+      read_json_frame(socket)
+
+      response = nil
+      Timeout.timeout(1) do
+        response = request_json(port, Net::HTTP::Get, "/api/games/#{game_id}")
+      end
+
+      expect(response.code).to eq "200"
+      expect(JSON.parse(response.body).dig("state", "scene")).to eq "town"
+    ensure
+      socket&.close
+    end
+  end
+
   def with_server
     server = start_server
     yield server.fetch(:port)

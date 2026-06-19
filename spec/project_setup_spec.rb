@@ -34,4 +34,14 @@ RSpec.describe "Project dependency setup" do
     expect(nginx_config).to include("location /api/")
     expect(nginx_config).to include("location /ws")
   end
+
+  it "documents the browser frontend as the playable MVP surface" do
+    agent_instructions = File.read(File.join(root, "AGENTS.md"))
+    readme = File.read(File.join(root, "README.md"))
+
+    expect(agent_instructions).to include("The current playable surface is the browser frontend")
+    expect(agent_instructions).to include("bin/text_adventures` starts the Ruby JSON API and WebSocket game server")
+    expect(readme).to include("The game is playable through the browser frontend served by Nginx")
+    expect(readme).to include("bin/text_adventures          JSON API server entrypoint")
+  end
 end

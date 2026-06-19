@@ -34,6 +34,9 @@ module TextAdventures
         @output = output
         @running = true
         @server = nil
+        @connection_mutex = Mutex.new
+        @connections = []
+        @workers = []
       end
 
       def start
@@ -53,11 +56,24 @@ module TextAdventures
         while @running
           begin
             socket = server.accept
-            handle_socket(socket)
+            spawn_worker(socket)
           rescue IOError, Errno::EBADF
             break unless @running
           end
         end
+      ensure
+        join_workers
+      end
+
+      def spawn_worker(socket)
+        track_socket(socket)
+        worker = Thread.new do
+          Thread.current.report_on_exception = false
+          handle_socket(socket)
+        ensure
+          untrack_socket(socket)
+        end
+        track_worker(worker)
       end
 
       def handle_socket(socket)
@@ -87,6 +103,26 @@ module TextAdventures
       ensure
         log_access(socket, request, response_status, response_body_bytes) if request && response_status
         socket.close unless socket.closed?
+      end
+
+      def track_socket(socket)
+        connection_mutex.synchronize { connections << socket }
+      end
+
+      def untrack_socket(socket)
+        connection_mutex.synchronize { connections.delete(socket) }
+      end
+
+      def track_worker(worker)
+        connection_mutex.synchronize do
+          workers.reject! { |thread| !thread.alive? }
+          workers << worker
+        end
+      end
+
+      def join_workers
+        active_workers = connection_mutex.synchronize { workers.dup }
+        active_workers.each(&:join)
       end
 
       def read_request(socket)
@@ -198,7 +234,15 @@ module TextAdventures
       def shutdown
         @running = false
         server&.close unless server&.closed?
+        active_connections = connection_mutex.synchronize { connections.dup }
+        active_connections.each do |connection|
+          connection.close unless connection.closed?
+        rescue IOError
+          next
+        end
       end
+
+      attr_reader :connection_mutex, :connections, :workers
     end
   end
 end

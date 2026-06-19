@@ -1,5 +1,7 @@
 const api = {
   gameId: null,
+  socket: null,
+  pendingAction: null,
   async createGame() {
     const response = await fetch("/api/games", {
       method: "POST",
@@ -8,13 +10,37 @@ const api = {
     });
     return parseResponse(response);
   },
-  async sendAction(action) {
-    const response = await fetch(`/api/games/${this.gameId}/actions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(action)
+  connectGame(gameId) {
+    this.disconnectGame();
+    this.gameId = gameId;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws?game_id=${encodeURIComponent(gameId)}`);
+    this.socket = socket;
+
+    return new Promise((resolve, reject) => {
+      socket.addEventListener("open", () => resolve(socket), { once: true });
+      socket.addEventListener("error", () => reject(new Error("WebSocket connection failed.")), { once: true });
+      socket.addEventListener("message", event => handleSocketMessage(event));
+      socket.addEventListener("close", () => handleSocketClose(socket));
     });
-    return parseResponse(response);
+  },
+  disconnectGame() {
+    if (this.socket) this.socket.close();
+    this.socket = null;
+    this.pendingAction = null;
+  },
+  sendAction(action) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error("WebSocket is not connected."));
+    }
+    if (this.pendingAction) {
+      return Promise.reject(new Error("Another action is still pending."));
+    }
+
+    return new Promise((resolve, reject) => {
+      this.pendingAction = { resolve, reject };
+      this.socket.send(JSON.stringify(webSocketActionPayload(action)));
+    });
   }
 };
 
@@ -104,6 +130,65 @@ async function parseResponse(response) {
     throw new Error(message);
   }
   return body;
+}
+
+function handleSocketMessage(event) {
+  const message = JSON.parse(event.data);
+  if (message.type === "state") {
+    render({ game_id: message.game_id, state: message.state });
+    return;
+  }
+  if (message.type === "events") {
+    const state = mergeStatePatch(currentState, message.patch);
+    const payload = { game_id: message.game_id, state, events: message.events || [] };
+    render(payload);
+    resolvePendingAction(payload);
+    return;
+  }
+  if (message.type === "error") {
+    const error = new Error(message.error?.message || "WebSocket error.");
+    rejectPendingAction(error);
+    showError(error);
+  }
+}
+
+function handleSocketClose(socket) {
+  if (api.socket !== socket) return;
+
+  api.socket = null;
+  rejectPendingAction(new Error("WebSocket connection closed."));
+  if (currentState) setStatus("Offline", true);
+}
+
+function resolvePendingAction(payload) {
+  const pending = api.pendingAction;
+  api.pendingAction = null;
+  if (pending) pending.resolve(payload);
+}
+
+function rejectPendingAction(error) {
+  const pending = api.pendingAction;
+  api.pendingAction = null;
+  if (pending) pending.reject(error);
+}
+
+function mergeStatePatch(state, patch) {
+  if (!patch) return state;
+  if (!state) return patch;
+
+  return {
+    ...state,
+    ...patch,
+    player: {
+      ...state.player,
+      ...patch.player
+    }
+  };
+}
+
+function webSocketActionPayload(action) {
+  const { type, ...fields } = action;
+  return { type: "action", action: type, ...fields };
 }
 
 function setStatus(text, error = false) {
@@ -597,6 +682,7 @@ async function startGame() {
   setStatus("Connecting");
   try {
     const payload = await api.createGame();
+    await api.connectGame(payload.game_id);
     selectTab("inventory");
     activateTopTab(0);
     render(payload);
