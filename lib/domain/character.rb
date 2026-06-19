@@ -60,6 +60,7 @@ module TextAdventures
 
     DEFAULT_NAME = "Adventurer".freeze
     DEFAULT_HEALTH = 30
+    HEALTH_PER_CLASS_LEVEL = 5
     DEFAULT_GOLD = 100
     DEFAULT_BASE_ATTACK = 1
     DEFAULT_BASE_DEFENSE = 0
@@ -77,8 +78,8 @@ module TextAdventures
 
     def initialize(
       name: DEFAULT_NAME,
-      health: DEFAULT_HEALTH,
-      max_health: health,
+      health: nil,
+      max_health: nil,
       gold: DEFAULT_GOLD,
       base_attack: DEFAULT_BASE_ATTACK,
       base_defense: DEFAULT_BASE_DEFENSE,
@@ -89,6 +90,10 @@ module TextAdventures
       status_effects: [],
       progression: CharacterProgression.new
     )
+      @progression = progression
+      @health_derived_from_progression = max_health.nil?
+      max_health ||= self.class.max_health_for(progression)
+      health ||= max_health
       @name = name
       @health = Extent.new(health, max: max_health)
       @gold = gold
@@ -99,8 +104,12 @@ module TextAdventures
       @spells = {}
       @inventory = inventory || self.class.starter_inventory
       @status_effects = normalize_statuses(status_effects)
-      @progression = progression
       spells.each { |spell| learn_spell(spell) }
+    end
+
+    def self.max_health_for(progression)
+      gained_class_levels = [progression.total_class_level - CharacterProgression::SKILL_TRACKS.length, 0].max
+      DEFAULT_HEALTH + (gained_class_levels * HEALTH_PER_CLASS_LEVEL)
     end
 
     def self.starter_inventory
@@ -110,7 +119,9 @@ module TextAdventures
     end
 
     def gain_skill_xp(skill, amount)
+      previous_max_health = health.max
       progression.add_skill_xp(skill, amount)
+      synchronize_derived_health(previous_max_health)
       self
     end
 
@@ -256,6 +267,15 @@ module TextAdventures
     private
 
     attr_writer :health
+
+    def synchronize_derived_health(previous_max_health)
+      return unless @health_derived_from_progression
+
+      new_max_health = self.class.max_health_for(progression)
+      gained_health = new_max_health - previous_max_health
+      current_health = gained_health.positive? ? health.current + gained_health : health.current
+      self.health = Extent.new([current_health, new_max_health].min, max: new_max_health, min: health.min)
+    end
 
     def equipment_value(equipment, attribute)
       return 0 unless equipment.respond_to?(attribute)

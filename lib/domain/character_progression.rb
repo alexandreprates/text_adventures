@@ -60,6 +60,10 @@ module TextAdventures
       SKILL_TRACKS.to_h { |skill| [skill, skill_level(skill)] }
     end
 
+    def total_class_level
+      skill_levels.values.sum
+    end
+
     def overall_experience
       skill_experience.values.sum
     end

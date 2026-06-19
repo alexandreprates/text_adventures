@@ -20,6 +20,13 @@ RSpec.describe TextAdventures::Character do
       expect(character.health).to have_attributes(current: 30, max: 30, min: 0)
     end
 
+    it "derives max health from total class levels" do
+      progression = TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 50 })
+      leveled_character = described_class.new(progression: progression)
+
+      expect(leveled_character.health).to have_attributes(current: 35, max: 35)
+    end
+
     it "starts with starter equipment" do
       expect(character.equipped_weapon).to have_attributes(name: "Sword", attack: 10)
       expect(character.equipped_armor).to have_attributes(name: "Leather Armor", defense: 20)
@@ -102,6 +109,32 @@ RSpec.describe TextAdventures::Character do
       expect(character.skill_levels[:spearmanship]).to eq 2
       expect(character.overall_experience).to eq 50
       expect(character.overall_level).to eq 2
+    end
+
+    it "increases max and current health when a class level increases" do
+      expect { character.gain_skill_xp(:spearmanship, 50) }
+        .to change { [character.health.current, character.health.max] }
+        .from([30, 30]).to([35, 35])
+    end
+
+    it "adds gained max health without fully healing damaged characters" do
+      character.take_damage(10)
+
+      expect { character.gain_skill_xp(:spearmanship, 50) }
+        .to change { [character.health.current, character.health.max] }
+        .from([20, 30]).to([25, 35])
+    end
+
+    it "does not change health when XP does not increase a class level" do
+      expect { character.gain_skill_xp(:spearmanship, 49) }
+        .to_not change { [character.health.current, character.health.max] }
+    end
+
+    it "keeps explicitly configured max health independent from progression" do
+      custom_character = described_class.new(health: 12, max_health: 40)
+
+      expect { custom_character.gain_skill_xp(:spearmanship, 50) }
+        .to_not change { custom_character.health.max }
     end
   end
 

@@ -12,6 +12,7 @@ RSpec.describe TextAdventures::CharacterProgression do
       nature_magic: 0
     )
     expect(progression.skill_levels.values).to all(eq 1)
+    expect(progression.total_class_level).to eq 5
     expect(progression.overall_experience).to eq 0
     expect(progression.overall_level).to eq 1
     expect(progression.current_class).to eq "Adventurer"
@@ -35,6 +36,7 @@ RSpec.describe TextAdventures::CharacterProgression do
 
     expect(progression.skill_xp(:dagger_mastery)).to eq 55
     expect(progression.skill_level(:dagger_mastery)).to eq 2
+    expect(progression.total_class_level).to eq 6
     expect(progression.overall_experience).to eq 55
     expect(progression.overall_level).to eq 2
   end

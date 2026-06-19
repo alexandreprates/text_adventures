@@ -248,7 +248,7 @@ RSpec.describe TextAdventures::Battle do
         You cast Heal and recover 13 health.
         Giant Spider attacks you with Bite causing 2 of damage.
       TEXT
-      expect(player.health.current).to eq 21
+      expect(player.health.current).to eq 26
     end
 
     it "casts Cure to remove poison during battle" do
