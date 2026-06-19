@@ -136,6 +136,42 @@ RSpec.describe TextAdventures::Character do
       expect { custom_character.gain_skill_xp(:spearmanship, 50) }
         .to_not change { custom_character.health.max }
     end
+
+    it "tracks health through class name changes and class level increases" do
+      character.take_damage(12)
+
+      character.gain_skill_xp(:swordsmanship, 49)
+      expect(character.current_class).to eq "Warlord"
+      expect(character.progression.total_class_level).to eq 5
+      expect(character.health).to have_attributes(current: 18, max: 30)
+
+      character.gain_skill_xp(:swordsmanship, 1)
+      expect(character.current_class).to eq "Warlord"
+      expect(character.skill_levels[:swordsmanship]).to eq 2
+      expect(character.progression.total_class_level).to eq 6
+      expect(character.health).to have_attributes(current: 35, max: 35)
+
+      character.take_damage(7)
+      character.gain_skill_xp(:combat_magic, 50)
+      expect(character.current_class).to eq "Spellblade"
+      expect(character.skill_levels.values_at(:swordsmanship, :combat_magic)).to eq [2, 2]
+      expect(character.progression.total_class_level).to eq 7
+      expect(character.health).to have_attributes(current: 40, max: 40)
+
+      character.take_damage(15)
+      character.gain_skill_xp(:dagger_mastery, 200)
+      expect(character.current_class).to eq "Duelist"
+      expect(character.skill_levels[:dagger_mastery]).to eq 3
+      expect(character.progression.total_class_level).to eq 9
+      expect(character.health).to have_attributes(current: 50, max: 50)
+
+      character.take_damage(20)
+      character.gain_skill_xp(:dagger_mastery, 250)
+      expect(character.current_class).to eq "Nightblade"
+      expect(character.skill_levels[:dagger_mastery]).to eq 4
+      expect(character.progression.total_class_level).to eq 10
+      expect(character.health).to have_attributes(current: 55, max: 55)
+    end
   end
 
   describe "#take_damage" do
