@@ -273,7 +273,7 @@ module TextAdventures
 
       new_max_health = self.class.max_health_for(progression)
       gained_health = new_max_health - previous_max_health
-      current_health = gained_health.positive? ? health.current + gained_health : health.current
+      current_health = gained_health.positive? ? new_max_health : health.current
       self.health = Extent.new([current_health, new_max_health].min, max: new_max_health, min: health.min)
     end
 

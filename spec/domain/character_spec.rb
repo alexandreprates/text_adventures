@@ -117,12 +117,12 @@ RSpec.describe TextAdventures::Character do
         .from([30, 30]).to([35, 35])
     end
 
-    it "adds gained max health without fully healing damaged characters" do
+    it "fully heals damaged characters when a class level increases" do
       character.take_damage(10)
 
       expect { character.gain_skill_xp(:spearmanship, 50) }
         .to change { [character.health.current, character.health.max] }
-        .from([20, 30]).to([25, 35])
+        .from([20, 30]).to([35, 35])
     end
 
     it "does not change health when XP does not increase a class level" do
