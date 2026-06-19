@@ -79,6 +79,8 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   end
 
   it "starts a buy confirmation for available stock" do
+    game.player.gold = 100
+
     response = game.handle("buy spear")
 
     expect(response).to include "Excellent choice. It is yours for 50g."
@@ -103,6 +105,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   end
 
   it "confirms a buy transaction" do
+    game.player.gold = 100
     game.handle("buy spear")
 
     response = game.handle("agree")
@@ -149,13 +152,14 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(response).to eq <<~TEXT.chomp
       You sold Sword at 10g.
       [1x Sword removed from inventory]
-      [your gold is now 110]
+      [your gold is now 10]
     TEXT
     expect(game.player.inventory.quantity("sword")).to eq 0
     expect(game.pending_confirmation).to be_nil
   end
 
   it "cancels a pending transaction" do
+    game.player.gold = 100
     game.handle("buy sword")
 
     expect(game.handle("no")).to eq "Maybe another time."
@@ -164,6 +168,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   end
 
   it "guides invalid input back to a pending confirmation" do
+    game.player.gold = 100
     game.handle("buy sword")
 
     expect(game.handle("maybe")).to eq "Please answer agree or no."
@@ -171,6 +176,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   end
 
   it "keeps pending confirmation visible after global commands" do
+    game.player.gold = 100
     game.handle("buy sword")
 
     expect(game.handle("inventory")).to eq <<~TEXT.chomp

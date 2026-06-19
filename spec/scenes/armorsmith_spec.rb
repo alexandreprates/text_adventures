@@ -47,6 +47,8 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
   end
 
   it "buys armor and lets the player equip it" do
+    game.player.gold = 100
+
     expect(game.handle("buy leather armor")).to include "Excellent choice. It is yours for 20g."
 
     response = game.handle("agree")
@@ -73,7 +75,7 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
     expect(response).to eq <<~TEXT.chomp
       You sold Leather Armor at 13g.
       [1x Leather Armor removed from inventory]
-      [your gold is now 113]
+      [your gold is now 13]
     TEXT
     expect(game.player.inventory.quantity("leather armor")).to eq 0
   end

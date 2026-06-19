@@ -58,6 +58,8 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
   end
 
   it "buys available starter weapons and reduces player gold" do
+    game.player.gold = 100
+
     expect(game.handle("buy hunting spear")).to include "Excellent choice. It is yours for 25g."
 
     response = game.handle("agree")
@@ -88,9 +90,9 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     expect(response).to eq <<~TEXT.chomp
       You sold Sword at 10g.
       [1x Sword removed from inventory]
-      [your gold is now 110]
+      [your gold is now 10]
     TEXT
-    expect(game.player.gold).to eq 110
+    expect(game.player.gold).to eq 10
     expect(game.player.inventory.quantity("sword")).to eq 0
   end
 

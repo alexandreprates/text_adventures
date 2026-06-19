@@ -16,7 +16,7 @@ RSpec.describe TextAdventures::Web::StatePatch do
     )
     expect(patch.fetch(:player)).to include(
       health: { current: 30, max: 30 },
-      gold: 100,
+      gold: 0,
       statuses: []
     )
     expect(patch.fetch(:player)).not_to have_key(:name)

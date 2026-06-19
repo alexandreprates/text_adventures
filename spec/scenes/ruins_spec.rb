@@ -378,10 +378,10 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       You collect the loot.
       [1x Cracked Fang added to inventory]
       [4g added to purse]
-      [your gold is now 104]
+      [your gold is now 4]
     TEXT
     expect(game.player.inventory.quantity("cracked fang")).to eq 1
-    expect(game.player.gold).to eq 104
+    expect(game.player.gold).to eq 4
   end
 
   it "collects adjacent map loot once" do

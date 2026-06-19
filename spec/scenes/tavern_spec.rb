@@ -31,6 +31,8 @@ RSpec.describe TextAdventures::Scenes::Tavern do
   end
 
   it "buys healing potions" do
+    game.player.gold = 100
+
     expect(game.handle("buy potion of heal")).to eq <<~TEXT.chomp
       Excellent choice. It is yours for 10g.
       Select your answer:
@@ -59,7 +61,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.handle("agree")).to eq <<~TEXT.chomp
       You sold Potion of Heal at 7g.
       [1x Potion of Heal removed from inventory]
-      [your gold is now 107]
+      [your gold is now 7]
     TEXT
     expect(game.player.inventory.quantity("potion of heal")).to eq 5
   end
@@ -77,7 +79,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.handle("agree")).to eq <<~TEXT.chomp
       You sold Cracked Fang at 1g.
       [1x Cracked Fang removed from inventory]
-      [your gold is now 101]
+      [your gold is now 1]
     TEXT
     expect(game.player.inventory.quantity("cracked fang")).to eq 0
   end

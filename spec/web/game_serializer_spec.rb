@@ -19,7 +19,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.fetch(:player)).to include(
       name: "Adventurer",
       health: { current: 30, max: 30 },
-      gold: 100,
+      gold: 0,
       current_class: "Adventurer",
       level: 1,
       xp: 0,
@@ -156,6 +156,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
   end
 
   it "serializes pending merchant confirmation" do
+    game.player.gold = 100
     game.handle("go blacksmith")
     game.handle("buy sword")
 

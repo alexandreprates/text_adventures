@@ -65,6 +65,8 @@ RSpec.describe TextAdventures::Scenes::Priest do
   end
 
   it "sells tomes that can teach and level spells" do
+    game.player.gold = 100
+
     game.handle("buy tome of ice bolt")
     expect(game.handle("agree")).to include "You bought Tome of Ice Bolt."
 

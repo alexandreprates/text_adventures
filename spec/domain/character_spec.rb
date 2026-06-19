@@ -9,7 +9,7 @@ RSpec.describe TextAdventures::Character do
     it "sets default identity and resources" do
       expect(character).to have_attributes(
         name: "Adventurer",
-        gold: 100,
+        gold: 0,
         base_attack: 1,
         base_defense: 0
       )
