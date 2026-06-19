@@ -1,7 +1,7 @@
 # Text Adventures
 
-Text Adventures is a terminal text RPG written in Ruby. The current game is a
-playable command-line adventure with a town hub, shops, dungeon exploration,
+Text Adventures is a browser-playable fantasy RPG backed by a Ruby JSON game
+server. The current game includes a town hub, shops, dungeon exploration,
 visible enemies, spatial loot, spells, equipment, and use-based character
 progression inspired by Dungeon Siege.
 
@@ -10,12 +10,11 @@ creatures, and dungeon blocks live in YAML files under `data/`.
 
 ## Current Status
 
-The terminal game is playable through `bin/text_adventures`.
+The game is playable through the browser frontend served by Nginx in the Compose
+stack. The Ruby process is an API server.
 
 Implemented systems include:
 
-- Contextual command loop with scene prompts such as `Town >` and `Ruins L1 >`.
-- Optional game input mode with WASD-style shortcuts.
 - Town hub with Tavern, Aluriel's Priest, Blacksmith, Armorsmith, and Ruins.
 - Direct travel between town destinations when no battle blocks the player.
 - Tavern rest flow that fully restores player health.
@@ -32,13 +31,11 @@ Implemented systems include:
 - Dropped map loot rendered as `@`.
 - Turn-based combat with attacks, spells, poison, freeze, healing, cure, critical hits, and game-over handling.
 - Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
-- JSON server mode for frontend clients through `bin/text_adventures server`.
-- Browser frontend served by the JSON server.
-- End-to-end binary specs for the main terminal flows.
+- JSON API for frontend clients through `bin/text_adventures`.
+- Browser frontend served by the Nginx web container.
 
 Not implemented yet:
 
-- Browser play.
 - URL-based saved sessions.
 - Persistent save/load.
 
@@ -59,51 +56,53 @@ artifacts are ignored through `.bundle/` and `vendor/bundle/`.
 
 ## Running The Game
 
+Run the browser frontend and game API together:
+
 ```sh
-bin/text_adventures
+docker compose up --build
 ```
 
-Use `quit` or `exit` to leave the game.
+Open:
 
-The binary starts with the fixed-width screen UI and ANSI color enabled by
-default.
-
-For deterministic dungeon behavior during manual testing, set a random seed:
-
-```sh
-TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
-```
-
-To run the classic text response format instead of the screen UI:
-
-```sh
-TEXT_ADVENTURES_SCREEN=0 bin/text_adventures
-```
-
-To keep the screen UI but disable ANSI color:
-
-```sh
-TEXT_ADVENTURES_COLOR=0 bin/text_adventures
-```
-
-Flags can be combined for repeatable classic text exploration:
-
-```sh
-TEXT_ADVENTURES_SCREEN=0 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
+```text
+http://127.0.0.1:3000/
 ```
 
 ## JSON Server Mode
 
-The same binary can run as a small JSON API for frontend clients:
+The binary runs the Ruby JSON API server:
 
 ```sh
-bin/text_adventures server
+bin/text_adventures
 ```
 
-Open the browser frontend at:
+When running the Ruby server directly, it exposes only the JSON API:
 
 ```text
-http://127.0.0.1:4567/
+http://127.0.0.1:4567/api/games
+```
+
+For the full browser frontend, run the Compose stack and open the Nginx
+entrypoint:
+
+```sh
+docker compose up --build
+```
+
+```text
+http://127.0.0.1:3000/
+```
+
+Browser assets live under `frontend/public/`. Container deployments use the
+Nginx web target as the public entrypoint and proxy API requests to the Ruby game
+server:
+
+```text
+/                 -> Nginx static frontend
+/assets/*         -> Nginx static assets
+/api/games        -> Ruby game API
+/api/games/:id    -> Ruby game API
+/ws               -> reserved WebSocket proxy route
 ```
 
 Server configuration:
@@ -112,52 +111,85 @@ Server configuration:
 TEXT_ADVENTURES_HOST=127.0.0.1
 TEXT_ADVENTURES_PORT=4567
 TEXT_ADVENTURES_RANDOM_SEED=0
+TEXT_ADVENTURES_MAX_CONNECTIONS=50
+TEXT_ADVENTURES_MAX_SESSIONS=100
+TEXT_ADVENTURES_SESSION_TTL_SECONDS=1800
+TEXT_ADVENTURES_READ_TIMEOUT_SECONDS=5
+TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS=60
+```
+
+Sessions are stored in memory and expire after `TEXT_ADVENTURES_SESSION_TTL_SECONDS`
+without access. They are not persisted across process restarts.
+
+Readiness check:
+
+```sh
+curl -sS http://127.0.0.1:4567/api/health
 ```
 
 Create a game session:
 
 ```sh
-curl -sS -X POST http://127.0.0.1:4567/games \
+curl -sS -X POST http://127.0.0.1:4567/api/games \
   -H 'Content-Type: application/json' \
   -d '{"seed":0}'
 ```
 
-Send a command:
+Send a structured action:
 
 ```sh
-curl -sS -X POST http://127.0.0.1:4567/games/<game_id>/commands \
+curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/actions \
   -H 'Content-Type: application/json' \
-  -d '{"command":"go ruins"}'
+  -d '{"type":"travel","destination":"ruins"}'
+```
+
+The gameplay WebSocket endpoint accepts action messages after a game is created:
+
+```text
+ws://127.0.0.1:4567/ws?game_id=<game_id>
+```
+
+```json
+{ "type": "action", "action": "travel", "destination": "ruins" }
 ```
 
 Fetch state:
 
 ```sh
-curl -sS http://127.0.0.1:4567/games/<game_id>
+curl -sS http://127.0.0.1:4567/api/games/<game_id>
 ```
 
 Delete a session:
 
 ```sh
-curl -sS -X DELETE http://127.0.0.1:4567/games/<game_id>
+curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>
 ```
 
-Successful command responses include the command response and semantic game
-state:
+Successful action responses include typed events and semantic game state:
 
 ```json
 {
   "game_id": "abc123",
-  "response": {
-    "text": "You go to Ruins.",
-    "lines": ["You go to Ruins."]
-  },
+  "events": [
+    { "type": "travel.changed_scene", "text": "You go to Ruins." }
+  ],
   "state": {
     "scene": "ruins",
     "prompt": "Ruins L1",
-    "input_mode": "text",
     "player": {},
-    "dungeon": {}
+    "dungeon": {
+      "level": 1,
+      "viewport": {
+        "width": 18,
+        "height": 15,
+        "origin": { "x": -6, "y": -5 },
+        "terrain": "????????...",
+        "entities": [
+          { "type": "player", "x": 9, "y": 7 },
+          { "type": "portal", "x": 9, "y": 7 }
+        ]
+      }
+    }
   }
 }
 ```
@@ -173,12 +205,13 @@ Errors are returned as JSON:
 }
 ```
 
-The server also serves the static frontend assets from `public/`:
+The frontend source assets are checked in under `frontend/public/`:
 
 ```text
-public/index.html
-public/styles.css
-public/app.js
+frontend/public/index.html
+frontend/public/styles.css
+frontend/public/app.js
+frontend/nginx.conf
 ```
 
 ## Running Tests
@@ -207,11 +240,6 @@ skills          show progression by skill track
 equip <item>    equip a carried weapon or armor
 use <item>      use a potion or tome
 drop <item>     drop a carried item
-game            enable game input mode
-text            return to text command mode
-commands        return to text command mode
-quit            exit the game
-exit            exit the game
 ```
 
 Town and shop commands:
@@ -243,58 +271,6 @@ cast <spell>    cast a known spell
 loot            collect loot on or next to the player
 go town         leave the Ruins when no enemy is active
 ```
-
-## Game Mode
-
-Text command mode is the default. Type `game` to enable faster game controls.
-The prompt shows `[game]` while this mode is active.
-
-Game mode controls:
-
-```text
-w               go up
-a               go left
-s               go down
-d               go right
-Enter           attack
-i               inventory
-l               loot
-c               choose a spell by number
-h               game mode help
-?               game mode help
-text            return to text command mode
-commands        return to text command mode
-```
-
-Spell casting in game mode is numbered. Press `c`, choose `1`, `2`, and so on,
-or use `0`, `cancel`, or `escape` to cancel.
-
-## Terminal Screen UI
-
-The default output is a fixed-width screen UI with ANSI color enabled. The
-classic text response format is still available through
-`TEXT_ADVENTURES_SCREEN=0`.
-
-The screen UI renders:
-
-- an 80-column frame;
-- a location header;
-- a left content panel for the town list or dungeon viewport;
-- a right sidebar with player HP, level, XP, gold, equipment, statuses, nearby
-  enemies, nearby loot, and active enemy details when available;
-- a bounded five-line message log;
-- controls that change between text mode and game mode.
-
-The dungeon screen centers the current 3x3 viewport inside the left panel and
-keeps the same runtime map symbols: `x`, `E`, `@`, `.`, `#`, and `?`.
-ANSI color can be disabled with `TEXT_ADVENTURES_COLOR=0`.
-
-Inventory and game-mode spell selection also use dedicated screen states:
-
-- Inventory shows equipped gear, bag contents, character status, and skill
-  levels.
-- Cast Spell shows numbered spell choices and a `0` cancel option while a
-  game-mode spell choice is pending.
 
 ## Town
 
@@ -432,20 +408,21 @@ markers are runtime render markers, not YAML tile characters.
 ## Project Layout
 
 ```text
-bin/text_adventures          terminal entrypoint
-public                       browser frontend assets
+bin/text_adventures          JSON API server entrypoint
+frontend/public              browser frontend assets
+frontend/nginx.conf          static frontend and API proxy config
 lib/commands                 command parsing
 lib/domain                   gameplay domain objects
 lib/scenes                   town, shops, tavern, priest, and ruins scenes
-lib/web                      JSON server mode
+lib/web                      JSON API server
 data                         YAML content
 spec                         RSpec suite
 ```
 
 ## Development Notes
 
-- Keep gameplay logic independent from any future web layer.
+- Keep gameplay logic independent from web transport details.
 - Prefer adding content through YAML when possible.
-- Use seeded binary runs for repeatable dungeon exploration tests.
-- Keep the JSON server layer thin; gameplay commands should continue to flow
+- Use seeded API runs for repeatable dungeon exploration tests.
+- Keep the JSON API layer thin; gameplay commands should continue to flow
   through `Game#handle`.

@@ -1,20 +1,46 @@
 const api = {
   gameId: null,
+  socket: null,
+  pendingAction: null,
   async createGame() {
-    const response = await fetch("/games", {
+    const response = await fetch("/api/games", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({})
     });
     return parseResponse(response);
   },
-  async sendCommand(command) {
-    const response = await fetch(`/games/${this.gameId}/commands`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command })
+  connectGame(gameId) {
+    this.disconnectGame();
+    this.gameId = gameId;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws?game_id=${encodeURIComponent(gameId)}`);
+    this.socket = socket;
+
+    return new Promise((resolve, reject) => {
+      socket.addEventListener("open", () => resolve(socket), { once: true });
+      socket.addEventListener("error", () => reject(new Error("WebSocket connection failed.")), { once: true });
+      socket.addEventListener("message", event => handleSocketMessage(event));
+      socket.addEventListener("close", () => handleSocketClose(socket));
     });
-    return parseResponse(response);
+  },
+  disconnectGame() {
+    if (this.socket) this.socket.close();
+    this.socket = null;
+    this.pendingAction = null;
+  },
+  sendAction(action) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error("WebSocket is not connected."));
+    }
+    if (this.pendingAction) {
+      return Promise.reject(new Error("Another action is still pending."));
+    }
+
+    return new Promise((resolve, reject) => {
+      this.pendingAction = { resolve, reject };
+      this.socket.send(JSON.stringify(webSocketActionPayload(action)));
+    });
   }
 };
 
@@ -22,7 +48,6 @@ const elements = {
   sceneTitle: document.querySelector("#scene-title"),
   mapTitle: document.querySelector("#map-title"),
   serverStatus: document.querySelector("#server-status"),
-  topMode: document.querySelector("#top-mode"),
   gameId: document.querySelector("#game-id"),
   characterClass: document.querySelector("#character-class"),
   clock: document.querySelector("#clock"),
@@ -88,7 +113,7 @@ const LOCATION_ARTS = {
 
 let currentState = null;
 let mapZoom = 1;
-let openingLogLines = [];
+let messageLogLines = [];
 let combatFeedbackTimers = [];
 const commandHistory = {
   entries: [],
@@ -107,6 +132,70 @@ async function parseResponse(response) {
   return body;
 }
 
+function handleSocketMessage(event) {
+  const message = JSON.parse(event.data);
+  if (message.type === "state") {
+    render({ game_id: message.game_id, state: message.state });
+    return;
+  }
+  if (message.type === "events") {
+    const state = mergeStatePatch(currentState, message.patch);
+    const payload = { game_id: message.game_id, state, events: message.events || [] };
+    render(payload);
+    resolvePendingAction(payload);
+    return;
+  }
+  if (message.type === "error") {
+    const error = new Error(message.error?.message || "WebSocket error.");
+    rejectPendingAction(error);
+    showError(error);
+  }
+}
+
+function handleSocketClose(socket) {
+  if (api.socket !== socket) return;
+
+  api.socket = null;
+  const error = new Error("Connection lost. Type new to start a new game.");
+  rejectPendingAction(error);
+  if (currentState) {
+    setStatus("Offline", true);
+    showError(error);
+    elements.commandInput.placeholder = "new";
+  }
+}
+
+function resolvePendingAction(payload) {
+  const pending = api.pendingAction;
+  api.pendingAction = null;
+  if (pending) pending.resolve(payload);
+}
+
+function rejectPendingAction(error) {
+  const pending = api.pendingAction;
+  api.pendingAction = null;
+  if (pending) pending.reject(error);
+}
+
+function mergeStatePatch(state, patch) {
+  if (!patch) return state;
+  if (!state) return patch;
+
+  return {
+    ...state,
+    ...patch,
+    player: {
+      ...state.player,
+      ...patch.player
+    }
+  };
+}
+
+function webSocketActionPayload(action) {
+  const { type, ...fields } = action;
+  return { type: "action", action: type, ...fields };
+}
+
 function setStatus(text, error = false) {
   elements.serverStatus.textContent = text;
   elements.serverStatus.classList.toggle("error", error);
@@ -115,6 +204,7 @@ function setStatus(text, error = false) {
 function render(payload) {
   api.gameId = payload.game_id || api.gameId;
   const state = payload.state;
+  const events = eventsFromPayload(payload);
   currentState = state;
   renderHeader(state);
   renderMap(state);
@@ -122,19 +212,18 @@ function render(payload) {
   renderContextCommands(state);
   renderCollections(state.player);
   updateCommandPlaceholder(state);
-  renderLog(payload.response, state.history);
-  playCombatFeedback(payload.response);
+  renderLog(events);
+  playCombatFeedback(events);
 }
 
 function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.mapTitle.textContent = `═══ ${state.prompt} ═══`;
   elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
-  elements.topMode.textContent = state.input_mode.toUpperCase();
 }
 
 function renderMap(state) {
-  if (state.scene === "ruins" && state.dungeon?.map?.length) {
+  if (state.scene === "ruins" && state.dungeon?.viewport) {
     showCanvasMap(state.dungeon);
     return;
   }
@@ -156,10 +245,41 @@ function showCanvasMap(dungeon) {
   elements.mapStage.classList.add("has-canvas-map");
   elements.mapStage.classList.remove("has-location-art");
   elements.locationArt.style.transform = "";
-  const mapRows = dungeon.map;
+  const mapRows = textRowsFromViewport(dungeon.viewport);
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(mapRows, { enemies: dungeon.visible_enemies || [] });
+  dungeonMapRenderer.render(dungeon.viewport);
   resizeCanvasMap();
+}
+
+function textRowsFromViewport(viewport) {
+  const symbols = Array.from(String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?"));
+  const entitySymbols = { player: "x", enemy: "E", loot: "@", portal: "P", descent: ">" };
+  [...(viewport.entities || [])].sort(compareViewportEntities).forEach(entity => {
+    const symbol = entitySymbols[entity.type];
+    if (!symbol) return;
+
+    const index = (entity.y * viewport.width) + entity.x;
+    if (index >= 0 && index < symbols.length) symbols[index] = symbol;
+  });
+
+  return Array.from({ length: viewport.height }, (_, rowIndex) => {
+    const start = rowIndex * viewport.width;
+    return symbols.slice(start, start + viewport.width).join("");
+  });
+}
+
+function compareViewportEntities(left, right) {
+  return viewportEntityPriority(left.type) - viewportEntityPriority(right.type);
+}
+
+function viewportEntityPriority(type) {
+  return {
+    portal: 10,
+    descent: 10,
+    loot: 20,
+    enemy: 30,
+    player: 40
+  }[type] || 0;
 }
 
 function showTextMap() {
@@ -258,8 +378,8 @@ function renderEnemyStatus(battle) {
   elements.enemyStatusValue.classList.toggle("status-clear", statuses === "clear");
 }
 
-function playCombatFeedback(response) {
-  const exchanges = combatExchanges(response?.lines || []);
+function playCombatFeedback(events) {
+  const exchanges = combatExchanges(events);
   clearCombatFeedback();
   if (!exchanges.length) return;
 
@@ -269,12 +389,14 @@ function playCombatFeedback(response) {
   combatFeedbackTimers.push(setTimeout(clearCombatFeedback, exchanges.length * COMBAT_FEEDBACK_STEP_MS));
 }
 
-function combatExchanges(lines) {
-  return lines.flatMap(line => {
-    if (/^You (attack|cast) .+ causing \d+ of damage/.test(line)) {
+function combatExchanges(events) {
+  return events.flatMap(event => {
+    if (event.type !== "combat.damage") return [];
+
+    if (/^You (attack|cast) /.test(event.text)) {
       return [{ source: "player" }];
     }
-    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(line)) {
+    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(event.text)) {
       return [{ source: "enemy" }];
     }
     return [];
@@ -340,15 +462,21 @@ function fillCommandInput(value) {
   elements.commandInput.setSelectionRange(value.length, value.length);
 }
 
-function renderLog(response, history) {
-  if (!history.length && response?.lines?.length) openingLogLines = response.lines;
+function renderLog(events) {
+  const eventLines = events.map(event => event.text);
+  if (eventLines.length) {
+    messageLogLines = [...messageLogLines, ...eventLines].slice(-80);
+  }
 
-  const historyLines = history.flatMap(entry => entry.lines);
-  const sourceLines = [...openingLogLines, ...historyLines];
-  const lines = sourceLines.filter(isLoggableLine);
-  const visibleLines = lines.length ? lines : sourceLines.slice(0, 1);
+  const visibleLines = messageLogLines.length ? messageLogLines : [" "];
   elements.messageLog.textContent = visibleLines.map(line => `> ${line || " "}`).join("\n");
   elements.messageLog.scrollTop = elements.messageLog.scrollHeight;
+}
+
+function eventsFromPayload(payload) {
+  if (Array.isArray(payload.events)) return payload.events;
+
+  return [];
 }
 
 function asciiBar(current, max, kind) {
@@ -364,24 +492,12 @@ function asciiBar(current, max, kind) {
   ].join("");
 }
 
-function isLoggableLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed) return false;
-  if (/^[?#.xE@]+$/.test(trimmed)) return false;
-  if (/^Ruins Level \d+$/.test(trimmed)) return false;
-  if (/^(Here you can:|You can:|Global commands:|Destinations:)$/.test(trimmed)) return false;
-  if (/^(agree|no) - /.test(trimmed)) return false;
-  if (/^(go|show|buy|sell|sleep|rent room|rest|inventory|spellbook|level|skills|help|look|attack|loot|cast|equip|use|drop)\b/.test(trimmed)) return false;
-
-  return true;
-}
-
 function renderContextCommands(state = currentState) {
   elements.contextCommands.innerHTML = "";
   quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = commandLabel(label);
+    button.textContent = label;
     button.dataset.command = command;
     button.dataset.shortcut = shortcutForCommand(command, label);
     if (accessibleLabel) {
@@ -449,10 +565,6 @@ function ruinsCommands(state) {
   return commands;
 }
 
-function commandLabel(label) {
-  return label;
-}
-
 function shortcutForCommand(command, label) {
   const shortcuts = {
     "go up": "w/k/↑",
@@ -460,11 +572,7 @@ function shortcutForCommand(command, label) {
     "go down": "s/j/↓",
     "go left": "a/h/←",
     attack: "a",
-    loot: "l",
-    inventory: "i",
-    spellbook: "m",
-    game: "g",
-    text: "t"
+    loot: "l"
   };
 
   return shortcuts[command] || label.slice(0, 1).toLowerCase();
@@ -494,11 +602,6 @@ function updateCommandPlaceholder(state) {
     return;
   }
 
-  if (state.input_mode === "game") {
-    elements.commandInput.placeholder = "w/a/s/d, Enter, i, l, c, text";
-    return;
-  }
-
   const placeholders = {
     town: "go ruins, go blacksmith, inventory",
     tavern: "rent room, show, buy potion of heal",
@@ -512,6 +615,32 @@ function updateCommandPlaceholder(state) {
 
 function labelize(value) {
   return value.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function actionFromCommand(command) {
+  const normalized = command.trim().toLowerCase().replace(/\s+/g, " ");
+  const [rawVerb, ...targetParts] = normalized.split(" ");
+  const target = targetParts.join(" ");
+  const verb = { rent: "sleep", rest: "sleep", spell: "cast" }[rawVerb] || rawVerb;
+  const standalone = new Set(["agree", "attack", "cure", "heal", "help", "inventory", "level", "look", "loot", "no", "show", "skills", "sleep", "spellbook"]);
+
+  if (standalone.has(verb)) return { type: verb };
+  if (verb === "go") {
+    if (!target) throw new Error("Missing target for go.");
+    return ["up", "right", "down", "left"].includes(target) ?
+      { type: "move", direction: target } :
+      { type: "travel", destination: target };
+  }
+  if (["buy", "sell", "equip", "use", "drop"].includes(verb)) {
+    if (!target) throw new Error(`Missing target for ${verb}.`);
+    return { type: verb, item: target };
+  }
+  if (verb === "cast") {
+    if (!target) throw new Error("Missing target for cast.");
+    return { type: "cast", spell: target };
+  }
+
+  throw new Error(`Unsupported command: ${rawVerb}.`);
 }
 
 function classLine(player) {
@@ -558,6 +687,7 @@ async function startGame() {
   setStatus("Connecting");
   try {
     const payload = await api.createGame();
+    await api.connectGame(payload.game_id);
     selectTab("inventory");
     activateTopTab(0);
     render(payload);
@@ -569,12 +699,23 @@ async function startGame() {
   }
 }
 
+async function startNewGame() {
+  api.disconnectGame();
+  currentState = null;
+  messageLogLines = [];
+  elements.commandInput.value = "";
+  await startGame();
+}
+
 async function runCommand(command) {
+  if (command.trim().toLowerCase() === "new") {
+    await startNewGame();
+    return;
+  }
   if (!api.gameId) return;
   setStatus("Sending");
   try {
-    const payload = await api.sendCommand(command);
-    render(payload);
+    await api.sendAction(actionFromCommand(command));
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {

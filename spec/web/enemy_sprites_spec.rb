@@ -3,7 +3,7 @@ require 'yaml'
 
 RSpec.describe "Enemy sprites" do
   let(:root) { File.expand_path("../..", __dir__) }
-  let(:public_root) { File.join(root, "public") }
+  let(:public_root) { File.join(root, "frontend", "public") }
   let(:manifest_path) { File.join(public_root, "assets/enemies/enemies.json") }
   let(:creatures_path) { File.join(root, "data/creatures.yml") }
 

@@ -3,8 +3,8 @@ require 'spec_helper'
 RSpec.describe TextAdventures::LootDrop do
   let(:fang) { TextAdventures::Item.junk("Cracked Fang", price: 2) }
 
-  it "coerces legacy item arrays" do
-    loot = described_class.coerce([fang])
+  it "tracks item loot" do
+    loot = described_class.new(items: [fang])
 
     expect(loot).to contain_exactly(fang)
     expect(loot.gold).to eq 0
@@ -20,8 +20,8 @@ RSpec.describe TextAdventures::LootDrop do
     expect(loot.first).to be_nil
   end
 
-  it "can compare with legacy arrays when no gold is present" do
-    expect(described_class.new(items: [fang])).to eq [fang]
-    expect(described_class.new(items: [fang], gold: 1)).to_not eq [fang]
+  it "compares with other loot drops" do
+    expect(described_class.new(items: [fang])).to eq described_class.new(items: [fang])
+    expect(described_class.new(items: [fang], gold: 1)).to_not eq described_class.new(items: [fang])
   end
 end

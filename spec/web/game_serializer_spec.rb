@@ -10,12 +10,11 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       scene: "town",
       scene_display_name: "Town",
       prompt: "Town",
-      input_mode: "text",
       dungeon: nil,
       battle: { active: false, enemy: nil },
-      pending: { confirmation: false, spell_choices: [] },
-      history: []
+      pending: { confirmation: false }
     )
+    expect(state).not_to have_key(:history)
 
     expect(state.fetch(:player)).to include(
       name: "Adventurer",
@@ -51,11 +50,10 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
-  it "serializes inventory, spells, pending spell choices, and history" do
+  it "serializes inventory and spells without command history" do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("iron_dagger"), quantity: 2)
     game.player.learn_spell(TextAdventures::Spell.fireball)
-    game.handle("game")
-    game.handle("c")
+    game.handle("spellbook")
 
     expect(state.dig(:player, :inventory)).to include(
       hash_including(
@@ -74,15 +72,9 @@ RSpec.describe TextAdventures::Web::GameSerializer do
         kind: "damage"
       )
     ]
-    expect(state.dig(:pending, :spell_choices)).to match [
-      hash_including(name: "fireball", display_name: "Fireball")
-    ]
-    expect(state.fetch(:input_mode)).to eq "game"
-    expect(state.fetch(:prompt)).to eq "Town [game]"
-    expect(state.fetch(:history).last).to include(
-      command: "c",
-      lines: ["Choose a spell:", " 1 - Fireball", " 0 - cancel"]
-    )
+    expect(state.fetch(:pending)).to eq(confirmation: false)
+    expect(state.fetch(:prompt)).to eq "Town"
+    expect(state).not_to have_key(:history)
   end
 
   it "serializes starter equipment returned to inventory after an equipment swap" do
@@ -106,13 +98,6 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:player, :inventory)).not_to include(hash_including(name: "rusty dagger"))
   end
 
-  it "serializes the complete command history" do
-    12.times { game.handle("look") }
-
-    expect(state.fetch(:history).size).to eq 12
-    expect(state.fetch(:history).map { |entry| entry.fetch(:command) }).to all(eq "look")
-  end
-
   it "serializes dungeon state, adjacent enemies, nearby loot, and active battle" do
     game.handle("go ruins")
     dungeon = game.dungeon
@@ -129,21 +114,23 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.fetch(:scene)).to eq "ruins"
     expect(state.fetch(:prompt)).to eq "Ruins L1"
     expect(state.dig(:dungeon, :level)).to eq 1
-    expect(state.dig(:dungeon, :map)).to include(a_string_including("##.xE."))
+    expect(state.fetch(:dungeon)).not_to have_key(:map)
+    expect(state.dig(:dungeon, :viewport)).to include(
+      width: 18,
+      height: 15,
+      origin: { x: -6, y: -5 }
+    )
+    expect(state.dig(:dungeon, :viewport, :terrain).length).to eq 270
+    expect(state.dig(:dungeon, :viewport, :terrain)).not_to match(/[xE@P> ]/)
+    expect(state.dig(:dungeon, :viewport, :entities)).to include(
+      { type: "player", x: 9, y: 7 },
+      { type: "portal", x: 9, y: 7 },
+      { type: "enemy", x: 10, y: 7, creature_id: "giant_spider" },
+      { type: "loot", x: 9, y: 7 }
+    )
     expect(state.dig(:dungeon, :player_position)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :entrance_portal)).to eq(x: 3, y: 2)
     expect(state.dig(:dungeon, :descent)).to be_nil
-    expect(state.dig(:dungeon, :visible_enemy)).to eq(
-      x: 4,
-      y: 2,
-      creature_id: "giant_spider"
-    )
-    expect(state.dig(:dungeon, :visible_enemies)).to include(
-      x: 4,
-      y: 2,
-      creature_id: "giant_spider",
-      map_position: { x: 10, y: 7 }
-    )
     expect(state.dig(:dungeon, :nearby_loot, :items)).to include(
       hash_including(name: "potion of heal", display_name: "Potion of Heal")
     )
@@ -162,7 +149,10 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     game.dungeon.instance_variable_set(:@floor_exit_position, TextAdventures::Dungeon::Position.new(x: 4, y: 2))
 
     expect(state.dig(:dungeon, :descent)).to eq(x: 4, y: 2)
-    expect(state.dig(:dungeon, :map)).to include(a_string_including("##.x>."))
+    expect(state.fetch(:dungeon)).not_to have_key(:map)
+    expect(state.dig(:dungeon, :viewport, :entities)).to include(
+      { type: "descent", x: 10, y: 7 }
+    )
   end
 
   it "serializes pending merchant confirmation" do

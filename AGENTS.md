@@ -24,7 +24,7 @@ These instructions apply to this repository.
 ## Repository Practices
 
 - Prefer existing project patterns over new abstractions.
-- Keep gameplay logic independent from any future web layer.
+- Keep gameplay logic independent from web transport details.
 - Prefer editing content through YAML when the change is content-driven.
 - Use `rg` or `rg --files` for searches.
 - Use `apply_patch` for manual file edits.
@@ -58,7 +58,7 @@ When asked to implement a task, use this loop until the requested work is fully 
 bundle exec rspec
 ```
 
-- For gameplay changes, prefer an additional deterministic binary run:
+- For gameplay changes, prefer an additional deterministic API server smoke run:
 
 ```sh
 TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
@@ -68,9 +68,9 @@ TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures
 
 ## Game-Specific Notes
 
-- The current playable surface is the terminal binary: `bin/text_adventures`.
-- Text command mode remains the default.
-- Game mode can be enabled with `game` and disabled with `text` or `commands`.
+- The current playable surface is the browser frontend served by the Compose web service.
+- `bin/text_adventures` starts the Ruby JSON API and WebSocket game server.
+- Text commands are translated to structured web actions by the frontend.
 - Dungeon rendering uses a fixed 3x3 viewport centered on the player's current block.
 - Dungeon symbols are runtime render markers:
   - `x` player

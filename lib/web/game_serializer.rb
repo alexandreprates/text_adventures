@@ -10,12 +10,10 @@ module TextAdventures
           scene: game.current_scene_name.to_s,
           scene_display_name: scene_display_name,
           prompt: prompt,
-          input_mode: game.input_mode.to_s,
           player: player_state,
           dungeon: dungeon_state,
           battle: battle_state,
-          pending: pending_state,
-          history: history_state
+          pending: pending_state
         }
       end
 
@@ -38,7 +36,7 @@ module TextAdventures
                   scene_display_name
                 end
 
-        game.game_mode? ? "#{label} [game]" : label
+        label
       end
 
       def player_state
@@ -132,12 +130,10 @@ module TextAdventures
 
         {
           level: dungeon.level,
-          map: dungeon.render(view: :viewport).lines.drop(1).map(&:chomp),
+          viewport: dungeon.viewport_state,
           player_position: position_state(dungeon.current_global_position),
           entrance_portal: optional_position_state(dungeon.entrance_portal_position),
           descent: optional_position_state(dungeon.floor_exit_position),
-          visible_enemy: enemy_position_state(dungeon.adjacent_enemy_position),
-          visible_enemies: visible_enemy_states,
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
         }
       end
@@ -168,43 +164,14 @@ module TextAdventures
 
       def pending_state
         {
-          confirmation: !game.pending_confirmation.nil?,
-          spell_choices: spells_state(game.pending_game_spell_choices || [])
+          confirmation: !game.pending_confirmation.nil?
         }
-      end
-
-      def history_state
-        game.history.map do |entry|
-          {
-            command: entry.command,
-            response: entry.response.to_s,
-            lines: entry.response.to_s.lines.map(&:chomp)
-          }
-        end
-      end
-
-      def enemy_position_state(position)
-        return nil unless position
-
-        creature_id = game.dungeon.enemy_at(position)
-        state = position_state(position)
-        state[:creature_id] = creature_id
-        state
-      end
-
-      def visible_enemy_states
-        game.dungeon.visible_enemies.map do |enemy|
-          position_state(enemy.fetch(:position)).merge(
-            creature_id: enemy.fetch(:creature_id),
-            map_position: position_state(enemy.fetch(:render_position))
-          )
-        end
       end
 
       def loot_position_state(position)
         return nil unless position
 
-        loot = LootDrop.coerce(game.dungeon.loot_at(position))
+        loot = game.dungeon.loot_at(position) || LootDrop.empty
         position_state(position).merge(
           items: loot.map { |item| item_state(item) },
           gold: loot.gold

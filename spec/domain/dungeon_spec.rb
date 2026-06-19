@@ -206,7 +206,7 @@ RSpec.describe TextAdventures::Dungeon do
       loot_position = described_class::Position.new(x: 5, y: 2)
 
       dungeon.place_enemy(position, "giant_spider")
-      dungeon.drop_loot(loot_position, [test_loot])
+      dungeon.drop_loot(loot_position, TextAdventures::LootDrop.new(items: [test_loot]))
 
       expect(dungeon.render.lines.map(&:chomp)).to eq [
         "Ruins Level 1",
@@ -244,7 +244,7 @@ RSpec.describe TextAdventures::Dungeon do
     it "renders the player above entity markers" do
       position = described_class::Position.new(x: 3, y: 2)
 
-      dungeon.drop_loot(position, [test_loot])
+      dungeon.drop_loot(position, TextAdventures::LootDrop.new(items: [test_loot]))
 
       expect(dungeon.render.lines.map(&:chomp)).to eq [
         "Ruins Level 1",
@@ -268,6 +268,32 @@ RSpec.describe TextAdventures::Dungeon do
 
     it "rejects unknown render views" do
       expect { dungeon.render(view: :overview) }.to raise_error ArgumentError, "unknown dungeon render view: overview"
+    end
+  end
+
+  describe "#viewport_state" do
+    it "returns structured terrain and entities without ASCII marker parsing" do
+      enemy_position = described_class::Position.new(x: 2, y: 2)
+      loot_position = described_class::Position.new(x: 5, y: 2)
+
+      dungeon.place_enemy(enemy_position, "giant_spider")
+      dungeon.drop_loot(loot_position, TextAdventures::LootDrop.new(items: [test_loot]))
+
+      viewport = dungeon.viewport_state
+
+      expect(viewport).to include(
+        width: 18,
+        height: 15,
+        origin: { x: -6, y: -5 }
+      )
+      expect(viewport.fetch(:terrain).length).to eq 270
+      expect(viewport.fetch(:terrain)).not_to match(/[xE@P> ]/)
+      expect(viewport.fetch(:entities)).to eq [
+        { type: "enemy", x: 8, y: 7, creature_id: "giant_spider" },
+        { type: "player", x: 9, y: 7 },
+        { type: "portal", x: 9, y: 7 },
+        { type: "loot", x: 11, y: 7 }
+      ]
     end
   end
 
@@ -301,7 +327,7 @@ RSpec.describe TextAdventures::Dungeon do
 
     it "drops and collects loot by global tile position" do
       position = described_class::Position.new(x: 2, y: 2)
-      loot = [test_loot]
+      loot = TextAdventures::LootDrop.new(items: [test_loot])
 
       dungeon.drop_loot(position, loot)
 
@@ -319,7 +345,7 @@ RSpec.describe TextAdventures::Dungeon do
       end.to raise_error ArgumentError, "dungeon entities must be placed on open tiles"
 
       expect do
-        dungeon.drop_loot(wall_position, [test_loot])
+        dungeon.drop_loot(wall_position, TextAdventures::LootDrop.new(items: [test_loot]))
       end.to raise_error ArgumentError, "dungeon entities must be placed on open tiles"
     end
 
@@ -329,7 +355,7 @@ RSpec.describe TextAdventures::Dungeon do
       diagonal_enemy_position = described_class::Position.new(x: 4, y: 3)
 
       dungeon.place_enemy(enemy_position, "giant_spider")
-      dungeon.drop_loot(loot_position, [test_loot])
+      dungeon.drop_loot(loot_position, TextAdventures::LootDrop.new(items: [test_loot]))
 
       expect(dungeon.adjacent_enemy_position).to have_attributes(x: 4, y: 2)
       expect(dungeon.nearby_loot_position).to have_attributes(x: 2, y: 2)
@@ -554,7 +580,7 @@ RSpec.describe TextAdventures::Dungeon do
         floor_exit_position: described_class::Position.new(x: 4, y: 2)
       )
       descending.place_enemy(described_class::Position.new(x: 5, y: 2), "giant_spider")
-      descending.drop_loot(described_class::Position.new(x: 2, y: 2), [test_loot])
+      descending.drop_loot(described_class::Position.new(x: 2, y: 2), TextAdventures::LootDrop.new(items: [test_loot]))
 
       descending.advance_level!
 

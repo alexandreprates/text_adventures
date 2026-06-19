@@ -53,14 +53,16 @@ RSpec.describe TextAdventures::Scenes::Town do
   end
 
   it "routes to Aluriel's Priest by full name or short alias" do
-    expect(game.handle("go aluriel's priest")).to include "Welcome to Aluriel's Priest."
-    expect(game.history.last.response).to include "heal - recover health"
+    priest_response = game.handle("go aluriel's priest")
+    expect(priest_response).to include "Welcome to Aluriel's Priest."
+    expect(priest_response).to include "heal - recover health"
     expect(game.current_scene_name).to eq :priest
     expect(game.current_scene).to be_a TextAdventures::Scenes::Priest
 
     other_game = TextAdventures::Game.new(current_scene: scene)
-    expect(other_game.handle("go priest")).to include "Welcome to Aluriel's Priest."
-    expect(other_game.history.last.response).to include "buy <item> - buy a tome"
+    other_response = other_game.handle("go priest")
+    expect(other_response).to include "Welcome to Aluriel's Priest."
+    expect(other_response).to include "buy <item> - buy a tome"
     expect(other_game.current_scene_name).to eq :priest
     expect(other_game.current_scene).to be_a TextAdventures::Scenes::Priest
   end
@@ -70,18 +72,21 @@ RSpec.describe TextAdventures::Scenes::Town do
     armorsmith_game = TextAdventures::Game.new(current_scene: described_class.new)
     ruins_game = TextAdventures::Game.new(current_scene: described_class.new)
 
-    expect(blacksmith_game.handle("go blacksmith")).to include "Welcome to Blacksmith."
-    expect(blacksmith_game.history.last.response).to include "show - view merchant goods"
+    blacksmith_response = blacksmith_game.handle("go blacksmith")
+    expect(blacksmith_response).to include "Welcome to Blacksmith."
+    expect(blacksmith_response).to include "show - view merchant goods"
     expect(blacksmith_game.current_scene_name).to eq :blacksmith
     expect(blacksmith_game.current_scene).to be_a TextAdventures::Scenes::Blacksmith
 
-    expect(armorsmith_game.handle("go armorsmith")).to include "Welcome to Armorsmith."
-    expect(armorsmith_game.history.last.response).to include "buy <item> - buy something"
+    armorsmith_response = armorsmith_game.handle("go armorsmith")
+    expect(armorsmith_response).to include "Welcome to Armorsmith."
+    expect(armorsmith_response).to include "buy <item> - buy something"
     expect(armorsmith_game.current_scene_name).to eq :armorsmith
     expect(armorsmith_game.current_scene).to be_a TextAdventures::Scenes::Armorsmith
 
-    expect(ruins_game.handle("go ruins")).to include "You are now inside the Ruins Level 1"
-    expect(ruins_game.history.last.response).to include "attack - to attack an enemy"
+    ruins_response = ruins_game.handle("go ruins")
+    expect(ruins_response).to include "You are now inside the Ruins Level 1"
+    expect(ruins_response).to include "attack - to attack an enemy"
     expect(ruins_game.current_scene_name).to eq :ruins
     expect(ruins_game.current_scene).to be_a TextAdventures::Scenes::Ruins
     expect(ruins_game.dungeon).to be_a TextAdventures::Dungeon

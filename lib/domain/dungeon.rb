@@ -55,7 +55,7 @@ module TextAdventures
       @current_block_position = BlockPosition.new(x: current_block_position.x, y: current_block_position.y)
       @floor_exit_position = normalize_optional_position(floor_exit_position)
       @enemies = normalize_entity_hash(enemies)
-      @dropped_loot = normalize_entity_hash(dropped_loot)
+      @dropped_loot = normalize_loot_hash(dropped_loot)
       @random = random
       validate_current_block!
       validate_player_position!
@@ -183,10 +183,10 @@ module TextAdventures
       enemies[position_key(position)]
     end
 
-    def drop_loot(position, items)
+    def drop_loot(position, loot)
       key = position_key(position)
       validate_entity_position!(key)
-      dropped_loot[key] = LootDrop.coerce(items)
+      dropped_loot[key] = normalize_loot_drop(loot)
     end
 
     def loot_at(position)
@@ -194,7 +194,7 @@ module TextAdventures
     end
 
     def collect_loot_at(position)
-      dropped_loot.delete(position_key(position)) || []
+      dropped_loot.delete(position_key(position)) || LootDrop.empty
     end
 
     def dropped_loot?
@@ -256,25 +256,19 @@ module TextAdventures
       lines.join("\n")
     end
 
-    def visible_enemies(view: :viewport)
-      validate_render_view!(view)
-      origin = render_origin_for(view)
-      tiles = render_tiles_for(view, origin)
-      max_y = tiles.length - 1
-      max_x = tiles.first.length - 1
+    def viewport_state
+      origin = render_origin_for(:viewport)
+      tiles = render_tiles_for(:viewport, origin)
+      render_width = tiles.first.length
+      render_height = tiles.length
 
-      enemies.filter_map do |key, creature_id|
-        position = Position.new(x: key[0], y: key[1])
-        render_x = position.x - (origin.x * width)
-        render_y = position.y - (origin.y * height)
-        next unless render_x.between?(0, max_x) && render_y.between?(0, max_y)
-
-        {
-          position: position,
-          render_position: Position.new(x: render_x, y: render_y),
-          creature_id: creature_id
-        }
-      end.sort_by { |enemy| [enemy.fetch(:render_position).y, enemy.fetch(:render_position).x] }
+      {
+        width: render_width,
+        height: render_height,
+        origin: viewport_origin_state(origin),
+        terrain: viewport_terrain(tiles),
+        entities: viewport_entities(origin, render_width, render_height)
+      }
     end
 
     private
@@ -294,6 +288,16 @@ module TextAdventures
 
     def normalize_entity_hash(value)
       value.to_h.transform_keys { |key| normalize_position_key(key) }
+    end
+
+    def normalize_loot_hash(value)
+      normalize_entity_hash(value).transform_values { |loot| normalize_loot_drop(loot) }
+    end
+
+    def normalize_loot_drop(value)
+      return value if value.is_a?(LootDrop)
+
+      raise ArgumentError, "dungeon loot must be a LootDrop"
     end
 
     def normalize_block_key(key)
@@ -342,6 +346,61 @@ module TextAdventures
 
     def rendered_tile(tile)
       tile == DungeonBlock::OPEN ? FLOOR : tile
+    end
+
+    def viewport_origin_state(origin)
+      {
+        x: origin.x * width,
+        y: origin.y * height
+      }
+    end
+
+    def viewport_terrain(tiles)
+      tiles.map { |row| row.map { |tile| rendered_tile(tile) }.join }.join
+    end
+
+    def viewport_entities(origin, render_width, render_height)
+      entities = [
+        viewport_entity("player", current_global_position, origin, render_width, render_height),
+        viewport_entity("portal", entrance_portal_position, origin, render_width, render_height),
+        viewport_entity("descent", floor_exit_position, origin, render_width, render_height)
+      ]
+      entities.concat(viewport_loot_entities(origin, render_width, render_height))
+      entities.concat(enemy_viewport_entities(origin, render_width, render_height))
+      entities.compact.sort_by { |entity| [entity.fetch(:y), entity.fetch(:x), entity.fetch(:type)] }
+    end
+
+    def viewport_loot_entities(origin, render_width, render_height)
+      dropped_loot.keys.filter_map do |key|
+        viewport_entity("loot", Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
+      end
+    end
+
+    def enemy_viewport_entities(origin, render_width, render_height)
+      enemies.filter_map do |key, creature_id|
+        position = viewport_position(Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
+        next unless position
+
+        position.merge(
+          type: "enemy",
+          creature_id: creature_id
+        )
+      end
+    end
+
+    def viewport_entity(type, global_position, origin, render_width, render_height)
+      position = viewport_position(global_position, origin, render_width, render_height)
+      position&.merge(type: type)
+    end
+
+    def viewport_position(global_position, origin, render_width, render_height)
+      return nil unless global_position
+
+      render_x = global_position.x - (origin.x * width)
+      render_y = global_position.y - (origin.y * height)
+      return nil unless render_x.between?(0, render_width - 1) && render_y.between?(0, render_height - 1)
+
+      { x: render_x, y: render_y }
     end
 
     def current_position

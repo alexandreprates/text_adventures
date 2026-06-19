@@ -45,24 +45,14 @@ globalThis.DungeonMapRenderer = (() => {
     "#": "wall",
     ".": "floor",
     " ": "floor",
-    "?": "fog",
-    "x": "player",
-    "E": "floor",
-    "@": "lootBag",
-    "P": "portal",
-    ">": "stairsDown"
+    "?": "fog"
   };
 
   const FALLBACK_COLORS = {
     "#": "#343a40",
     ".": "#1d2428",
     " ": "#1d2428",
-    "?": "#08090b",
-    "x": "#d9b45f",
-    "E": "#d66f62",
-    "@": "#7fb7a7",
-    "P": "#8f7bff",
-    ">": "#ffb300"
+    "?": "#08090b"
   };
   const FOG_DOTS = [
     [3, 4, 10, 0.28],
@@ -82,14 +72,17 @@ globalThis.DungeonMapRenderer = (() => {
       failed: false,
       animationFrame: null,
       enemyManifest: {},
-      lastMapRows: [],
-      lastOptions: {},
-      render(mapRows, options = {}) {
-        if (!context || !Array.isArray(mapRows) || mapRows.length === 0) return false;
+      lastViewport: null,
+      lastRows: [],
+      lastEntities: [],
+      render(viewport) {
+        if (!context || !validViewport(viewport)) return false;
 
-        renderer.lastMapRows = mapRows;
-        renderer.lastOptions = options;
-        const rows = normalizeRows(mapRows);
+        const rows = normalizeRows(rowsFromViewport(viewport));
+        const entities = viewport.entities || [];
+        renderer.lastViewport = viewport;
+        renderer.lastRows = rows;
+        renderer.lastEntities = entities;
         const columns = Math.max(...rows.map(row => row.length));
         canvas.width = columns * TILE_SIZE;
         canvas.height = rows.length * TILE_SIZE;
@@ -97,19 +90,17 @@ globalThis.DungeonMapRenderer = (() => {
         context.imageSmoothingEnabled = false;
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        const enemyPositions = enemyPositionSet(options.enemies || []);
         rows.forEach((row, y) => {
           [...row.padEnd(columns, "?")].forEach((symbol, x) => {
-            const tileSymbol = symbol === "E" && enemyPositions.has(positionKey(x, y)) ? "." : symbol;
-            drawSymbol(context, tileset, renderer.ready, tileSymbol, x, y);
+            drawSymbol(context, tileset, renderer.ready, symbol, x, y);
           });
         });
-        drawEnemies(context, renderer, enemyImages, options.enemies || []);
+        drawEntities(context, renderer, enemyImages, entities);
 
         return true;
       },
       animateAttack(source) {
-        if (!context || !renderer.lastMapRows.length) return false;
+        if (!context || !renderer.lastViewport) return false;
 
         const points = combatPoints(renderer, source);
         if (!points) return false;
@@ -119,14 +110,14 @@ globalThis.DungeonMapRenderer = (() => {
 
         function drawFrame(now) {
           const progress = Math.min(1, (now - startedAt) / ATTACK_ANIMATION_MS);
-          renderer.render(renderer.lastMapRows, renderer.lastOptions);
+          renderer.render(renderer.lastViewport);
           drawAttackTrace(context, points.from, points.to, progress, source);
 
           if (progress < 1) {
             renderer.animationFrame = requestAnimationFrame(drawFrame);
           } else {
             renderer.animationFrame = null;
-            renderer.render(renderer.lastMapRows, renderer.lastOptions);
+            renderer.render(renderer.lastViewport);
           }
         }
 
@@ -156,6 +147,18 @@ globalThis.DungeonMapRenderer = (() => {
 
   function normalizeRows(mapRows) {
     return mapRows.map(row => String(row).replace(/ /g, "."));
+  }
+
+  function validViewport(viewport) {
+    return Boolean(viewport?.terrain && Number.isInteger(viewport.width) && Number.isInteger(viewport.height));
+  }
+
+  function rowsFromViewport(viewport) {
+    const terrain = String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?");
+    return Array.from({ length: viewport.height }, (_, rowIndex) => {
+      const start = rowIndex * viewport.width;
+      return terrain.slice(start, start + viewport.width);
+    });
   }
 
   function drawSymbol(context, tileset, tilesetReady, symbol, x, y) {
@@ -218,27 +221,47 @@ globalThis.DungeonMapRenderer = (() => {
       });
   }
 
-  function drawEnemies(context, renderer, enemyImages, enemies) {
-    enemies.forEach(enemy => {
-      const mapPosition = enemy.map_position;
-      if (!mapPosition) return;
-
-      const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
-      if (image?.complete && image.naturalWidth > 0) {
-        drawEnemyImage(context, image, mapPosition.x, mapPosition.y);
+  function drawEntities(context, renderer, enemyImages, entities) {
+    [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
+      if (entity.type === "enemy") {
+        drawEnemy(context, renderer, enemyImages, entity);
         return;
       }
 
-      drawTile(context, null, "goblin", mapPosition.x, mapPosition.y);
+      const tileName = ENTITY_TILES[entity.type];
+      if (tileName) drawTile(context, null, tileName, entity.x, entity.y);
     });
   }
 
-  function enemyPositionSet(enemies) {
-    return new Set(enemies.map(enemy => enemy.map_position).filter(Boolean).map(position => positionKey(position.x, position.y)));
+  const ENTITY_TILES = {
+    player: "player",
+    portal: "portal",
+    descent: "stairsDown",
+    loot: "lootBag"
+  };
+
+  function compareEntitiesForDrawing(left, right) {
+    return entityPriority(left.type) - entityPriority(right.type);
   }
 
-  function positionKey(x, y) {
-    return `${x},${y}`;
+  function entityPriority(type) {
+    return {
+      portal: 10,
+      descent: 10,
+      loot: 20,
+      enemy: 30,
+      player: 40
+    }[type] || 0;
+  }
+
+  function drawEnemy(context, renderer, enemyImages, enemy) {
+    const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
+    if (image?.complete && image.naturalWidth > 0) {
+      drawEnemyImage(context, image, enemy.x, enemy.y);
+      return;
+    }
+
+    drawTile(context, null, "goblin", enemy.x, enemy.y);
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {
@@ -264,8 +287,8 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function combatPoints(renderer, source) {
-    const player = findSymbolPosition(renderer.lastMapRows, "x");
-    const enemy = firstEnemyPosition(renderer.lastOptions.enemies || []) || findSymbolPosition(renderer.lastMapRows, "E");
+    const player = firstEntityPosition(renderer.lastEntities, "player");
+    const enemy = firstEntityPosition(renderer.lastEntities, "enemy");
     if (!player || !enemy) return null;
 
     return source === "enemy"
@@ -273,17 +296,9 @@ globalThis.DungeonMapRenderer = (() => {
       : { from: tileCenter(player), to: tileCenter(enemy) };
   }
 
-  function firstEnemyPosition(enemies) {
-    const enemy = enemies.find(entry => entry.map_position);
-    return enemy?.map_position || null;
-  }
-
-  function findSymbolPosition(mapRows, symbol) {
-    for (let y = 0; y < mapRows.length; y += 1) {
-      const x = String(mapRows[y]).indexOf(symbol);
-      if (x >= 0) return { x, y };
-    }
-    return null;
+  function firstEntityPosition(entities, type) {
+    const entity = entities.find(entry => entry.type === type);
+    return entity ? { x: entity.x, y: entity.y } : null;
   }
 
   function tileCenter(position) {
@@ -326,7 +341,7 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function rerender(renderer) {
-    if (renderer.lastMapRows.length) renderer.render(renderer.lastMapRows, renderer.lastOptions);
+    if (renderer.lastViewport) renderer.render(renderer.lastViewport);
   }
 
   function drawTile(context, tileset, tileName, x, y) {

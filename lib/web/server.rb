@@ -1,4 +1,5 @@
 require "socket"
+require "timeout"
 require "uri"
 
 module TextAdventures
@@ -6,19 +7,6 @@ module TextAdventures
     class Server
       DEFAULT_HOST = "127.0.0.1".freeze
       DEFAULT_PORT = 4567
-      PUBLIC_ROOT = File.join(TextAdventures::ROOT, "public").freeze
-      CACHEABLE_ASSET_PATH_PATTERN = %r{/(?:assets/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+|styles\.css|app\.js|map_renderer\.js)}.freeze
-      IMMUTABLE_CACHE_CONTROL = "public, max-age=31536000, immutable".freeze
-      REVALIDATE_CACHE_CONTROL = "no-cache".freeze
-      MIME_TYPES = {
-        ".css" => "text/css; charset=utf-8",
-        ".html" => "text/html; charset=utf-8",
-        ".js" => "text/javascript; charset=utf-8",
-        ".json" => "application/json; charset=utf-8",
-        ".md" => "text/markdown; charset=utf-8",
-        ".png" => "image/png",
-        ".svg" => "image/svg+xml; charset=utf-8"
-      }.freeze
       REASON_PHRASES = {
         200 => "OK",
         201 => "Created",
@@ -26,27 +14,52 @@ module TextAdventures
         400 => "Bad Request",
         404 => "Not Found",
         405 => "Method Not Allowed",
-        500 => "Internal Server Error"
+        500 => "Internal Server Error",
+        503 => "Service Unavailable"
       }.freeze
+      DEFAULT_MAX_CONNECTIONS = 50
+      DEFAULT_READ_TIMEOUT_SECONDS = 5
 
       def self.from_env(env = ENV)
-        store = GameStore.new(default_seed: env["TEXT_ADVENTURES_RANDOM_SEED"])
+        store = GameStore.new(
+          default_seed: env["TEXT_ADVENTURES_RANDOM_SEED"],
+          session_ttl_seconds: env.fetch("TEXT_ADVENTURES_SESSION_TTL_SECONDS", GameStore::DEFAULT_SESSION_TTL_SECONDS),
+          max_sessions: env.fetch("TEXT_ADVENTURES_MAX_SESSIONS", GameStore::DEFAULT_MAX_SESSIONS)
+        )
         new(
           host: env.fetch("TEXT_ADVENTURES_HOST", DEFAULT_HOST),
           port: Integer(env.fetch("TEXT_ADVENTURES_PORT", DEFAULT_PORT)),
+          max_connections: Integer(env.fetch("TEXT_ADVENTURES_MAX_CONNECTIONS", DEFAULT_MAX_CONNECTIONS)),
+          read_timeout_seconds: Integer(env.fetch("TEXT_ADVENTURES_READ_TIMEOUT_SECONDS", DEFAULT_READ_TIMEOUT_SECONDS)),
           router: Router.new(store: store),
-          asset_version: env.fetch("TEXT_ADVENTURES_ASSET_VERSION", "")
+          web_socket: WebSocketConnection.new(
+            store: store,
+            idle_timeout_seconds: Integer(env.fetch("TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS", WebSocketConnection::DEFAULT_IDLE_TIMEOUT_SECONDS))
+          )
         )
       end
 
-      def initialize(host: DEFAULT_HOST, port: DEFAULT_PORT, router: Router.new, output: $stdout, asset_version: "")
+      def initialize(
+        host: DEFAULT_HOST,
+        port: DEFAULT_PORT,
+        max_connections: DEFAULT_MAX_CONNECTIONS,
+        read_timeout_seconds: DEFAULT_READ_TIMEOUT_SECONDS,
+        router: Router.new,
+        web_socket: nil,
+        output: $stdout
+      )
         @host = host
         @port = Integer(port)
+        @max_connections = Integer(max_connections)
+        @read_timeout_seconds = Integer(read_timeout_seconds)
         @router = router
+        @web_socket = web_socket
         @output = output
-        @asset_version = asset_version.to_s
         @running = true
         @server = nil
+        @connection_mutex = Mutex.new
+        @connections = []
+        @workers = []
       end
 
       def start
@@ -60,17 +73,34 @@ module TextAdventures
 
       private
 
-      attr_reader :host, :port, :router, :output, :server, :asset_version
+      attr_reader :host, :port, :max_connections, :read_timeout_seconds, :router, :web_socket, :output, :server
 
       def accept_loop
         while @running
           begin
             socket = server.accept
-            handle_socket(socket)
+            if connection_capacity_available?
+              spawn_worker(socket)
+            else
+              reject_over_capacity(socket)
+            end
           rescue IOError, Errno::EBADF
             break unless @running
           end
         end
+      ensure
+        join_workers
+      end
+
+      def spawn_worker(socket)
+        track_socket(socket)
+        worker = Thread.new do
+          Thread.current.report_on_exception = false
+          handle_socket(socket)
+        ensure
+          untrack_socket(socket)
+        end
+        track_worker(worker)
       end
 
       def handle_socket(socket)
@@ -81,14 +111,20 @@ module TextAdventures
         request = read_request(socket)
         return unless request
 
-        static_response = static_response_for(request)
-        response = static_response || router_response_for(request)
+        if web_socket_request?(request)
+          response_status = 101
+          web_socket.handle(socket, request)
+          return
+        end
+
+        response = router_response_for(request)
         response_status = response.fetch(:status)
         response_body_bytes = response.fetch(:body).bytesize
 
         write_raw_response(socket, **response)
       rescue StandardError => error
-        response = raw_response_for(JsonResponse.error("internal_server_error", error.message, status: 500))
+        log_error(error)
+        response = raw_response_for(JsonResponse.error("internal_server_error", "Internal server error.", status: 500))
         response_status = response.fetch(:status)
         response_body_bytes = response.fetch(:body).bytesize
         write_raw_response(socket, **response)
@@ -97,23 +133,56 @@ module TextAdventures
         socket.close unless socket.closed?
       end
 
+      def track_socket(socket)
+        connection_mutex.synchronize { connections << socket }
+      end
+
+      def untrack_socket(socket)
+        connection_mutex.synchronize { connections.delete(socket) }
+      end
+
+      def track_worker(worker)
+        connection_mutex.synchronize do
+          workers.reject! { |thread| !thread.alive? }
+          workers << worker
+        end
+      end
+
+      def join_workers
+        active_workers = connection_mutex.synchronize { workers.dup }
+        active_workers.each(&:join)
+      end
+
+      def connection_capacity_available?
+        connection_mutex.synchronize { connections.length < max_connections }
+      end
+
+      def reject_over_capacity(socket)
+        response = raw_response_for(JsonResponse.error("server_busy", "Server is busy. Try again later.", status: 503))
+        write_raw_response(socket, **response)
+      ensure
+        socket.close unless socket.closed?
+      end
+
       def read_request(socket)
-        request_line = socket.gets.to_s
-        return nil if request_line.strip.empty?
+        Timeout.timeout(read_timeout_seconds) do
+          request_line = socket.gets.to_s
+          return nil if request_line.strip.empty?
 
-        method, raw_path = request_line.split
-        uri = URI.parse(raw_path.to_s)
-        headers = read_headers(socket)
-        body = socket.read(headers.fetch("content-length", "0").to_i).to_s
+          method, raw_path = request_line.split
+          uri = URI.parse(raw_path.to_s)
+          headers = read_headers(socket)
+          body = socket.read(headers.fetch("content-length", "0").to_i).to_s
 
-        {
-          method: method,
-          path: uri.path,
-          query: uri.query.to_s,
-          headers: headers,
-          body: body,
-          request_line: request_line.strip
-        }
+          {
+            method: method,
+            path: uri.path,
+            query: uri.query.to_s,
+            headers: headers,
+            body: body,
+            request_line: request_line.strip
+          }
+        end
       end
 
       def read_headers(socket)
@@ -137,73 +206,6 @@ module TextAdventures
         socket.write body
       end
 
-      def static_response_for(request)
-        return nil unless request.fetch(:method) == "GET"
-
-        path = request.fetch(:path)
-        static_path = static_file_path(path == "/" ? "/index.html" : path)
-        return nil unless static_path
-
-        body = static_body_for(static_path)
-        {
-          status: 200,
-          headers: static_headers_for(static_path, request),
-          body: body
-        }
-      end
-
-      def static_file_path(path)
-        relative_path = path.sub(%r{\A/+}, "")
-        return nil if relative_path.empty? || relative_path.include?("..")
-
-        full_path = File.expand_path(relative_path, PUBLIC_ROOT)
-        return nil unless full_path.start_with?("#{PUBLIC_ROOT}/")
-        return nil unless File.file?(full_path)
-
-        full_path
-      end
-
-      def static_body_for(static_path)
-        body = File.binread(static_path)
-        return body unless versionable_static_asset?(static_path)
-
-        version_asset_paths(body)
-      end
-
-      def static_headers_for(static_path, request)
-        {
-          "Content-Type" => MIME_TYPES.fetch(File.extname(static_path), "application/octet-stream"),
-          "Cache-Control" => cache_control_for(static_path, request)
-        }
-      end
-
-      def cache_control_for(static_path, request)
-        return REVALIDATE_CACHE_CONTROL if File.extname(static_path) == ".html"
-        return IMMUTABLE_CACHE_CONTROL if versioned_asset_request?(request)
-
-        REVALIDATE_CACHE_CONTROL
-      end
-
-      def versionable_static_asset?(static_path)
-        return false if asset_version.empty?
-
-        [".html", ".js", ".json"].include?(File.extname(static_path))
-      end
-
-      def versioned_asset_request?(request)
-        URI.decode_www_form(request.fetch(:query)).any? { |key, value| key == "v" && value == asset_version }
-      rescue ArgumentError
-        false
-      end
-
-      def version_asset_paths(body)
-        body.gsub(CACHEABLE_ASSET_PATH_PATTERN) { |asset_path| versioned_asset_path(asset_path) }
-      end
-
-      def versioned_asset_path(asset_path)
-        "#{asset_path}?v=#{URI.encode_www_form_component(asset_version)}"
-      end
-
       def router_response_for(request)
         raw_response_for(
           router.call(
@@ -212,6 +214,17 @@ module TextAdventures
             body: request.fetch(:body)
           )
         )
+      end
+
+      def web_socket_request?(request)
+        return false unless web_socket
+        return false unless request.fetch(:method) == "GET"
+        return false unless request.fetch(:path) == "/ws"
+
+        headers = request.fetch(:headers)
+        headers.fetch("upgrade", "").downcase == "websocket" &&
+          headers.fetch("connection", "").downcase.include?("upgrade") &&
+          headers.key?("sec-websocket-key")
       end
 
       def raw_response_for(response)
@@ -247,6 +260,13 @@ module TextAdventures
         value.to_s.empty? ? "-" : value.to_s.gsub(/["\\]/) { |character| "\\#{character}" }
       end
 
+      def log_error(error)
+        output.puts "ERROR #{error.class}: #{access_log_value(error.message)}"
+        output.flush if output.respond_to?(:flush)
+      rescue StandardError
+        nil
+      end
+
       def reason_phrase(status)
         REASON_PHRASES.fetch(status, "OK")
       end
@@ -262,7 +282,15 @@ module TextAdventures
       def shutdown
         @running = false
         server&.close unless server&.closed?
+        active_connections = connection_mutex.synchronize { connections.dup }
+        active_connections.each do |connection|
+          connection.close unless connection.closed?
+        rescue IOError
+          next
+        end
       end
+
+      attr_reader :connection_mutex, :connections, :workers
     end
   end
 end

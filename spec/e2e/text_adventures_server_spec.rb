@@ -16,14 +16,24 @@ RSpec.describe "text_adventures server binary" do
       created = JSON.parse(create_response.body)
       game_id = created.fetch("game_id")
       expect(created.dig("state", "scene")).to eq "town"
-      expect(created.dig("response", "lines")).to include "Welcome to Text Adventures"
+      expect(created.fetch("events")).to include hash_including("type" => "message", "text" => "Welcome to Text Adventures")
+      expect(created).not_to have_key("response")
 
-      command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: "go ruins")
-      expect(command_response.code).to eq "200"
-      command_body = JSON.parse(command_response.body)
-      expect(command_body.dig("response", "lines")).to include "You go to Ruins."
-      expect(command_body.dig("state", "scene")).to eq "ruins"
-      expect(command_body.dig("state", "dungeon", "map")).to be_an Array
+      action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for("go ruins"))
+      expect(action_response.code).to eq "200"
+      action_body = JSON.parse(action_response.body)
+      expect(action_body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
+      expect(action_body.fetch("events").map { |event| event.fetch("text") }).not_to include(a_string_matching(/\A[?#.xE@P>]+\z/))
+      expect(action_body.fetch("events").map { |event| event.fetch("text") }).not_to include("Here you can:")
+      expect(action_body).not_to have_key("response")
+      expect(action_body.dig("state", "scene")).to eq "ruins"
+      expect(action_body.dig("state", "dungeon")).not_to have_key("map")
+      expect(action_body.dig("state", "dungeon", "viewport")).to include(
+        "width" => 18,
+        "height" => 15,
+        "terrain" => a_string_matching(/\A[?#.]+\z/),
+        "entities" => include(hash_including("type" => "player"))
+      )
 
       state_response = request_json(port, Net::HTTP::Get, "/games/#{game_id}")
       expect(state_response.code).to eq "200"
@@ -35,7 +45,7 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
-  it "descends to the next dungeon level over HTTP commands" do
+  it "descends to the next dungeon level over HTTP actions" do
     with_server do |port|
       create_response = request_json(port, Net::HTTP::Post, "/games", seed: 5)
       game_id = JSON.parse(create_response.body).fetch("game_id")
@@ -52,93 +62,98 @@ RSpec.describe "text_adventures server binary" do
         "go up",
         "go right"
       ].each do |command|
-        command_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/commands", command: command)
-        expect(command_response.code).to eq "200"
-        body = JSON.parse(command_response.body)
+        action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for(command))
+        expect(action_response.code).to eq "200"
+        body = JSON.parse(action_response.body)
       end
 
-      expect(body.dig("response", "lines")).to include "You descend deeper into the ruins."
+      expect(body.fetch("events")).to include hash_including("type" => "movement", "text" => "You descend deeper into the ruins.")
+      expect(body.fetch("events").map { |event| event.fetch("text") }).not_to include(a_string_matching(/\A[?#.xE@P>]+\z/))
       expect(body.dig("state", "prompt")).to eq "Ruins L2"
       expect(body.dig("state", "dungeon", "level")).to eq 2
       expect(body.dig("state", "dungeon", "entrance_portal")).to be_nil
     end
   end
 
-  it "serves the browser frontend assets" do
+  it "leaves browser frontend assets to the web proxy" do
     with_server do |port|
       index_response = request_json(port, Net::HTTP::Get, "/")
-      expect(index_response.code).to eq "200"
-      expect(index_response["Content-Type"]).to include "text/html"
-      expect(index_response["Cache-Control"]).to eq "no-cache"
-      expect(index_response.body).to include '<main class="game-layout">'
-      expect(index_response.body).to include '<script src="/app.js"></script>'
+      expect(index_response.code).to eq "404"
+      expect(index_response["Content-Type"]).to include "application/json"
+      expect(JSON.parse(index_response.body).dig("error", "code")).to eq "not_found"
 
       styles_response = request_json(port, Net::HTTP::Get, "/styles.css")
-      expect(styles_response.code).to eq "200"
-      expect(styles_response["Content-Type"]).to include "text/css"
-      expect(styles_response["Cache-Control"]).to eq "no-cache"
-      expect(styles_response.body).to include ".game-layout"
-
-      app_response = request_json(port, Net::HTTP::Get, "/app.js")
-      expect(app_response.code).to eq "200"
-      expect(app_response["Content-Type"]).to include "text/javascript"
-      expect(app_response.body).to include 'fetch("/games"'
-
-      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json")
-      expect(enemies_response.code).to eq "200"
-      expect(enemies_response["Content-Type"]).to include "application/json"
-      expect(JSON.parse(enemies_response.body)).to include "giant_spider"
-
-      location_image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png")
-      expect(location_image_response.code).to eq "200"
-      expect(location_image_response["Content-Type"]).to include "image/png"
-
-      source_image_response = request_json(port, Net::HTTP::Get, "/assets/enemies/sources/crystal_golem.svg")
-      expect(source_image_response.code).to eq "200"
-      expect(source_image_response["Content-Type"]).to include "image/svg+xml"
-
-      readme_response = request_json(port, Net::HTTP::Get, "/assets/enemies/README.md")
-      expect(readme_response.code).to eq "200"
-      expect(readme_response["Content-Type"]).to include "text/markdown"
+      expect(styles_response.code).to eq "404"
+      expect(styles_response["Content-Type"]).to include "application/json"
     end
   end
 
-  it "versions browser asset URLs when an asset version is configured" do
-    with_server("TEXT_ADVENTURES_ASSET_VERSION" => "test-sha") do |port|
-      index_response = request_json(port, Net::HTTP::Get, "/")
-      expect(index_response.body).to include '<link rel="stylesheet" href="/styles.css?v=test-sha">'
-      expect(index_response.body).to include 'src="/assets/locations/village-hub.png?v=test-sha"'
-      expect(index_response.body).to include '<script src="/map_renderer.js?v=test-sha"></script>'
-      expect(index_response.body).to include '<script src="/app.js?v=test-sha"></script>'
-      expect(index_response["Cache-Control"]).to eq "no-cache"
+  it "serves API-prefixed game routes for proxy deployments" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      expect(create_response.code).to eq "201"
 
-      app_response = request_json(port, Net::HTTP::Get, "/app.js?v=test-sha")
-      expect(app_response.body).to include '"/assets/locations/village-hub.png?v=test-sha"'
-      expect(app_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+      action_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/actions", action_for("go ruins"))
+      expect(action_response.code).to eq "200"
+      expect(JSON.parse(action_response.body).dig("state", "scene")).to eq "ruins"
+    end
+  end
 
-      renderer_response = request_json(port, Net::HTTP::Get, "/map_renderer.js?v=test-sha")
-      expect(renderer_response.body).to include '"/assets/tilesets/original-dungeon-tileset.png?v=test-sha"'
-      expect(renderer_response.body).to include '"/assets/enemies/enemies.json?v=test-sha"'
-      expect(renderer_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+  it "serves health metadata for readiness checks" do
+    with_server do |port|
+      response = request_json(port, Net::HTTP::Get, "/api/health")
 
-      enemies_response = request_json(port, Net::HTTP::Get, "/assets/enemies/enemies.json?v=test-sha")
-      enemies = JSON.parse(enemies_response.body)
-      expect(enemies.dig("giant_spider", "sprite")).to eq "/assets/enemies/sprites/giant_spider.png?v=test-sha"
-      expect(enemies_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+      expect(response.code).to eq "200"
+      expect(JSON.parse(response.body)).to include(
+        "status" => "ok",
+        "sessions" => hash_including("active_sessions" => 0)
+      )
+    end
+  end
 
-      image_response = request_json(port, Net::HTTP::Get, "/assets/locations/village-hub.png?v=test-sha")
-      expect(image_response["Content-Type"]).to include "image/png"
-      expect(image_response["Cache-Control"]).to eq "public, max-age=31536000, immutable"
+  it "returns a controlled overload response when the connection limit is reached" do
+    with_server("TEXT_ADVENTURES_MAX_CONNECTIONS" => "1") do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+      socket = open_websocket(port, game_id)
+
+      response = request_json(port, Net::HTTP::Get, "/api/health")
+
+      expect(response.code).to eq "503"
+      expect(JSON.parse(response.body).dig("error", "code")).to eq "server_busy"
+    ensure
+      socket&.close
+    end
+  end
+
+  it "executes structured actions over HTTP" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+
+      action_response = request_json(
+        port,
+        Net::HTTP::Post,
+        "/api/games/#{game_id}/actions",
+        type: "travel",
+        destination: "ruins"
+      )
+
+      expect(action_response.code).to eq "200"
+      body = JSON.parse(action_response.body)
+      expect(body.fetch("events")).to include hash_including("type" => "travel.changed_scene", "text" => "You go to Ruins.")
+      expect(body.dig("state", "scene")).to eq "ruins"
     end
   end
 
   it "logs requests to stdout in nginx combined log style" do
     output = capture_server_output do |port|
-      response = request_json(port, Net::HTTP::Get, "/styles.css")
-      expect(response.code).to eq "200"
+      response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      expect(response.code).to eq "201"
     end
 
-    expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "GET /styles\.css HTTP/1\.1" 200 \d+ "-" "[^"]*"})
+    expect(output).to match(%r{127\.0\.0\.1 - - \[[^\]]+\] "POST /api/games HTTP/1\.1" 201 \d+ "-" "[^"]*"})
   end
 
   def with_server(env = {})
@@ -197,9 +212,11 @@ RSpec.describe "text_adventures server binary" do
   def wait_for_server(port)
     Timeout.timeout(5) do
       loop do
-        Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) { true }
-        break
-      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH
+        response = Net::HTTP.start("127.0.0.1", port, open_timeout: 0.2, read_timeout: 0.2) do |http|
+          http.get("/api/health")
+        end
+        break if response.code == "200"
+      rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Net::OpenTimeout, Net::ReadTimeout
         sleep 0.05
       end
     end
@@ -213,5 +230,40 @@ RSpec.describe "text_adventures server binary" do
       request.body = JSON.generate(body)
     end
     Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(request) }
+  end
+
+  def open_websocket(port, game_id)
+    socket = TCPSocket.new("127.0.0.1", port)
+    key = ["test-websocket-key"].pack("m0")
+    socket.write <<~REQUEST.gsub("\n", "\r\n")
+      GET /ws?game_id=#{game_id} HTTP/1.1
+      Host: 127.0.0.1:#{port}
+      Upgrade: websocket
+      Connection: Upgrade
+      Sec-WebSocket-Key: #{key}
+      Sec-WebSocket-Version: 13
+
+    REQUEST
+    read_http_headers(socket)
+    socket
+  end
+
+  def read_http_headers(socket)
+    lines = []
+    while (line = socket.gets)
+      line = line.chomp
+      break if line.empty?
+
+      lines << line
+    end
+    lines
+  end
+
+  def action_for(command)
+    verb, target = command.split(" ", 2)
+    return { type: "move", direction: target } if verb == "go" && %w[up right down left].include?(target)
+    return { type: "travel", destination: target } if verb == "go"
+
+    { type: verb }
   end
 end

@@ -44,7 +44,7 @@ module TextAdventures
       lines.concat enemy_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      Result.new(lines: lines, finished?: false, loot: [])
+      Result.new(lines: lines, finished?: false, loot: LootDrop.empty)
     end
 
     def cast_spell(player, spell)
@@ -74,7 +74,7 @@ module TextAdventures
       lines.concat enemy_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      Result.new(lines: lines, finished?: false, loot: [])
+      Result.new(lines: lines, finished?: false, loot: LootDrop.empty)
     end
 
     def cast_healing_spell(player, spell)
@@ -89,7 +89,7 @@ module TextAdventures
       lines.concat enemy_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      Result.new(lines: lines, finished?: false, loot: [])
+      Result.new(lines: lines, finished?: false, loot: LootDrop.empty)
     end
 
     def cast_cure_spell(player, spell)
@@ -107,7 +107,7 @@ module TextAdventures
       lines.concat enemy_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      Result.new(lines: lines, finished?: false, loot: [])
+      Result.new(lines: lines, finished?: false, loot: LootDrop.empty)
     end
 
     def player_defeat_result(lines)

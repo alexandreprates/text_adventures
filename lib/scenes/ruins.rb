@@ -232,7 +232,6 @@ module TextAdventures
       end
 
       def collect_loot_items(game, loot)
-        loot = LootDrop.coerce(loot)
         lines = ["You collect the loot."]
         loot.each do |item|
           game.player.inventory.add(item)
