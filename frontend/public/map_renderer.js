@@ -54,6 +54,13 @@ globalThis.DungeonMapRenderer = (() => {
     " ": "#1d2428",
     "?": "#08090b"
   };
+  const ENTITY_FALLBACK_COLORS = {
+    player: "#f8f5c7",
+    portal: "#7dd3fc",
+    stairsDown: "#f59e0b",
+    lootBag: "#facc15",
+    goblin: "#f87171"
+  };
   const FOG_DOTS = [
     [3, 4, 10, 0.28],
     [15, 2, 12, 0.2],
@@ -95,7 +102,7 @@ globalThis.DungeonMapRenderer = (() => {
             drawSymbol(context, tileset, renderer.ready, symbol, x, y);
           });
         });
-        drawEntities(context, renderer, enemyImages, entities);
+        drawEntities(context, renderer, enemyImages, tileset, entities);
 
         return true;
       },
@@ -221,15 +228,15 @@ globalThis.DungeonMapRenderer = (() => {
       });
   }
 
-  function drawEntities(context, renderer, enemyImages, entities) {
+  function drawEntities(context, renderer, enemyImages, tileset, entities) {
     [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
       if (entity.type === "enemy") {
-        drawEnemy(context, renderer, enemyImages, entity);
+        drawEnemy(context, renderer, enemyImages, tileset, entity);
         return;
       }
 
       const tileName = ENTITY_TILES[entity.type];
-      if (tileName) drawTile(context, null, tileName, entity.x, entity.y);
+      if (tileName) drawTile(context, renderer.ready ? tileset : null, tileName, entity.x, entity.y);
     });
   }
 
@@ -254,14 +261,14 @@ globalThis.DungeonMapRenderer = (() => {
     }[type] || 0;
   }
 
-  function drawEnemy(context, renderer, enemyImages, enemy) {
+  function drawEnemy(context, renderer, enemyImages, tileset, enemy) {
     const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
     if (image?.complete && image.naturalWidth > 0) {
       drawEnemyImage(context, image, enemy.x, enemy.y);
       return;
     }
 
-    drawTile(context, null, "goblin", enemy.x, enemy.y);
+    drawTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {
@@ -347,7 +354,7 @@ globalThis.DungeonMapRenderer = (() => {
   function drawTile(context, tileset, tileName, x, y) {
     const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.fog;
     if (!tileset) {
-      context.fillStyle = FALLBACK_COLORS.E;
+      context.fillStyle = ENTITY_FALLBACK_COLORS[tileName] || FALLBACK_COLORS["?"];
       context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       return;
     }
