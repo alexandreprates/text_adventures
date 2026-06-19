@@ -15,23 +15,23 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Light Armor:
-        1x Padded Armor (Light, Def: 12) - 12g
-        1x Leather Armor (Light, Def: 20) - 20g
-        1x Studded Leather (Light, Def: 24) - 35g
-        1x Scout Mail (Light, Def: 30) - 55g
-        1x Silken Guard (Light, Def: 38) - 95g
+        1x Padded Armor (Light, Def: 8) - 12g
+        1x Leather Armor (Light, Def: 12) - 20g
+        1x Studded Leather (Light, Def: 16) - 35g
+        1x Scout Mail (Light, Def: 20) - 55g
+        1x Silken Guard (Light, Def: 24) - 95g
        Medium Armor:
-        1x Chain Shirt (Medium, Def: 28) - 45g
-        1x Scale Mail (Medium, Def: 36) - 70g
-        1x Breastplate (Medium, Def: 44) - 110g
-        1x Brigandine (Medium, Def: 52) - 150g
-        1x Half Plate (Medium, Def: 62) - 210g
+        1x Chain Shirt (Medium, Def: 18) - 45g
+        1x Scale Mail (Medium, Def: 23) - 70g
+        1x Breastplate (Medium, Def: 28) - 110g
+        1x Brigandine (Medium, Def: 34) - 150g
+        1x Half Plate (Medium, Def: 40) - 210g
        Heavy Armor:
-        1x Ring Mail (Heavy, Def: 42) - 90g
-        1x Chain Mail (Heavy, Def: 54) - 135g
-        1x Splint Armor (Heavy, Def: 66) - 190g
-        1x Plate Armor (Heavy, Def: 78) - 280g
-        1x Dragon Plate (Heavy, Def: 95) - 500g
+        1x Ring Mail (Heavy, Def: 26) - 90g
+        1x Chain Mail (Heavy, Def: 33) - 135g
+        1x Splint Armor (Heavy, Def: 41) - 190g
+        1x Plate Armor (Heavy, Def: 50) - 280g
+        1x Dragon Plate (Heavy, Def: 60) - 500g
     TEXT
   end
 
@@ -47,13 +47,13 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
       [1x Leather Armor added to inventory]
       [your gold is now 80]
     TEXT
-    expect(armor).to have_attributes(display_name: "Leather Armor", defense: 20, armor_class: :light)
+    expect(armor).to have_attributes(display_name: "Leather Armor", defense: 12, armor_class: :light)
     expect(equip_result).to have_attributes(success?: true, message: "Equipped Leather Armor.")
     expect(game.player.equipped_armor).to eq armor
   end
 
   it "buys armor from player inventory" do
-    armor = TextAdventures::Item.armor("Leather Armor", price: 20, defense: 20)
+    armor = TextAdventures::Item.armor("Leather Armor", price: 20, defense: 12)
     game.player.inventory.add(armor)
 
     expect(game.handle("sell leather armor")).to include "I can give you 13g for this Leather Armor."

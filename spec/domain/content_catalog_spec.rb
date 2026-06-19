@@ -7,8 +7,8 @@ RSpec.describe TextAdventures::ContentCatalog do
         display_name: "Spear",
         type: :weapon,
         price: 50,
-        attack: 22,
-        defense: 5,
+        attack: 15,
+        defense: 3,
         weapon_class: :spear
       )
     end
@@ -24,7 +24,7 @@ RSpec.describe TextAdventures::ContentCatalog do
       expect(described_class.item("chain_mail")).to have_attributes(
         display_name: "Chain Mail",
         type: :armor,
-        defense: 54,
+        defense: 33,
         armor_class: :heavy
       )
     end
@@ -50,8 +50,8 @@ RSpec.describe TextAdventures::ContentCatalog do
         "Bastard Sword",
         "Longsword",
         "Greatsword",
-        "Spear",
         "Hunting Spear",
+        "Spear",
         "Iron Spear",
         "Halberd",
         "Dragon Lance",

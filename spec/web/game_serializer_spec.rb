@@ -24,7 +24,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       level: 1,
       xp: 0,
       attack: 11,
-      defense: 20,
+      defense: 12,
       statuses: [],
       spells: []
     )
@@ -41,7 +41,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       name: "leather armor",
       display_name: "Leather Armor",
       attack: 0,
-      defense: 20
+      defense: 12
     )
     expect(state.dig(:player, :skills, "swordsmanship")).to eq(
       level: 1,

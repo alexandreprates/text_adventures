@@ -50,7 +50,7 @@ RSpec.describe TextAdventures::Battle do
         random: BattleSequenceRandom.new([99, 0, 0])
       ).attack(exposed_player)
 
-      expect(defended_player.health.current).to eq 13
+      expect(defended_player.health.current).to eq 12
       expect(exposed_player.health.current).to eq 10
     end
 

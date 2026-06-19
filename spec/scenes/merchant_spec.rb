@@ -156,7 +156,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
        5x Potion of Heal (Recovery 20 Health)
       Equipped:
        weapon: Sword (Atk: 10)
-       armor: Leather Armor (Def: 20)
+       armor: Leather Armor (Def: 12)
 
       [pending confirmation: agree/no]
     TEXT

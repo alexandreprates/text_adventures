@@ -10,54 +10,54 @@ items:
     type: weapon
     name: Bastard Sword
     price: 30
-    attack: 25
+    attack: 14
     weapon_class: sword
   longsword:
     type: weapon
     name: Longsword
     price: 75
-    attack: 32
+    attack: 18
     weapon_class: sword
   greatsword:
     type: weapon
     name: Greatsword
     price: 120
-    attack: 40
+    attack: 23
     weapon_class: sword
   spear:
     type: weapon
     name: Spear
     price: 50
-    attack: 22
-    defense: 5
+    attack: 15
+    defense: 3
     weapon_class: spear
   hunting_spear:
     type: weapon
     name: Hunting Spear
     price: 25
-    attack: 16
+    attack: 12
     defense: 2
     weapon_class: spear
   iron_spear:
     type: weapon
     name: Iron Spear
     price: 65
-    attack: 28
-    defense: 6
+    attack: 19
+    defense: 4
     weapon_class: spear
   halberd:
     type: weapon
     name: Halberd
     price: 110
-    attack: 36
-    defense: 8
+    attack: 24
+    defense: 5
     weapon_class: spear
   dragon_lance:
     type: weapon
     name: Dragon Lance
     price: 220
-    attack: 48
-    defense: 10
+    attack: 29
+    defense: 6
     weapon_class: spear
   rusty_dagger:
     type: weapon
@@ -69,121 +69,121 @@ items:
     type: weapon
     name: Iron Dagger
     price: 18
-    attack: 12
+    attack: 10
     weapon_class: dagger
   curved_dagger:
     type: weapon
     name: Curved Dagger
     price: 35
-    attack: 18
+    attack: 14
     weapon_class: dagger
   shadow_dagger:
     type: weapon
     name: Shadow Dagger
     price: 90
-    attack: 30
+    attack: 20
     weapon_class: dagger
   assassin_dagger:
     type: weapon
     name: Assassin Dagger
     price: 160
-    attack: 42
+    attack: 26
     weapon_class: dagger
   kings_nep_sword:
     type: weapon
     name: King's Nep Sword
     price: 500
-    attack: 50
+    attack: 30
     weapon_class: sword
   leather_armor:
     type: armor
     name: Leather Armor
     price: 20
-    defense: 20
+    defense: 12
     armor_class: light
   padded_armor:
     type: armor
     name: Padded Armor
     price: 12
-    defense: 12
+    defense: 8
     armor_class: light
   studded_leather:
     type: armor
     name: Studded Leather
     price: 35
-    defense: 24
+    defense: 16
     armor_class: light
   scout_mail:
     type: armor
     name: Scout Mail
     price: 55
-    defense: 30
+    defense: 20
     armor_class: light
   silken_guard:
     type: armor
     name: Silken Guard
     price: 95
-    defense: 38
+    defense: 24
     armor_class: light
   chain_shirt:
     type: armor
     name: Chain Shirt
     price: 45
-    defense: 28
+    defense: 18
     armor_class: medium
   scale_mail:
     type: armor
     name: Scale Mail
     price: 70
-    defense: 36
+    defense: 23
     armor_class: medium
   breastplate:
     type: armor
     name: Breastplate
     price: 110
-    defense: 44
+    defense: 28
     armor_class: medium
   brigandine:
     type: armor
     name: Brigandine
     price: 150
-    defense: 52
+    defense: 34
     armor_class: medium
   half_plate:
     type: armor
     name: Half Plate
     price: 210
-    defense: 62
+    defense: 40
     armor_class: medium
   ring_mail:
     type: armor
     name: Ring Mail
     price: 90
-    defense: 42
+    defense: 26
     armor_class: heavy
   chain_mail:
     type: armor
     name: Chain Mail
     price: 135
-    defense: 54
+    defense: 33
     armor_class: heavy
   splint_armor:
     type: armor
     name: Splint Armor
     price: 190
-    defense: 66
+    defense: 41
     armor_class: heavy
   plate_armor:
     type: armor
     name: Plate Armor
     price: 280
-    defense: 78
+    defense: 50
     armor_class: heavy
   dragon_plate:
     type: armor
     name: Dragon Plate
     price: 500
-    defense: 95
+    defense: 60
     armor_class: heavy
   potion_of_heal:
     type: potion

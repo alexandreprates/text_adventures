@@ -66,7 +66,7 @@ module TextAdventures
     DEFAULT_BASE_DEFENSE = 0
     STARTER_POTION_QUANTITY = 5
     STARTER_WEAPON = Equipment.new(name: "Sword", attack: 10, defense: 0).freeze
-    STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 20).freeze
+    STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 12).freeze
 
     attr_reader :health
     attr_reader :spells

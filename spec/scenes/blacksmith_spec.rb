@@ -16,22 +16,22 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
       Here, take a look at these goods!
        Swords:
         1x Sword (Atk: 10) - 15g
-        1x Bastard Sword (Atk: 25) - 30g
-        1x Longsword (Atk: 32) - 75g
-        1x Greatsword (Atk: 40) - 120g
-        1x King's Nep Sword (Atk: 50) - 500g
+        1x Bastard Sword (Atk: 14) - 30g
+        1x Longsword (Atk: 18) - 75g
+        1x Greatsword (Atk: 23) - 120g
+        1x King's Nep Sword (Atk: 30) - 500g
        Spears and Polearms:
-        1x Spear (Atk: 22, Def: 5) - 50g
-        1x Hunting Spear (Atk: 16, Def: 2) - 25g
-        1x Iron Spear (Atk: 28, Def: 6) - 65g
-        1x Halberd (Atk: 36, Def: 8) - 110g
-        1x Dragon Lance (Atk: 48, Def: 10) - 220g
+        1x Hunting Spear (Atk: 12, Def: 2) - 25g
+        1x Spear (Atk: 15, Def: 3) - 50g
+        1x Iron Spear (Atk: 19, Def: 4) - 65g
+        1x Halberd (Atk: 24, Def: 5) - 110g
+        1x Dragon Lance (Atk: 29, Def: 6) - 220g
        Daggers:
         1x Rusty Dagger (Atk: 6) - 8g
-        1x Iron Dagger (Atk: 12) - 18g
-        1x Curved Dagger (Atk: 18) - 35g
-        1x Shadow Dagger (Atk: 30) - 90g
-        1x Assassin Dagger (Atk: 42) - 160g
+        1x Iron Dagger (Atk: 10) - 18g
+        1x Curved Dagger (Atk: 14) - 35g
+        1x Shadow Dagger (Atk: 20) - 90g
+        1x Assassin Dagger (Atk: 26) - 160g
     TEXT
   end
 

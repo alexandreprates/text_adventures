@@ -95,7 +95,7 @@ RSpec.describe TextAdventures::Game do
          7x Potion of Heal (Recovery 20 Health)
         Equipped:
          weapon: Sword (Atk: 10)
-         armor: Leather Armor (Def: 20)
+         armor: Leather Armor (Def: 12)
       TEXT
       expect(scene.handled_command).to be_nil
     end
