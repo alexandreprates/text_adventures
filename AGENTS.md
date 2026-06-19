@@ -9,18 +9,6 @@ These instructions apply to this repository.
 - Write code, comments, documentation, commit messages, task notes, prompts, and persistent memory entries in English.
 - Keep identifiers, filenames, branches, classes, methods, variables, and test names in English.
 
-## Spoken Updates
-
-- Speak every user-facing message sent during or after a task.
-- Use the helper when available:
-
-```sh
-~/.codex/scripts/speak-summary "Short Brazilian Portuguese message."
-```
-
-- Completion spoken messages should start with `Tarefa concluída!`.
-- Do not speak logs, command output, secrets, tokens, private data, or long explanations.
-
 ## Repository Practices
 
 - Prefer existing project patterns over new abstractions.
