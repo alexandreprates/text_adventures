@@ -530,6 +530,57 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.enemies).to eq({})
     end
 
+    it "does not place the floor descent in blocks adjacent to the entrance" do
+      edge_dungeon = described_class.new(
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 99])
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to be_success
+      expect(edge_dungeon.floor_exit_position).to be_nil
+    end
+
+    it "can place the floor descent once exploration reaches distance two" do
+      edge_dungeon = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 0] => "four_exits"
+        },
+        current_block_position: described_class::BlockPosition.new(x: 1, y: 0),
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 24, 99])
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to be_success
+      expect(edge_dungeon.floor_exit_position).to_not be_nil
+      expect(edge_dungeon.floor_exit_position.x).to be >= 12
+    end
+
+    it "guarantees the floor descent when exploration reaches distance five" do
+      edge_dungeon = described_class.new(
+        revealed_blocks: {
+          [0, 0] => "right_exit",
+          [1, 0] => "four_exits",
+          [2, 0] => "four_exits",
+          [3, 0] => "four_exits",
+          [4, 0] => "four_exits"
+        },
+        current_block_position: described_class::BlockPosition.new(x: 4, y: 0),
+        player_position: described_class::Position.new(x: 5, y: 2),
+        random: SequenceRandom.new([0, 99, 99])
+      )
+
+      result = edge_dungeon.move("right")
+
+      expect(result).to be_success
+      expect(edge_dungeon.floor_exit_position).to_not be_nil
+      expect(edge_dungeon.floor_exit_position.x).to be >= 30
+    end
+
     it "spawns enemies from the current dungeon level pool" do
       edge_dungeon = described_class.new(
         level: 6,

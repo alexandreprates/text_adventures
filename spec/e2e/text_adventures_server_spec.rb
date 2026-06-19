@@ -60,6 +60,11 @@ RSpec.describe "text_adventures server binary" do
         "go right",
         "go up",
         "go up",
+        "go up",
+        "go right",
+        "go up",
+        "go up",
+        "go right",
         "go right"
       ].each do |command|
         action_response = request_json(port, Net::HTTP::Post, "/games/#{game_id}/actions", action_for(command))

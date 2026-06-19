@@ -16,6 +16,8 @@ module TextAdventures
     FLOOR = ".".freeze
     UNREVEALED = "?".freeze
     ENEMY_SPAWN_CHANCE = 50
+    DESCENT_MINIMUM_BLOCK_DISTANCE = 2
+    DESCENT_CHANCE_PER_BLOCK_DISTANCE = 25
     VIEWPORT_BLOCK_RADIUS = 1
     RENDER_VIEWS = %i[viewport full].freeze
     DIRECTIONS = {
@@ -468,8 +470,20 @@ module TextAdventures
 
     def maybe_place_descent_in_block(block_position, block, direction)
       return if floor_exit_position
+      return unless descent_roll_succeeds?(block_position)
 
       @floor_exit_position = descent_position_in_block(block_position, block, direction)
+    end
+
+    def descent_roll_succeeds?(block_position)
+      chance = descent_chance_for(block_position)
+      chance.positive? && random.rand(100) < chance
+    end
+
+    def descent_chance_for(block_position)
+      distance_from_entrance = distance(block_position.key, DEFAULT_BLOCK_POSITION.key)
+      distance_steps = distance_from_entrance - DESCENT_MINIMUM_BLOCK_DISTANCE + 1
+      [[distance_steps, 0].max * DESCENT_CHANCE_PER_BLOCK_DISTANCE, 100].min
     end
 
     def descent_position_in_block(block_position, block, direction)
