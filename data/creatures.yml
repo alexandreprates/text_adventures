@@ -539,7 +539,7 @@ creatures:
         min: 3
         max: 6
     loot:
-    - silken_guard
+    - studded_leather
     status_effects: []
     xp_reward: 51
     common_loot:
@@ -550,7 +550,7 @@ creatures:
     rare_loot:
       chance: 10
       items:
-      - silken_guard
+      - studded_leather
     gold:
       min: 1
       max: 6

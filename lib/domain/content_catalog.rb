@@ -143,14 +143,16 @@ module TextAdventures
           price: price,
           attack: definition.fetch("attack"),
           defense: definition.fetch("defense", 0),
-          weapon_class: definition["weapon_class"]
+          weapon_class: definition["weapon_class"],
+          min_level: definition.fetch("min_level", 1)
         )
       when "armor"
         Item.armor(
           name,
           price: price,
           defense: definition.fetch("defense"),
-          armor_class: definition["armor_class"]
+          armor_class: definition["armor_class"],
+          min_level: definition.fetch("min_level", 1)
         )
       when "potion"
         Item.potion(name, price: price, recovery: definition.fetch("recovery"))

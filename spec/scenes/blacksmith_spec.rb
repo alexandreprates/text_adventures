@@ -11,7 +11,22 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     expect(scene.display_name).to eq "Blacksmith"
   end
 
-  it "shows the expanded weapon stock" do
+  it "shows weapon stock available to a starting player" do
+    expect(game.handle("show")).to eq <<~TEXT.chomp
+      Here, take a look at these goods!
+       Swords:
+        1x Sword (Atk: 10) - 15g
+       Spears and Polearms:
+        1x Hunting Spear (Atk: 12, Def: 2) - 25g
+       Daggers:
+        1x Rusty Dagger (Atk: 6) - 8g
+        1x Iron Dagger (Atk: 10) - 18g
+    TEXT
+  end
+
+  it "shows the expanded weapon stock to a high-level player" do
+    game.player.gain_skill_xp(:swordsmanship, 3_200)
+
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Swords:
@@ -42,22 +57,24 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     expect(game.current_scene_name).to eq :town
   end
 
-  it "buys Spear and reduces player gold" do
-    expect(game.handle("buy spear")).to include "Excellent choice. It is yours for 50g."
+  it "buys available starter weapons and reduces player gold" do
+    expect(game.handle("buy hunting spear")).to include "Excellent choice. It is yours for 25g."
 
     response = game.handle("agree")
 
     expect(response).to eq <<~TEXT.chomp
-      You bought Spear.
-      [1x Spear added to inventory]
-      [your gold is now 50]
+      You bought Hunting Spear.
+      [1x Hunting Spear added to inventory]
+      [your gold is now 75]
     TEXT
-    expect(game.player.gold).to eq 50
-    expect(game.player.inventory.quantity("spear")).to eq 1
+    expect(game.player.gold).to eq 75
+    expect(game.player.inventory.quantity("hunting spear")).to eq 1
   end
 
-  it "cannot buy King's Nep Sword without enough gold" do
-    expect(game.handle("buy king's nep sword")).to eq "Sorry, but you do not have enough money for this."
+  it "cannot buy weapons before their minimum level" do
+    game.player.gold = 1_000
+
+    expect(game.handle("buy king's nep sword")).to eq "I do not have king's nep sword for sale."
     expect(game.pending_confirmation).to be_nil
   end
 

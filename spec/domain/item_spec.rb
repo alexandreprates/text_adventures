@@ -14,15 +14,16 @@ RSpec.describe TextAdventures::Item do
         defense: 0,
         recovery: 0,
         spell: nil,
-        weapon_class: :sword
+        weapon_class: :sword,
+        min_level: 1
       )
       expect(item).to be_weapon
     end
 
     it "can represent a weapon with defense" do
-      spear = described_class.weapon("Spear", price: 50, attack: 22, defense: 5, weapon_class: :spear)
+      spear = described_class.weapon("Spear", price: 50, attack: 22, defense: 5, weapon_class: :spear, min_level: 2)
 
-      expect(spear).to have_attributes(attack: 22, defense: 5, weapon_class: :spear)
+      expect(spear).to have_attributes(attack: 22, defense: 5, weapon_class: :spear, min_level: 2)
     end
   end
 
@@ -37,7 +38,8 @@ RSpec.describe TextAdventures::Item do
         type: :armor,
         attack: 0,
         defense: 20,
-        armor_class: :light
+        armor_class: :light,
+        min_level: 1
       )
       expect(item).to be_armor
     end

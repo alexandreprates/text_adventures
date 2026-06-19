@@ -6,24 +6,28 @@ items:
     price: 15
     attack: 10
     weapon_class: sword
+    min_level: 1
   bastard_sword:
     type: weapon
     name: Bastard Sword
     price: 30
     attack: 14
     weapon_class: sword
+    min_level: 2
   longsword:
     type: weapon
     name: Longsword
     price: 75
     attack: 18
     weapon_class: sword
+    min_level: 3
   greatsword:
     type: weapon
     name: Greatsword
     price: 120
     attack: 23
     weapon_class: sword
+    min_level: 5
   spear:
     type: weapon
     name: Spear
@@ -31,6 +35,7 @@ items:
     attack: 15
     defense: 3
     weapon_class: spear
+    min_level: 2
   hunting_spear:
     type: weapon
     name: Hunting Spear
@@ -38,6 +43,7 @@ items:
     attack: 12
     defense: 2
     weapon_class: spear
+    min_level: 1
   iron_spear:
     type: weapon
     name: Iron Spear
@@ -45,6 +51,7 @@ items:
     attack: 19
     defense: 4
     weapon_class: spear
+    min_level: 3
   halberd:
     type: weapon
     name: Halberd
@@ -52,6 +59,7 @@ items:
     attack: 24
     defense: 5
     weapon_class: spear
+    min_level: 5
   dragon_lance:
     type: weapon
     name: Dragon Lance
@@ -59,132 +67,154 @@ items:
     attack: 29
     defense: 6
     weapon_class: spear
+    min_level: 7
   rusty_dagger:
     type: weapon
     name: Rusty Dagger
     price: 8
     attack: 6
     weapon_class: dagger
+    min_level: 1
   iron_dagger:
     type: weapon
     name: Iron Dagger
     price: 18
     attack: 10
     weapon_class: dagger
+    min_level: 1
   curved_dagger:
     type: weapon
     name: Curved Dagger
     price: 35
     attack: 14
     weapon_class: dagger
+    min_level: 2
   shadow_dagger:
     type: weapon
     name: Shadow Dagger
     price: 90
     attack: 20
     weapon_class: dagger
+    min_level: 5
   assassin_dagger:
     type: weapon
     name: Assassin Dagger
     price: 160
     attack: 26
     weapon_class: dagger
+    min_level: 7
   kings_nep_sword:
     type: weapon
     name: King's Nep Sword
     price: 500
     attack: 30
     weapon_class: sword
+    min_level: 9
   leather_armor:
     type: armor
     name: Leather Armor
     price: 20
     defense: 12
     armor_class: light
+    min_level: 1
   padded_armor:
     type: armor
     name: Padded Armor
     price: 12
     defense: 8
     armor_class: light
+    min_level: 1
   studded_leather:
     type: armor
     name: Studded Leather
     price: 35
     defense: 16
     armor_class: light
+    min_level: 2
   scout_mail:
     type: armor
     name: Scout Mail
     price: 55
     defense: 20
     armor_class: light
+    min_level: 3
   silken_guard:
     type: armor
     name: Silken Guard
     price: 95
     defense: 24
     armor_class: light
+    min_level: 5
   chain_shirt:
     type: armor
     name: Chain Shirt
     price: 45
     defense: 18
     armor_class: medium
+    min_level: 2
   scale_mail:
     type: armor
     name: Scale Mail
     price: 70
     defense: 23
     armor_class: medium
+    min_level: 3
   breastplate:
     type: armor
     name: Breastplate
     price: 110
     defense: 28
     armor_class: medium
+    min_level: 5
   brigandine:
     type: armor
     name: Brigandine
     price: 150
     defense: 34
     armor_class: medium
+    min_level: 7
   half_plate:
     type: armor
     name: Half Plate
     price: 210
     defense: 40
     armor_class: medium
+    min_level: 7
   ring_mail:
     type: armor
     name: Ring Mail
     price: 90
     defense: 26
     armor_class: heavy
+    min_level: 5
   chain_mail:
     type: armor
     name: Chain Mail
     price: 135
     defense: 33
     armor_class: heavy
+    min_level: 7
   splint_armor:
     type: armor
     name: Splint Armor
     price: 190
     defense: 41
     armor_class: heavy
+    min_level: 7
   plate_armor:
     type: armor
     name: Plate Armor
     price: 280
     defense: 50
     armor_class: heavy
+    min_level: 9
   dragon_plate:
     type: armor
     name: Dragon Plate
     price: 500
     defense: 60
     armor_class: heavy
+    min_level: 9
   potion_of_heal:
     type: potion
     name: Potion of Heal

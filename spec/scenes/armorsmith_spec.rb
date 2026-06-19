@@ -11,7 +11,18 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
     expect(scene.display_name).to eq "Armorsmith"
   end
 
-  it "shows armor stock" do
+  it "shows armor stock available to a starting player" do
+    expect(game.handle("show")).to eq <<~TEXT.chomp
+      Here, take a look at these goods!
+       Light Armor:
+        1x Padded Armor (Light, Def: 8) - 12g
+        1x Leather Armor (Light, Def: 12) - 20g
+    TEXT
+  end
+
+  it "shows the expanded armor stock to a high-level player" do
+    game.player.gain_skill_xp(:swordsmanship, 3_200)
+
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Light Armor:

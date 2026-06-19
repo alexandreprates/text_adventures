@@ -9,7 +9,8 @@ RSpec.describe TextAdventures::ContentCatalog do
         price: 50,
         attack: 15,
         defense: 3,
-        weapon_class: :spear
+        weapon_class: :spear,
+        min_level: 2
       )
     end
 
@@ -25,7 +26,8 @@ RSpec.describe TextAdventures::ContentCatalog do
         display_name: "Chain Mail",
         type: :armor,
         defense: 33,
-        armor_class: :heavy
+        armor_class: :heavy,
+        min_level: 7
       )
     end
 

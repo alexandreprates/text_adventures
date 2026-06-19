@@ -19,6 +19,12 @@ RSpec.describe "combat balance" do
     6 => 2.0..5.0,
     9 => 3.0..6.0
   }.freeze
+  DUNGEON_POOL_LEVEL_CAPS = {
+    1 => 2,
+    3 => 5,
+    6 => 8,
+    9 => 999
+  }.freeze
 
   it "keeps enemy average damage meaningful against armor dropped in the same level band" do
     LEVEL_POOL_SAMPLES.each do |level, expected_damage_range|
@@ -65,6 +71,28 @@ RSpec.describe "combat balance" do
     expect(stock_values("armorsmith", :heavy, :defense)).to eq [26, 33, 41, 50, 60]
   end
 
+  it "keeps shop equipment availability aligned to item tiers" do
+    expect(stock_values("blacksmith", :sword, :min_level)).to eq [1, 2, 3, 5, 9]
+    expect(stock_values("blacksmith", :spear, :min_level)).to eq [1, 2, 3, 5, 7]
+    expect(stock_values("blacksmith", :dagger, :min_level)).to eq [1, 1, 2, 5, 7]
+
+    expect(stock_values("armorsmith", :light, :min_level)).to eq [1, 1, 2, 3, 5]
+    expect(stock_values("armorsmith", :medium, :min_level)).to eq [2, 3, 5, 7, 7]
+    expect(stock_values("armorsmith", :heavy, :min_level)).to eq [5, 7, 7, 9, 9]
+  end
+
+  it "does not drop equipment above the dungeon pool level band" do
+    DUNGEON_POOL_LEVEL_CAPS.each do |level, max_item_level|
+      creature_ids = TextAdventures::ContentCatalog.creature_ids_for_level(level)
+      oversized_drops = creature_ids.flat_map do |creature_id|
+        creature_equipment_drops(creature_id).select { |item| item.min_level > max_item_level }
+                                    .map { |item| "#{creature_id}: #{item.display_name} requires level #{item.min_level}" }
+      end
+
+      expect(oversized_drops).to eq []
+    end
+  end
+
   def armor_drop_baseline_defense(creature_ids)
     armor_defenses = creature_ids.flat_map do |creature_id|
       TextAdventures::ContentCatalog.creature(creature_id).loot_table
@@ -101,5 +129,12 @@ RSpec.describe "combat balance" do
     TextAdventures::ContentCatalog.shop(shop_id).fetch(:stock)
                   .select { |item| item.weapon_class == equipment_class || item.armor_class == equipment_class }
                   .map(&attribute)
+  end
+
+  def creature_equipment_drops(creature_id)
+    creature = TextAdventures::ContentCatalog.creature(creature_id)
+    items = creature.loot_table + creature.loot_profile.common_items + creature.loot_profile.rare_items
+
+    items.select { |item| item.weapon? || item.armor? }.uniq(&:command_name)
   end
 end

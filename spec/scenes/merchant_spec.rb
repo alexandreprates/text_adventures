@@ -12,6 +12,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
 
   let(:sword) { TextAdventures::Item.weapon("Sword", price: 15, attack: 10) }
   let(:spear) { TextAdventures::Item.weapon("Spear", price: 50, attack: 22, defense: 5) }
+  let(:halberd) { TextAdventures::Item.weapon("Halberd", price: 110, attack: 24, defense: 5, min_level: 5) }
   let(:armor) { TextAdventures::Item.armor("Leather Armor", price: 20, defense: 20) }
   let(:game) { TextAdventures::Game.new(current_scene: merchant) }
 
@@ -54,6 +55,27 @@ RSpec.describe TextAdventures::Scenes::Merchant do
         1x Sword (Atk: 10) - 15g
         1x Spear (Atk: 22, Def: 5) - 50g
     TEXT
+  end
+
+  it "hides stock above the player level" do
+    gated_merchant = described_class.new(
+      name: :blacksmith,
+      display_name: "Blacksmith",
+      stock: [sword, halberd],
+      accepted_types: [:weapon]
+    )
+    gated_game = TextAdventures::Game.new(current_scene: gated_merchant)
+
+    expect(gated_game.handle("show")).to eq <<~TEXT.chomp
+      Here, take a look at these goods!
+       Weapons:
+        1x Sword (Atk: 10) - 15g
+    TEXT
+    expect(gated_game.handle("buy halberd")).to eq "I do not have halberd for sale."
+
+    gated_game.player.gain_skill_xp(:spearmanship, 800)
+
+    expect(gated_game.handle("show")).to include "1x Halberd (Atk: 24, Def: 5) - 110g"
   end
 
   it "starts a buy confirmation for available stock" do

@@ -18,7 +18,7 @@ module TextAdventures
 
         case command.verb
         when :show
-          show_stock
+          show_stock(game)
         when :buy
           request_buy(game, command.target)
         when :sell
@@ -51,14 +51,15 @@ module TextAdventures
         Response.new("You return to the town of Nee'Peh.")
       end
 
-      def show_stock
-        return Response.new("There is nothing for sale.") if stock.empty?
+      def show_stock(game)
+        available_stock = stock_available_to(game.player)
+        return Response.new("There is nothing for sale.") if available_stock.empty?
 
-        Response.new(["Here, take a look at these goods!"] + grouped_stock_lines)
+        Response.new(["Here, take a look at these goods!"] + grouped_stock_lines(available_stock))
       end
 
       def request_buy(game, query)
-        item = find_stock(query)
+        item = find_stock(game.player, query)
         return Response.new("I do not have #{query} for sale.") unless item
         return Response.new("Sorry, but you do not have enough money for this.") if game.player.gold < item.price
 
@@ -139,8 +140,12 @@ module TextAdventures
         Response.new("Maybe another time.")
       end
 
-      def find_stock(query)
-        stock.find { |item| item.matches?(query) }
+      def find_stock(player, query)
+        stock_available_to(player).find { |item| item.matches?(query) }
+      end
+
+      def stock_available_to(player)
+        stock.select { |item| item.min_level <= player.overall_level }
       end
 
       def accepts?(item)
@@ -161,8 +166,8 @@ module TextAdventures
         "1x #{item.display_name}#{suffix} - #{item.price}g"
       end
 
-      def grouped_stock_lines
-        stock.each_with_object({}) do |item, groups|
+      def grouped_stock_lines(items)
+        items.each_with_object({}) do |item, groups|
           groups[group_label(item)] ||= []
           groups[group_label(item)] << item
         end.flat_map do |label, items|

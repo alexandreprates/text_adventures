@@ -4,21 +4,22 @@ module TextAdventures
 
     attr_reader :name, :display_name, :price, :type,
                 :attack, :defense, :recovery, :spell, :armor_class,
-                :weapon_class
+                :weapon_class, :min_level
 
-    def self.weapon(name, price:, attack:, defense: 0, weapon_class: nil)
+    def self.weapon(name, price:, attack:, defense: 0, weapon_class: nil, min_level: 1)
       new(
         name: name,
         price: price,
         type: :weapon,
         attack: attack,
         defense: defense,
-        weapon_class: weapon_class
+        weapon_class: weapon_class,
+        min_level: min_level
       )
     end
 
-    def self.armor(name, price:, defense:, armor_class: nil)
-      new(name: name, price: price, type: :armor, defense: defense, armor_class: armor_class)
+    def self.armor(name, price:, defense:, armor_class: nil, min_level: 1)
+      new(name: name, price: price, type: :armor, defense: defense, armor_class: armor_class, min_level: min_level)
     end
 
     def self.potion(name, price:, recovery:)
@@ -47,7 +48,8 @@ module TextAdventures
       recovery: 0,
       spell: nil,
       armor_class: nil,
-      weapon_class: nil
+      weapon_class: nil,
+      min_level: 1
     )
       @name = self.class.normalize_name(name)
       @display_name = display_name
@@ -59,6 +61,7 @@ module TextAdventures
       @spell = spell && self.class.normalize_name(spell)
       @armor_class = armor_class && self.class.normalize_name(armor_class).to_sym
       @weapon_class = weapon_class && self.class.normalize_name(weapon_class).to_sym
+      @min_level = [min_level.to_i, 1].max
     end
 
     def command_name
