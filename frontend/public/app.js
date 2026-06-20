@@ -505,7 +505,7 @@ function renderContextCommands(state = currentState) {
       button.title = accessibleLabel;
     }
     if (kind) button.dataset.kind = kind;
-    button.addEventListener("click", () => fillCommandInput(command));
+    button.addEventListener("click", () => submitCommand(command));
     elements.contextCommands.appendChild(button);
   });
 }
@@ -762,13 +762,17 @@ function recallCommand(direction) {
   elements.commandInput.setSelectionRange(elements.commandInput.value.length, elements.commandInput.value.length);
 }
 
+function submitCommand(command) {
+  const normalizedCommand = command.trim();
+  if (!normalizedCommand) return;
+  recordCommand(normalizedCommand);
+  elements.commandInput.value = "";
+  runCommand(normalizedCommand);
+}
+
 elements.commandForm.addEventListener("submit", event => {
   event.preventDefault();
-  const command = elements.commandInput.value.trim();
-  if (!command) return;
-  recordCommand(command);
-  elements.commandInput.value = "";
-  runCommand(command);
+  submitCommand(elements.commandInput.value);
 });
 
 elements.commandInput.addEventListener("keydown", event => {
