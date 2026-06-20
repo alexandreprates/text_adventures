@@ -20,6 +20,12 @@ These instructions apply to this repository.
 - Avoid destructive git commands such as `git reset --hard` or `git checkout --`.
 - Keep commits focused and use English commit messages.
 
+## Tooling Guidance
+
+- Use Serena as the default way to inspect code references, symbol relationships, implementations, and diagnostics before falling back to plain text searches.
+- Use Context7 for implementation examples, current library/framework guidance, and API usage patterns before relying on memory or ad hoc examples.
+- Prefer Serena for repository-local understanding and Context7 for external library or framework guidance.
+
 ## Development Cycle
 
 When asked to implement a task, use this loop until the requested work is fully handled:
