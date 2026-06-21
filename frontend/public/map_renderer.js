@@ -110,7 +110,7 @@ globalThis.DungeonMapRenderer = (() => {
 
         return true;
       },
-      animateAttack(source) {
+      animateAttack(source, effect = "magic") {
         if (!context || !renderer.lastViewport) return false;
 
         const points = combatPoints(renderer, source);
@@ -122,7 +122,7 @@ globalThis.DungeonMapRenderer = (() => {
         function drawFrame(now) {
           const progress = Math.min(1, (now - startedAt) / ATTACK_ANIMATION_MS);
           renderer.render(renderer.lastViewport, renderer.lastOptions);
-          drawAttackTrace(context, points.from, points.to, progress, source);
+          drawAttackTrace(context, points.from, points.to, progress, source, effect);
           if (renderer.lastOptions.playerDead) drawDeathOverlay(context, canvas);
 
           if (progress < 1) {
@@ -322,7 +322,16 @@ globalThis.DungeonMapRenderer = (() => {
     };
   }
 
-  function drawAttackTrace(context, from, to, progress, source) {
+  function drawAttackTrace(context, from, to, progress, source, effect = "magic") {
+    if (effect === "slash") {
+      drawSlashTrace(context, from, to, progress, source);
+      return;
+    }
+
+    drawMagicTrace(context, from, to, progress, source);
+  }
+
+  function drawMagicTrace(context, from, to, progress, source) {
     const eased = 1 - ((1 - progress) ** 2);
     const head = interpolatePoint(from, to, eased);
     const tail = interpolatePoint(from, to, Math.max(0, eased - 0.28));
@@ -345,6 +354,48 @@ globalThis.DungeonMapRenderer = (() => {
     context.arc(head.x, head.y, 4 + (progress * 5), 0, Math.PI * 2);
     context.fill();
     context.restore();
+  }
+
+  function drawSlashTrace(context, from, to, progress, source) {
+    const eased = 1 - ((1 - progress) ** 2);
+    const center = interpolatePoint(from, to, Math.min(1, 0.35 + (eased * 0.65)));
+    const alpha = 1 - (progress * 0.55);
+    const color = source === "enemy" ? "255, 77, 77" : "244, 245, 246";
+    const angle = source === "enemy" ? -Math.PI / 4 : Math.PI / 4;
+    const length = TILE_SIZE * (0.35 + (progress * 0.45));
+    const spread = TILE_SIZE * 0.14;
+
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    context.lineCap = "round";
+    context.strokeStyle = `rgba(${color}, ${alpha})`;
+    context.shadowColor = `rgba(${color}, 0.75)`;
+    context.shadowBlur = 10;
+    context.lineWidth = 4;
+
+    drawSlashLine(context, center, angle, length);
+    context.lineWidth = 2;
+    drawSlashLine(
+      context,
+      {
+        x: center.x + (Math.cos(angle + (Math.PI / 2)) * spread),
+        y: center.y + (Math.sin(angle + (Math.PI / 2)) * spread)
+      },
+      angle,
+      length * 0.72
+    );
+
+    context.restore();
+  }
+
+  function drawSlashLine(context, center, angle, length) {
+    const offsetX = Math.cos(angle) * length;
+    const offsetY = Math.sin(angle) * length;
+
+    context.beginPath();
+    context.moveTo(center.x - offsetX, center.y - offsetY);
+    context.lineTo(center.x + offsetX, center.y + offsetY);
+    context.stroke();
   }
 
   function interpolatePoint(from, to, progress) {

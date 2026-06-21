@@ -7,6 +7,7 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       You descend deeper into the ruins.
       You go to Ruins.
       You attack a Giant Spider causing 10 of damage.
+      You cast Fireball causing 13 of damage.
       Giant Spider attacks you with fangs causing 2 of damage.
       Equipped Iron Armor.
       Unknown command: dance.
@@ -16,8 +17,9 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       { type: "movement", text: "You move right." },
       { type: "movement", text: "You descend deeper into the ruins." },
       { type: "travel.changed_scene", text: "You go to Ruins." },
-      { type: "combat.damage", text: "You attack a Giant Spider causing 10 of damage." },
-      { type: "combat.damage", text: "Giant Spider attacks you with fangs causing 2 of damage." },
+      { type: "combat.damage", text: "You attack a Giant Spider causing 10 of damage.", effect: "slash" },
+      { type: "combat.damage", text: "You cast Fireball causing 13 of damage.", effect: "magic" },
+      { type: "combat.damage", text: "Giant Spider attacks you with fangs causing 2 of damage.", effect: "slash" },
       { type: "inventory.equipped", text: "Equipped Iron Armor." },
       { type: "error.invalid_action", text: "Unknown command: dance." }
     ]

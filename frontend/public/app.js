@@ -496,17 +496,21 @@ function combatExchanges(events) {
     if (event.type !== "combat.damage") return [];
 
     if (/^You (attack|cast) /.test(event.text)) {
-      return [{ source: "player" }];
+      return [{ source: "player", effect: event.effect || combatEffectFromText(event.text) }];
     }
     if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(event.text)) {
-      return [{ source: "enemy" }];
+      return [{ source: "enemy", effect: event.effect || combatEffectFromText(event.text) }];
     }
     return [];
   });
 }
 
+function combatEffectFromText(text) {
+  return /^You cast /.test(text) ? "magic" : "slash";
+}
+
 function showCombatExchange(exchange) {
-  dungeonMapRenderer.animateAttack(exchange.source);
+  dungeonMapRenderer.animateAttack(exchange.source, exchange.effect);
 }
 
 function clearCombatFeedback() {

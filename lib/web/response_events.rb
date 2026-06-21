@@ -15,10 +15,7 @@ module TextAdventures
           next if text.empty?
           next if non_log_text?(text)
 
-          {
-            type: event_type(text),
-            text: text
-          }
+          event_for(text)
         end
       end
 
@@ -28,6 +25,16 @@ module TextAdventures
 
       def lines
         response.lines.map(&:chomp)
+      end
+
+      def event_for(text)
+        type = event_type(text)
+        event = {
+          type: type,
+          text: text
+        }
+        effect = combat_effect(text) if type == "combat.damage"
+        effect ? event.merge(effect: effect) : event
       end
 
       def event_type(text)
@@ -44,6 +51,14 @@ module TextAdventures
         return "error.invalid_action" if error_text?(text)
 
         "message"
+      end
+
+      def combat_effect(text)
+        return "magic" if text.start_with?("You cast ")
+        return "slash" if text.match?(/\AYou attack /)
+        return "slash" if text.match?(/\A.+ attacks you with /)
+
+        nil
       end
 
       def non_log_text?(text)
