@@ -94,11 +94,11 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      cured_poison = player.status?(:poison)
-      player.clear_status(:poison)
+      cured_statuses = player.curable_statuses
+      player.clear_statuses(*cured_statuses)
       record_contribution(spell_skill(spell), 1)
-      lines << if cured_poison
-                 "You cast #{spell.display_name} and remove poison."
+      lines << if cured_statuses.any?
+                 "You cast #{spell.display_name} and remove #{status_list(cured_statuses)}."
                else
                  "You cast #{spell.display_name}, but there is nothing to cure."
                end
@@ -248,6 +248,10 @@ module TextAdventures
       {
         freeze: "frozen"
       }.fetch(status, status.to_s)
+    end
+
+    def status_list(statuses)
+      statuses.map { |status| status.to_s.tr("_", " ") }.join(" and ")
     end
 
     def counterattack_lines(player)

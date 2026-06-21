@@ -269,6 +269,26 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 26
     end
 
+    it "casts Cure to remove every curable player debuff during battle" do
+      cure_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0])
+      )
+      player.apply_status(:poison)
+      player.apply_status(:disease)
+
+      response = cure_battle.cast_spell(player, TextAdventures::Spell.cure)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        You cast Cure and remove poison and disease.
+        Giant Spider attacks you with Bite causing 2 of damage.
+      TEXT
+      expect(player).to_not be_status(:poison)
+      expect(player).to_not be_status(:disease)
+      expect(player.health.current).to eq 26
+    end
+
     it "distributes victory XP by battle contribution" do
       creature = TextAdventures::Creature.new(
         name: "Arcane Dummy",

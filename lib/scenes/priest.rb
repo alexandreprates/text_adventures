@@ -4,7 +4,6 @@ module TextAdventures
   module Scenes
     class Priest < Merchant
       HEAL_AMOUNT = Character::DEFAULT_HEALTH
-      CURABLE_STATUSES = %i[poison disease diseased].freeze
 
       def initialize
         super(**ContentCatalog.shop("priest"))
@@ -50,7 +49,7 @@ module TextAdventures
       end
 
       def cure_player(game)
-        active_statuses = CURABLE_STATUSES.select { |status| game.player.status?(status) }
+        active_statuses = game.player.curable_statuses
 
         return Response.new("You have no poison or disease to cure.") if active_statuses.empty?
 

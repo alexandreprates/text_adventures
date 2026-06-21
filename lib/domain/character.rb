@@ -71,6 +71,7 @@ module TextAdventures
       disease: 5,
       diseased: 5
     }.freeze
+    CURABLE_STATUSES = %i[poison disease diseased].freeze
     STARTER_WEAPON = Equipment.new(name: "Sword", attack: 10, defense: 0).freeze
     STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 12).freeze
 
@@ -231,6 +232,10 @@ module TextAdventures
 
     def status?(status)
       status_effects.include?(normalize_status(status))
+    end
+
+    def curable_statuses
+      CURABLE_STATUSES.select { |status| status?(status) }
     end
 
     def tick_status_effects

@@ -112,6 +112,14 @@ RSpec.describe TextAdventures::Character do
       expect(character.health.current).to eq 26
       expect(character).to_not be_status(:poison)
     end
+
+    it "expires non-damaging curable debuffs without applying damage" do
+      character.apply_status(:disease, duration: 1)
+
+      expect(character.tick_status_effects).to eq ["Disease wears off."]
+      expect(character.health.current).to eq 30
+      expect(character).to_not be_status(:disease)
+    end
   end
 
   describe "#gain_skill_xp" do
