@@ -12,7 +12,7 @@ WORKDIR /text_adventures
 
 COPY Gemfile Gemfile.lock ./
 
-RUN apk add --no-cache --virtual .build-deps build-base && \
+RUN apk add --no-cache --virtual .build-deps build-base pkgconf && \
   bundle install && \
   apk del .build-deps
 
