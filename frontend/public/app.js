@@ -746,6 +746,11 @@ function nextAutoExploreDecision(state) {
   }
   if (state.pending?.confirmation) return { stopReason: "unsafe confirmation" };
 
+  const healingSpell = autoExploreHealingSpell(state);
+  if (healingSpell) {
+    return { command: `cast ${healingSpell.name}`, status: "Auto: healing" };
+  }
+
   const healingPotion = autoExploreHealingPotion(state);
   if (healingPotion) {
     return { command: `use ${healingPotion.name}`, status: "Auto: healing" };
@@ -775,6 +780,15 @@ function nextAutoExploreDecision(state) {
   return direction ?
     { command: `go ${direction}`, status: "Auto: exploring" } :
     { stopReason: "level complete" };
+}
+
+function autoExploreHealingSpell(state) {
+  if (!autoExploreNeedsHealing(state)) return null;
+
+  return state.player.spells.find(spell => (
+    spell.kind === "healing" ||
+    spell.name === "heal"
+  ));
 }
 
 function autoExploreHealingPotion(state) {
