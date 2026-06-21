@@ -257,7 +257,7 @@ function renderHeader(state) {
 
 function renderMap(state) {
   if (state.scene === "ruins" && state.dungeon?.viewport) {
-    showCanvasMap(state.dungeon);
+    showCanvasMap(state);
     return;
   }
 
@@ -274,14 +274,19 @@ function renderMap(state) {
   if (LOCATION_ARTS[state.scene]) showLocationArt(state.scene);
 }
 
-function showCanvasMap(dungeon) {
+function showCanvasMap(state) {
+  const dungeon = state.dungeon;
   elements.mapStage.classList.add("has-canvas-map");
   elements.mapStage.classList.remove("has-location-art");
   elements.locationArt.style.transform = "";
   const mapRows = textRowsFromViewport(dungeon.viewport);
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(dungeon.viewport);
+  dungeonMapRenderer.render(dungeon.viewport, { playerDead: playerDefeated(state) });
   resizeCanvasMap();
+}
+
+function playerDefeated(state) {
+  return (state?.player?.health?.current || 0) <= 0;
 }
 
 function textRowsFromViewport(viewport) {

@@ -80,14 +80,16 @@ globalThis.DungeonMapRenderer = (() => {
       animationFrame: null,
       enemyManifest: {},
       lastViewport: null,
+      lastOptions: {},
       lastRows: [],
       lastEntities: [],
-      render(viewport) {
+      render(viewport, options = {}) {
         if (!context || !validViewport(viewport)) return false;
 
         const rows = normalizeRows(rowsFromViewport(viewport));
         const entities = viewport.entities || [];
         renderer.lastViewport = viewport;
+        renderer.lastOptions = options;
         renderer.lastRows = rows;
         renderer.lastEntities = entities;
         const columns = Math.max(...rows.map(row => row.length));
@@ -103,6 +105,7 @@ globalThis.DungeonMapRenderer = (() => {
           });
         });
         drawEntities(context, renderer, enemyImages, tileset, entities);
+        if (options.playerDead) drawDeathOverlay(context, canvas);
 
         return true;
       },
@@ -117,14 +120,15 @@ globalThis.DungeonMapRenderer = (() => {
 
         function drawFrame(now) {
           const progress = Math.min(1, (now - startedAt) / ATTACK_ANIMATION_MS);
-          renderer.render(renderer.lastViewport);
+          renderer.render(renderer.lastViewport, renderer.lastOptions);
           drawAttackTrace(context, points.from, points.to, progress, source);
+          if (renderer.lastOptions.playerDead) drawDeathOverlay(context, canvas);
 
           if (progress < 1) {
             renderer.animationFrame = requestAnimationFrame(drawFrame);
           } else {
             renderer.animationFrame = null;
-            renderer.render(renderer.lastViewport);
+            renderer.render(renderer.lastViewport, renderer.lastOptions);
           }
         }
 
@@ -348,7 +352,31 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function rerender(renderer) {
-    if (renderer.lastViewport) renderer.render(renderer.lastViewport);
+    if (renderer.lastViewport) renderer.render(renderer.lastViewport, renderer.lastOptions);
+  }
+
+  function drawDeathOverlay(context, canvas) {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const panelWidth = Math.min(canvas.width - 32, 360);
+    const panelHeight = 78;
+    const panelX = centerX - (panelWidth / 2);
+    const panelY = centerY - (panelHeight / 2);
+
+    context.save();
+    context.fillStyle = "rgba(0, 0, 0, 0.68)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "rgba(16, 0, 0, 0.9)";
+    context.fillRect(panelX, panelY, panelWidth, panelHeight);
+    context.strokeStyle = "#ff3333";
+    context.lineWidth = 3;
+    context.strokeRect(panelX + 1.5, panelY + 1.5, panelWidth - 3, panelHeight - 3);
+    context.fillStyle = "#ff3333";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.font = "42px VT323, monospace";
+    context.fillText("Voce Morreu!", centerX, centerY + 2);
+    context.restore();
   }
 
   function drawTile(context, tileset, tileName, x, y) {
