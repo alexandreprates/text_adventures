@@ -733,80 +733,80 @@ pre {
 
 @media (min-width: 1600px) {
   :root {
-    --font-xs: 14px;
-    --font-sm: 15px;
-    --font-base: 18px;
-    --font-map: 20px;
-    --font-control: 24px;
-    --left-column-width: 260px;
-    --right-column-width: 300px;
-    --layout-gap: 10px;
-    --layout-padding: 10px;
-    --panel-padding: 12px;
-  }
-
-  .topbar {
-    min-height: 36px;
-  }
-
-  .terminal-tab {
-    min-height: 34px;
-    padding: 5px 18px;
-  }
-
-  .map-zoom-controls {
-    grid-template-columns: repeat(2, 34px);
-  }
-
-  .map-zoom-button {
-    width: 34px;
-    height: 34px;
-  }
-
-  .command-bar,
-  .command-bar input,
-  .command-bar button {
-    min-height: 40px;
-  }
-}
-
-@media (min-width: 2200px) {
-  :root {
-    --font-xs: 16px;
-    --font-sm: 17px;
+    --font-xs: 15px;
+    --font-sm: 16px;
     --font-base: 20px;
     --font-map: 22px;
     --font-control: 28px;
-    --left-column-width: 320px;
-    --right-column-width: 360px;
-    --layout-gap: 12px;
-    --layout-padding: 12px;
+    --left-column-width: 280px;
+    --right-column-width: 330px;
+    --layout-gap: 10px;
+    --layout-padding: 10px;
     --panel-padding: 14px;
   }
 
   .topbar {
-    min-height: 42px;
-    padding: 6px 14px;
+    min-height: 38px;
   }
 
   .terminal-tab {
-    min-height: 40px;
-    padding: 6px 20px;
+    min-height: 36px;
+    padding: 5px 18px;
   }
 
   .map-zoom-controls {
-    grid-template-columns: repeat(2, 40px);
+    grid-template-columns: repeat(2, 36px);
   }
 
   .map-zoom-button {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .command-bar,
   .command-bar input,
   .command-bar button {
     min-height: 44px;
+  }
+}
+
+@media (min-width: 2200px) {
+  :root {
+    --font-xs: 18px;
+    --font-sm: 19px;
+    --font-base: 23px;
+    --font-map: 25px;
+    --font-control: 32px;
+    --left-column-width: 360px;
+    --right-column-width: 420px;
+    --layout-gap: 14px;
+    --layout-padding: 14px;
+    --panel-padding: 16px;
+  }
+
+  .topbar {
+    min-height: 48px;
+    padding: 6px 14px;
+  }
+
+  .terminal-tab {
+    min-height: 46px;
+    padding: 7px 22px;
+  }
+
+  .map-zoom-controls {
+    grid-template-columns: repeat(2, 46px);
+  }
+
+  .map-zoom-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .command-bar,
+  .command-bar input,
+  .command-bar button {
+    min-height: 50px;
   }
 }
 
