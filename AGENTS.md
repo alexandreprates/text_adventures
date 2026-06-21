@@ -26,6 +26,67 @@ These instructions apply to this repository.
 - Use Context7 for implementation examples, current library/framework guidance, and API usage patterns before relying on memory or ad hoc examples.
 - Prefer Serena for repository-local understanding and Context7 for external library or framework guidance.
 
+## MCP Usage Rules
+
+Use MCPs deliberately and explain briefly when one is unavailable or not useful for the task.
+
+### Serena MCP
+
+- Use Serena as the primary project-local code intelligence tool.
+- Activate this project with Serena before repository-aware work when it is not already active.
+- Prefer Serena for:
+  - symbol discovery and source overviews;
+  - finding declarations, implementations, and references;
+  - checking diagnostics for touched files;
+  - safe symbol-level edits when replacing or inserting whole functions/classes/methods;
+  - reading or updating local project memories.
+- Use Serena memories for compact, project-local agent guidance such as architecture notes, conventions, validation commands, and durable implementation invariants.
+- Keep Serena memories concise, English-only, and focused on stable facts. Do not store secrets, transient logs, or one-off command output.
+- After changing Serena memories, run `serena memories check` when available and report any issue.
+- Fall back to `rg`, file reads, and `apply_patch` when:
+  - the target is plain HTML/CSS/docs/config rather than analyzable code symbols;
+  - the needed edit is a small line-level change;
+  - Serena cannot resolve the symbol or project state.
+
+### Basic Memory MCP
+
+- Use Basic Memory for durable cross-session knowledge that should survive beyond the local repository state.
+- Prefer Basic Memory for:
+  - implementation plans requested by the user;
+  - exploratory findings and validation evidence;
+  - architectural decisions and design rationale;
+  - session handoff notes;
+  - completion status for saved plans, including validation commands and commit hashes.
+- Before creating a new Basic Memory note, search for related notes to avoid duplicates and append/update the existing note when appropriate.
+- Store Basic Memory notes in English, with enough context for a future session to resume without rereading the whole conversation.
+- Do not store secrets, credentials, private tokens, raw long logs, or volatile command output.
+- When a saved Basic Memory plan drives implementation, update that note after completion with:
+  - what changed;
+  - validation performed;
+  - known remaining risks or follow-up work;
+  - commit hash when a commit was created.
+
+### Context7 MCP
+
+- Use Context7 for external library/framework/API knowledge, especially when the answer may depend on current documentation or version-specific behavior.
+- Always resolve the library ID first with Context7 unless the user already provided an exact `/org/project` or `/org/project/version` ID.
+- Prefer Context7 over memory or guesswork for:
+  - framework/library setup;
+  - API usage examples;
+  - dependency or version-specific implementation details;
+  - unfamiliar third-party tools used by this repository.
+- Do not send secrets, private data, proprietary snippets, or credentials to Context7 queries.
+- Keep Context7 usage focused: ask specific questions and avoid broad documentation dumps.
+- If Context7 has no good match or is unavailable, state that briefly and proceed with repository-local evidence or official documentation when needed.
+
+### MCP Coordination
+
+- Use Serena first for repository-local questions and Context7 first for external-library questions.
+- Use Basic Memory before and after long-running or plan-driven work: read relevant notes at the start, then update durable notes at the end.
+- Do not use Basic Memory as a substitute for reading current source code; verify implementation details with Serena or local files.
+- Do not use Context7 as a substitute for project conventions; align external examples with the repository's existing patterns before editing.
+- For simple tasks, avoid unnecessary MCP calls when local context is already sufficient.
+
 ## Development Cycle
 
 When asked to implement a task, use this loop until the requested work is fully handled:
