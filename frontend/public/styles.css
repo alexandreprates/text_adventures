@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Jersey+20&display=swap");
 
 :root {
   color-scheme: dark;
@@ -17,7 +17,7 @@
   --cyan: #00ccff;
   --blue: #44aaff;
   --purple: #cc44ff;
-  --mono: "VT323", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --mono: "Jersey 20", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
   --font-xs: 12px;
   --font-sm: 13px;
   --font-base: 16px;
