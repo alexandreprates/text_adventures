@@ -61,6 +61,8 @@ const elements = {
   mapZoomIn: document.querySelector("#map-zoom-in"),
   mapZoomOut: document.querySelector("#map-zoom-out"),
   contextCommands: document.querySelector("#context-commands"),
+  autoExploreToggle: document.querySelector("#auto-explore-toggle"),
+  autoExploreStatus: document.querySelector("#auto-explore-status"),
   classOutput: document.querySelector("#class-output"),
   statusOutput: document.querySelector("#status-output"),
   enemyPanel: document.querySelector("#enemy-panel"),
@@ -84,6 +86,16 @@ const MAP_ZOOM_STEP = 0.12;
 const MAP_ZOOM_MIN = 0.76;
 const MAP_ZOOM_MAX = 1.96;
 const COMBAT_FEEDBACK_STEP_MS = 520;
+const AUTO_EXPLORE_DELAY_MS = 520;
+const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
+const AUTO_EXPLORE_REPEAT_LIMIT = 8;
+const AUTO_EXPLORE_DIRECTIONS = ["up", "right", "down", "left"];
+const AUTO_EXPLORE_STEPS = {
+  up: { x: 0, y: -1 },
+  right: { x: 1, y: 0 },
+  down: { x: 0, y: 1 },
+  left: { x: -1, y: 0 }
+};
 const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
   spells: ["═══ MAGIAS", "════"]
@@ -115,6 +127,17 @@ let currentState = null;
 let mapZoom = 1;
 let messageLogLines = [];
 let combatFeedbackTimers = [];
+const autoExplore = {
+  enabled: false,
+  timer: null,
+  visited: new Set(),
+  failedMoves: new Set(),
+  lastAction: null,
+  lastPositionKey: null,
+  pendingSince: null,
+  repeatCount: 0,
+  status: "Auto: stopped"
+};
 const commandHistory = {
   entries: [],
   index: 0,
@@ -149,6 +172,7 @@ function handleSocketMessage(event) {
     const error = new Error(message.error?.message || "WebSocket error.");
     rejectPendingAction(error);
     showError(error);
+    stopAutoExplore("error");
   }
 }
 
@@ -163,17 +187,20 @@ function handleSocketClose(socket) {
     showError(error);
     elements.commandInput.placeholder = "new";
   }
+  stopAutoExplore("connection lost");
 }
 
 function resolvePendingAction(payload) {
   const pending = api.pendingAction;
   api.pendingAction = null;
+  autoExplore.pendingSince = null;
   if (pending) pending.resolve(payload);
 }
 
 function rejectPendingAction(error) {
   const pending = api.pendingAction;
   api.pendingAction = null;
+  autoExplore.pendingSince = null;
   if (pending) pending.reject(error);
 }
 
@@ -214,6 +241,8 @@ function render(payload) {
   updateCommandPlaceholder(state);
   renderLog(events);
   playCombatFeedback(events);
+  trackAutoExploreResult(state);
+  scheduleAutoExplore();
 }
 
 function renderHeader(state) {
@@ -596,6 +625,243 @@ function suggestedItemCommands(player) {
   });
 }
 
+function startAutoExplore() {
+  if (!canAutoExplore(currentState)) {
+    updateAutoExploreStatus("Auto: enter ruins");
+    return;
+  }
+
+  resetAutoExploreMemory();
+  autoExplore.enabled = true;
+  markAutoExploreVisited(currentState);
+  updateAutoExploreStatus("Auto: exploring");
+  scheduleAutoExplore();
+}
+
+function stopAutoExplore(reason = "stopped") {
+  autoExplore.enabled = false;
+  clearAutoExploreTimer();
+  autoExplore.pendingSince = null;
+  updateAutoExploreStatus(autoExploreStopStatus(reason));
+}
+
+function resetAutoExploreMemory() {
+  clearAutoExploreTimer();
+  autoExplore.visited.clear();
+  autoExplore.failedMoves.clear();
+  autoExplore.lastAction = null;
+  autoExplore.lastPositionKey = null;
+  autoExplore.pendingSince = null;
+  autoExplore.repeatCount = 0;
+}
+
+function clearAutoExploreTimer() {
+  if (!autoExplore.timer) return;
+
+  clearTimeout(autoExplore.timer);
+  autoExplore.timer = null;
+}
+
+function autoExploreStopStatus(reason) {
+  if (reason === "level complete") return "Auto: level complete";
+  if (reason === "error") return "Auto: error";
+  if (reason === "connection lost") return "Auto: offline";
+  if (reason === "unsafe confirmation") return "Auto: confirm";
+  if (reason === "dead") return "Auto: stopped";
+
+  return "Auto: stopped";
+}
+
+function updateAutoExploreStatus(status) {
+  autoExplore.status = status;
+  elements.autoExploreStatus.textContent = status;
+  elements.autoExploreToggle.setAttribute("aria-pressed", autoExplore.enabled ? "true" : "false");
+}
+
+function canAutoExplore(state) {
+  return state?.scene === "ruins" && Boolean(state.dungeon?.viewport) && playerAlive(state);
+}
+
+function playerAlive(state) {
+  return (state?.player?.health?.current || 0) > 0;
+}
+
+function scheduleAutoExplore() {
+  if (!autoExplore.enabled) return;
+
+  clearAutoExploreTimer();
+  if (api.pendingAction) {
+    if (autoExplore.pendingSince && Date.now() - autoExplore.pendingSince > AUTO_EXPLORE_PENDING_TIMEOUT_MS) {
+      stopAutoExplore("error");
+      return;
+    }
+    autoExplore.timer = setTimeout(scheduleAutoExplore, AUTO_EXPLORE_DELAY_MS);
+    return;
+  }
+
+  autoExplore.timer = setTimeout(runAutoExploreStep, AUTO_EXPLORE_DELAY_MS);
+}
+
+function runAutoExploreStep() {
+  autoExplore.timer = null;
+  if (!autoExplore.enabled) return;
+  if (api.pendingAction) {
+    scheduleAutoExplore();
+    return;
+  }
+
+  const decision = nextAutoExploreDecision(currentState);
+  if (decision.stopReason) {
+    stopAutoExplore(decision.stopReason);
+    return;
+  }
+  if (!decision.command) {
+    stopAutoExplore("level complete");
+    return;
+  }
+
+  updateAutoExploreStatus(decision.status);
+  autoExplore.lastAction = decision.command;
+  autoExplore.lastPositionKey = positionKey(currentState?.dungeon?.player_position);
+  autoExplore.pendingSince = Date.now();
+  submitCommand(decision.command, { source: "auto", record: false });
+}
+
+function nextAutoExploreDecision(state) {
+  if (!canAutoExplore(state)) {
+    return { stopReason: playerAlive(state) ? "stopped" : "dead" };
+  }
+  if (state.pending?.confirmation) return { stopReason: "unsafe confirmation" };
+  if (state.battle?.active) {
+    const spell = state.player.spells.find(candidate => candidate.kind === "damage");
+    return {
+      command: spell ? `cast ${spell.name}` : "attack",
+      status: "Auto: fighting"
+    };
+  }
+  if (state.dungeon?.nearby_loot) {
+    return { command: "loot", status: "Auto: looting" };
+  }
+
+  const direction = nextAutoExploreDirection(state);
+  return direction ?
+    { command: `go ${direction}`, status: "Auto: exploring" } :
+    { stopReason: "level complete" };
+}
+
+function nextAutoExploreDirection(state) {
+  const candidates = safeAutoExploreDirections(state);
+  if (!candidates.length) return null;
+
+  const unvisited = candidates.find(candidate => !autoExplore.visited.has(positionKey(candidate.position)));
+  return (unvisited || candidates[0]).direction;
+}
+
+function safeAutoExploreDirections(state) {
+  const position = state.dungeon?.player_position;
+  const currentKey = positionKey(position);
+  if (!position || !currentKey) return [];
+
+  const directions = AUTO_EXPLORE_DIRECTIONS.map(direction => {
+    const step = AUTO_EXPLORE_STEPS[direction];
+    return {
+      direction,
+      position: { x: position.x + step.x, y: position.y + step.y }
+    };
+  });
+
+  return directions.filter(candidate => {
+    if (autoExplore.failedMoves.has(`${currentKey}:${candidate.direction}`)) return false;
+    if (isLevelTransitionPosition(state, candidate.position)) return false;
+
+    return isKnownOpenPosition(state, candidate.position) || isPossibleBlockExit(state, candidate.direction, candidate.position);
+  });
+}
+
+function isLevelTransitionPosition(state, position) {
+  return samePosition(position, state.dungeon?.descent) || samePosition(position, state.dungeon?.entrance_portal);
+}
+
+function isKnownOpenPosition(state, position) {
+  const tile = viewportTerrainAt(state.dungeon?.viewport, position);
+  if (!tile) return false;
+
+  return tile !== "#" && tile !== "?";
+}
+
+function isPossibleBlockExit(state, direction, position) {
+  const viewport = state.dungeon?.viewport;
+  const player = viewportEntity(viewport, "player");
+  if (!viewport || !player) return false;
+
+  if (viewportTerrainAt(viewport, position) !== "?") return false;
+
+  const blockWidth = Math.floor(viewport.width / 3);
+  const blockHeight = Math.floor(viewport.height / 3);
+  if (blockWidth <= 0 || blockHeight <= 0) return false;
+
+  const centerLeft = blockWidth;
+  const centerRight = (blockWidth * 2) - 1;
+  const centerTop = blockHeight;
+  const centerBottom = (blockHeight * 2) - 1;
+
+  return (
+    (direction === "up" && player.y === centerTop) ||
+    (direction === "right" && player.x === centerRight) ||
+    (direction === "down" && player.y === centerBottom) ||
+    (direction === "left" && player.x === centerLeft)
+  );
+}
+
+function viewportTerrainAt(viewport, position) {
+  if (!viewport?.origin || !position) return null;
+
+  const x = position.x - viewport.origin.x;
+  const y = position.y - viewport.origin.y;
+  if (x < 0 || y < 0 || x >= viewport.width || y >= viewport.height) return null;
+
+  return String(viewport.terrain || "")[(y * viewport.width) + x] || null;
+}
+
+function viewportEntity(viewport, type) {
+  return (viewport?.entities || []).find(entity => entity.type === type);
+}
+
+function trackAutoExploreResult(state) {
+  if (!autoExplore.enabled || !state?.dungeon?.player_position) return;
+
+  const currentKey = positionKey(state.dungeon.player_position);
+  markAutoExploreVisited(state);
+  if (!autoExplore.lastAction?.startsWith("go ") || !autoExplore.lastPositionKey) return;
+
+  if (currentKey === autoExplore.lastPositionKey) {
+    const direction = autoExplore.lastAction.slice(3);
+    autoExplore.failedMoves.add(`${autoExplore.lastPositionKey}:${direction}`);
+    autoExplore.repeatCount += 1;
+    if (autoExplore.repeatCount >= AUTO_EXPLORE_REPEAT_LIMIT) stopAutoExplore("level complete");
+    return;
+  }
+
+  autoExplore.repeatCount = 0;
+  autoExplore.lastAction = null;
+  autoExplore.lastPositionKey = null;
+}
+
+function markAutoExploreVisited(state) {
+  const key = positionKey(state?.dungeon?.player_position);
+  if (key) autoExplore.visited.add(key);
+}
+
+function positionKey(position) {
+  if (!position) return null;
+
+  return `${position.x},${position.y}`;
+}
+
+function samePosition(left, right) {
+  return Boolean(left && right && left.x === right.x && left.y === right.y);
+}
+
 function updateCommandPlaceholder(state) {
   if (state.pending?.confirmation) {
     elements.commandInput.placeholder = "agree or no";
@@ -700,6 +966,7 @@ async function startGame() {
 }
 
 async function startNewGame() {
+  stopAutoExplore("stopped");
   api.disconnectGame();
   currentState = null;
   messageLogLines = [];
@@ -707,7 +974,7 @@ async function startNewGame() {
   await startGame();
 }
 
-async function runCommand(command) {
+async function runCommand(command, options = {}) {
   if (command.trim().toLowerCase() === "new") {
     await startNewGame();
     return;
@@ -721,6 +988,7 @@ async function runCommand(command) {
   } catch (error) {
     setStatus("Error", true);
     showError(error);
+    if (options.source === "auto") stopAutoExplore("error");
   }
 }
 
@@ -762,12 +1030,13 @@ function recallCommand(direction) {
   elements.commandInput.setSelectionRange(elements.commandInput.value.length, elements.commandInput.value.length);
 }
 
-function submitCommand(command) {
+function submitCommand(command, options = {}) {
   const normalizedCommand = command.trim();
   if (!normalizedCommand) return;
-  recordCommand(normalizedCommand);
+  if (autoExplore.enabled && options.source !== "auto") stopAutoExplore("stopped");
+  if (options.record !== false) recordCommand(normalizedCommand);
   elements.commandInput.value = "";
-  runCommand(normalizedCommand);
+  runCommand(normalizedCommand, options);
 }
 
 elements.commandForm.addEventListener("submit", event => {
@@ -782,6 +1051,14 @@ elements.commandInput.addEventListener("keydown", event => {
   } else if (event.key === "ArrowDown") {
     event.preventDefault();
     recallCommand(1);
+  }
+});
+
+elements.autoExploreToggle.addEventListener("click", () => {
+  if (autoExplore.enabled) {
+    stopAutoExplore("stopped");
+  } else {
+    startAutoExplore();
   }
 });
 

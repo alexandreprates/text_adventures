@@ -574,6 +574,38 @@ pre {
   gap: 1px;
 }
 
+.auto-explore-controls {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.auto-explore-controls button {
+  min-height: 22px;
+  padding: 0 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--green);
+  font: inherit;
+}
+
+.auto-explore-controls button[aria-pressed="true"] {
+  border-color: var(--amber);
+  background: var(--panel-active);
+  color: var(--amber);
+}
+
+.auto-explore-controls strong {
+  min-width: 0;
+  color: var(--green-dim);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .context-commands button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
