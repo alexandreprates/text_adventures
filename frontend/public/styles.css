@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Jersey+20&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bitcount+Single&display=swap");
 
 :root {
   color-scheme: dark;
@@ -17,12 +17,12 @@
   --cyan: #00ccff;
   --blue: #44aaff;
   --purple: #cc44ff;
-  --mono: "Jersey 20", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
-  --font-xs: 12px;
-  --font-sm: 13px;
-  --font-base: 16px;
-  --font-map: 18px;
-  --font-control: 22px;
+  --mono: "Bitcount Single", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-base: 15px;
+  --font-map: 17px;
+  --font-control: 21px;
   --left-column-width: 220px;
   --right-column-width: 260px;
   --layout-gap: 8px;
@@ -362,6 +362,10 @@ pre {
 
 .class-level {
   color: var(--amber);
+}
+
+.class-bar {
+  white-space: pre;
 }
 
 .enemy-panel {
@@ -1063,11 +1067,11 @@ pre {
 
 @media (min-width: 1600px) {
   :root {
-    --font-xs: 15px;
-    --font-sm: 16px;
-    --font-base: 20px;
-    --font-map: 22px;
-    --font-control: 28px;
+    --font-xs: 14px;
+    --font-sm: 15px;
+    --font-base: 19px;
+    --font-map: 21px;
+    --font-control: 27px;
     --left-column-width: 280px;
     --right-column-width: 330px;
     --layout-gap: 10px;
@@ -1107,11 +1111,11 @@ pre {
 
 @media (min-width: 2200px) {
   :root {
-    --font-xs: 18px;
-    --font-sm: 19px;
-    --font-base: 23px;
-    --font-map: 25px;
-    --font-control: 32px;
+    --font-xs: 17px;
+    --font-sm: 18px;
+    --font-base: 22px;
+    --font-map: 24px;
+    --font-control: 31px;
     --left-column-width: 360px;
     --right-column-width: 420px;
     --layout-gap: 14px;
