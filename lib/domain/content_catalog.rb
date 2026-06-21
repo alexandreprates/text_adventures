@@ -50,12 +50,20 @@ module TextAdventures
       new.items(ids)
     end
 
+    def self.item_id_for(item)
+      new.item_id_for(item)
+    end
+
     def self.creature(id)
       new.creature(id)
     end
 
     def self.creature_ids
       new.creature_ids
+    end
+
+    def self.creature_id_for(creature)
+      new.creature_id_for(creature)
     end
 
     def self.creature_ids_for_level(level)
@@ -83,6 +91,12 @@ module TextAdventures
       ids.map { |id| item(id) }
     end
 
+    def item_id_for(item)
+      item_id_by_command_name.fetch(item.command_name) do
+        raise ArgumentError, "unknown item reference: #{item.display_name}"
+      end
+    end
+
     def creature(id)
       definition = fetch_definition(creatures_data.fetch("creatures"), id, "creature")
       Creature.new(
@@ -99,6 +113,12 @@ module TextAdventures
 
     def creature_ids
       creatures_data.fetch("creatures").keys
+    end
+
+    def creature_id_for(creature)
+      creature_id_by_name.fetch(creature.name) do
+        raise ArgumentError, "unknown creature reference: #{creature.display_name}"
+      end
     end
 
     def creature_ids_for_level(level)
@@ -247,6 +267,18 @@ module TextAdventures
     def load_yaml(file_name)
       path = File.join(DATA_DIRECTORY, file_name)
       YAML.safe_load(File.read(path), aliases: false)
+    end
+
+    def item_id_by_command_name
+      @item_id_by_command_name ||= items_data.fetch("items").keys.to_h do |id|
+        [item(id).command_name, id]
+      end
+    end
+
+    def creature_id_by_name
+      @creature_id_by_name ||= creatures_data.fetch("creatures").keys.to_h do |id|
+        [creature(id).name, id]
+      end
     end
   end
 end

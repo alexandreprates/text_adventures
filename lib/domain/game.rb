@@ -35,7 +35,7 @@ module TextAdventures
       battle: nil,
       pending_loot: nil,
       active_enemy_position: nil,
-      random: Random.new
+      random: RandomSource.new
     )
       @player = player
       @current_scene = current_scene

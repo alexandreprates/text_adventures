@@ -16,6 +16,10 @@ module TextAdventures
         JsonResponse.error("invalid_request", error.message, status: 400)
       rescue GameStore::CapacityExceeded => error
         JsonResponse.error("server_busy", error.message, status: 503)
+      rescue Persistence::InvalidGameId => error
+        JsonResponse.error("invalid_request", error.message, status: 400)
+      rescue Persistence::Error
+        JsonResponse.error("persistence_error", "Persistent game storage failed.", status: 500)
       end
 
       private
@@ -72,7 +76,7 @@ module TextAdventures
 
       def execute_action(id, body)
         payload = parse_required_json(body)
-        response_payload = store.with_game(id) do |game|
+        response_payload = store.with_game(id, save: true) do |game|
           command = ActionCommand.call(payload)
           response = game.handle(command)
           game_payload(id, game, response: response)

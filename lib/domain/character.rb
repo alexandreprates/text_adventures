@@ -96,6 +96,7 @@ module TextAdventures
       spells: [],
       inventory: nil,
       status_effects: [],
+      status_durations: nil,
       progression: CharacterProgression.new
     )
       @progression = progression
@@ -112,7 +113,7 @@ module TextAdventures
       @spells = {}
       @inventory = inventory || self.class.starter_inventory
       @status_effects = normalize_statuses(status_effects)
-      @status_durations = @status_effects.to_h { |status| [status, status_duration(status)] }
+      @status_durations = normalize_status_durations(status_durations)
       spells.each { |spell| learn_spell(spell) }
     end
 
@@ -396,6 +397,18 @@ module TextAdventures
 
     def normalize_status(status)
       status.to_s.downcase.strip.tr(" ", "_").to_sym
+    end
+
+    def normalize_status_durations(value)
+      default_durations = status_effects.to_h { |status| [status, status_duration(status)] }
+      return default_durations unless value
+
+      value.each_with_object(default_durations) do |(status, duration), result|
+        normalized_status = normalize_status(status)
+        next unless status_effects.include?(normalized_status)
+
+        result[normalized_status] = duration.to_i
+      end
     end
 
     def status_duration(status)

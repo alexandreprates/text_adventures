@@ -21,10 +21,15 @@ module TextAdventures
       DEFAULT_READ_TIMEOUT_SECONDS = 5
 
       def self.from_env(env = ENV)
+        repository = Persistence::SQLiteGameRepository.new(
+          save_dir: env.fetch("TEXT_ADVENTURES_SAVE_DIR", Persistence::SQLiteGameRepository::DEFAULT_SAVE_DIR),
+          history_limit: env.fetch("TEXT_ADVENTURES_SAVE_HISTORY_LIMIT", Persistence::SQLiteGameRepository::DEFAULT_HISTORY_LIMIT)
+        )
         store = GameStore.new(
           default_seed: env["TEXT_ADVENTURES_RANDOM_SEED"],
           session_ttl_seconds: env.fetch("TEXT_ADVENTURES_SESSION_TTL_SECONDS", GameStore::DEFAULT_SESSION_TTL_SECONDS),
-          max_sessions: env.fetch("TEXT_ADVENTURES_MAX_SESSIONS", GameStore::DEFAULT_MAX_SESSIONS)
+          max_sessions: env.fetch("TEXT_ADVENTURES_MAX_SESSIONS", GameStore::DEFAULT_MAX_SESSIONS),
+          repository: repository
         )
         new(
           host: env.fetch("TEXT_ADVENTURES_HOST", DEFAULT_HOST),

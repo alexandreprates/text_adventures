@@ -14,13 +14,15 @@ module TextAdventures
         default_seed: nil,
         session_ttl_seconds: DEFAULT_SESSION_TTL_SECONDS,
         max_sessions: DEFAULT_MAX_SESSIONS,
-        clock: -> { Time.now }
+        clock: -> { Time.now },
+        repository: nil
       )
         @id_generator = id_generator
         @default_seed = default_seed
         @session_ttl_seconds = Integer(session_ttl_seconds)
         @max_sessions = Integer(max_sessions)
         @clock = clock
+        @repository = repository
         @sessions = {}
         @mutex = Mutex.new
       end
@@ -32,14 +34,17 @@ module TextAdventures
 
           id = next_id
           selected_seed = seed.nil? ? default_seed : seed
-          game = selected_seed ? Game.new(random: Random.new(Integer(selected_seed))) : Game.new
-          sessions[id] = Session.new(
+          game = selected_seed ? Game.new(random: RandomSource.new(seed: Integer(selected_seed))) : Game.new
+          repository&.save(id, game, seed: selected_seed)
+          session = Session.new(
             id: id,
             game: game,
             created_at: now,
             last_accessed_at: now,
             mutex: Mutex.new
           )
+          sessions[id] = session
+          session
         end
         id = session.id
         game = session.game
@@ -50,20 +55,23 @@ module TextAdventures
         session_for(id)&.game
       end
 
-      def with_game(id)
+      def with_game(id, save: false)
         session = session_for(id)
         return nil unless session
 
         session.mutex.synchronize do
           touch(session)
-          yield session.game
+          result = yield session.game
+          repository&.save(session.id, session.game) if save
+          result
         end
       end
 
       def delete(id)
+        removed_save = repository&.delete(id)
         mutex.synchronize do
           cleanup_expired_sessions
-          !sessions.delete(id.to_s).nil?
+          !sessions.delete(id.to_s).nil? || !!removed_save
         end
       end
 
@@ -80,12 +88,12 @@ module TextAdventures
 
       private
 
-      attr_reader :id_generator, :default_seed, :session_ttl_seconds, :max_sessions, :clock, :sessions, :mutex
+      attr_reader :id_generator, :default_seed, :session_ttl_seconds, :max_sessions, :clock, :repository, :sessions, :mutex
 
       def next_id
         loop do
           id = id_generator.call.to_s
-          return id unless sessions.key?(id)
+          return id unless sessions.key?(id) || repository&.exist?(id)
         end
       end
 
@@ -93,9 +101,26 @@ module TextAdventures
         mutex.synchronize do
           cleanup_expired_sessions
           session = sessions[id.to_s]
+          session ||= restore_session(id)
           touch(session) if session
           session
         end
+      end
+
+      def restore_session(id)
+        return nil unless repository&.exist?(id)
+        raise CapacityExceeded, "Maximum active game sessions reached." if sessions.length >= max_sessions
+
+        game = repository.load(id)
+        return nil unless game
+
+        sessions[id.to_s] = Session.new(
+          id: id.to_s,
+          game: game,
+          created_at: now,
+          last_accessed_at: now,
+          mutex: Mutex.new
+        )
       end
 
       def touch(session)

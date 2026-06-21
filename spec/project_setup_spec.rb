@@ -15,7 +15,7 @@ RSpec.describe "Project dependency setup" do
     lockfile = File.read(File.join(root, "Gemfile.lock"))
     parser = Bundler::LockfileParser.new(lockfile)
 
-    expect(parser.dependencies.keys).to contain_exactly("base64", "rake", "rspec", "ruby-lsp")
+    expect(parser.dependencies.keys).to contain_exactly("base64", "rake", "rspec", "ruby-lsp", "sqlite3")
     expect(parser.specs.map(&:name)).to include("rake", "rspec")
   end
 
@@ -49,6 +49,7 @@ RSpec.describe "Project dependency setup" do
     expect(readme).to include("The game is playable through the browser frontend served by Nginx")
     expect(readme).to include("bin/text_adventures          JSON API server entrypoint")
     expect(readme).to include("TEXT_ADVENTURES_SESSION_TTL_SECONDS")
+    expect(readme).to include("TEXT_ADVENTURES_SAVE_DIR")
     expect(readme).to include("curl -sS http://127.0.0.1:4567/api/health")
   end
 end

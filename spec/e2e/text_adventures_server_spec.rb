@@ -1,9 +1,11 @@
 require 'json'
+require 'fileutils'
 require 'net/http'
 require 'open3'
 require 'socket'
 require 'spec_helper'
 require 'timeout'
+require 'tmpdir'
 
 RSpec.describe "text_adventures server binary" do
   let(:root) { File.expand_path("../..", __dir__) }
@@ -106,6 +108,26 @@ RSpec.describe "text_adventures server binary" do
     end
   end
 
+  it "continues a persisted game after the API process restarts" do
+    Dir.mktmpdir("text-adventures-e2e-saves") do |save_dir|
+      game_id = nil
+      with_server("TEXT_ADVENTURES_SAVE_DIR" => save_dir) do |port|
+        create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+        game_id = JSON.parse(create_response.body).fetch("game_id")
+        action_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/actions", action_for("go ruins"))
+        expect(action_response.code).to eq "200"
+        expect(JSON.parse(action_response.body).dig("state", "scene")).to eq "ruins"
+      end
+
+      with_server("TEXT_ADVENTURES_SAVE_DIR" => save_dir) do |port|
+        state_response = request_json(port, Net::HTTP::Get, "/api/games/#{game_id}")
+
+        expect(state_response.code).to eq "200"
+        expect(JSON.parse(state_response.body).dig("state", "scene")).to eq "ruins"
+      end
+    end
+  end
+
   it "serves health metadata for readiness checks" do
     with_server do |port|
       response = request_json(port, Net::HTTP::Get, "/api/health")
@@ -182,10 +204,13 @@ RSpec.describe "text_adventures server binary" do
 
   def start_server(env = {})
     port = available_port
+    save_dir = env.fetch("TEXT_ADVENTURES_SAVE_DIR") { Dir.mktmpdir("text-adventures-server-saves") }
+    cleanup_save_dir = !env.key?("TEXT_ADVENTURES_SAVE_DIR")
     stdin, stdout, stderr, wait_thread = Open3.popen3(
       {
         "TEXT_ADVENTURES_HOST" => "127.0.0.1",
-        "TEXT_ADVENTURES_PORT" => port.to_s
+        "TEXT_ADVENTURES_PORT" => port.to_s,
+        "TEXT_ADVENTURES_SAVE_DIR" => save_dir
       }.merge(env),
       binary,
       "server"
@@ -193,7 +218,7 @@ RSpec.describe "text_adventures server binary" do
     stdin.close
     wait_for_server(port)
 
-    { port: port, stdout: stdout, stderr: stderr, wait_thread: wait_thread }
+    { port: port, stdout: stdout, stderr: stderr, wait_thread: wait_thread, save_dir: save_dir, cleanup_save_dir: cleanup_save_dir }
   end
 
   def stop_server(server)
@@ -205,6 +230,7 @@ RSpec.describe "text_adventures server binary" do
     output = stdout.read.to_s
     stdout&.close
     stderr&.close
+    FileUtils.remove_entry(server.fetch(:save_dir)) if server.fetch(:cleanup_save_dir)
     output
   end
 

@@ -10,6 +10,7 @@ module TextAdventures
     domain
     commands
     scenes
+    persistence
     web
   ].freeze
 

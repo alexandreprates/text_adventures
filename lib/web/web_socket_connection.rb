@@ -67,7 +67,7 @@ module TextAdventures
 
       def handle_message(socket, game_id, payload)
         message = JSON.parse(payload)
-        update = store.with_game(game_id) do |game|
+        update = store.with_game(game_id, save: true) do |game|
           command = command_for(message)
           response = game.handle(command)
           {
@@ -91,6 +91,8 @@ module TextAdventures
         write_json(socket, type: "error", error: { code: "invalid_json", message: "Message must be valid JSON." })
       rescue ArgumentError => error
         write_json(socket, type: "error", error: { code: "invalid_action", message: error.message })
+      rescue Persistence::Error
+        write_json(socket, type: "error", error: { code: "persistence_error", message: "Persistent game storage failed." })
       end
 
       def command_for(message)

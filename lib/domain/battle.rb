@@ -16,10 +16,11 @@ module TextAdventures
       [mitigated, 1].max
     end
 
-    def initialize(creature:, random: Random.new)
+    def initialize(creature:, random: Random.new, contributions: {})
       @creature = creature
       @random = random
       @contributions = Hash.new(0)
+      contributions.each { |skill, amount| @contributions[skill.to_sym] = amount.to_i }
     end
 
     def attack(player)

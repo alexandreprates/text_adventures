@@ -1,6 +1,18 @@
 require 'spec_helper'
+require 'tmpdir'
 
 RSpec.describe TextAdventures::Web::GameStore do
+  around do |example|
+    Dir.mktmpdir("text-adventures-store") do |dir|
+      @save_dir = dir
+      example.run
+    end
+  end
+
+  def repository
+    TextAdventures::Persistence::SQLiteGameRepository.new(save_dir: @save_dir)
+  end
+
   it "creates, fetches, and deletes game sessions" do
     store = described_class.new(id_generator: -> { "game-1" })
 
@@ -100,5 +112,56 @@ RSpec.describe TextAdventures::Web::GameStore do
     [first, second].each(&:join)
 
     expect(3.times.map { events.pop }).to eq %i[first_started first_finished second_started]
+  end
+
+  it "persists created games when a repository is configured" do
+    store = described_class.new(id_generator: -> { "game-1" }, repository: repository)
+
+    id, = store.create(seed: 0)
+
+    expect(File).to exist(repository.database_path(id))
+  end
+
+  it "restores a persisted game after the memory session expires" do
+    now = Time.utc(2026, 1, 1, 12, 0, 0)
+    store = described_class.new(
+      id_generator: -> { "game-1" },
+      session_ttl_seconds: 1,
+      clock: -> { now },
+      repository: repository
+    )
+    id, = store.create(seed: 0)
+    store.with_game(id, save: true) { |game| game.handle("go ruins") }
+
+    now += 2
+    restored = store.fetch(id)
+
+    expect(restored.current_scene_name).to eq :ruins
+  end
+
+  it "deletes memory and persisted save data together" do
+    store = described_class.new(id_generator: -> { "game-1" }, repository: repository)
+    id, = store.create(seed: 0)
+
+    expect(store.delete(id)).to be true
+
+    expect(store.fetch(id)).to be_nil
+    expect(File).not_to exist(repository.database_path(id))
+  end
+
+  it "keeps separate games isolated in separate databases" do
+    ids = ["game-1", "game-2"]
+    store = described_class.new(id_generator: -> { ids.shift }, repository: repository)
+    first_id, = store.create(seed: 1)
+    second_id, = store.create(seed: 2)
+
+    store.with_game(first_id, save: true) { |game| game.player.gold = 12 }
+    store.with_game(second_id, save: true) { |game| game.player.gold = 34 }
+
+    first = repository.load(first_id)
+    second = repository.load(second_id)
+
+    expect(first.player.gold).to eq 12
+    expect(second.player.gold).to eq 34
   end
 end

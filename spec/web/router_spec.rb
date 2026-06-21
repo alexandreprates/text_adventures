@@ -1,5 +1,6 @@
 require 'json'
 require 'spec_helper'
+require 'tmpdir'
 
 RSpec.describe TextAdventures::Web::Router do
   subject(:router) { described_class.new(store: store) }
@@ -8,8 +9,22 @@ RSpec.describe TextAdventures::Web::Router do
   let(:ids) { ["game-1", "game-2"] }
   let(:id_generator) { -> { ids.shift } }
 
+  around do |example|
+    Dir.mktmpdir("text-adventures-router") do |dir|
+      @save_dir = dir
+      example.run
+    end
+  end
+
   def parsed(response)
     JSON.parse(response.json)
+  end
+
+  def persistent_store(id_generator: -> { "game-1" })
+    TextAdventures::Web::GameStore.new(
+      id_generator: id_generator,
+      repository: TextAdventures::Persistence::SQLiteGameRepository.new(save_dir: @save_dir)
+    )
   end
 
   it "creates a game and returns initial state" do
@@ -145,5 +160,43 @@ RSpec.describe TextAdventures::Web::Router do
 
     expect(response.status).to eq 503
     expect(parsed(response).dig("error", "code")).to eq "server_busy"
+  end
+
+  it "restores a persisted game through a new store instance" do
+    first_router = described_class.new(store: persistent_store)
+    create_response = first_router.call(method: "POST", path: "/api/games", body: '{"seed":0}')
+    game_id = parsed(create_response).fetch("game_id")
+    first_router.call(
+      method: "POST",
+      path: "/api/games/#{game_id}/actions",
+      body: '{"type":"travel","destination":"ruins"}'
+    )
+
+    second_router = described_class.new(store: persistent_store(id_generator: -> { "unused" }))
+    state_response = second_router.call(method: "GET", path: "/api/games/#{game_id}", body: nil)
+
+    expect(state_response.status).to eq 200
+    expect(parsed(state_response).dig("state", "scene")).to eq "ruins"
+  end
+
+  it "deletes persisted game data through the API" do
+    persistent_router = described_class.new(store: persistent_store)
+    create_response = persistent_router.call(method: "POST", path: "/api/games", body: '{"seed":0}')
+    game_id = parsed(create_response).fetch("game_id")
+
+    expect(persistent_router.call(method: "DELETE", path: "/api/games/#{game_id}", body: nil).status).to eq 204
+
+    restored_router = described_class.new(store: persistent_store(id_generator: -> { "unused" }))
+    missing_response = restored_router.call(method: "GET", path: "/api/games/#{game_id}", body: nil)
+    expect(missing_response.status).to eq 404
+  end
+
+  it "rejects unsafe persisted game ids" do
+    persistent_router = described_class.new(store: persistent_store)
+
+    response = persistent_router.call(method: "GET", path: "/api/games/..", body: nil)
+
+    expect(response.status).to eq 400
+    expect(parsed(response).dig("error", "code")).to eq "invalid_request"
   end
 end

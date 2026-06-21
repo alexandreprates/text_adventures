@@ -33,11 +33,8 @@ Implemented systems include:
 - Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
 - JSON API for frontend clients through `bin/text_adventures`.
 - Browser frontend served by the Nginx web container.
-
-Not implemented yet:
-
-- URL-based saved sessions.
-- Persistent save/load.
+- URL/localStorage-based browser continuation.
+- Persistent save/load backed by one SQLite database per game.
 
 ## Requirements
 
@@ -116,10 +113,27 @@ TEXT_ADVENTURES_MAX_SESSIONS=100
 TEXT_ADVENTURES_SESSION_TTL_SECONDS=1800
 TEXT_ADVENTURES_READ_TIMEOUT_SECONDS=5
 TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS=60
+TEXT_ADVENTURES_SAVE_DIR=storage/games
+TEXT_ADVENTURES_SAVE_HISTORY_LIMIT=1
 ```
 
-Sessions are stored in memory and expire after `TEXT_ADVENTURES_SESSION_TTL_SECONDS`
-without access. They are not persisted across process restarts.
+Sessions are cached in memory and expire after
+`TEXT_ADVENTURES_SESSION_TTL_SECONDS` without access. Persistent saves outlive
+the memory session TTL: the API restores a game from SQLite when
+`GET /api/games/<game_id>` or `POST /api/games/<game_id>/actions` references a
+saved game that is no longer in memory.
+
+Persistent saves are stored under `TEXT_ADVENTURES_SAVE_DIR`. Each game uses a
+separate SQLite database file named `<game_id>.sqlite3`; SQLite sidecar files
+such as `-wal` and `-shm` may exist while the database is active. Successful
+actions are auto-saved as versioned JSON snapshots. `DELETE /api/games/<game_id>`
+removes both the memory session and the persisted SQLite save.
+
+For multi-instance deployments, all Ruby API instances must share the same
+`TEXT_ADVENTURES_SAVE_DIR`, or routing must ensure a game is always handled by an
+instance that can read its save file. The per-game SQLite layout isolates
+different players from each other, while same-game HTTP and WebSocket mutations
+remain serialized by the server's per-session lock.
 
 Readiness check:
 
@@ -159,7 +173,7 @@ Fetch state:
 curl -sS http://127.0.0.1:4567/api/games/<game_id>
 ```
 
-Delete a session:
+Delete a game session and its persisted save:
 
 ```sh
 curl -sS -X DELETE http://127.0.0.1:4567/api/games/<game_id>

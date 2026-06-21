@@ -10,6 +10,14 @@ const api = {
     });
     return parseResponse(response);
   },
+  async fetchGame(gameId) {
+    const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`);
+    return parseResponse(response);
+  },
+  async deleteGame(gameId) {
+    const response = await fetch(`/api/games/${encodeURIComponent(gameId)}`, { method: "DELETE" });
+    return parseResponse(response);
+  },
   connectGame(gameId) {
     this.disconnectGame();
     this.gameId = gameId;
@@ -43,6 +51,8 @@ const api = {
     });
   }
 };
+
+const SAVED_GAME_ID_KEY = "text_adventures.game_id";
 
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
@@ -236,6 +246,7 @@ function setStatus(text, error = false) {
 
 function render(payload) {
   api.gameId = payload.game_id || api.gameId;
+  rememberGameId(api.gameId);
   const state = payload.state;
   const events = eventsFromPayload(payload);
   currentState = state;
@@ -250,6 +261,30 @@ function render(payload) {
   playCombatFeedback(events);
   trackAutoExploreResult(state);
   scheduleAutoExplore();
+}
+
+function savedGameId() {
+  try {
+    return window.localStorage.getItem(SAVED_GAME_ID_KEY);
+  } catch (_error) {
+    return null;
+  }
+}
+
+function rememberGameId(gameId) {
+  if (!gameId) return;
+
+  try {
+    window.localStorage.setItem(SAVED_GAME_ID_KEY, gameId);
+  } catch (_error) {
+  }
+}
+
+function forgetGameId() {
+  try {
+    window.localStorage.removeItem(SAVED_GAME_ID_KEY);
+  } catch (_error) {
+  }
 }
 
 function renderHeader(state) {
@@ -1328,7 +1363,7 @@ function healthBar(current, max) {
 async function startGame() {
   setStatus("Connecting");
   try {
-    const payload = await api.createGame();
+    const payload = await initialGamePayload();
     await api.connectGame(payload.game_id);
     selectTab("inventory");
     activateTopTab(0);
@@ -1341,9 +1376,29 @@ async function startGame() {
   }
 }
 
+async function initialGamePayload() {
+  const gameId = savedGameId();
+  if (!gameId) return api.createGame();
+
+  try {
+    return await api.fetchGame(gameId);
+  } catch (_error) {
+    forgetGameId();
+    return api.createGame();
+  }
+}
+
 async function startNewGame() {
   stopAutoExplore("stopped");
+  const previousGameId = api.gameId;
   api.disconnectGame();
+  forgetGameId();
+  if (previousGameId) {
+    try {
+      await api.deleteGame(previousGameId);
+    } catch (_error) {
+    }
+  }
   currentState = null;
   messageLogLines = [];
   elements.commandInput.value = "";
