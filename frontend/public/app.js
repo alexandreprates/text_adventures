@@ -745,6 +745,12 @@ function nextAutoExploreDecision(state) {
     return { stopReason: playerAlive(state) ? "stopped" : "dead" };
   }
   if (state.pending?.confirmation) return { stopReason: "unsafe confirmation" };
+
+  const healingPotion = autoExploreHealingPotion(state);
+  if (healingPotion) {
+    return { command: `use ${healingPotion.name}`, status: "Auto: healing" };
+  }
+
   if (state.battle?.active) {
     const spell = state.player.spells.find(candidate => candidate.kind === "damage");
     return {
@@ -769,6 +775,23 @@ function nextAutoExploreDecision(state) {
   return direction ?
     { command: `go ${direction}`, status: "Auto: exploring" } :
     { stopReason: "level complete" };
+}
+
+function autoExploreHealingPotion(state) {
+  if (!autoExploreNeedsHealing(state)) return null;
+
+  return state.player.inventory.find(item => (
+    item.type === "potion" &&
+    item.name === "potion of heal" &&
+    (item.quantity || 0) > 0
+  ));
+}
+
+function autoExploreNeedsHealing(state) {
+  const health = state?.player?.health;
+  if (!health?.max) return false;
+
+  return health.current / health.max < 0.2;
 }
 
 function nextAutoExploreDirection(state) {
