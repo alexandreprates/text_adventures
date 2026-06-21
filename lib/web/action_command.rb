@@ -73,7 +73,30 @@ module TextAdventures
       def item_list(name)
         value = payload.fetch(name, [])
         values = value.is_a?(Array) ? value : [value]
-        values.map { |item| item.to_s.strip.squeeze(" ") }.reject(&:empty?)
+        values.map { |item| trade_item_segment(item) }.reject(&:empty?)
+      end
+
+      def trade_item_segment(item)
+        return item.to_s.strip.squeeze(" ") unless item.is_a?(Hash)
+
+        name = hash_field(item, "item")
+        return "" if name.empty?
+
+        quantity = trade_quantity(item.fetch("quantity", item[:quantity] || 1))
+        quantity == 1 ? name : "#{name}:#{quantity}"
+      end
+
+      def hash_field(hash, name)
+        hash.fetch(name, hash[name.to_sym] || "").to_s.strip.squeeze(" ")
+      end
+
+      def trade_quantity(value)
+        quantity = Integer(value)
+        raise ArgumentError unless quantity.positive?
+
+        quantity
+      rescue ArgumentError, TypeError
+        raise ArgumentError, "Trade quantity must be positive."
       end
     end
   end

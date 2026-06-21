@@ -201,9 +201,10 @@ const commandHistory = {
 };
 const shopTrade = {
   open: false,
-  buy: new Set(),
-  sell: new Set()
+  buy: new Map(),
+  sell: new Map()
 };
+const MERCHANT_TRADE_MAX_QUANTITY = 99;
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
 async function parseResponse(response) {
@@ -805,26 +806,17 @@ function renderTradeItems(target, items, mode) {
 
   items.forEach(item => {
     const key = item.name;
-    const selected = tradeSelectionFor(mode).has(key);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "trade-item";
-    button.disabled = !item.trade_enabled;
-    button.setAttribute("aria-pressed", selected ? "true" : "false");
-    button.append(
-      tradeItemMark(mode, selected),
-      tradeItemCopy(item, mode)
+    const quantity = tradeSelectionFor(mode).get(key) || 0;
+    const card = document.createElement("article");
+    card.className = "trade-item";
+    card.classList.toggle("selected", quantity > 0);
+    card.classList.toggle("disabled", !item.trade_enabled);
+    card.append(
+      tradeItemCopy(item, mode),
+      tradeItemQuantityControls(item, mode)
     );
-    button.addEventListener("click", () => toggleTradeItem(mode, key));
-    target.appendChild(button);
+    target.appendChild(card);
   });
-}
-
-function tradeItemMark(mode, selected) {
-  const mark = document.createElement("span");
-  mark.className = "item-mark";
-  mark.textContent = selected ? (mode === "sell" ? "-" : "+") : "";
-  return mark;
 }
 
 function tradeItemCopy(item, mode) {
@@ -851,6 +843,49 @@ function tradeItemCopy(item, mode) {
   return copy;
 }
 
+function tradeItemQuantityControls(item, mode) {
+  const controls = document.createElement("div");
+  controls.className = "trade-quantity";
+
+  const key = item.name;
+  const quantity = tradeSelectionFor(mode).get(key) || 0;
+  const maxQuantity = maxTradeQuantity(item, mode);
+  const disabled = !item.trade_enabled;
+
+  const decrease = document.createElement("button");
+  decrease.type = "button";
+  decrease.className = "quantity-step";
+  decrease.textContent = "-";
+  decrease.disabled = disabled || quantity <= 0;
+  decrease.setAttribute("aria-label", `Decrease ${item.display_name || item.name}`);
+  decrease.addEventListener("click", event => {
+    event.stopPropagation();
+    setTradeQuantity(mode, item, quantity - 1);
+  });
+
+  const value = document.createElement("span");
+  value.className = "quantity-value";
+  value.textContent = String(quantity);
+
+  const increase = document.createElement("button");
+  increase.type = "button";
+  increase.className = "quantity-step";
+  increase.textContent = "+";
+  increase.disabled = disabled || quantity >= maxQuantity;
+  increase.setAttribute("aria-label", `Increase ${item.display_name || item.name}`);
+  increase.addEventListener("click", event => {
+    event.stopPropagation();
+    setTradeQuantity(mode, item, quantity + 1);
+  });
+
+  const limit = document.createElement("span");
+  limit.className = "quantity-limit";
+  limit.textContent = mode === "sell" ? `available ${maxQuantity}` : "available";
+
+  controls.append(decrease, value, increase, limit);
+  return controls;
+}
+
 function tradeItemName(item, mode) {
   const name = item.display_name || item.name;
   if (mode === "sell" && Number(item.quantity) > 1) return `${name} x${item.quantity}`;
@@ -875,12 +910,14 @@ function tradeItemDescription(item) {
   return details.join(" · ");
 }
 
-function toggleTradeItem(mode, key) {
+function setTradeQuantity(mode, item, nextQuantity) {
   const selection = tradeSelectionFor(mode);
-  if (selection.has(key)) {
-    selection.delete(key);
+  const key = item.name;
+  const quantity = Math.max(0, Math.min(maxTradeQuantity(item, mode), Number(nextQuantity) || 0));
+  if (quantity > 0) {
+    selection.set(key, quantity);
   } else {
-    selection.add(key);
+    selection.delete(key);
   }
   renderShopOverlay(currentState);
 }
@@ -895,9 +932,20 @@ function pruneTradeSelection(trade) {
 }
 
 function pruneSelection(selection, items) {
-  const available = new Set(items.filter(item => item.trade_enabled).map(item => item.name));
-  Array.from(selection).forEach(key => {
-    if (!available.has(key)) selection.delete(key);
+  const available = new Map(items.filter(item => item.trade_enabled).map(item => [item.name, item]));
+  Array.from(selection.entries()).forEach(([key, quantity]) => {
+    const item = available.get(key);
+    if (!item) {
+      selection.delete(key);
+      return;
+    }
+
+    const nextQuantity = Math.min(Number(quantity) || 0, maxTradeQuantity(item, selection === shopTrade.sell ? "sell" : "buy"));
+    if (nextQuantity > 0) {
+      selection.set(key, nextQuantity);
+    } else {
+      selection.delete(key);
+    }
   });
 }
 
@@ -917,8 +965,8 @@ function tradeTotals(state) {
   const trade = state?.trade || {};
   const playerItems = trade.player_items || [];
   const merchantItems = trade.merchant_items || [];
-  const sold = selectedTradeItems(shopTrade.sell, playerItems).reduce((total, item) => total + Number(item.sell_price || 0), 0);
-  const bought = selectedTradeItems(shopTrade.buy, merchantItems).reduce((total, item) => total + Number(item.buy_price ?? item.price ?? 0), 0);
+  const sold = selectedTradeItems(shopTrade.sell, playerItems).reduce((total, entry) => total + (Number(entry.item.sell_price || 0) * entry.quantity), 0);
+  const bought = selectedTradeItems(shopTrade.buy, merchantItems).reduce((total, entry) => total + (Number(entry.item.buy_price ?? entry.item.price ?? 0) * entry.quantity), 0);
   const currentGold = Number(state?.player?.gold || 0);
   return {
     currentGold,
@@ -926,12 +974,30 @@ function tradeTotals(state) {
     bought,
     net: sold - bought,
     finalGold: currentGold + sold - bought,
-    itemCount: shopTrade.sell.size + shopTrade.buy.size
+    itemCount: selectedQuantityTotal(shopTrade.sell) + selectedQuantityTotal(shopTrade.buy)
   };
 }
 
 function selectedTradeItems(selection, items) {
-  return items.filter(item => selection.has(item.name));
+  const byName = new Map(items.map(item => [item.name, item]));
+  return Array.from(selection.entries()).map(([name, quantity]) => ({
+    item: byName.get(name),
+    quantity: Number(quantity) || 0
+  })).filter(entry => entry.item && entry.quantity > 0);
+}
+
+function selectedQuantityTotal(selection) {
+  return Array.from(selection.values()).reduce((total, quantity) => total + Number(quantity || 0), 0);
+}
+
+function maxTradeQuantity(item, mode) {
+  if (mode === "sell") return Math.max(0, Number(item.quantity || 0));
+
+  return MERCHANT_TRADE_MAX_QUANTITY;
+}
+
+function tradePayload(selection) {
+  return Array.from(selection.entries()).map(([item, quantity]) => ({ item, quantity }));
 }
 
 function signedGold(value) {
@@ -975,8 +1041,8 @@ async function submitTradeSelection() {
   try {
     await api.sendAction({
       type: "trade",
-      buy: Array.from(shopTrade.buy),
-      sell: Array.from(shopTrade.sell)
+      buy: tradePayload(shopTrade.buy),
+      sell: tradePayload(shopTrade.sell)
     });
     shopTrade.buy.clear();
     shopTrade.sell.clear();

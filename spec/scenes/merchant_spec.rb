@@ -178,6 +178,36 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.pending_confirmation).to be_nil
   end
 
+  it "applies trade quantities in a combined trade" do
+    game.player.gold = 30
+    game.player.inventory.add(sword, quantity: 3)
+
+    response = game.handle("trade buy=spear;sell=sword:3")
+
+    expect(response).to eq <<~TEXT.chomp
+      Trade completed.
+      Sold for 30g.
+      [3x Sword removed from inventory]
+      Bought for 50g.
+      [1x Spear added to inventory]
+      [your gold is now 10]
+    TEXT
+    expect(game.player.inventory.quantity("sword")).to eq 0
+    expect(game.player.inventory.quantity("spear")).to eq 1
+    expect(game.player.gold).to eq 10
+  end
+
+  it "rejects trade quantities above the player inventory" do
+    game.player.inventory.add(sword, quantity: 2)
+
+    expect(game.handle("trade sell=sword:3")).to eq "You do not have enough Sword."
+    expect(game.player.inventory.quantity("sword")).to eq 2
+  end
+
+  it "rejects invalid trade quantities" do
+    expect(game.handle("trade sell=sword:0")).to eq "Trade quantity must be positive."
+  end
+
   it "rejects combined trades that would leave the player with negative gold" do
     game.player.gold = 20
     game.player.inventory.add(sword)

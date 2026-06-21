@@ -15,6 +15,11 @@ RSpec.describe TextAdventures::Web::ActionCommand do
     expect(described_class.call("type" => "travel", "destination" => "blacksmith")).to eq "go blacksmith"
     expect(described_class.call("type" => "buy", "item" => "padded armor")).to eq "buy padded armor"
     expect(described_class.call("type" => "trade", "buy" => ["iron dagger"], "sell" => ["sword"])).to eq "trade buy=iron dagger;sell=sword"
+    expect(described_class.call(
+      "type" => "trade",
+      "buy" => [{ "item" => "iron dagger", "quantity" => 2 }],
+      "sell" => [{ "item" => "potion of heal", "quantity" => 3 }]
+    )).to eq "trade buy=iron dagger:2;sell=potion of heal:3"
     expect(described_class.call("type" => "cast", "spell" => "fireball")).to eq "cast fireball"
   end
 
@@ -23,5 +28,6 @@ RSpec.describe TextAdventures::Web::ActionCommand do
     expect { described_class.call("type" => "dance") }.to raise_error ArgumentError, "Unsupported action type: dance."
     expect { described_class.call("type" => "move") }.to raise_error ArgumentError, "Action field direction is required for move."
     expect { described_class.call("type" => "trade") }.to raise_error ArgumentError, "At least one trade item is required."
+    expect { described_class.call("type" => "trade", "sell" => [{ "item" => "sword", "quantity" => 0 }]) }.to raise_error ArgumentError, "Trade quantity must be positive."
   end
 end

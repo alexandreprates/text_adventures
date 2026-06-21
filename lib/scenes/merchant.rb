@@ -113,27 +113,29 @@ module TextAdventures
 
       def request_trade(game, target)
         selections = parse_trade_target(target)
-        buy_names = selections.fetch(:buy)
-        sell_names = selections.fetch(:sell)
-        return Response.new("Select at least one item to trade.") if buy_names.empty? && sell_names.empty?
+        buy_requests = selections.fetch(:buy)
+        sell_requests = selections.fetch(:sell)
+        return Response.new("Select at least one item to trade.") if buy_requests.empty? && sell_requests.empty?
 
-        buy_items = resolve_trade_buys(game, buy_names)
+        buy_items = resolve_trade_buys(game, buy_requests)
         return buy_items if buy_items.is_a?(Response)
 
-        sell_items = resolve_trade_sells(game, sell_names)
+        sell_items = resolve_trade_sells(game, sell_requests)
         return sell_items if sell_items.is_a?(Response)
 
-        sell_total = sell_items.sum { |item| sell_price(item) }
-        buy_total = buy_items.sum(&:price)
+        sell_total = sell_items.sum { |selection| sell_price(selection.fetch(:item)) * selection.fetch(:quantity) }
+        buy_total = buy_items.sum { |selection| selection.fetch(:item).price * selection.fetch(:quantity) }
         final_gold = game.player.gold + sell_total - buy_total
         return Response.new("Sorry, but you do not have enough money for this trade.") if final_gold.negative?
 
         sold_lines = apply_trade_sells(game, sell_items)
-        buy_items.each { |item| game.player.inventory.add(item) }
+        buy_items.each { |selection| game.player.inventory.add(selection.fetch(:item), quantity: selection.fetch(:quantity)) }
         game.player.gold = final_gold
         game.pending_confirmation = nil
 
         Response.new(trade_response_lines(buy_items, sold_lines, sell_total, buy_total, game.player.gold))
+      rescue ArgumentError => error
+        Response.new(error.message)
       end
 
       def confirm(game)
@@ -189,34 +191,66 @@ module TextAdventures
           normalized_key = key.strip.to_sym
           next unless selections.key?(normalized_key)
 
-          selections[normalized_key] = value.to_s.split("|").map(&:strip).reject(&:empty?)
+          selections[normalized_key] = parse_trade_items(value)
         end
       end
 
-      def resolve_trade_buys(game, names)
-        names.each_with_object([]) do |name, items|
+      def parse_trade_items(value)
+        counts = value.to_s.split("|").each_with_object(Hash.new(0)) do |raw_item, selections|
+          next if raw_item.strip.empty?
+
+          name, quantity = parse_trade_item(raw_item)
+          selections[name] += quantity
+        end
+
+        counts.map { |name, quantity| { name: name, quantity: quantity } }
+      end
+
+      def parse_trade_item(raw_item)
+        item_name, quantity_text = raw_item.to_s.split(":", 2)
+        name = item_name.to_s.strip
+        raise ArgumentError, "Trade item name is required." if name.empty?
+
+        [name, parse_trade_quantity(quantity_text)]
+      end
+
+      def parse_trade_quantity(quantity_text)
+        return 1 if quantity_text.nil? || quantity_text.strip.empty?
+
+        quantity = Integer(quantity_text.strip)
+        raise ArgumentError unless quantity.positive?
+
+        quantity
+      rescue ArgumentError
+        raise ArgumentError, "Trade quantity must be positive."
+      end
+
+      def resolve_trade_buys(game, requests)
+        requests.each_with_object([]) do |request, items|
+          name = request.fetch(:name)
           item = find_stock(game.player, name)
           return Response.new("I do not have #{name} for sale.") unless item
 
-          items << item
+          items << { item: item, quantity: request.fetch(:quantity) }
         end
       end
 
-      def resolve_trade_sells(game, names)
-        counts = names.tally
-        counts.each do |name, count|
+      def resolve_trade_sells(game, requests)
+        requests.each_with_object([]) do |request, items|
+          name = request.fetch(:name)
+          quantity = request.fetch(:quantity)
           item = game.player.inventory.find(name)
           return Response.new("You do not have #{name}.") unless item
-          return Response.new("You do not have enough #{item.display_name}.") if game.player.inventory.quantity(name) < count
+          return Response.new("You do not have enough #{item.display_name}.") if game.player.inventory.quantity(name) < quantity
           return Response.new("Sorry bud, but I have no interest in this item.") unless accepts?(item)
-        end
 
-        names.map { |name| game.player.inventory.find(name) }
+          items << { item: item, quantity: quantity }
+        end
       end
 
-      def apply_trade_sells(game, items)
-        items.map do |item|
-          result = game.player.inventory.remove(item.command_name)
+      def apply_trade_sells(game, selections)
+        selections.map do |selection|
+          result = game.player.inventory.remove(selection.fetch(:item).command_name, quantity: selection.fetch(:quantity))
           "[#{result.quantity}x #{result.item.display_name} removed from inventory]"
         end
       end
@@ -227,7 +261,7 @@ module TextAdventures
         lines.concat(sold_lines)
         if buy_items.any?
           lines << "Bought for #{buy_total}g."
-          lines.concat(buy_items.map { |item| "[1x #{item.display_name} added to inventory]" })
+          lines.concat(buy_items.map { |selection| "[#{selection.fetch(:quantity)}x #{selection.fetch(:item).display_name} added to inventory]" })
         end
         lines << "[your gold is now #{gold}]"
         lines

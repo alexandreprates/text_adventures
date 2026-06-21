@@ -695,33 +695,25 @@ pre {
 }
 
 .trade-item {
-  min-height: 62px;
+  min-height: 70px;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
   align-items: center;
   padding: 8px 10px;
   border: 1px solid rgba(29, 107, 52, 0.85);
   background: #081608;
   color: var(--green);
-  font: inherit;
   text-align: left;
 }
 
-.trade-item[aria-pressed="true"] {
+.trade-item.selected {
   border-color: var(--amber);
   background: rgba(65, 49, 5, 0.34);
 }
 
-.trade-item:disabled {
+.trade-item.disabled {
   opacity: 0.43;
-  cursor: default;
-}
-
-.item-mark {
-  color: var(--amber);
-  font-size: var(--font-base);
-  text-align: center;
 }
 
 .item-copy {
@@ -758,6 +750,47 @@ pre {
   color: var(--green-dim);
   font-size: var(--font-xs);
   line-height: 1.15;
+}
+
+.trade-quantity {
+  display: grid;
+  grid-template-columns: 24px 28px 24px;
+  gap: 4px;
+  align-items: center;
+  justify-items: center;
+}
+
+.quantity-step {
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(29, 107, 52, 0.9);
+  background: #061007;
+  color: var(--amber);
+  font: inherit;
+  font-size: var(--font-xs);
+  line-height: 1;
+}
+
+.quantity-step:disabled {
+  color: var(--green-dim);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.quantity-value {
+  color: var(--green);
+  font-size: var(--font-xs);
+  line-height: 1;
+  text-align: center;
+}
+
+.quantity-limit {
+  grid-column: 1 / -1;
+  color: var(--green-dim);
+  font-size: calc(var(--font-xs) * 0.84);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .trade-summary {
