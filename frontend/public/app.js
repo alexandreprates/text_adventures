@@ -2,6 +2,9 @@ const api = {
   gameId: null,
   socket: null,
   pendingAction: null,
+  reconnectTimer: null,
+  reconnectStartedAt: null,
+  manuallyDisconnected: false,
   async createGame() {
     const response = await fetch("/api/games", {
       method: "POST",
@@ -21,21 +24,35 @@ const api = {
   connectGame(gameId) {
     this.disconnectGame();
     this.gameId = gameId;
+    this.manuallyDisconnected = false;
+    return this.openSocket(gameId);
+  },
+  disconnectGame() {
+    this.manuallyDisconnected = true;
+    this.stopReconnect();
+    if (this.socket) this.socket.close();
+    this.socket = null;
+    this.pendingAction = null;
+  },
+  openSocket(gameId) {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socket = new WebSocket(`${protocol}//${window.location.host}/ws?game_id=${encodeURIComponent(gameId)}`);
     this.socket = socket;
 
     return new Promise((resolve, reject) => {
-      socket.addEventListener("open", () => resolve(socket), { once: true });
+      socket.addEventListener("open", () => {
+        this.stopReconnect();
+        resolve(socket);
+      }, { once: true });
       socket.addEventListener("error", () => reject(new Error("WebSocket connection failed.")), { once: true });
       socket.addEventListener("message", event => handleSocketMessage(event));
       socket.addEventListener("close", () => handleSocketClose(socket));
     });
   },
-  disconnectGame() {
-    if (this.socket) this.socket.close();
-    this.socket = null;
-    this.pendingAction = null;
+  stopReconnect() {
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.reconnectStartedAt = null;
   },
   sendAction(action) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
@@ -96,6 +113,8 @@ const MAP_ZOOM_STEP = 0.12;
 const MAP_ZOOM_MIN = 0.76;
 const MAP_ZOOM_MAX = 1.96;
 const COMBAT_FEEDBACK_STEP_MS = 520;
+const SOCKET_RECONNECT_INTERVAL_MS = 10_000;
+const SOCKET_RECONNECT_TIMEOUT_MS = 120_000;
 const AUTO_EXPLORE_DELAY_MS = 520;
 const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
 const AUTO_EXPLORE_REPEAT_LIMIT = 8;
@@ -196,14 +215,53 @@ function handleSocketClose(socket) {
   if (api.socket !== socket) return;
 
   api.socket = null;
-  const error = new Error("Connection lost. Type new to start a new game.");
-  rejectPendingAction(error);
-  if (currentState) {
-    setStatus("Offline", true);
-    showError(error);
-    elements.commandInput.placeholder = "new";
-  }
+  rejectPendingAction(new Error("Connection lost. Reconnecting."));
+  if (!api.manuallyDisconnected && currentState) startSocketReconnect();
   stopAutoExplore("connection lost");
+}
+
+function startSocketReconnect() {
+  if (!api.gameId || api.reconnectTimer) return;
+
+  api.reconnectStartedAt = api.reconnectStartedAt || Date.now();
+  setStatus("Reconnecting");
+  elements.commandInput.placeholder = "reconnecting";
+  api.reconnectTimer = setTimeout(attemptSocketReconnect, SOCKET_RECONNECT_INTERVAL_MS);
+}
+
+function attemptSocketReconnect() {
+  api.reconnectTimer = null;
+  if (!api.gameId || api.manuallyDisconnected) return;
+
+  if (Date.now() - api.reconnectStartedAt >= SOCKET_RECONNECT_TIMEOUT_MS) {
+    failSocketReconnect();
+    return;
+  }
+
+  setStatus("Reconnecting");
+  api.openSocket(api.gameId).then(() => {
+    setStatus("Online");
+    if (currentState) updateCommandPlaceholder(currentState);
+    if (!autoExplore.enabled && autoExplore.status === "Auto: offline") updateAutoExploreStatus("Auto: stopped");
+    elements.commandInput.focus();
+  }).catch(() => {
+    if (!api.reconnectTimer && !api.manuallyDisconnected) {
+      startSocketReconnect();
+    }
+  });
+}
+
+function failSocketReconnect() {
+  api.stopReconnect();
+  api.socket = null;
+  const error = new Error("Connection lost. Could not reconnect after 2 minutes. Type new to start a new game.");
+  setStatus("Error", true);
+  showError(error);
+  elements.commandInput.placeholder = "new";
+}
+
+function socketReconnectInProgress() {
+  return Boolean(api.reconnectStartedAt);
 }
 
 function resolvePendingAction(payload) {
@@ -1454,6 +1512,11 @@ async function runCommand(command, options = {}) {
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {
+    if (socketReconnectInProgress()) {
+      setStatus("Reconnecting");
+      if (options.source === "auto") stopAutoExplore("connection lost");
+      return;
+    }
     setStatus("Error", true);
     showError(error);
     if (options.source === "auto") stopAutoExplore("error");
