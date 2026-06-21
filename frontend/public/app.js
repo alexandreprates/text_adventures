@@ -578,6 +578,7 @@ function quickCommandsFor(state) {
     ];
   }
 
+  if (state.scene === "ruins") return autoExploreCommands(state);
   if (autoExplore.enabled) return autoExploreCommands(state);
 
   const travel = [
@@ -593,8 +594,7 @@ function quickCommandsFor(state) {
     tavern: [["Descansar", "rent room", "primary"], ["Comprar", "buy potion of heal"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
     priest: [["Curar", "heal", "primary"], ["Remover Status", "cure"], ["Comprar", "buy tome of fireball"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
     blacksmith: [["Comprar", "buy rusty dagger", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
-    armorsmith: [["Comprar", "buy padded armor", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
-    ruins: ruinsCommands(state)
+    armorsmith: [["Comprar", "buy padded armor", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]]
   };
   const battleItemCommands = state.battle?.active ? suggestedItemCommands(state.player) : [];
 
@@ -604,31 +604,11 @@ function quickCommandsFor(state) {
   ];
 }
 
-function ruinsCommands(state) {
-  const commands = [
-    ["Go Up", "go up", null, "Go Up"],
-    ["Go Right", "go right", null, "Go Right"],
-    ["Go Down", "go down", null, "Go Down"],
-    ["Go Left", "go left", null, "Go Left"]
-  ];
-
-  if (state.battle?.active) {
-    const firstDamageSpell = state.player.spells.find(spell => spell.kind === "damage");
-    if (firstDamageSpell) commands.push([`Conjurar ${firstDamageSpell.display_name}`, `cast ${firstDamageSpell.name}`, "primary"]);
-    commands.push(["Atacar", "attack", "danger"]);
-  } else {
-    commands.push(["Atacar", "attack"]);
-  }
-
-  if (state.dungeon?.nearby_loot) commands.push(["Coletar Loot", "loot", "primary"]);
-
-  return commands;
-}
-
 function autoExploreCommands(state) {
   return [
-    ["Auto - go Town", "auto town", "primary"],
-    ["Auto - go Down", "auto descent", "primary", "Auto - go Down", !autoExploreDescentFound(state)]
+    ["Explore", "auto explore", "primary"],
+    ["Go Town", "auto town", "primary"],
+    ["Go Deep", "auto descent", "primary", "Go Deep", !autoExploreDescentFound(state)]
   ];
 }
 
@@ -643,6 +623,7 @@ function shortcutForCommand(command, label) {
     "go right": "d/l/→",
     "go down": "s/j/↓",
     "go left": "a/h/←",
+    "auto explore": "e",
     "auto town": "t",
     "auto descent": "d",
     attack: "a",
@@ -670,7 +651,7 @@ function suggestedItemCommands(player) {
   });
 }
 
-function startAutoExplore() {
+function startAutoExplore(goal = "explore") {
   if (!canAutoExplore(currentState)) {
     updateAutoExploreStatus("Auto: enter ruins");
     return;
@@ -679,10 +660,10 @@ function startAutoExplore() {
   resetAutoExploreMemory();
   updateAutoExploreKnowledge(currentState);
   autoExplore.enabled = true;
-  autoExplore.goal = "explore";
+  autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
   markAutoExploreVisited(currentState);
-  updateAutoExploreStatus("Auto: exploring");
+  updateAutoExploreStatus(autoExploreGoalStatus(goal));
   renderContextCommands(currentState);
   scheduleAutoExplore();
 }
@@ -698,7 +679,15 @@ function stopAutoExplore(reason = "stopped") {
 }
 
 function setAutoExploreGoal(goal) {
-  if (!autoExplore.enabled || !canAutoExplore(currentState)) return;
+  if (!canAutoExplore(currentState)) {
+    updateAutoExploreStatus("Auto: enter ruins");
+    return;
+  }
+
+  if (!autoExplore.enabled) {
+    startAutoExplore(goal);
+    return;
+  }
 
   autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
@@ -706,8 +695,15 @@ function setAutoExploreGoal(goal) {
   autoExplore.destinationKey = null;
   autoExplore.repeatCount = 0;
   updateAutoExploreKnowledge(currentState);
-  updateAutoExploreStatus(goal === "descent" ? "Auto: going down" : "Auto: going town");
+  updateAutoExploreStatus(autoExploreGoalStatus(goal));
   scheduleAutoExplore();
+}
+
+function autoExploreGoalStatus(goal) {
+  if (goal === "descent") return "Auto: going deep";
+  if (goal === "town") return "Auto: going town";
+
+  return "Auto: exploring";
 }
 
 function resetAutoExploreMemory() {
@@ -854,7 +850,7 @@ function nextAutoExploreGoalDecision(state) {
 
   return {
     command: `go ${direction}`,
-    status: autoExplore.goal === "descent" ? "Auto: going down" : "Auto: going town"
+    status: autoExploreGoalStatus(autoExplore.goal)
   };
 }
 
@@ -868,8 +864,27 @@ function nextAutoExploreTargetDirection(state, target) {
   const position = state.dungeon?.player_position;
   if (!position) return null;
 
+  if (autoExplore.goal === "town" && samePosition(position, target)) {
+    return nextDirectionAwayFromAutoExploreTarget(state, position);
+  }
+
   const path = shortestAutoExplorePath(position, [target], { allowTransitionGoal: true });
   return path.length >= 2 ? directionBetween(position, positionFromKey(path[1])) : null;
+}
+
+function nextDirectionAwayFromAutoExploreTarget(state, position) {
+  const currentKey = positionKey(position);
+
+  return AUTO_EXPLORE_DIRECTIONS.find(direction => {
+    if (autoExplore.failedMoves.has(`${currentKey}:${direction}`)) return false;
+
+    const step = AUTO_EXPLORE_STEPS[direction];
+    const nextPosition = { x: position.x + step.x, y: position.y + step.y };
+    return (
+      walkableKnownPositionKey(positionKey(nextPosition)) &&
+      !isLevelTransitionPosition(state, nextPosition)
+    );
+  }) || null;
 }
 
 function autoExploreHealingSpell(state) {
