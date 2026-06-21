@@ -18,6 +18,16 @@
   --blue: #44aaff;
   --purple: #cc44ff;
   --mono: "VT323", ui-monospace, "SFMono-Regular", "Cascadia Mono", "Segoe UI Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-base: 16px;
+  --font-map: 18px;
+  --font-control: 22px;
+  --left-column-width: 220px;
+  --right-column-width: 260px;
+  --layout-gap: 8px;
+  --layout-padding: 8px;
+  --panel-padding: 10px;
 }
 
 * {
@@ -36,6 +46,7 @@ body {
   background: var(--bg);
   color: var(--green);
   font-family: var(--mono);
+  font-size: var(--font-base);
 }
 
 button,
@@ -85,7 +96,7 @@ pre {
   padding: 4px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
-  font-size: 12px;
+  font-size: var(--font-xs);
 }
 
 .topbar-left,
@@ -102,7 +113,7 @@ pre {
 }
 
 .eyebrow {
-  font-size: 12px;
+  font-size: var(--font-xs);
   letter-spacing: 2px;
   white-space: nowrap;
 }
@@ -142,7 +153,7 @@ pre {
   border-left: 1px solid transparent;
   border-right: 1px solid transparent;
   color: var(--green-dim);
-  font-size: 13px;
+  font-size: var(--font-sm);
 }
 
 .terminal-tab.active {
@@ -157,9 +168,9 @@ pre {
 .game-layout {
   min-height: 0;
   display: grid;
-  grid-template-columns: 220px minmax(480px, 1fr) 260px;
-  gap: 8px;
-  padding: 8px;
+  grid-template-columns: var(--left-column-width) minmax(480px, 1fr) var(--right-column-width);
+  gap: var(--layout-gap);
+  padding: var(--layout-padding);
 }
 
 .left-column,
@@ -182,16 +193,16 @@ pre {
 .commands-panel,
 .inventory-panel,
 .log-panel {
-  padding: 10px;
+  padding: var(--panel-padding);
 }
 
 .character-panel {
-  font-size: 13px;
+  font-size: var(--font-sm);
   line-height: 1.6;
 }
 
 .commands-panel {
-  font-size: 12px;
+  font-size: var(--font-xs);
   line-height: 1.4;
 }
 
@@ -217,15 +228,15 @@ pre {
 
 .bar-row {
   display: grid;
-  grid-template-columns: 28px 1fr 58px;
-  gap: 7px;
+  grid-template-columns: 2.2em minmax(0, 1fr) 4.6em;
+  gap: 0.55em;
   align-items: center;
 }
 
 .status-row {
   display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 7px;
+  grid-template-columns: 4.6em minmax(0, 1fr);
+  gap: 0.55em;
   align-items: start;
 }
 
@@ -316,7 +327,7 @@ pre {
 .status-output {
   border-top: 1px solid var(--border);
   padding-top: 6px;
-  font-size: 13px;
+  font-size: var(--font-sm);
   line-height: 1.5;
 }
 
@@ -332,7 +343,7 @@ pre {
 
 .class-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 14px 88px;
+  grid-template-columns: minmax(0, 1fr) 1.1em 6.8em;
   gap: 4px;
   align-items: center;
 }
@@ -375,12 +386,12 @@ pre {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border);
   color: var(--green-dim);
-  font-size: 13px;
+  font-size: var(--font-sm);
 }
 
 .map-heading h2 {
   color: var(--green-dim);
-  font-size: 13px;
+  font-size: var(--font-sm);
   font-weight: 400;
 }
 
@@ -412,7 +423,7 @@ pre {
   border: 1px solid var(--border);
   background: rgba(8, 12, 8, 0.88);
   color: var(--green);
-  font-size: 22px;
+  font-size: var(--font-control);
   line-height: 1;
 }
 
@@ -471,7 +482,7 @@ pre {
   place-items: center;
   padding: 18px;
   color: var(--green);
-  font-size: 18px;
+  font-size: var(--font-map);
   line-height: 1.35;
   text-align: center;
 }
@@ -492,7 +503,7 @@ pre {
 .log-panel {
   position: relative;
   min-height: 158px;
-  font-size: 12px;
+  font-size: var(--font-xs);
   line-height: 1.5;
 }
 
@@ -509,7 +520,7 @@ pre {
 }
 
 .inventory-panel {
-  font-size: 12px;
+  font-size: var(--font-xs);
   line-height: 1.6;
 }
 
@@ -578,7 +589,7 @@ pre {
 
 .auto-explore-controls {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 4.4em minmax(0, 1fr);
   gap: 6px;
   align-items: center;
   margin-bottom: 6px;
@@ -644,7 +655,7 @@ pre {
 
 .command-bar {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr) 110px;
+  grid-template-columns: 7em minmax(0, 1fr) 7em;
   gap: 12px;
   align-items: center;
   min-height: 48px;
@@ -718,6 +729,85 @@ pre {
     min-height: 420px;
   }
 
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --font-xs: 14px;
+    --font-sm: 15px;
+    --font-base: 18px;
+    --font-map: 20px;
+    --font-control: 24px;
+    --left-column-width: 260px;
+    --right-column-width: 300px;
+    --layout-gap: 10px;
+    --layout-padding: 10px;
+    --panel-padding: 12px;
+  }
+
+  .topbar {
+    min-height: 36px;
+  }
+
+  .terminal-tab {
+    min-height: 34px;
+    padding: 5px 18px;
+  }
+
+  .map-zoom-controls {
+    grid-template-columns: repeat(2, 34px);
+  }
+
+  .map-zoom-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .command-bar,
+  .command-bar input,
+  .command-bar button {
+    min-height: 40px;
+  }
+}
+
+@media (min-width: 2200px) {
+  :root {
+    --font-xs: 16px;
+    --font-sm: 17px;
+    --font-base: 20px;
+    --font-map: 22px;
+    --font-control: 28px;
+    --left-column-width: 320px;
+    --right-column-width: 360px;
+    --layout-gap: 12px;
+    --layout-padding: 12px;
+    --panel-padding: 14px;
+  }
+
+  .topbar {
+    min-height: 42px;
+    padding: 6px 14px;
+  }
+
+  .terminal-tab {
+    min-height: 40px;
+    padding: 6px 20px;
+  }
+
+  .map-zoom-controls {
+    grid-template-columns: repeat(2, 40px);
+  }
+
+  .map-zoom-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .command-bar,
+  .command-bar input,
+  .command-bar button {
+    min-height: 44px;
+  }
 }
 
 @media (max-width: 640px) {
