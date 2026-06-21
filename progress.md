@@ -96,3 +96,13 @@ Original prompt: abra o navegador e observe a interface, em monitores grandes a 
 - Browser validation: entered ruins, reloaded the page, and confirmed the reloaded state rendered Town immediately.
 - Chrome console validation: no warnings or errors.
 - Validation commands: `node --check frontend/public/app.js`; focused domain/router/frontend specs; `docker compose run --rm server bundle exec rspec` (435 examples, 0 failures).
+
+## 2026-06-21 Auto Explore Continues To Next Dungeon Level
+
+- Started implementing automatic floor progression for the `Explore` auto mode.
+- Decision: manual `Go Deep` should keep stopping after a successful descent, while `Explore` should switch to descent only after the current level is fully explored and then resume `Explore` on the next level.
+- Added a frontend-only `continueAfterDescent` flag to distinguish automatic level progression from the manual descent goal.
+- Initial validation commands: `node --check frontend/public/app.js`; `docker compose run --rm server bundle exec rspec spec/web/frontend_assets_spec.rb`.
+- Browser validation: started `Explore` at 3x in Ruins L1 and observed normal exploration/combat/loot with the descent discovered and `Go Deep` enabled.
+- Controlled browser validation: simulated a fully explored level with a known descent; `nextAutoExploreDecision` switched to `go right`/`Auto: going deep`, then `autoExploreGoalReached` on level 2 kept auto enabled and resumed `Auto: exploring`.
+- Final validation commands: `docker compose run --rm server bundle exec rspec` (438 examples, 0 failures). Chrome console had no warnings or errors.

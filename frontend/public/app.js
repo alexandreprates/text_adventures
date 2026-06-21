@@ -186,6 +186,7 @@ const autoExplore = {
   destinationKey: null,
   goal: "explore",
   goalLevel: null,
+  continueAfterDescent: false,
   knownLevel: null,
   lastAction: null,
   lastPositionKey: null,
@@ -1227,6 +1228,7 @@ function startAutoExplore(goal = "explore") {
   autoExplore.enabled = true;
   autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
+  autoExplore.continueAfterDescent = false;
   markAutoExploreVisited(currentState);
   updateAutoExploreStatus(autoExploreGoalStatus(goal));
   renderContextCommands(currentState);
@@ -1237,6 +1239,7 @@ function stopAutoExplore(reason = "stopped") {
   autoExplore.enabled = false;
   autoExplore.goal = "explore";
   autoExplore.goalLevel = null;
+  autoExplore.continueAfterDescent = false;
   clearAutoExploreTimer();
   autoExplore.pendingSince = null;
   updateAutoExploreStatus(autoExploreStopStatus(reason));
@@ -1256,6 +1259,7 @@ function setAutoExploreGoal(goal) {
 
   autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
+  autoExplore.continueAfterDescent = false;
   autoExplore.currentPath = [];
   autoExplore.destinationKey = null;
   autoExplore.repeatCount = 0;
@@ -1402,7 +1406,19 @@ function nextAutoExploreDecision(state) {
   const direction = nextAutoExploreDirection(state);
   return direction ?
     { command: `go ${direction}`, status: "Auto: exploring" } :
-    { stopReason: "level complete" };
+    autoExploreLevelCompleteDecision(state);
+}
+
+function autoExploreLevelCompleteDecision(state) {
+  if (!autoExploreDescentFound(state)) return { stopReason: "level complete" };
+
+  autoExplore.goal = "descent";
+  autoExplore.goalLevel = state.dungeon?.level ?? null;
+  autoExplore.continueAfterDescent = true;
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.repeatCount = 0;
+  return nextAutoExploreGoalDecision(state);
 }
 
 function nextAutoExploreGoalDecision(state) {
@@ -1775,11 +1791,31 @@ function autoExploreGoalReached(state) {
     Number.isInteger(autoExplore.goalLevel) &&
     state?.dungeon?.level !== autoExplore.goalLevel
   ) {
+    if (autoExplore.continueAfterDescent) {
+      continueAutoExploreAfterDescent(state);
+      return true;
+    }
+
     stopAutoExplore("level descended");
     return true;
   }
 
   return false;
+}
+
+function continueAutoExploreAfterDescent(state) {
+  autoExplore.goal = "explore";
+  autoExplore.goalLevel = state.dungeon?.level ?? null;
+  autoExplore.continueAfterDescent = false;
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.lastAction = null;
+  autoExplore.lastPositionKey = null;
+  autoExplore.pendingSince = null;
+  autoExplore.repeatCount = 0;
+  markAutoExploreVisited(state);
+  updateAutoExploreStatus(autoExploreGoalStatus(autoExplore.goal));
+  renderContextCommands(state);
 }
 
 function markAutoExploreVisited(state) {
