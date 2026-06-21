@@ -458,7 +458,7 @@ function renderCollections(player) {
     label: `${item.quantity || 1}x ${item.display_name}`,
     meta: item.type || "",
     type: item.type || "",
-    commandValue: item.name
+    commandValue: inventoryCommandValue(item)
   }));
   renderList(elements.spellsList, player.spells, spell => ({
     label: `${spell.display_name} Lv ${spell.level}`,
@@ -466,6 +466,14 @@ function renderCollections(player) {
     type: spell.description,
     commandValue: spell.name
   }));
+}
+
+function inventoryCommandValue(item) {
+  if (item.type === "weapon" || item.type === "armor") return `equip ${item.name}`;
+  if (item.type === "tome" || item.type === "potion") return `use ${item.name}`;
+  if (item.type === "junk") return `drop ${item.name}`;
+
+  return item.name;
 }
 
 function renderList(target, entries, formatter) {
