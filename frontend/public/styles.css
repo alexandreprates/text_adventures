@@ -718,10 +718,6 @@ pre {
     min-height: 420px;
   }
 
-  .right-column {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.7fr);
-  }
 }
 
 @media (max-width: 640px) {
@@ -738,7 +734,6 @@ pre {
     min-width: 108px;
   }
 
-  .right-column,
   .command-bar {
     grid-template-columns: 1fr;
   }

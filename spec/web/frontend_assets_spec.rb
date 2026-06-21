@@ -42,6 +42,10 @@ RSpec.describe "Frontend assets" do
     expect(html).to include('id="auto-explore-status"')
     expect(html).to include('Auto: stopped')
     expect(html).to include('id="context-commands"')
+    right_column = html.index('<aside class="right-column">')
+    inventory_panel = html.index('class="terminal-panel inventory-panel"', right_column)
+    commands_panel = html.index('class="terminal-panel commands-panel"', right_column)
+    expect(commands_panel).to be > inventory_panel
     expect(html).to include('── ENEMY ──')
     expect(html).to include('id="enemy-panel"')
     expect(html).to include('id="enemy-health-bar"')
