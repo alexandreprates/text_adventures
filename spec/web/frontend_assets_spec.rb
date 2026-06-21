@@ -135,6 +135,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).not_to include('function inputModeCommand(state)')
     expect(javascript).to include('selectTab("inventory")')
     expect(javascript).to include('function selectTab(name)')
+    expect(javascript).not_to include('selectTab("inventory", { syncTop: false });\n    activateTopTab(0);\n    elements.commandInput.focus();')
     expect(javascript).to include('state.dungeon?.nearby_loot')
     expect(javascript).to include('Conjurar ${firstDamageSpell.display_name}')
     expect(javascript).to include('const autoExplore = {')

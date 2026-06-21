@@ -1343,8 +1343,6 @@ function syncNavigationForCommand(command) {
   } else if (normalizedCommand === "spellbook") {
     selectTab("spells");
   } else {
-    selectTab("inventory", { syncTop: false });
-    activateTopTab(0);
     elements.commandInput.focus();
   }
 }
