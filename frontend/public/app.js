@@ -521,7 +521,7 @@ function clearCombatFeedback() {
 
 function renderCollections(player) {
   renderList(elements.inventoryList, player.inventory, item => ({
-    label: `${item.quantity || 1}x ${item.display_name}`,
+    label: `${item.quantity || 1}x ${inventoryItemLabel(item)}`,
     meta: item.type || "",
     type: item.type || "",
     commandValue: inventoryCommandValue(item)
@@ -532,6 +532,14 @@ function renderCollections(player) {
     type: spell.description,
     commandValue: spell.name
   }));
+}
+
+function inventoryItemLabel(item) {
+  const name = item.display_name || item.name;
+  if (item.type === "weapon" && Number(item.attack) > 0) return `${name} (DMG ${item.attack})`;
+  if (item.type === "armor" && Number(item.defense) > 0) return `${name} (DEF ${item.defense})`;
+
+  return name;
 }
 
 function inventoryCommandValue(item) {
