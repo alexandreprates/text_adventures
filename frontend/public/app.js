@@ -135,6 +135,8 @@ const autoExplore = {
   failedMoves: new Set(),
   currentPath: [],
   destinationKey: null,
+  goal: "explore",
+  goalLevel: null,
   lastAction: null,
   lastPositionKey: null,
   pendingSince: null,
@@ -236,6 +238,7 @@ function render(payload) {
   const state = payload.state;
   const events = eventsFromPayload(payload);
   currentState = state;
+  updateAutoExploreKnowledge(state);
   renderHeader(state);
   renderMap(state);
   renderStatus(state);
@@ -244,7 +247,6 @@ function render(payload) {
   updateCommandPlaceholder(state);
   renderLog(events);
   playCombatFeedback(events);
-  updateAutoExploreKnowledge(state);
   trackAutoExploreResult(state);
   scheduleAutoExplore();
 }
@@ -532,20 +534,30 @@ function asciiBar(current, max, kind) {
 
 function renderContextCommands(state = currentState) {
   elements.contextCommands.innerHTML = "";
-  quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel]) => {
+  quickCommandsFor(state).forEach(([label, command, kind, accessibleLabel, disabled]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
     button.dataset.command = command;
     button.dataset.shortcut = shortcutForCommand(command, label);
+    button.disabled = Boolean(disabled);
     if (accessibleLabel) {
       button.setAttribute("aria-label", accessibleLabel);
       button.title = accessibleLabel;
     }
     if (kind) button.dataset.kind = kind;
-    button.addEventListener("click", () => submitCommand(command));
+    button.addEventListener("click", () => handleContextCommand(command));
     elements.contextCommands.appendChild(button);
   });
+}
+
+function handleContextCommand(command) {
+  if (command.startsWith("auto ")) {
+    setAutoExploreGoal(command.slice(5));
+    return;
+  }
+
+  submitCommand(command);
 }
 
 function quickCommandsFor(state) {
@@ -557,6 +569,8 @@ function quickCommandsFor(state) {
       ["Cancelar", "no", "danger"]
     ];
   }
+
+  if (autoExplore.enabled) return autoExploreCommands(state);
 
   const travel = [
     ["Cidade", "go town"],
@@ -603,12 +617,26 @@ function ruinsCommands(state) {
   return commands;
 }
 
+function autoExploreCommands(state) {
+  return [
+    ["Auto - go Town", "auto town", "primary"],
+    ["Auto - go Down", "auto descent", "primary", "Auto - go Down", !autoExploreDescentFound(state)]
+  ];
+}
+
+function autoExploreDescentFound(state) {
+  const key = positionKey(state?.dungeon?.descent);
+  return Boolean(key && autoExplore.knownCells.get(key) === "transition");
+}
+
 function shortcutForCommand(command, label) {
   const shortcuts = {
     "go up": "w/k/↑",
     "go right": "d/l/→",
     "go down": "s/j/↓",
     "go left": "a/h/←",
+    "auto town": "t",
+    "auto descent": "d",
     attack: "a",
     loot: "l"
   };
@@ -643,16 +671,35 @@ function startAutoExplore() {
   resetAutoExploreMemory();
   updateAutoExploreKnowledge(currentState);
   autoExplore.enabled = true;
+  autoExplore.goal = "explore";
+  autoExplore.goalLevel = currentState.dungeon?.level ?? null;
   markAutoExploreVisited(currentState);
   updateAutoExploreStatus("Auto: exploring");
+  renderContextCommands(currentState);
   scheduleAutoExplore();
 }
 
 function stopAutoExplore(reason = "stopped") {
   autoExplore.enabled = false;
+  autoExplore.goal = "explore";
+  autoExplore.goalLevel = null;
   clearAutoExploreTimer();
   autoExplore.pendingSince = null;
   updateAutoExploreStatus(autoExploreStopStatus(reason));
+  if (currentState) renderContextCommands(currentState);
+}
+
+function setAutoExploreGoal(goal) {
+  if (!autoExplore.enabled || !canAutoExplore(currentState)) return;
+
+  autoExplore.goal = goal;
+  autoExplore.goalLevel = currentState.dungeon?.level ?? null;
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.repeatCount = 0;
+  updateAutoExploreKnowledge(currentState);
+  updateAutoExploreStatus(goal === "descent" ? "Auto: going down" : "Auto: going town");
+  scheduleAutoExplore();
 }
 
 function resetAutoExploreMemory() {
@@ -662,6 +709,8 @@ function resetAutoExploreMemory() {
   autoExplore.failedMoves.clear();
   autoExplore.currentPath = [];
   autoExplore.destinationKey = null;
+  autoExplore.goal = "explore";
+  autoExplore.goalLevel = null;
   autoExplore.lastAction = null;
   autoExplore.lastPositionKey = null;
   autoExplore.pendingSince = null;
@@ -681,6 +730,10 @@ function autoExploreStopStatus(reason) {
   if (reason === "connection lost") return "Auto: offline";
   if (reason === "unsafe confirmation") return "Auto: confirm";
   if (reason === "dead") return "Auto: stopped";
+  if (reason === "town reached") return "Auto: town reached";
+  if (reason === "level descended") return "Auto: level descended";
+  if (reason === "target unavailable") return "Auto: unavailable";
+  if (reason === "no path") return "Auto: no path";
 
   return "Auto: stopped";
 }
@@ -772,6 +825,8 @@ function nextAutoExploreDecision(state) {
     const direction = nextDirectionTowardVisibleEnemy(state, visibleEnemy);
     if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
   }
+  if (autoExplore.goal !== "explore") return nextAutoExploreGoalDecision(state);
+
   if (state.dungeon?.nearby_loot) {
     return { command: "loot", status: "Auto: looting" };
   }
@@ -780,6 +835,33 @@ function nextAutoExploreDecision(state) {
   return direction ?
     { command: `go ${direction}`, status: "Auto: exploring" } :
     { stopReason: "level complete" };
+}
+
+function nextAutoExploreGoalDecision(state) {
+  const target = autoExploreGoalPosition(state);
+  if (!target) return { stopReason: "target unavailable" };
+
+  const direction = nextAutoExploreTargetDirection(state, target);
+  if (!direction) return { stopReason: "no path" };
+
+  return {
+    command: `go ${direction}`,
+    status: autoExplore.goal === "descent" ? "Auto: going down" : "Auto: going town"
+  };
+}
+
+function autoExploreGoalPosition(state) {
+  if (autoExplore.goal === "town") return state.dungeon?.entrance_portal;
+  if (autoExplore.goal === "descent") return state.dungeon?.descent;
+  return null;
+}
+
+function nextAutoExploreTargetDirection(state, target) {
+  const position = state.dungeon?.player_position;
+  if (!position) return null;
+
+  const path = shortestAutoExplorePath(position, [target], { allowTransitionGoal: true });
+  return path.length >= 2 ? directionBetween(position, positionFromKey(path[1])) : null;
 }
 
 function autoExploreHealingSpell(state) {
@@ -899,11 +981,11 @@ function pathToNearestAutoExploreFrontier(state, start) {
   return shortestAutoExplorePath(start, autoExploreFrontierPositions(state));
 }
 
-function shortestAutoExplorePath(start, targets) {
+function shortestAutoExplorePath(start, targets, options = {}) {
   let bestPath = [];
 
   targets.forEach(target => {
-    const path = findAutoExplorePath(start, target);
+    const path = findAutoExplorePath(start, target, options);
     if (path.length && (!bestPath.length || path.length < bestPath.length)) {
       bestPath = path;
     }
@@ -938,10 +1020,10 @@ function isLevelTransitionPosition(state, position) {
   return samePosition(position, state.dungeon?.descent) || samePosition(position, state.dungeon?.entrance_portal);
 }
 
-function findAutoExplorePath(start, goal) {
+function findAutoExplorePath(start, goal, options = {}) {
   const startKey = positionKey(start);
   const goalKey = positionKey(goal);
-  if (!startKey || !goalKey || !walkableKnownPositionKey(startKey) || !walkableKnownPositionKey(goalKey)) return [];
+  if (!startKey || !goalKey || !walkableKnownPositionKey(startKey) || !walkableAutoExploreGoalKey(goalKey, options)) return [];
 
   const openSet = new Set([startKey]);
   const cameFrom = new Map();
@@ -953,7 +1035,7 @@ function findAutoExplorePath(start, goal) {
     if (currentKey === goalKey) return reconstructAutoExplorePath(cameFrom, currentKey);
 
     openSet.delete(currentKey);
-    autoExploreNeighbors(currentKey).forEach(neighborKey => {
+    autoExploreNeighbors(currentKey, goalKey, options).forEach(neighborKey => {
       const tentativeScore = (gScore.get(currentKey) ?? Infinity) + 1;
       if (tentativeScore >= (gScore.get(neighborKey) ?? Infinity)) return;
 
@@ -967,13 +1049,16 @@ function findAutoExplorePath(start, goal) {
   return [];
 }
 
-function autoExploreNeighbors(key) {
+function autoExploreNeighbors(key, goalKey = null, options = {}) {
   const position = positionFromKey(key);
   return AUTO_EXPLORE_DIRECTIONS.map(direction => {
     const step = AUTO_EXPLORE_STEPS[direction];
     const nextPosition = { x: position.x + step.x, y: position.y + step.y };
     const nextKey = positionKey(nextPosition);
-    return blockedAutoExploreEdge(key, direction) || !walkableKnownPositionKey(nextKey) ? null : nextKey;
+    const walkable = nextKey === goalKey ?
+      walkableAutoExploreGoalKey(nextKey, options) :
+      walkableKnownPositionKey(nextKey);
+    return blockedAutoExploreEdge(key, direction) || !walkable ? null : nextKey;
   }).filter(Boolean);
 }
 
@@ -983,6 +1068,13 @@ function blockedAutoExploreEdge(key, direction) {
 
 function walkableKnownPositionKey(key) {
   return autoExplore.knownCells.get(key) === "open";
+}
+
+function walkableAutoExploreGoalKey(key, options = {}) {
+  return walkableKnownPositionKey(key) || (
+    options.allowTransitionGoal &&
+    autoExplore.knownCells.get(key) === "transition"
+  );
 }
 
 function lowestScoreKey(keys, scores) {
@@ -1044,7 +1136,9 @@ function viewportEntity(viewport, type) {
 }
 
 function trackAutoExploreResult(state) {
-  if (!autoExplore.enabled || !state?.dungeon?.player_position) return;
+  if (!autoExplore.enabled) return;
+  if (autoExploreGoalReached(state)) return;
+  if (!state?.dungeon?.player_position) return;
 
   const currentKey = positionKey(state.dungeon.player_position);
   markAutoExploreVisited(state);
@@ -1064,6 +1158,24 @@ function trackAutoExploreResult(state) {
   autoExplore.currentPath = autoExplore.currentPath.filter(key => key !== currentKey);
   autoExplore.lastAction = null;
   autoExplore.lastPositionKey = null;
+}
+
+function autoExploreGoalReached(state) {
+  if (autoExplore.goal === "town" && state?.scene !== "ruins") {
+    stopAutoExplore("town reached");
+    return true;
+  }
+
+  if (
+    autoExplore.goal === "descent" &&
+    Number.isInteger(autoExplore.goalLevel) &&
+    state?.dungeon?.level !== autoExplore.goalLevel
+  ) {
+    stopAutoExplore("level descended");
+    return true;
+  }
+
+  return false;
 }
 
 function markAutoExploreVisited(state) {
