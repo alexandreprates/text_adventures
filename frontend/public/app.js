@@ -130,8 +130,11 @@ let combatFeedbackTimers = [];
 const autoExplore = {
   enabled: false,
   timer: null,
+  knownCells: new Map(),
   visited: new Set(),
   failedMoves: new Set(),
+  currentPath: [],
+  destinationKey: null,
   lastAction: null,
   lastPositionKey: null,
   pendingSince: null,
@@ -241,6 +244,7 @@ function render(payload) {
   updateCommandPlaceholder(state);
   renderLog(events);
   playCombatFeedback(events);
+  updateAutoExploreKnowledge(state);
   trackAutoExploreResult(state);
   scheduleAutoExplore();
 }
@@ -632,6 +636,7 @@ function startAutoExplore() {
   }
 
   resetAutoExploreMemory();
+  updateAutoExploreKnowledge(currentState);
   autoExplore.enabled = true;
   markAutoExploreVisited(currentState);
   updateAutoExploreStatus("Auto: exploring");
@@ -647,8 +652,11 @@ function stopAutoExplore(reason = "stopped") {
 
 function resetAutoExploreMemory() {
   clearAutoExploreTimer();
+  autoExplore.knownCells.clear();
   autoExplore.visited.clear();
   autoExplore.failedMoves.clear();
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
   autoExplore.lastAction = null;
   autoExplore.lastPositionKey = null;
   autoExplore.pendingSince = null;
@@ -739,6 +747,15 @@ function nextAutoExploreDecision(state) {
       status: "Auto: fighting"
     };
   }
+  const visibleEnemy = visibleEnemyPosition(state);
+  if (visibleEnemy) {
+    if (manhattanDistance(state.dungeon.player_position, visibleEnemy) <= 1) {
+      return { command: "attack", status: "Auto: fighting" };
+    }
+
+    const direction = nextDirectionTowardVisibleEnemy(state, visibleEnemy);
+    if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
+  }
   if (state.dungeon?.nearby_loot) {
     return { command: "loot", status: "Auto: looting" };
   }
@@ -750,31 +767,128 @@ function nextAutoExploreDecision(state) {
 }
 
 function nextAutoExploreDirection(state) {
-  const candidates = safeAutoExploreDirections(state);
-  if (!candidates.length) return null;
+  const position = state.dungeon?.player_position;
+  if (!position) return null;
 
-  const unvisited = candidates.find(candidate => !autoExplore.visited.has(positionKey(candidate.position)));
-  return (unvisited || candidates[0]).direction;
+  const frontierDirection = unexploredDirectionFrom(state, position);
+  if (frontierDirection) return frontierDirection;
+
+  const nextPosition = nextPositionOnAutoExplorePath(state, position);
+  return nextPosition ? directionBetween(position, nextPosition) : null;
 }
 
-function safeAutoExploreDirections(state) {
-  const position = state.dungeon?.player_position;
+function nextPositionOnAutoExplorePath(state, position) {
   const currentKey = positionKey(position);
-  if (!position || !currentKey) return [];
+  if (!currentKey) return null;
 
-  const directions = AUTO_EXPLORE_DIRECTIONS.map(direction => {
-    const step = AUTO_EXPLORE_STEPS[direction];
-    return {
-      direction,
-      position: { x: position.x + step.x, y: position.y + step.y }
+  while (autoExplore.currentPath[0] === currentKey) {
+    autoExplore.currentPath.shift();
+  }
+  if (autoExplore.currentPath.length && walkableKnownPositionKey(autoExplore.currentPath[0])) {
+    return positionFromKey(autoExplore.currentPath[0]);
+  }
+
+  const path = pathToNearestAutoExploreFrontier(state, position);
+  if (path.length < 2) return null;
+
+  autoExplore.currentPath = path.slice(1);
+  autoExplore.destinationKey = path[path.length - 1];
+  return positionFromKey(autoExplore.currentPath[0]);
+}
+
+function updateAutoExploreKnowledge(state) {
+  const viewport = state?.dungeon?.viewport;
+  if (!viewport?.origin) return;
+
+  const terrain = String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?");
+  for (let y = 0; y < viewport.height; y += 1) {
+    for (let x = 0; x < viewport.width; x += 1) {
+      const tile = terrain[(y * viewport.width) + x];
+      if (tile === "?") continue;
+
+      const position = {
+        x: viewport.origin.x + x,
+        y: viewport.origin.y + y
+      };
+      autoExplore.knownCells.set(positionKey(position), tile === "#" ? "wall" : "open");
+    }
+  }
+
+  (viewport.entities || []).forEach(entity => {
+    const position = {
+      x: viewport.origin.x + entity.x,
+      y: viewport.origin.y + entity.y
     };
+    const currentPlayerPosition = state.dungeon?.player_position;
+    const type = (entity.type === "descent" || entity.type === "portal") && !samePosition(position, currentPlayerPosition) ?
+      "transition" :
+      "open";
+    autoExplore.knownCells.set(positionKey(position), type);
+  });
+}
+
+function visibleEnemyPosition(state) {
+  const viewport = state?.dungeon?.viewport;
+  const enemy = viewportEntity(viewport, "enemy");
+  if (!viewport?.origin || !enemy) return null;
+
+  return {
+    x: viewport.origin.x + enemy.x,
+    y: viewport.origin.y + enemy.y
+  };
+}
+
+function nextDirectionTowardVisibleEnemy(state, enemyPosition) {
+  const position = state.dungeon?.player_position;
+  if (!position) return null;
+
+  const targetPositions = AUTO_EXPLORE_DIRECTIONS.map(direction => {
+    const step = AUTO_EXPLORE_STEPS[direction];
+    return { x: enemyPosition.x + step.x, y: enemyPosition.y + step.y };
+  }).filter(candidate => {
+    return walkableKnownPositionKey(positionKey(candidate)) && !isLevelTransitionPosition(state, candidate);
   });
 
-  return directions.filter(candidate => {
-    if (autoExplore.failedMoves.has(`${currentKey}:${candidate.direction}`)) return false;
-    if (isLevelTransitionPosition(state, candidate.position)) return false;
+  const path = shortestAutoExplorePath(position, targetPositions);
+  return path.length >= 2 ? directionBetween(position, positionFromKey(path[1])) : null;
+}
 
-    return isKnownOpenPosition(state, candidate.position) || isPossibleBlockExit(state, candidate.direction, candidate.position);
+function pathToNearestAutoExploreFrontier(state, start) {
+  return shortestAutoExplorePath(start, autoExploreFrontierPositions(state));
+}
+
+function shortestAutoExplorePath(start, targets) {
+  let bestPath = [];
+
+  targets.forEach(target => {
+    const path = findAutoExplorePath(start, target);
+    if (path.length && (!bestPath.length || path.length < bestPath.length)) {
+      bestPath = path;
+    }
+  });
+
+  return bestPath;
+}
+
+function autoExploreFrontierPositions(state) {
+  return Array.from(autoExplore.knownCells.entries())
+    .filter(([, type]) => type === "open")
+    .map(([key]) => positionFromKey(key))
+    .filter(position => unexploredDirectionFrom(state, position));
+}
+
+function unexploredDirectionFrom(state, position) {
+  const currentKey = positionKey(position);
+  if (!currentKey) return null;
+
+  return AUTO_EXPLORE_DIRECTIONS.find(direction => {
+    const step = AUTO_EXPLORE_STEPS[direction];
+    const nextPosition = { x: position.x + step.x, y: position.y + step.y };
+    if (autoExplore.failedMoves.has(`${currentKey}:${direction}`)) return false;
+    if (isLevelTransitionPosition(state, nextPosition)) return false;
+    if (autoExplore.knownCells.has(positionKey(nextPosition))) return false;
+
+    return isBlockExitPosition(state, position, direction);
   });
 }
 
@@ -782,45 +896,105 @@ function isLevelTransitionPosition(state, position) {
   return samePosition(position, state.dungeon?.descent) || samePosition(position, state.dungeon?.entrance_portal);
 }
 
-function isKnownOpenPosition(state, position) {
-  const tile = viewportTerrainAt(state.dungeon?.viewport, position);
-  if (!tile) return false;
+function findAutoExplorePath(start, goal) {
+  const startKey = positionKey(start);
+  const goalKey = positionKey(goal);
+  if (!startKey || !goalKey || !walkableKnownPositionKey(startKey) || !walkableKnownPositionKey(goalKey)) return [];
 
-  return tile !== "#" && tile !== "?";
+  const openSet = new Set([startKey]);
+  const cameFrom = new Map();
+  const gScore = new Map([[startKey, 0]]);
+  const fScore = new Map([[startKey, manhattanDistance(start, goal)]]);
+
+  while (openSet.size) {
+    const currentKey = lowestScoreKey(openSet, fScore);
+    if (currentKey === goalKey) return reconstructAutoExplorePath(cameFrom, currentKey);
+
+    openSet.delete(currentKey);
+    autoExploreNeighbors(currentKey).forEach(neighborKey => {
+      const tentativeScore = (gScore.get(currentKey) ?? Infinity) + 1;
+      if (tentativeScore >= (gScore.get(neighborKey) ?? Infinity)) return;
+
+      cameFrom.set(neighborKey, currentKey);
+      gScore.set(neighborKey, tentativeScore);
+      fScore.set(neighborKey, tentativeScore + manhattanDistance(positionFromKey(neighborKey), goal));
+      openSet.add(neighborKey);
+    });
+  }
+
+  return [];
 }
 
-function isPossibleBlockExit(state, direction, position) {
-  const viewport = state.dungeon?.viewport;
-  const player = viewportEntity(viewport, "player");
-  if (!viewport || !player) return false;
+function autoExploreNeighbors(key) {
+  const position = positionFromKey(key);
+  return AUTO_EXPLORE_DIRECTIONS.map(direction => {
+    const step = AUTO_EXPLORE_STEPS[direction];
+    const nextPosition = { x: position.x + step.x, y: position.y + step.y };
+    const nextKey = positionKey(nextPosition);
+    return blockedAutoExploreEdge(key, direction) || !walkableKnownPositionKey(nextKey) ? null : nextKey;
+  }).filter(Boolean);
+}
 
-  if (viewportTerrainAt(viewport, position) !== "?") return false;
+function blockedAutoExploreEdge(key, direction) {
+  return autoExplore.failedMoves.has(`${key}:${direction}`);
+}
+
+function walkableKnownPositionKey(key) {
+  return autoExplore.knownCells.get(key) === "open";
+}
+
+function lowestScoreKey(keys, scores) {
+  return Array.from(keys).reduce((bestKey, key) => {
+    return (scores.get(key) ?? Infinity) < (scores.get(bestKey) ?? Infinity) ? key : bestKey;
+  });
+}
+
+function reconstructAutoExplorePath(cameFrom, currentKey) {
+  const path = [currentKey];
+  while (cameFrom.has(currentKey)) {
+    currentKey = cameFrom.get(currentKey);
+    path.unshift(currentKey);
+  }
+
+  return path;
+}
+
+function manhattanDistance(left, right) {
+  return Math.abs(left.x - right.x) + Math.abs(left.y - right.y);
+}
+
+function isBlockExitPosition(state, position, direction) {
+  const viewport = state.dungeon?.viewport;
+  if (!viewport) return false;
 
   const blockWidth = Math.floor(viewport.width / 3);
   const blockHeight = Math.floor(viewport.height / 3);
   if (blockWidth <= 0 || blockHeight <= 0) return false;
 
-  const centerLeft = blockWidth;
-  const centerRight = (blockWidth * 2) - 1;
-  const centerTop = blockHeight;
-  const centerBottom = (blockHeight * 2) - 1;
+  const localX = positiveModulo(position.x, blockWidth);
+  const localY = positiveModulo(position.y, blockHeight);
 
   return (
-    (direction === "up" && player.y === centerTop) ||
-    (direction === "right" && player.x === centerRight) ||
-    (direction === "down" && player.y === centerBottom) ||
-    (direction === "left" && player.x === centerLeft)
+    (direction === "up" && localY === 0) ||
+    (direction === "right" && localX === blockWidth - 1) ||
+    (direction === "down" && localY === blockHeight - 1) ||
+    (direction === "left" && localX === 0)
   );
 }
 
-function viewportTerrainAt(viewport, position) {
-  if (!viewport?.origin || !position) return null;
+function positiveModulo(value, divisor) {
+  return ((value % divisor) + divisor) % divisor;
+}
 
-  const x = position.x - viewport.origin.x;
-  const y = position.y - viewport.origin.y;
-  if (x < 0 || y < 0 || x >= viewport.width || y >= viewport.height) return null;
+function directionBetween(from, to) {
+  const deltaX = to.x - from.x;
+  const deltaY = to.y - from.y;
 
-  return String(viewport.terrain || "")[(y * viewport.width) + x] || null;
+  if (deltaX === 1 && deltaY === 0) return "right";
+  if (deltaX === -1 && deltaY === 0) return "left";
+  if (deltaX === 0 && deltaY === 1) return "down";
+  if (deltaX === 0 && deltaY === -1) return "up";
+  return null;
 }
 
 function viewportEntity(viewport, type) {
@@ -838,11 +1012,14 @@ function trackAutoExploreResult(state) {
     const direction = autoExplore.lastAction.slice(3);
     autoExplore.failedMoves.add(`${autoExplore.lastPositionKey}:${direction}`);
     autoExplore.repeatCount += 1;
+    autoExplore.currentPath = [];
+    autoExplore.destinationKey = null;
     if (autoExplore.repeatCount >= AUTO_EXPLORE_REPEAT_LIMIT) stopAutoExplore("level complete");
     return;
   }
 
   autoExplore.repeatCount = 0;
+  autoExplore.currentPath = autoExplore.currentPath.filter(key => key !== currentKey);
   autoExplore.lastAction = null;
   autoExplore.lastPositionKey = null;
 }
@@ -856,6 +1033,11 @@ function positionKey(position) {
   if (!position) return null;
 
   return `${position.x},${position.y}`;
+}
+
+function positionFromKey(key) {
+  const [x, y] = key.split(",").map(Number);
+  return { x, y };
 }
 
 function samePosition(left, right) {
