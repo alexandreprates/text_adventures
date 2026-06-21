@@ -1369,10 +1369,16 @@ function recallCommand(direction) {
 function submitCommand(command, options = {}) {
   const normalizedCommand = command.trim();
   if (!normalizedCommand) return;
-  if (autoExplore.enabled && options.source !== "auto") stopAutoExplore("stopped");
+  if (autoExplore.enabled && options.source !== "auto" && !autoCompatibleManualCommand(normalizedCommand)) {
+    stopAutoExplore("stopped");
+  }
   if (options.record !== false) recordCommand(normalizedCommand);
   elements.commandInput.value = "";
   runCommand(normalizedCommand, options);
+}
+
+function autoCompatibleManualCommand(command) {
+  return /^(equip|use)\b/i.test(command.trim());
 }
 
 elements.commandForm.addEventListener("submit", event => {
