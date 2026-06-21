@@ -20,6 +20,7 @@ module TextAdventures
           "saved_at" => saved_at.utc.iso8601,
           "game" => {
             "scene" => game.current_scene_name.to_s,
+            "world_seed" => game.world_seed,
             "random" => random_snapshot(game.random),
             "player" => player_snapshot(game.player),
             "dungeon" => dungeon_snapshot(game.dungeon),
@@ -40,6 +41,7 @@ module TextAdventures
 
         game_snapshot = snapshot.fetch("game")
         random = random_from(game_snapshot.fetch("random"))
+        world_seed = game_snapshot["world_seed"] || random.seed
         dungeon = dungeon_from(game_snapshot["dungeon"], random: random)
         scene = scene_from(game_snapshot.fetch("scene"), dungeon: dungeon, random: random)
         player = player_from(game_snapshot.fetch("player"))
@@ -54,7 +56,8 @@ module TextAdventures
           battle: battle,
           pending_loot: loot_from(pending["loot"]),
           active_enemy_position: position_from(pending["active_enemy_position"]),
-          random: random
+          random: random,
+          world_seed: world_seed
         )
       rescue KeyError, TypeError, ArgumentError => error
         raise SnapshotContentError, error.message

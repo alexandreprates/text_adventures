@@ -84,9 +84,12 @@ RSpec.describe TextAdventures::Web::Router do
     expect(delete_response.status).to eq 204
     expect(delete_response.json).to eq ""
 
-    missing_response = router.call(method: "GET", path: "/games/#{game_id}", body: nil)
-    expect(missing_response.status).to eq 404
-    expect(parsed(missing_response).dig("error", "code")).to eq "not_found"
+    recreated_response = router.call(method: "GET", path: "/games/#{game_id}", body: nil)
+    expect(recreated_response.status).to eq 200
+    expect(parsed(recreated_response)).to include(
+      "game_id" => game_id,
+      "state" => hash_including("scene" => "town")
+    )
   end
 
   it "accepts API-prefixed game routes for reverse proxy deployments" do
@@ -187,8 +190,15 @@ RSpec.describe TextAdventures::Web::Router do
     expect(persistent_router.call(method: "DELETE", path: "/api/games/#{game_id}", body: nil).status).to eq 204
 
     restored_router = described_class.new(store: persistent_store(id_generator: -> { "unused" }))
-    missing_response = restored_router.call(method: "GET", path: "/api/games/#{game_id}", body: nil)
-    expect(missing_response.status).to eq 404
+    recreated_response = restored_router.call(method: "GET", path: "/api/games/#{game_id}", body: nil)
+    recreated_game = TextAdventures::Persistence::SQLiteGameRepository.new(save_dir: @save_dir).load(game_id)
+
+    expect(recreated_response.status).to eq 200
+    expect(parsed(recreated_response)).to include(
+      "game_id" => game_id,
+      "state" => hash_including("scene" => "town")
+    )
+    expect(recreated_game.world_seed).to eq TextAdventures::Web::GameStore.world_seed_for(game_id)
   end
 
   it "rejects unsafe persisted game ids" do

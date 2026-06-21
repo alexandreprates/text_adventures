@@ -127,12 +127,18 @@ saved game that is no longer in memory.
 Persistent saves are stored under `TEXT_ADVENTURES_SAVE_DIR`. Each game uses a
 separate SQLite database file named `<game_id>.sqlite3`; SQLite sidecar files
 such as `-wal` and `-shm` may exist while the database is active. Successful
-actions are auto-saved as versioned JSON snapshots. `DELETE /api/games/<game_id>`
-removes both the memory session and the persisted SQLite save.
+actions are auto-saved as versioned JSON snapshots. Each game also stores a
+`world_seed`; when no explicit seed is provided, the seed is derived from the
+game ID so the same ID can recreate the same deterministic world. `DELETE
+/api/games/<game_id>` removes both the memory session and the persisted SQLite
+save.
 
 The browser updates the address bar to `/game/<game_id>` after a game is created
 or restored. Bookmarking that URL is enough to reopen the same game later, even
-after closing the browser, as long as the persisted save still exists.
+after closing the browser, as long as the persisted save still exists. If the
+persisted save was deleted, reopening `/game/<game_id>` starts a fresh run using
+the same ID-derived `world_seed`; this recreates the same world seed, not the
+deleted run state such as inventory, HP, explored cells, killed enemies, or loot.
 
 For multi-instance deployments, all Ruby API instances must share the same
 `TEXT_ADVENTURES_SAVE_DIR`, or routing must ensure a game is always handled by an

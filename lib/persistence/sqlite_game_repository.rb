@@ -36,6 +36,7 @@ module TextAdventures
             upsert_metadata(db, "game_id", game_id.to_s)
             upsert_metadata(db, "updated_at", created_at)
             upsert_metadata(db, "snapshot_schema_version", GameSnapshot::CURRENT_SCHEMA_VERSION.to_s)
+            upsert_metadata(db, "world_seed", game.world_seed.to_s) unless game.world_seed.nil?
             upsert_metadata(db, "seed", seed.to_s) unless seed.nil?
             db.execute(
               "INSERT INTO snapshots (schema_version, created_at, payload_json) VALUES (?, ?, ?)",

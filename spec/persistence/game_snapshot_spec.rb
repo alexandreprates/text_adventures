@@ -6,12 +6,16 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
   end
 
   it "round-trips a new town game" do
-    game = TextAdventures::Game.new(random: TextAdventures::RandomSource.new(seed: 0))
+    game = TextAdventures::Game.new(
+      random: TextAdventures::RandomSource.new(seed: 0),
+      world_seed: 123
+    )
 
     loaded = round_trip(game)
 
     expect(loaded.current_scene_name).to eq :town
     expect(loaded.player).to have_attributes(name: "Adventurer", gold: 0)
+    expect(loaded.world_seed).to eq 123
     expect(loaded.random.rand(100)).to eq game.random.rand(100)
   end
 

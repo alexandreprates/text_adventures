@@ -69,7 +69,11 @@ module TextAdventures
         payload = store.with_game(id) do |game|
           game_payload(id, game)
         end
-        return game_not_found unless payload
+        unless payload
+          recreated_id, recreated_game = store.create(id: id)
+          response = recreated_game.handle("look")
+          payload = game_payload(recreated_id, recreated_game, response: response)
+        end
 
         JsonResponse.success(payload)
       end

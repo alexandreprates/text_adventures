@@ -12,15 +12,23 @@ RSpec.describe TextAdventures::Persistence::SQLiteGameRepository do
   let(:repository) { described_class.new(save_dir: @save_dir, clock: -> { Time.utc(2026, 6, 21, 12, 0, 0) }) }
 
   it "saves and loads the latest snapshot for one game" do
-    game = TextAdventures::Game.new(random: TextAdventures::RandomSource.new(seed: 0))
+    game = TextAdventures::Game.new(
+      random: TextAdventures::RandomSource.new(seed: 0),
+      world_seed: 42
+    )
     repository.save("game-1", game)
     game.handle("go ruins")
     repository.save("game-1", game)
 
     loaded = repository.load("game-1")
+    db = SQLite3::Database.new(repository.database_path("game-1"))
 
     expect(loaded.current_scene_name).to eq :ruins
+    expect(loaded.world_seed).to eq 42
+    expect(db.get_first_value("SELECT value FROM metadata WHERE key = 'world_seed'")).to eq "42"
     expect(repository.database_path("game-1")).to end_with("game-1.sqlite3")
+  ensure
+    db&.close
   end
 
   it "keeps separate SQLite files for separate games" do

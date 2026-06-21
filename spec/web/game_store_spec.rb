@@ -13,6 +13,10 @@ RSpec.describe TextAdventures::Web::GameStore do
     TextAdventures::Persistence::SQLiteGameRepository.new(save_dir: @save_dir)
   end
 
+  def dungeon_state(game)
+    TextAdventures::Web::GameSerializer.new(game).to_h.fetch(:dungeon)
+  end
+
   it "creates, fetches, and deletes game sessions" do
     store = described_class.new(id_generator: -> { "game-1" })
 
@@ -46,6 +50,25 @@ RSpec.describe TextAdventures::Web::GameStore do
     game.handle("go up")
 
     expect(game.dungeon.viewport_state.fetch(:entities)).to include(hash_including(type: "enemy"))
+  end
+
+  it "derives deterministic world seeds from game ids when no seed is provided" do
+    store = described_class.new(repository: repository)
+
+    first_id, first_game = store.create(id: "bookmark-world")
+    first_game.handle("go ruins")
+    3.times { first_game.handle("go right") }
+    first_dungeon = dungeon_state(first_game)
+
+    expect(store.delete(first_id)).to be true
+
+    second_id, second_game = store.create(id: "bookmark-world")
+    second_game.handle("go ruins")
+    3.times { second_game.handle("go right") }
+
+    expect(second_id).to eq first_id
+    expect(second_game.world_seed).to eq first_game.world_seed
+    expect(dungeon_state(second_game)).to eq first_dungeon
   end
 
   it "expires idle sessions after the configured TTL" do

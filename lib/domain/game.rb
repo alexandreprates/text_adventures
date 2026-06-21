@@ -24,7 +24,7 @@ module TextAdventures
       sleep
       use
     ].freeze
-    attr_reader :player, :current_scene, :random
+    attr_reader :player, :current_scene, :random, :world_seed
     attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position
 
     def initialize(
@@ -35,7 +35,8 @@ module TextAdventures
       battle: nil,
       pending_loot: nil,
       active_enemy_position: nil,
-      random: RandomSource.new
+      random: RandomSource.new,
+      world_seed: nil
     )
       @player = player
       @current_scene = current_scene
@@ -45,6 +46,7 @@ module TextAdventures
       @pending_loot = pending_loot
       @active_enemy_position = active_enemy_position
       @random = random
+      @world_seed = world_seed.nil? && random.respond_to?(:seed) ? random.seed : integer_or_nil(world_seed)
     end
 
     def current_scene_name
@@ -62,6 +64,10 @@ module TextAdventures
     end
 
     private
+
+    def integer_or_nil(value)
+      value.nil? ? nil : Integer(value)
+    end
 
     def append_pending_confirmation_hint(response, command)
       return response unless pending_confirmation && GLOBAL_VERBS.include?(command.verb)
