@@ -85,6 +85,7 @@ module TextAdventures
           " E - enemy",
           " @ - loot",
           " P - entrance portal",
+          " < - upper stairs",
           " > - deeper stairs",
           " . - open floor",
           " # - wall",
@@ -105,6 +106,7 @@ module TextAdventures
         result = dungeon.move(direction)
         return Response.new(result.message) unless result.success?
         return back_to_town(game, result.message) if dungeon.player_on_entrance_portal?
+        return retreat_level(game, result.message) if dungeon.player_on_ascent?
         return descend_level(game, result.message) if dungeon.player_on_descent?
 
         response = Response.new(
@@ -154,6 +156,20 @@ module TextAdventures
         Response.new(
           movement_message,
           "You descend deeper into the ruins.",
+          "",
+          dungeon.render
+        )
+      end
+
+      def retreat_level(game, movement_message)
+        dungeon.retreat_level!
+        game.battle = nil
+        game.pending_loot = nil
+        game.active_enemy_position = nil
+
+        Response.new(
+          movement_message,
+          "You climb toward the ruins entrance.",
           "",
           dungeon.render
         )

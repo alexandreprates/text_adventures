@@ -650,5 +650,32 @@ RSpec.describe TextAdventures::Dungeon do
         "######"
       ]
     end
+
+    it "moves back toward the previous level from deeper ruins" do
+      descending = described_class.new(level: 3)
+
+      descending.move("right")
+      expect(descending.render(view: :full).lines.map(&:chomp)).to eq [
+        "Ruins Level 3",
+        "######",
+        "######",
+        "##.<x.",
+        "######",
+        "######"
+      ]
+
+      descending.move("left")
+      expect(descending).to be_player_on_ascent
+
+      descending.retreat_level!
+
+      expect(descending.level).to eq 2
+      expect(descending.current_block_position).to have_attributes(x: 0, y: 0)
+      expect(descending.player_position).to have_attributes(x: 3, y: 2)
+      expect(descending.floor_exit_position).to be_nil
+      expect(descending.enemies).to eq({})
+      expect(descending.dropped_loot).to eq({})
+      expect(descending.ascent_position).to have_attributes(x: 3, y: 2)
+    end
   end
 end

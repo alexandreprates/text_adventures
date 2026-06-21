@@ -77,6 +77,7 @@ RSpec.describe "text_adventures server binary" do
       expect(body.dig("state", "prompt")).to eq "Ruins L2"
       expect(body.dig("state", "dungeon", "level")).to eq 2
       expect(body.dig("state", "dungeon", "entrance_portal")).to be_nil
+      expect(body.dig("state", "dungeon", "ascent")).to eq("x" => 3, "y" => 2)
     end
   end
 

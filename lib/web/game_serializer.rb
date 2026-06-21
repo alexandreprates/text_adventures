@@ -133,6 +133,7 @@ module TextAdventures
           viewport: dungeon.viewport_state,
           player_position: position_state(dungeon.current_global_position),
           entrance_portal: optional_position_state(dungeon.entrance_portal_position),
+          ascent: optional_position_state(dungeon.ascent_position),
           descent: optional_position_state(dungeon.floor_exit_position),
           nearby_loot: loot_position_state(dungeon.nearby_loot_position)
         }

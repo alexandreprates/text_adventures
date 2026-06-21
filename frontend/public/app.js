@@ -137,6 +137,7 @@ const autoExplore = {
   destinationKey: null,
   goal: "explore",
   goalLevel: null,
+  knownLevel: null,
   lastAction: null,
   lastPositionKey: null,
   pendingSince: null,
@@ -293,7 +294,7 @@ function playerDefeated(state) {
 
 function textRowsFromViewport(viewport) {
   const symbols = Array.from(String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?"));
-  const entitySymbols = { player: "x", enemy: "E", loot: "@", portal: "P", descent: ">" };
+  const entitySymbols = { player: "x", enemy: "E", loot: "@", portal: "P", ascent: "<", descent: ">" };
   [...(viewport.entities || [])].sort(compareViewportEntities).forEach(entity => {
     const symbol = entitySymbols[entity.type];
     if (!symbol) return;
@@ -315,6 +316,7 @@ function compareViewportEntities(left, right) {
 function viewportEntityPriority(type) {
   return {
     portal: 10,
+    ascent: 10,
     descent: 10,
     loot: 20,
     enemy: 30,
@@ -715,6 +717,7 @@ function resetAutoExploreMemory() {
   autoExplore.destinationKey = null;
   autoExplore.goal = "explore";
   autoExplore.goalLevel = null;
+  autoExplore.knownLevel = null;
   autoExplore.lastAction = null;
   autoExplore.lastPositionKey = null;
   autoExplore.pendingSince = null;
@@ -855,7 +858,7 @@ function nextAutoExploreGoalDecision(state) {
 }
 
 function autoExploreGoalPosition(state) {
-  if (autoExplore.goal === "town") return state.dungeon?.entrance_portal;
+  if (autoExplore.goal === "town") return state.dungeon?.entrance_portal || state.dungeon?.ascent;
   if (autoExplore.goal === "descent") return state.dungeon?.descent;
   return null;
 }
@@ -947,6 +950,16 @@ function updateAutoExploreKnowledge(state) {
   const viewport = state?.dungeon?.viewport;
   if (!viewport?.origin) return;
 
+  const level = state.dungeon?.level ?? null;
+  if (autoExplore.knownLevel !== level) {
+    autoExplore.knownCells.clear();
+    autoExplore.visited.clear();
+    autoExplore.failedMoves.clear();
+    autoExplore.currentPath = [];
+    autoExplore.destinationKey = null;
+    autoExplore.knownLevel = level;
+  }
+
   const terrain = String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?");
   for (let y = 0; y < viewport.height; y += 1) {
     for (let x = 0; x < viewport.width; x += 1) {
@@ -967,7 +980,7 @@ function updateAutoExploreKnowledge(state) {
       y: viewport.origin.y + entity.y
     };
     const currentPlayerPosition = state.dungeon?.player_position;
-    const type = (entity.type === "descent" || entity.type === "portal") && !samePosition(position, currentPlayerPosition) ?
+    const type = ["ascent", "descent", "portal"].includes(entity.type) && !samePosition(position, currentPlayerPosition) ?
       "transition" :
       "open";
     autoExplore.knownCells.set(positionKey(position), type);
@@ -1040,7 +1053,11 @@ function unexploredDirectionFrom(state, position) {
 }
 
 function isLevelTransitionPosition(state, position) {
-  return samePosition(position, state.dungeon?.descent) || samePosition(position, state.dungeon?.entrance_portal);
+  return (
+    samePosition(position, state.dungeon?.ascent) ||
+    samePosition(position, state.dungeon?.descent) ||
+    samePosition(position, state.dungeon?.entrance_portal)
+  );
 }
 
 function findAutoExplorePath(start, goal, options = {}) {
@@ -1390,6 +1407,13 @@ function recallCommand(direction) {
 function submitCommand(command, options = {}) {
   const normalizedCommand = command.trim();
   if (!normalizedCommand) return;
+  const autoGoal = manualAutoExploreGoal(normalizedCommand);
+  if (autoGoal && options.source !== "auto") {
+    if (options.record !== false) recordCommand(normalizedCommand);
+    elements.commandInput.value = "";
+    setAutoExploreGoal(autoGoal);
+    return;
+  }
   if (autoExplore.enabled && options.source !== "auto" && !autoCompatibleManualCommand(normalizedCommand)) {
     stopAutoExplore("stopped");
   }
@@ -1400,6 +1424,17 @@ function submitCommand(command, options = {}) {
 
 function autoCompatibleManualCommand(command) {
   return /^(equip|use)\b/i.test(command.trim());
+}
+
+function manualAutoExploreGoal(command) {
+  if (currentState?.scene !== "ruins") return null;
+
+  const normalizedCommand = command.trim().toLowerCase().replace(/\s+/g, " ");
+  if (normalizedCommand === "explore") return "explore";
+  if (normalizedCommand === "go town") return "town";
+  if (normalizedCommand === "go deep") return "descent";
+
+  return null;
 }
 
 elements.commandForm.addEventListener("submit", event => {

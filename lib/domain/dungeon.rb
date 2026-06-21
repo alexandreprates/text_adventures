@@ -12,6 +12,7 @@ module TextAdventures
     ENEMY = "E".freeze
     LOOT = "@".freeze
     PORTAL = "P".freeze
+    ASCENT = "<".freeze
     DESCENT = ">".freeze
     FLOOR = ".".freeze
     UNREVEALED = "?".freeze
@@ -106,6 +107,12 @@ module TextAdventures
       global_position(DEFAULT_ENTRANCE_PORTAL_POSITION, DEFAULT_BLOCK_POSITION)
     end
 
+    def ascent_position
+      return nil unless level > DEFAULT_LEVEL
+
+      global_position(DEFAULT_ENTRANCE_PORTAL_POSITION, DEFAULT_BLOCK_POSITION)
+    end
+
     def portal_at?(position)
       return false unless entrance_portal_position
 
@@ -114,6 +121,16 @@ module TextAdventures
 
     def player_on_entrance_portal?
       portal_at?(current_global_position)
+    end
+
+    def ascent_at?(position)
+      return false unless ascent_position
+
+      position_key(position) == position_key(ascent_position)
+    end
+
+    def player_on_ascent?
+      ascent_at?(current_global_position)
     end
 
     def descent_at?(position)
@@ -128,6 +145,19 @@ module TextAdventures
 
     def advance_level!
       @level += 1
+      @revealed_blocks = normalize_revealed_blocks(nil)
+      @current_block_position = BlockPosition.new(x: DEFAULT_BLOCK_POSITION.x, y: DEFAULT_BLOCK_POSITION.y)
+      @player_position = Position.new(x: DEFAULT_PLAYER_POSITION.x, y: DEFAULT_PLAYER_POSITION.y)
+      @floor_exit_position = nil
+      @enemies = {}
+      @dropped_loot = {}
+      self
+    end
+
+    def retreat_level!
+      return self unless level > DEFAULT_LEVEL
+
+      @level -= 1
       @revealed_blocks = normalize_revealed_blocks(nil)
       @current_block_position = BlockPosition.new(x: DEFAULT_BLOCK_POSITION.x, y: DEFAULT_BLOCK_POSITION.y)
       @player_position = Position.new(x: DEFAULT_PLAYER_POSITION.x, y: DEFAULT_PLAYER_POSITION.y)
@@ -247,6 +277,8 @@ module TextAdventures
             LOOT
           elsif portal_at?(render_position)
             PORTAL
+          elsif ascent_at?(render_position)
+            ASCENT
           elsif descent_at?(render_position)
             DESCENT
           else
@@ -365,6 +397,7 @@ module TextAdventures
       entities = [
         viewport_entity("player", current_global_position, origin, render_width, render_height),
         viewport_entity("portal", entrance_portal_position, origin, render_width, render_height),
+        viewport_entity("ascent", ascent_position, origin, render_width, render_height),
         viewport_entity("descent", floor_exit_position, origin, render_width, render_height)
       ]
       entities.concat(viewport_loot_entities(origin, render_width, render_height))

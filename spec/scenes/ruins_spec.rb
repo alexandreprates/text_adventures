@@ -520,6 +520,20 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.current_scene_name).to eq :ruins
   end
 
+  it "climbs toward the entrance from deeper levels" do
+    dungeon.advance_level!
+    game.handle("go right")
+
+    response = game.handle("go left")
+
+    expect(response).to include "You move left."
+    expect(response).to include "You climb toward the ruins entrance."
+    expect(response).to include "Ruins Level 1"
+    expect(game.current_scene_name).to eq :ruins
+    expect(dungeon.level).to eq 1
+    expect(dungeon.player_position).to have_attributes(x: 3, y: 2)
+  end
+
   it "rejects invalid movement targets" do
     expect(game.handle("go sideways")).to eq <<~TEXT.chomp
       You cannot go sideways inside the ruins.

@@ -54,7 +54,7 @@ module TextAdventures
       end
 
       def map_row?(text)
-        text.match?(/\A[?#.xE@P>]+\z/)
+        text.match?(/\A[?#.xE@P<>]+\z/)
       end
 
       def section_heading?(text)
@@ -75,7 +75,7 @@ module TextAdventures
       end
 
       def symbol_legend?(text)
-        text.match?(/\A[?xE@P>.#] - /)
+        text.match?(/\A[?xE@P<>.#] - /)
       end
 
       def error_text?(text)

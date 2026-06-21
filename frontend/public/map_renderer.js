@@ -57,6 +57,7 @@ globalThis.DungeonMapRenderer = (() => {
   const ENTITY_FALLBACK_COLORS = {
     player: "#f8f5c7",
     portal: "#7dd3fc",
+    stairsUp: "#38bdf8",
     stairsDown: "#f59e0b",
     lootBag: "#facc15",
     goblin: "#f87171"
@@ -247,6 +248,7 @@ globalThis.DungeonMapRenderer = (() => {
   const ENTITY_TILES = {
     player: "player",
     portal: "portal",
+    ascent: "stairsUp",
     descent: "stairsDown",
     loot: "lootBag"
   };
@@ -258,6 +260,7 @@ globalThis.DungeonMapRenderer = (() => {
   function entityPriority(type) {
     return {
       portal: 10,
+      ascent: 10,
       descent: 10,
       loot: 20,
       enemy: 30,

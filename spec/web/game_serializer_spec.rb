@@ -155,6 +155,18 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     )
   end
 
+  it "serializes dungeon ascent markers on deeper levels" do
+    game.handle("go ruins")
+    game.dungeon.advance_level!
+
+    expect(state.dig(:dungeon, :entrance_portal)).to be_nil
+    expect(state.dig(:dungeon, :ascent)).to eq(x: 3, y: 2)
+    expect(state.fetch(:dungeon)).not_to have_key(:map)
+    expect(state.dig(:dungeon, :viewport, :entities)).to include(
+      { type: "ascent", x: 9, y: 7 }
+    )
+  end
+
   it "serializes pending merchant confirmation" do
     game.player.gold = 100
     game.handle("go blacksmith")
