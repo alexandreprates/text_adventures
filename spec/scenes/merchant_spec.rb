@@ -158,6 +158,36 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     expect(game.pending_confirmation).to be_nil
   end
 
+  it "applies a combined trade with sold and bought items" do
+    game.player.gold = 40
+    game.player.inventory.add(sword)
+
+    response = game.handle("trade buy=spear;sell=sword")
+
+    expect(response).to eq <<~TEXT.chomp
+      Trade completed.
+      Sold for 10g.
+      [1x Sword removed from inventory]
+      Bought for 50g.
+      [1x Spear added to inventory]
+      [your gold is now 0]
+    TEXT
+    expect(game.player.inventory.quantity("sword")).to eq 0
+    expect(game.player.inventory.quantity("spear")).to eq 1
+    expect(game.player.gold).to eq 0
+    expect(game.pending_confirmation).to be_nil
+  end
+
+  it "rejects combined trades that would leave the player with negative gold" do
+    game.player.gold = 20
+    game.player.inventory.add(sword)
+
+    expect(game.handle("trade buy=spear;sell=sword")).to eq "Sorry, but you do not have enough money for this trade."
+    expect(game.player.inventory.quantity("sword")).to eq 1
+    expect(game.player.inventory.quantity("spear")).to eq 0
+    expect(game.player.gold).to eq 20
+  end
+
   it "cancels a pending transaction" do
     game.player.gold = 100
     game.handle("buy sword")

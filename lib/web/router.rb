@@ -66,7 +66,8 @@ module TextAdventures
       end
 
       def game_state(id)
-        payload = store.with_game(id) do |game|
+        payload = store.with_game(id, save: true) do |game|
+          game.return_to_town_on_page_load
           game_payload(id, game)
         end
         unless payload

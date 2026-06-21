@@ -65,6 +65,32 @@ RSpec.describe TextAdventures::Game do
     end
   end
 
+  describe "#return_to_town_on_page_load" do
+    it "moves a ruins game back to town and clears transient dungeon state" do
+      game = described_class.new(
+        current_scene: TextAdventures::Scenes::Ruins.new,
+        pending_confirmation: :pending,
+        battle: :battle,
+        pending_loot: :loot,
+        active_enemy_position: :enemy_position
+      )
+
+      expect(game.return_to_town_on_page_load).to be true
+      expect(game.current_scene_name).to eq :town
+      expect(game.pending_confirmation).to be_nil
+      expect(game.battle).to be_nil
+      expect(game.pending_loot).to be_nil
+      expect(game.active_enemy_position).to be_nil
+    end
+
+    it "leaves non-ruins games unchanged" do
+      game = described_class.new
+
+      expect(game.return_to_town_on_page_load).to be false
+      expect(game.current_scene_name).to eq :town
+    end
+  end
+
   describe "#handle" do
     it "delegates known commands to the current scene" do
       scene = TestScene.new(response: "scene response")

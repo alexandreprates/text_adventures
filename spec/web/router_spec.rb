@@ -78,7 +78,7 @@ RSpec.describe TextAdventures::Web::Router do
 
     state_response = router.call(method: "GET", path: "/games/#{game_id}", body: nil)
     expect(state_response.status).to eq 200
-    expect(parsed(state_response).dig("state", "scene")).to eq "ruins"
+    expect(parsed(state_response).dig("state", "scene")).to eq "town"
 
     delete_response = router.call(method: "DELETE", path: "/games/#{game_id}", body: nil)
     expect(delete_response.status).to eq 204
@@ -165,7 +165,7 @@ RSpec.describe TextAdventures::Web::Router do
     expect(parsed(response).dig("error", "code")).to eq "server_busy"
   end
 
-  it "restores a persisted game through a new store instance" do
+  it "returns persisted games to town when fetched by a new page load" do
     first_router = described_class.new(store: persistent_store)
     create_response = first_router.call(method: "POST", path: "/api/games", body: '{"seed":0}')
     game_id = parsed(create_response).fetch("game_id")
@@ -177,9 +177,11 @@ RSpec.describe TextAdventures::Web::Router do
 
     second_router = described_class.new(store: persistent_store(id_generator: -> { "unused" }))
     state_response = second_router.call(method: "GET", path: "/api/games/#{game_id}", body: nil)
+    restored_game = TextAdventures::Persistence::SQLiteGameRepository.new(save_dir: @save_dir).load(game_id)
 
     expect(state_response.status).to eq 200
-    expect(parsed(state_response).dig("state", "scene")).to eq "ruins"
+    expect(parsed(state_response).dig("state", "scene")).to eq "town"
+    expect(restored_game.current_scene_name).to eq :town
   end
 
   it "deletes persisted game data through the API" do

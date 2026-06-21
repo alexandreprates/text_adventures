@@ -23,6 +23,8 @@ module TextAdventures
           request_buy(game, command.target)
         when :sell
           request_sell(game, command.target)
+        when :trade
+          request_trade(game, command.target)
         when :agree
           confirm(game)
         when :no
@@ -41,6 +43,18 @@ module TextAdventures
           " sell <item> - sell item",
           " go town - return to Nee'Peh"
         )
+      end
+
+      def stock_available_to(player)
+        stock.select { |item| item.min_level <= player.overall_level }
+      end
+
+      def accepts?(item)
+        accepted_types.include?(item.type)
+      end
+
+      def sell_price(item)
+        (item.price * 2 / 3.0).round
       end
 
       private
@@ -97,6 +111,31 @@ module TextAdventures
         )
       end
 
+      def request_trade(game, target)
+        selections = parse_trade_target(target)
+        buy_names = selections.fetch(:buy)
+        sell_names = selections.fetch(:sell)
+        return Response.new("Select at least one item to trade.") if buy_names.empty? && sell_names.empty?
+
+        buy_items = resolve_trade_buys(game, buy_names)
+        return buy_items if buy_items.is_a?(Response)
+
+        sell_items = resolve_trade_sells(game, sell_names)
+        return sell_items if sell_items.is_a?(Response)
+
+        sell_total = sell_items.sum { |item| sell_price(item) }
+        buy_total = buy_items.sum(&:price)
+        final_gold = game.player.gold + sell_total - buy_total
+        return Response.new("Sorry, but you do not have enough money for this trade.") if final_gold.negative?
+
+        sold_lines = apply_trade_sells(game, sell_items)
+        buy_items.each { |item| game.player.inventory.add(item) }
+        game.player.gold = final_gold
+        game.pending_confirmation = nil
+
+        Response.new(trade_response_lines(buy_items, sold_lines, sell_total, buy_total, game.player.gold))
+      end
+
       def confirm(game)
         confirmation = game.pending_confirmation
         return Response.new("There is nothing to confirm.") unless confirmation&.merchant.equal?(self)
@@ -144,16 +183,54 @@ module TextAdventures
         stock_available_to(player).find { |item| item.matches?(query) }
       end
 
-      def stock_available_to(player)
-        stock.select { |item| item.min_level <= player.overall_level }
+      def parse_trade_target(target)
+        target.to_s.split(";").each_with_object({ buy: [], sell: [] }) do |segment, selections|
+          key, value = segment.split("=", 2).map(&:to_s)
+          normalized_key = key.strip.to_sym
+          next unless selections.key?(normalized_key)
+
+          selections[normalized_key] = value.to_s.split("|").map(&:strip).reject(&:empty?)
+        end
       end
 
-      def accepts?(item)
-        accepted_types.include?(item.type)
+      def resolve_trade_buys(game, names)
+        names.each_with_object([]) do |name, items|
+          item = find_stock(game.player, name)
+          return Response.new("I do not have #{name} for sale.") unless item
+
+          items << item
+        end
       end
 
-      def sell_price(item)
-        (item.price * 2 / 3.0).round
+      def resolve_trade_sells(game, names)
+        counts = names.tally
+        counts.each do |name, count|
+          item = game.player.inventory.find(name)
+          return Response.new("You do not have #{name}.") unless item
+          return Response.new("You do not have enough #{item.display_name}.") if game.player.inventory.quantity(name) < count
+          return Response.new("Sorry bud, but I have no interest in this item.") unless accepts?(item)
+        end
+
+        names.map { |name| game.player.inventory.find(name) }
+      end
+
+      def apply_trade_sells(game, items)
+        items.map do |item|
+          result = game.player.inventory.remove(item.command_name)
+          "[#{result.quantity}x #{result.item.display_name} removed from inventory]"
+        end
+      end
+
+      def trade_response_lines(buy_items, sold_lines, sell_total, buy_total, gold)
+        lines = ["Trade completed."]
+        lines << "Sold for #{sell_total}g." if sold_lines.any?
+        lines.concat(sold_lines)
+        if buy_items.any?
+          lines << "Bought for #{buy_total}g."
+          lines.concat(buy_items.map { |item| "[1x #{item.display_name} added to inventory]" })
+        end
+        lines << "[your gold is now #{gold}]"
+        lines
       end
 
       def item_line(item)

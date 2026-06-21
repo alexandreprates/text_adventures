@@ -13,6 +13,7 @@ module TextAdventures
       equip
       go
       sell
+      trade
       use
     ].freeze
 

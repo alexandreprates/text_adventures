@@ -70,6 +70,7 @@ const api = {
 };
 
 const SAVED_GAME_ID_KEY = "text_adventures.game_id";
+const AUTO_EXPLORE_MEMORY_KEY_PREFIX = "text_adventures.auto_explore.";
 
 const elements = {
   sceneTitle: document.querySelector("#scene-title"),
@@ -104,6 +105,22 @@ const elements = {
   spellsList: document.querySelector("#spells-list"),
   commandForm: document.querySelector("#command-form"),
   commandInput: document.querySelector("#command-input"),
+  shopOverlay: document.querySelector("#shop-overlay"),
+  shopTitle: document.querySelector("#shop-title"),
+  shopSubtitle: document.querySelector("#shop-subtitle"),
+  shopClose: document.querySelector("#shop-close"),
+  playerTradeList: document.querySelector("#player-trade-list"),
+  merchantTradeList: document.querySelector("#merchant-trade-list"),
+  tradeCurrentGold: document.querySelector("#trade-current-gold"),
+  tradeSoldTotal: document.querySelector("#trade-sold-total"),
+  tradeBoughtTotal: document.querySelector("#trade-bought-total"),
+  tradeNetTotal: document.querySelector("#trade-net-total"),
+  tradeFinalGold: document.querySelector("#trade-final-gold"),
+  tradeConfirm: document.querySelector("#trade-confirm"),
+  tradeClear: document.querySelector("#trade-clear"),
+  tradeCancel: document.querySelector("#trade-cancel"),
+  tradeMessage: document.querySelector("#trade-message"),
+  tradeFooterTotal: document.querySelector("#trade-footer-total"),
   tabs: document.querySelectorAll(".terminal-tab[data-tab]"),
   terminalTabs: document.querySelectorAll(".terminal-tab")
 };
@@ -161,6 +178,7 @@ let combatFeedbackTimers = [];
 const autoExplore = {
   enabled: false,
   timer: null,
+  memoryGameId: null,
   knownCells: new Map(),
   visited: new Set(),
   failedMoves: new Set(),
@@ -180,6 +198,11 @@ const commandHistory = {
   entries: [],
   index: 0,
   draft: ""
+};
+const shopTrade = {
+  open: false,
+  buy: new Set(),
+  sell: new Set()
 };
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
@@ -207,7 +230,7 @@ function handleSocketMessage(event) {
     return;
   }
   if (message.type === "error") {
-    const error = new Error(message.error?.message || "WebSocket error.");
+    const error = actionCommandError(message.error?.message || "WebSocket error.", message.error?.code || "websocket_error");
     rejectPendingAction(error);
     showError(error);
     stopAutoExplore("error");
@@ -311,12 +334,14 @@ function render(payload) {
   const state = payload.state;
   const events = eventsFromPayload(payload);
   currentState = state;
+  restoreAutoExploreMemory(state);
   updateAutoExploreKnowledge(state);
   renderHeader(state);
   renderMap(state);
   renderStatus(state);
   renderContextCommands(state);
   renderCollections(state.player);
+  renderShopOverlay(state);
   updateCommandPlaceholder(state);
   renderLog(events);
   playCombatFeedback(events);
@@ -357,6 +382,86 @@ function forgetGameId() {
   } catch (_error) {
   }
   updateGameUrl(null);
+}
+
+function autoExploreMemoryKey(gameId = api.gameId) {
+  return gameId ? `${AUTO_EXPLORE_MEMORY_KEY_PREFIX}${gameId}` : null;
+}
+
+function forgetAutoExploreMemory(gameId) {
+  const key = autoExploreMemoryKey(gameId);
+  if (!key) return;
+
+  try {
+    window.localStorage.removeItem(key);
+  } catch (_error) {
+  }
+}
+
+function clearAutoExploreKnowledge() {
+  autoExplore.knownCells.clear();
+  autoExplore.visited.clear();
+  autoExplore.failedMoves.clear();
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.knownLevel = null;
+}
+
+function restoreAutoExploreMemory(state) {
+  if (state?.scene !== "ruins") {
+    forgetAutoExploreMemory(api.gameId);
+    clearAutoExploreKnowledge();
+    autoExplore.memoryGameId = api.gameId;
+    return;
+  }
+
+  const gameId = api.gameId;
+  if (!gameId) return;
+
+  if (autoExplore.memoryGameId !== gameId) {
+    clearAutoExploreKnowledge();
+    autoExplore.memoryGameId = gameId;
+  }
+
+  if (autoExplore.knownLevel === state.dungeon?.level) return;
+
+  const key = autoExploreMemoryKey(gameId);
+  if (!key) return;
+
+  try {
+    const payload = JSON.parse(window.localStorage.getItem(key) || "null");
+    if (!payload || payload.level !== state.dungeon?.level) return;
+
+    clearAutoExploreKnowledge();
+    autoExplore.knownLevel = payload.level;
+    (payload.cells || []).forEach(([cellKey, type]) => {
+      if (typeof cellKey === "string" && ["open", "wall", "transition"].includes(type)) {
+        autoExplore.knownCells.set(cellKey, type);
+      }
+    });
+    (payload.visited || []).forEach(cellKey => {
+      if (typeof cellKey === "string") autoExplore.visited.add(cellKey);
+    });
+    (payload.failedMoves || []).forEach(edgeKey => {
+      if (typeof edgeKey === "string") autoExplore.failedMoves.add(edgeKey);
+    });
+  } catch (_error) {
+  }
+}
+
+function saveAutoExploreMemory() {
+  const key = autoExploreMemoryKey();
+  if (!key || autoExplore.knownLevel === null) return;
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify({
+      level: autoExplore.knownLevel,
+      cells: Array.from(autoExplore.knownCells.entries()),
+      visited: Array.from(autoExplore.visited),
+      failedMoves: Array.from(autoExplore.failedMoves)
+    }));
+  } catch (_error) {
+  }
 }
 
 function updateGameUrl(gameId) {
@@ -645,6 +750,249 @@ function fillCommandInput(value) {
   elements.commandInput.setSelectionRange(value.length, value.length);
 }
 
+function openShop() {
+  if (!currentState?.trade) return;
+
+  shopTrade.open = true;
+  pruneTradeSelection(currentState.trade);
+  renderShopOverlay(currentState);
+  elements.shopOverlay.classList.remove("hidden");
+  elements.tradeConfirm.focus();
+}
+
+function closeShop() {
+  shopTrade.open = false;
+  elements.shopOverlay.classList.add("hidden");
+  elements.commandInput.focus();
+}
+
+function clearTradeSelection() {
+  shopTrade.buy.clear();
+  shopTrade.sell.clear();
+  renderShopOverlay(currentState);
+}
+
+function renderShopOverlay(state) {
+  if (!shopTrade.open || !state?.trade) {
+    if (shopTrade.open && !state?.trade) {
+      shopTrade.open = false;
+      shopTrade.buy.clear();
+      shopTrade.sell.clear();
+    }
+    elements.shopOverlay.classList.add("hidden");
+    return;
+  }
+
+  const trade = state.trade;
+  pruneTradeSelection(trade);
+  elements.shopTitle.textContent = `═══ ${trade.display_name.toUpperCase()} TRADE ═══`;
+  elements.shopSubtitle.textContent = "Sell eligible items on the left. Buy merchant stock on the right.";
+  renderTradeItems(elements.playerTradeList, trade.player_items || [], "sell");
+  renderTradeItems(elements.merchantTradeList, trade.merchant_items || [], "buy");
+  renderTradeSummary(state);
+  elements.shopOverlay.classList.remove("hidden");
+}
+
+function renderTradeItems(target, items, mode) {
+  target.innerHTML = "";
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.className = "item-description";
+    empty.textContent = mode === "sell" ? "Nothing eligible in your bags." : "Nothing for sale.";
+    target.appendChild(empty);
+    return;
+  }
+
+  items.forEach(item => {
+    const key = item.name;
+    const selected = tradeSelectionFor(mode).has(key);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "trade-item";
+    button.disabled = !item.trade_enabled;
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+    button.append(
+      tradeItemMark(mode, selected),
+      tradeItemCopy(item, mode)
+    );
+    button.addEventListener("click", () => toggleTradeItem(mode, key));
+    target.appendChild(button);
+  });
+}
+
+function tradeItemMark(mode, selected) {
+  const mark = document.createElement("span");
+  mark.className = "item-mark";
+  mark.textContent = selected ? (mode === "sell" ? "-" : "+") : "";
+  return mark;
+}
+
+function tradeItemCopy(item, mode) {
+  const copy = document.createElement("span");
+  copy.className = "item-copy";
+
+  const line = document.createElement("span");
+  line.className = "item-line";
+
+  const name = document.createElement("span");
+  name.className = "item-name";
+  name.textContent = tradeItemName(item, mode);
+
+  const price = document.createElement("strong");
+  price.className = "item-price";
+  price.textContent = tradeItemPrice(item, mode);
+
+  const description = document.createElement("span");
+  description.className = "item-description";
+  description.textContent = tradeItemDescription(item);
+
+  line.append(name, price);
+  copy.append(line, description);
+  return copy;
+}
+
+function tradeItemName(item, mode) {
+  const name = item.display_name || item.name;
+  if (mode === "sell" && Number(item.quantity) > 1) return `${name} x${item.quantity}`;
+
+  return name;
+}
+
+function tradeItemPrice(item, mode) {
+  if (mode === "sell") return item.trade_enabled ? `+${item.sell_price}g` : "--";
+
+  return `${item.buy_price ?? item.price}g`;
+}
+
+function tradeItemDescription(item) {
+  const details = [item.type].filter(Boolean);
+  if (Number(item.attack) > 0) details.push(`DMG ${item.attack}`);
+  if (Number(item.defense) > 0) details.push(`DEF ${item.defense}`);
+  if (Number(item.recovery) > 0) details.push(`Recovery ${item.recovery}`);
+  if (item.weapon_class) details.push(item.weapon_class);
+  if (item.armor_class) details.push(item.armor_class);
+  if (item.trade_note) details.push(item.trade_note);
+  return details.join(" · ");
+}
+
+function toggleTradeItem(mode, key) {
+  const selection = tradeSelectionFor(mode);
+  if (selection.has(key)) {
+    selection.delete(key);
+  } else {
+    selection.add(key);
+  }
+  renderShopOverlay(currentState);
+}
+
+function tradeSelectionFor(mode) {
+  return mode === "sell" ? shopTrade.sell : shopTrade.buy;
+}
+
+function pruneTradeSelection(trade) {
+  pruneSelection(shopTrade.sell, trade.player_items || []);
+  pruneSelection(shopTrade.buy, trade.merchant_items || []);
+}
+
+function pruneSelection(selection, items) {
+  const available = new Set(items.filter(item => item.trade_enabled).map(item => item.name));
+  Array.from(selection).forEach(key => {
+    if (!available.has(key)) selection.delete(key);
+  });
+}
+
+function renderTradeSummary(state) {
+  const totals = tradeTotals(state);
+  elements.tradeCurrentGold.textContent = `${totals.currentGold}g`;
+  elements.tradeSoldTotal.textContent = `+${totals.sold}g`;
+  elements.tradeBoughtTotal.textContent = `-${totals.bought}g`;
+  elements.tradeNetTotal.textContent = signedGold(totals.net);
+  elements.tradeFinalGold.textContent = `${totals.finalGold}g`;
+  elements.tradeFooterTotal.textContent = `Net: ${signedGold(totals.net)}`;
+  elements.tradeConfirm.disabled = totals.itemCount === 0 || totals.finalGold < 0 || Boolean(api.pendingAction);
+  elements.tradeMessage.textContent = tradeSummaryMessage(totals);
+}
+
+function tradeTotals(state) {
+  const trade = state?.trade || {};
+  const playerItems = trade.player_items || [];
+  const merchantItems = trade.merchant_items || [];
+  const sold = selectedTradeItems(shopTrade.sell, playerItems).reduce((total, item) => total + Number(item.sell_price || 0), 0);
+  const bought = selectedTradeItems(shopTrade.buy, merchantItems).reduce((total, item) => total + Number(item.buy_price ?? item.price ?? 0), 0);
+  const currentGold = Number(state?.player?.gold || 0);
+  return {
+    currentGold,
+    sold,
+    bought,
+    net: sold - bought,
+    finalGold: currentGold + sold - bought,
+    itemCount: shopTrade.sell.size + shopTrade.buy.size
+  };
+}
+
+function selectedTradeItems(selection, items) {
+  return items.filter(item => selection.has(item.name));
+}
+
+function signedGold(value) {
+  if (value > 0) return `+${value}g`;
+  if (value < 0) return `${value}g`;
+  return "0g";
+}
+
+function tradeSummaryMessage(totals) {
+  if (totals.itemCount === 0) return "Select items, then confirm one combined transaction.";
+  if (totals.finalGold < 0) return "Not enough gold for this selection.";
+  return "Ready to confirm one combined transaction.";
+}
+
+function actionCommandError(message, code = "invalid_action") {
+  const error = new Error(message);
+  error.code = code;
+  return error;
+}
+
+function isActionCommandError(error) {
+  return error?.code === "invalid_action" || error?.code === "unsupported_command";
+}
+
+function handleActionCommandError(error) {
+  if (!isActionCommandError(error)) return false;
+
+  setStatus("Online");
+  showError(error);
+  return true;
+}
+
+async function submitTradeSelection() {
+  const totals = tradeTotals(currentState);
+  if (totals.itemCount === 0 || totals.finalGold < 0) {
+    renderTradeSummary(currentState);
+    return;
+  }
+
+  setStatus("Sending");
+  try {
+    await api.sendAction({
+      type: "trade",
+      buy: Array.from(shopTrade.buy),
+      sell: Array.from(shopTrade.sell)
+    });
+    shopTrade.buy.clear();
+    shopTrade.sell.clear();
+    closeShop();
+    setStatus("Online");
+  } catch (error) {
+    if (handleActionCommandError(error)) {
+      renderTradeSummary(currentState);
+      return;
+    }
+    setStatus("Error", true);
+    showError(error);
+    renderTradeSummary(currentState);
+  }
+}
+
 function renderLog(events) {
   const eventLines = events.map(event => event.text);
   if (eventLines.length) {
@@ -695,6 +1043,11 @@ function renderContextCommands(state = currentState) {
 }
 
 function handleContextCommand(command) {
+  if (command === "shop") {
+    openShop();
+    return;
+  }
+
   if (command.startsWith("auto ")) {
     setAutoExploreGoal(command.slice(5));
     return;
@@ -713,6 +1066,7 @@ function quickCommandsFor(state) {
     ];
   }
 
+  if (state.battle?.active) return battleCommands(state);
   if (state.scene === "ruins") return autoExploreCommands(state);
   if (autoExplore.enabled) return autoExploreCommands(state);
 
@@ -726,16 +1080,19 @@ function quickCommandsFor(state) {
   ];
   const sceneCommands = {
     town: travel.filter(([label]) => label !== "Cidade"),
-    tavern: [["Descansar", "rent room", "primary"], ["Comprar", "buy potion of heal"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
-    priest: [["Curar", "heal", "primary"], ["Remover Status", "cure"], ["Comprar", "buy tome of fireball"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
-    blacksmith: [["Comprar", "buy rusty dagger", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]],
-    armorsmith: [["Comprar", "buy padded armor", "primary"], ["Vender", "sell"], ["Estoque", "show"], ["Cidade", "go town"]]
+    tavern: [["Descansar", "rent room", "primary"], ["Loja", "shop", "primary"], ["Cidade", "go town"]],
+    priest: [["Curar", "heal", "primary"], ["Remover Status", "cure"], ["Loja", "shop", "primary"], ["Cidade", "go town"]],
+    blacksmith: [["Loja", "shop", "primary"], ["Cidade", "go town"]],
+    armorsmith: [["Loja", "shop", "primary"], ["Cidade", "go town"]]
   };
-  const battleItemCommands = state.battle?.active ? suggestedItemCommands(state.player) : [];
 
+  return sceneCommands[state.scene] || travel;
+}
+
+function battleCommands(state) {
   return [
-    ...(sceneCommands[state.scene] || travel),
-    ...battleItemCommands
+    ["Atacar", "attack", "primary"],
+    ...suggestedItemCommands(state.player)
   ];
 }
 
@@ -792,7 +1149,14 @@ function startAutoExplore(goal = "explore") {
     return;
   }
 
-  resetAutoExploreMemory();
+  clearAutoExploreTimer();
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.lastAction = null;
+  autoExplore.lastPositionKey = null;
+  autoExplore.pendingSince = null;
+  autoExplore.repeatCount = 0;
+  restoreAutoExploreMemory(currentState);
   updateAutoExploreKnowledge(currentState);
   autoExplore.enabled = true;
   autoExplore.goal = goal;
@@ -839,22 +1203,6 @@ function autoExploreGoalStatus(goal) {
   if (goal === "town") return "Auto: going town";
 
   return "Auto: exploring";
-}
-
-function resetAutoExploreMemory() {
-  clearAutoExploreTimer();
-  autoExplore.knownCells.clear();
-  autoExplore.visited.clear();
-  autoExplore.failedMoves.clear();
-  autoExplore.currentPath = [];
-  autoExplore.destinationKey = null;
-  autoExplore.goal = "explore";
-  autoExplore.goalLevel = null;
-  autoExplore.knownLevel = null;
-  autoExplore.lastAction = null;
-  autoExplore.lastPositionKey = null;
-  autoExplore.pendingSince = null;
-  autoExplore.repeatCount = 0;
 }
 
 function clearAutoExploreTimer() {
@@ -1132,6 +1480,8 @@ function updateAutoExploreKnowledge(state) {
       "open";
     autoExplore.knownCells.set(positionKey(position), type);
   });
+
+  saveAutoExploreMemory();
 }
 
 function visibleEnemyPosition(state) {
@@ -1334,6 +1684,7 @@ function trackAutoExploreResult(state) {
   if (currentKey === autoExplore.lastPositionKey) {
     const direction = autoExplore.lastAction.slice(3);
     autoExplore.failedMoves.add(`${autoExplore.lastPositionKey}:${direction}`);
+    saveAutoExploreMemory();
     autoExplore.repeatCount += 1;
     autoExplore.currentPath = [];
     autoExplore.destinationKey = null;
@@ -1367,7 +1718,10 @@ function autoExploreGoalReached(state) {
 
 function markAutoExploreVisited(state) {
   const key = positionKey(state?.dungeon?.player_position);
-  if (key) autoExplore.visited.add(key);
+  if (!key) return;
+
+  autoExplore.visited.add(key);
+  saveAutoExploreMemory();
 }
 
 function positionKey(position) {
@@ -1415,21 +1769,21 @@ function actionFromCommand(command) {
 
   if (standalone.has(verb)) return { type: verb };
   if (verb === "go") {
-    if (!target) throw new Error("Missing target for go.");
+    if (!target) throw actionCommandError("Missing target for go.");
     return ["up", "right", "down", "left"].includes(target) ?
       { type: "move", direction: target } :
       { type: "travel", destination: target };
   }
   if (["buy", "sell", "equip", "use", "drop"].includes(verb)) {
-    if (!target) throw new Error(`Missing target for ${verb}.`);
+    if (!target) throw actionCommandError(`Missing target for ${verb}.`);
     return { type: verb, item: target };
   }
   if (verb === "cast") {
-    if (!target) throw new Error("Missing target for cast.");
+    if (!target) throw actionCommandError("Missing target for cast.");
     return { type: "cast", spell: target };
   }
 
-  throw new Error(`Unsupported command: ${rawVerb}.`);
+  throw actionCommandError(`Unsupported command: ${rawVerb}.`, "unsupported_command");
 }
 
 function classLine(player) {
@@ -1496,6 +1850,7 @@ async function initialGamePayload() {
     return await api.fetchGame(gameId);
   } catch (_error) {
     forgetGameId();
+    forgetAutoExploreMemory(gameId);
     return api.createGame();
   }
 }
@@ -1505,6 +1860,7 @@ async function startNewGame() {
   const previousGameId = api.gameId;
   api.disconnectGame();
   forgetGameId();
+  forgetAutoExploreMemory(previousGameId);
   if (previousGameId) {
     try {
       await api.deleteGame(previousGameId);
@@ -1523,15 +1879,20 @@ async function runCommand(command, options = {}) {
     return;
   }
   if (!api.gameId) return;
-  setStatus("Sending");
   try {
-    await api.sendAction(actionFromCommand(command));
+    const action = actionFromCommand(command);
+    setStatus("Sending");
+    await api.sendAction(action);
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {
     if (socketReconnectInProgress()) {
       setStatus("Reconnecting");
       if (options.source === "auto") stopAutoExplore("connection lost");
+      return;
+    }
+    if (handleActionCommandError(error)) {
+      if (options.source === "auto") stopAutoExplore("error");
       return;
     }
     setStatus("Error", true);
@@ -1635,10 +1996,18 @@ elements.autoExploreToggle.addEventListener("click", () => {
 elements.autoSpeedButtons.forEach(button => {
   button.addEventListener("click", () => setAutoExploreSpeed(Number(button.dataset.autoSpeed)));
 });
+elements.shopClose.addEventListener("click", closeShop);
+elements.tradeCancel.addEventListener("click", closeShop);
+elements.tradeClear.addEventListener("click", clearTradeSelection);
+elements.tradeConfirm.addEventListener("click", submitTradeSelection);
 elements.mapZoomIn.addEventListener("click", () => adjustMapZoom(1));
 elements.mapZoomOut.addEventListener("click", () => adjustMapZoom(-1));
 setAutoExploreSpeed(autoExplore.speedMultiplier);
 updateMapZoomControls();
+
+window.addEventListener("keydown", event => {
+  if (event.key === "Escape" && shopTrade.open) closeShop();
+});
 
 window.addEventListener("resize", () => {
   if (elements.mapStage.classList.contains("has-canvas-map")) resizeCanvasMap();

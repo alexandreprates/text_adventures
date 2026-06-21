@@ -39,7 +39,7 @@ RSpec.describe "text_adventures server binary" do
 
       state_response = request_json(port, Net::HTTP::Get, "/games/#{game_id}")
       expect(state_response.code).to eq "200"
-      expect(JSON.parse(state_response.body).dig("state", "prompt")).to eq "Ruins L1"
+      expect(JSON.parse(state_response.body).dig("state", "prompt")).to eq "Town"
 
       delete_response = request_json(port, Net::HTTP::Delete, "/games/#{game_id}")
       expect(delete_response.code).to eq "204"
@@ -111,7 +111,6 @@ RSpec.describe "text_adventures server binary" do
   it "continues a persisted game after the API process restarts" do
     Dir.mktmpdir("text-adventures-e2e-saves") do |save_dir|
       game_id = nil
-      moved_position = nil
       with_server("TEXT_ADVENTURES_SAVE_DIR" => save_dir) do |port|
         create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
         game_id = JSON.parse(create_response.body).fetch("game_id")
@@ -127,23 +126,24 @@ RSpec.describe "text_adventures server binary" do
         restored = JSON.parse(state_response.body)
 
         expect(state_response.code).to eq "200"
-        expect(restored.dig("state", "scene")).to eq "ruins"
-        expect(restored.dig("state", "dungeon", "player_position")).to eq("x" => 3, "y" => 2)
+        expect(restored.dig("state", "scene")).to eq "town"
 
+        travel_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/actions", action_for("go ruins"))
+        expect(travel_response.code).to eq "200"
+        expect(JSON.parse(travel_response.body).dig("state", "scene")).to eq "ruins"
         move_response = request_json(port, Net::HTTP::Post, "/api/games/#{game_id}/actions", action_for("go right"))
         moved = JSON.parse(move_response.body)
 
         expect(move_response.code).to eq "200"
         expect(moved.fetch("events")).to include hash_including("type" => "movement", "text" => "You move right.")
-        moved_position = moved.dig("state", "dungeon", "player_position")
-        expect(moved_position).to eq("x" => 4, "y" => 2)
+        expect(moved.dig("state", "dungeon", "player_position")).to eq("x" => 4, "y" => 2)
       end
 
       with_server("TEXT_ADVENTURES_SAVE_DIR" => save_dir) do |port|
         state_response = request_json(port, Net::HTTP::Get, "/api/games/#{game_id}")
 
         expect(state_response.code).to eq "200"
-        expect(JSON.parse(state_response.body).dig("state", "dungeon", "player_position")).to eq moved_position
+        expect(JSON.parse(state_response.body).dig("state", "scene")).to eq "town"
       end
     end
   end

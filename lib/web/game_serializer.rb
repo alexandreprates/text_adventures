@@ -13,6 +13,7 @@ module TextAdventures
           player: player_state,
           dungeon: dungeon_state,
           battle: battle_state,
+          trade: trade_state,
           pending: pending_state
         }
       end
@@ -92,9 +93,11 @@ module TextAdventures
           attack: item.attack,
           defense: item.defense,
           recovery: item.recovery,
+          cures: item.respond_to?(:cures) ? item.cures.map(&:to_s) : nil,
           spell: item.spell,
           weapon_class: item.weapon_class&.to_s,
-          armor_class: item.armor_class&.to_s
+          armor_class: item.armor_class&.to_s,
+          min_level: item.respond_to?(:min_level) ? item.min_level : nil
         }.compact
       end
 
@@ -167,6 +170,43 @@ module TextAdventures
         {
           confirmation: !game.pending_confirmation.nil?
         }
+      end
+
+      def trade_state
+        scene = game.current_scene
+        return nil unless scene.is_a?(Scenes::Merchant)
+
+        {
+          merchant: scene.name.to_s,
+          display_name: scene.display_name,
+          accepted_types: scene.accepted_types.map(&:to_s),
+          player_items: trade_player_items(scene),
+          merchant_items: trade_merchant_items(scene)
+        }
+      end
+
+      def trade_player_items(merchant)
+        game.player.inventory.entries_list.map do |entry|
+          item = entry.item
+          accepted = merchant.accepts?(item)
+          item_state(item).merge(
+            quantity: entry.quantity,
+            sell_price: accepted ? merchant.sell_price(item) : nil,
+            trade_enabled: accepted,
+            trade_note: accepted ? "accepted" : "merchant does not buy"
+          ).compact
+        end
+      end
+
+      def trade_merchant_items(merchant)
+        merchant.stock_available_to(game.player).map do |item|
+          item_state(item).merge(
+            quantity: 1,
+            buy_price: item.price,
+            trade_enabled: true,
+            trade_note: "available"
+          )
+        end
       end
 
       def loot_position_state(position)

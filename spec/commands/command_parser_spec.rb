@@ -31,6 +31,7 @@ RSpec.describe TextAdventures::CommandParser do
       expect(described_class.parse("show")).to have_attributes(verb: :show, target: nil)
       expect(described_class.parse("buy spear")).to have_attributes(verb: :buy, target: "spear")
       expect(described_class.parse("sell sword")).to have_attributes(verb: :sell, target: "sword")
+      expect(described_class.parse("trade buy=spear;sell=sword")).to have_attributes(verb: :trade, target: "buy=spear;sell=sword")
       expect(described_class.parse("look")).to have_attributes(verb: :look, target: nil)
       expect(described_class.parse("loot")).to have_attributes(verb: :loot, target: nil)
       expect(described_class.parse("skills")).to have_attributes(verb: :skills, target: nil)

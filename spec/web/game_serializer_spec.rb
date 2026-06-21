@@ -174,4 +174,25 @@ RSpec.describe TextAdventures::Web::GameSerializer do
 
     expect(state.dig(:pending, :confirmation)).to be true
   end
+
+  it "serializes merchant trade data" do
+    game.player.gold = 100
+    game.handle("go blacksmith")
+    game.player.inventory.add(TextAdventures::ContentCatalog.item("rusty_dagger"))
+
+    expect(state.fetch(:trade)).to include(
+      merchant: "blacksmith",
+      display_name: "Blacksmith",
+      accepted_types: ["weapon"]
+    )
+    expect(state.dig(:trade, :merchant_items)).to include(
+      hash_including(name: "iron dagger", display_name: "Iron Dagger", buy_price: 18, trade_enabled: true)
+    )
+    expect(state.dig(:trade, :player_items)).to include(
+      hash_including(name: "rusty dagger", display_name: "Rusty Dagger", sell_price: 5, trade_enabled: true)
+    )
+    expect(state.dig(:trade, :player_items)).to include(
+      hash_including(name: "potion of heal", trade_enabled: false, trade_note: "merchant does not buy")
+    )
+  end
 end

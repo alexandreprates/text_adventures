@@ -22,6 +22,7 @@ module TextAdventures
       no
       sell
       sleep
+      trade
       use
     ].freeze
     attr_reader :player, :current_scene, :random, :world_seed
@@ -55,6 +56,17 @@ module TextAdventures
 
     def transition_to(scene)
       @current_scene = scene
+    end
+
+    def return_to_town_on_page_load
+      return false unless current_scene_name == :ruins
+
+      @battle = nil
+      @pending_loot = nil
+      @active_enemy_position = nil
+      @pending_confirmation = nil
+      transition_to(Scenes::Town.new)
+      true
     end
 
     def handle(command_text)

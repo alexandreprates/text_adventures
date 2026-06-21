@@ -175,6 +175,51 @@
 
     </div>
 
+    <div class="shop-overlay hidden" id="shop-overlay" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+      <section class="shop-window">
+        <header class="shop-head">
+          <div>
+            <h2 class="shop-title" id="shop-title">═══ TRADE ═══</h2>
+            <p class="shop-subtitle" id="shop-subtitle"></p>
+          </div>
+          <button class="shop-close" id="shop-close" type="button" aria-label="Close trade">x</button>
+        </header>
+        <div class="shop-grid">
+          <section class="trade-list" aria-labelledby="player-trade-title">
+            <h3 class="trade-label" id="player-trade-title">PLAYER ITEMS</h3>
+            <p class="trade-hint">Only items this merchant accepts are enabled.</p>
+            <div class="item-list" id="player-trade-list"></div>
+          </section>
+          <aside class="trade-summary" aria-label="Trade summary">
+            <div class="gold-box">
+              <span class="gold-label">CURRENT GOLD</span>
+              <strong class="gold-value" id="trade-current-gold">0g</strong>
+            </div>
+            <div class="balance-lines">
+              <div class="balance-line"><span>Sold</span><strong id="trade-sold-total">+0g</strong></div>
+              <div class="balance-line negative"><span>Bought</span><strong id="trade-bought-total">-0g</strong></div>
+              <div class="balance-line projected"><span>Transaction</span><strong id="trade-net-total">0g</strong></div>
+              <div class="balance-line"><span>After trade</span><strong id="trade-final-gold">0g</strong></div>
+            </div>
+            <div class="trade-actions">
+              <button class="primary" id="trade-confirm" type="button">Confirm Trade</button>
+              <button id="trade-clear" type="button">Clear Selection</button>
+              <button id="trade-cancel" type="button">Cancel</button>
+            </div>
+          </aside>
+          <section class="trade-list" aria-labelledby="merchant-trade-title">
+            <h3 class="trade-label" id="merchant-trade-title">MERCHANT STOCK</h3>
+            <p class="trade-hint">Choose what will be added to your inventory.</p>
+            <div class="item-list" id="merchant-trade-list"></div>
+          </section>
+        </div>
+        <footer class="shop-foot">
+          <span id="trade-message">Select items, then confirm one combined transaction.</span>
+          <strong id="trade-footer-total">Net: 0g</strong>
+        </footer>
+      </section>
+    </div>
+
     <script src="/map_renderer.js"></script>
     <script src="/app.js"></script>
   </body>

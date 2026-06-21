@@ -28,6 +28,7 @@ module TextAdventures
           player: player_patch,
           dungeon: state.fetch(:dungeon),
           battle: state.fetch(:battle),
+          trade: state.fetch(:trade),
           pending: state.fetch(:pending)
         }
       end
