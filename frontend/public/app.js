@@ -87,6 +87,7 @@ const elements = {
   mapGrid: document.querySelector("#map-grid"),
   mapZoomIn: document.querySelector("#map-zoom-in"),
   mapZoomOut: document.querySelector("#map-zoom-out"),
+  autoSpeedButtons: document.querySelectorAll(".map-speed-button[data-auto-speed]"),
   contextCommands: document.querySelector("#context-commands"),
   autoExploreToggle: document.querySelector("#auto-explore-toggle"),
   autoExploreStatus: document.querySelector("#auto-explore-status"),
@@ -116,6 +117,7 @@ const COMBAT_FEEDBACK_STEP_MS = 520;
 const SOCKET_RECONNECT_INTERVAL_MS = 10_000;
 const SOCKET_RECONNECT_TIMEOUT_MS = 120_000;
 const AUTO_EXPLORE_DELAY_MS = 520;
+const AUTO_EXPLORE_SPEEDS = [1, 2, 3];
 const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
 const AUTO_EXPLORE_REPEAT_LIMIT = 8;
 const AUTO_EXPLORE_DIRECTIONS = ["up", "right", "down", "left"];
@@ -171,6 +173,7 @@ const autoExplore = {
   lastPositionKey: null,
   pendingSince: null,
   repeatCount: 0,
+  speedMultiplier: 1,
   status: "Auto: stopped"
 };
 const commandHistory = {
@@ -889,6 +892,20 @@ function playerAlive(state) {
   return (state?.player?.health?.current || 0) > 0;
 }
 
+function autoExploreDelay() {
+  return Math.round(AUTO_EXPLORE_DELAY_MS / autoExplore.speedMultiplier);
+}
+
+function setAutoExploreSpeed(multiplier) {
+  const speed = AUTO_EXPLORE_SPEEDS.includes(multiplier) ? multiplier : 1;
+  autoExplore.speedMultiplier = speed;
+  elements.autoSpeedButtons.forEach(button => {
+    const pressed = Number(button.dataset.autoSpeed) === speed;
+    button.setAttribute("aria-pressed", pressed ? "true" : "false");
+  });
+  if (autoExplore.enabled) scheduleAutoExplore();
+}
+
 function scheduleAutoExplore() {
   if (!autoExplore.enabled) return;
 
@@ -898,11 +915,11 @@ function scheduleAutoExplore() {
       stopAutoExplore("error");
       return;
     }
-    autoExplore.timer = setTimeout(scheduleAutoExplore, AUTO_EXPLORE_DELAY_MS);
+    autoExplore.timer = setTimeout(scheduleAutoExplore, autoExploreDelay());
     return;
   }
 
-  autoExplore.timer = setTimeout(runAutoExploreStep, AUTO_EXPLORE_DELAY_MS);
+  autoExplore.timer = setTimeout(runAutoExploreStep, autoExploreDelay());
 }
 
 function runAutoExploreStep() {
@@ -1615,8 +1632,12 @@ elements.autoExploreToggle.addEventListener("click", () => {
   }
 });
 
+elements.autoSpeedButtons.forEach(button => {
+  button.addEventListener("click", () => setAutoExploreSpeed(Number(button.dataset.autoSpeed)));
+});
 elements.mapZoomIn.addEventListener("click", () => adjustMapZoom(1));
 elements.mapZoomOut.addEventListener("click", () => adjustMapZoom(-1));
+setAutoExploreSpeed(autoExplore.speedMultiplier);
 updateMapZoomControls();
 
 window.addEventListener("resize", () => {
