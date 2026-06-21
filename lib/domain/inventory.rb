@@ -81,9 +81,14 @@ module TextAdventures
       details << "Atk: #{item.attack}" if item.attack.positive?
       details << "Def: #{item.defense}" if item.defense.positive?
       details << "Recovery #{item.recovery} Health" if item.recovery.positive?
+      details << "Cures #{status_list(item.cures)}" if item.respond_to?(:cures) && item.cures.any?
       return "" if details.empty?
 
       " (#{details.join(', ')})"
+    end
+
+    def status_list(statuses)
+      statuses.map { |status| status.to_s.tr("_", " ") }.join(" and ")
     end
 
     def armor_class_label(item)

@@ -52,6 +52,7 @@ RSpec.describe TextAdventures::Scenes::Priest do
     response = game.handle("cure")
 
     expect(response).to eq <<~TEXT.chomp
+      Poison deals 2 damage.
       Aluriel's light purges poison and disease.
       [active poison and disease effects removed]
     TEXT

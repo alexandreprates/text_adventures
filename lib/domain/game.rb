@@ -10,6 +10,20 @@ module TextAdventures
       spellbook
       use
     ].freeze
+    STATUS_TURN_VERBS = %i[
+      agree
+      buy
+      cure
+      drop
+      equip
+      go
+      heal
+      loot
+      no
+      sell
+      sleep
+      use
+    ].freeze
     attr_reader :player, :current_scene, :random
     attr_accessor :pending_confirmation, :dungeon, :battle, :pending_loot, :active_enemy_position
 
@@ -68,11 +82,31 @@ module TextAdventures
       return player.spellbook if command.verb == :spellbook
       return player.level_report if command.verb == :level
       return player.skills_report if command.verb == :skills
+      status_lines = status_turn_lines(command)
+      return Response.new(status_lines, game_over_response) if player.dead?
+
+      response = handle_known_command_after_status(command)
+      return Response.new(status_lines, response) unless status_lines.empty?
+
+      response
+    end
+
+    def handle_known_command_after_status(command)
       return equip_item(command.target) if command.verb == :equip
       return use_item(command.target) if command.verb == :use
       return drop_item(command.target) if command.verb == :drop
 
       current_scene.handle(self, command)
+    end
+
+    def status_turn_lines(command)
+      return [] unless status_turn_command?(command)
+
+      player.tick_status_effects
+    end
+
+    def status_turn_command?(command)
+      STATUS_TURN_VERBS.include?(command.verb)
     end
 
     def help_response
@@ -125,17 +159,24 @@ module TextAdventures
     end
 
     def use_potion(item)
+      cured_statuses = item.cures.select { |status| player.status?(status) }
       before = player.health.current
       player.heal(item.recovery)
       recovered = player.health.current - before
+      player.clear_statuses(*cured_statuses)
       player.inventory.remove(item.command_name)
 
       Response.new(
         "Used #{item.display_name}.",
-        "[recovered #{recovered} health]",
-        "[your health is now #{player.health.current}/#{player.health.max}]",
+        (item.recovery.positive? ? "[recovered #{recovered} health]" : nil),
+        (item.recovery.positive? ? "[your health is now #{player.health.current}/#{player.health.max}]" : nil),
+        (!cured_statuses.empty? ? "[removed #{status_list(cured_statuses)}]" : nil),
         "[1x #{item.display_name} removed from inventory]"
       )
+    end
+
+    def status_list(statuses)
+      statuses.map { |status| status.to_s.tr("_", " ") }.join(" and ")
     end
 
     def use_tome(item)

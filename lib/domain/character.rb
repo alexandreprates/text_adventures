@@ -65,6 +65,12 @@ module TextAdventures
     DEFAULT_BASE_ATTACK = 1
     DEFAULT_BASE_DEFENSE = 0
     STARTER_POTION_QUANTITY = 5
+    POISON_DAMAGE = 2
+    DEFAULT_STATUS_DURATIONS = {
+      poison: 5,
+      disease: 5,
+      diseased: 5
+    }.freeze
     STARTER_WEAPON = Equipment.new(name: "Sword", attack: 10, defense: 0).freeze
     STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 12).freeze
 
@@ -72,6 +78,7 @@ module TextAdventures
     attr_reader :spells
     attr_reader :inventory
     attr_reader :status_effects
+    attr_reader :status_durations
     attr_reader :progression
     attr_accessor :name, :gold, :base_attack, :base_defense,
                   :equipped_weapon, :equipped_armor
@@ -104,6 +111,7 @@ module TextAdventures
       @spells = {}
       @inventory = inventory || self.class.starter_inventory
       @status_effects = normalize_statuses(status_effects)
+      @status_durations = @status_effects.to_h { |status| [status, status_duration(status)] }
       spells.each { |spell| learn_spell(spell) }
     end
 
@@ -199,14 +207,20 @@ module TextAdventures
       EquipResult.new(success?: false, item: item, message: "#{item.display_name} cannot be equipped.")
     end
 
-    def apply_status(status)
+    def apply_status(status, duration: nil)
       normalized_status = normalize_status(status)
       status_effects << normalized_status unless status_effects.include?(normalized_status)
+      status_durations[normalized_status] = [
+        status_durations[normalized_status].to_i,
+        duration || status_duration(normalized_status)
+      ].max
       self
     end
 
     def clear_status(status)
-      status_effects.delete(normalize_status(status))
+      normalized_status = normalize_status(status)
+      status_effects.delete(normalized_status)
+      status_durations.delete(normalized_status)
       self
     end
 
@@ -217,6 +231,24 @@ module TextAdventures
 
     def status?(status)
       status_effects.include?(normalize_status(status))
+    end
+
+    def tick_status_effects
+      lines = []
+      if status?(:poison)
+        take_damage(POISON_DAMAGE)
+        lines << "Poison deals #{POISON_DAMAGE} damage."
+      end
+
+      status_effects.dup.each do |status|
+        status_durations[status] = status_durations[status].to_i - 1
+        next if status_durations[status].positive?
+
+        clear_status(status)
+        lines << "#{status_label(status)} wears off."
+      end
+
+      lines
     end
 
     def inventory_report
@@ -359,6 +391,14 @@ module TextAdventures
 
     def normalize_status(status)
       status.to_s.downcase.strip.tr(" ", "_").to_sym
+    end
+
+    def status_duration(status)
+      DEFAULT_STATUS_DURATIONS.fetch(status, 3)
+    end
+
+    def status_label(status)
+      status.to_s.tr("_", " ").capitalize
     end
   end
 end

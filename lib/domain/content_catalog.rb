@@ -155,7 +155,12 @@ module TextAdventures
           min_level: definition.fetch("min_level", 1)
         )
       when "potion"
-        Item.potion(name, price: price, recovery: definition.fetch("recovery"))
+        Item.potion(
+          name,
+          price: price,
+          recovery: definition.fetch("recovery"),
+          cures: definition.fetch("cures", [])
+        )
       when "tome"
         Item.tome(name, price: price, spell: definition.fetch("spell"))
       when "junk"

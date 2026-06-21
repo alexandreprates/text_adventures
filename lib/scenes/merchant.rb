@@ -161,6 +161,7 @@ module TextAdventures
         details << armor_class_label(item) if item.armor? && item.armor_class
         details << "Atk: #{item.attack}" if item.attack.positive?
         details << "Def: #{item.defense}" if item.defense.positive?
+        details << "Cures #{status_list(item.cures)}" if item.respond_to?(:cures) && item.cures.any?
         suffix = details.empty? ? "" : " (#{details.join(', ')})"
 
         "1x #{item.display_name}#{suffix} - #{item.price}g"
@@ -196,6 +197,10 @@ module TextAdventures
 
       def armor_class_label(item)
         item.armor_class.to_s.capitalize
+      end
+
+      def status_list(statuses)
+        statuses.map { |status| status.to_s.tr("_", " ") }.join(" and ")
       end
 
       def route_to_town_destination(game, target)

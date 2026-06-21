@@ -197,6 +197,45 @@ RSpec.describe TextAdventures::Game do
       expect(game.player.inventory.quantity("potion of heal")).to eq 5
     end
 
+    it "applies poison damage and duration on turn-taking actions outside battle" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      game.player.apply_status(:poison, duration: 2)
+
+      expect(game.handle("go north")).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        scene response
+      TEXT
+      expect(game.player.health.current).to eq 28
+      expect(game.player).to be_status(:poison)
+
+      expect(game.handle("go north")).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        Poison wears off.
+        scene response
+      TEXT
+      expect(game.player.health.current).to eq 26
+      expect(game.player).to_not be_status(:poison)
+    end
+
+    it "uses status-curing potions and removes the cured effect" do
+      game = described_class.new(current_scene: TestScene.new(response: "scene response"))
+      antidote = TextAdventures::Item.potion("Antidote", price: 8, recovery: 0, cures: [:poison])
+      game.player.inventory.add(antidote)
+      game.player.apply_status(:poison)
+
+      response = game.handle("use antidote")
+
+      expect(response).to eq <<~TEXT.chomp
+        Poison deals 2 damage.
+        Used Antidote.
+        [removed poison]
+        [1x Antidote removed from inventory]
+      TEXT
+      expect(game.player.health.current).to eq 28
+      expect(game.player).to_not be_status(:poison)
+      expect(game.player.inventory.quantity("antidote")).to eq 0
+    end
+
     it "uses tomes to teach a new spell and consumes them" do
       game = described_class.new(current_scene: TestScene.new(response: "scene response"))
       tome = TextAdventures::Item.tome("Tome of Ice Bolt", price: 25, spell: "Ice Bolt")

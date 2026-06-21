@@ -100,6 +100,20 @@ RSpec.describe TextAdventures::Character do
     end
   end
 
+  describe "#tick_status_effects" do
+    it "applies poison damage and expires the status after its duration" do
+      character.apply_status(:poison, duration: 2)
+
+      expect(character.tick_status_effects).to eq ["Poison deals 2 damage."]
+      expect(character.health.current).to eq 28
+      expect(character).to be_status(:poison)
+
+      expect(character.tick_status_effects).to eq ["Poison deals 2 damage.", "Poison wears off."]
+      expect(character.health.current).to eq 26
+      expect(character).to_not be_status(:poison)
+    end
+  end
+
   describe "#gain_skill_xp" do
     it "delegates XP gains to character progression" do
       expect { character.gain_skill_xp(:spearmanship, 50) }

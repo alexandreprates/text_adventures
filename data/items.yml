@@ -220,6 +220,13 @@ items:
     name: Potion of Heal
     price: 10
     recovery: 20
+  antidote:
+    type: potion
+    name: Antidote
+    price: 8
+    recovery: 0
+    cures:
+      - poison
   tome_of_heal:
     type: tome
     name: Tome of Heal

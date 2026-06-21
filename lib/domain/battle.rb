@@ -7,8 +7,6 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    POISON_DAMAGE = 2
-
     attr_reader :creature, :random, :contributions
 
     def self.enemy_damage_after_defense(raw_damage, defense)
@@ -274,10 +272,7 @@ module TextAdventures
     end
 
     def poison_tick_lines(player)
-      return [] unless player.status?(:poison)
-
-      player.take_damage(POISON_DAMAGE)
-      ["Poison deals #{POISON_DAMAGE} damage."]
+      player.tick_status_effects
     end
   end
 end

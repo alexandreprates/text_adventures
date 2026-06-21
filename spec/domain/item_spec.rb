@@ -46,7 +46,7 @@ RSpec.describe TextAdventures::Item do
   end
 
   describe ".potion" do
-    subject(:item) { described_class.potion("Potion of Heal", price: 5, recovery: 20) }
+    subject(:item) { described_class.potion("Potion of Heal", price: 5, recovery: 20, cures: [:poison]) }
 
     it "builds a potion with recovery value" do
       expect(item).to have_attributes(
@@ -54,7 +54,8 @@ RSpec.describe TextAdventures::Item do
         display_name: "Potion of Heal",
         price: 5,
         type: :potion,
-        recovery: 20
+        recovery: 20,
+        cures: [:poison]
       )
       expect(item).to be_potion
     end

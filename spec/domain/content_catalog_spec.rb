@@ -90,7 +90,8 @@ RSpec.describe TextAdventures::ContentCatalog do
         display_name: "Tavern",
         accepted_types: [:potion, :junk]
       )
-      expect(shop.fetch(:stock).map(&:display_name)).to eq ["Potion of Heal"]
+      expect(shop.fetch(:stock).map(&:display_name)).to eq ["Potion of Heal", "Antidote"]
+      expect(shop.fetch(:stock).find { |item| item.name == "antidote" }).to have_attributes(cures: [:poison])
     end
   end
 

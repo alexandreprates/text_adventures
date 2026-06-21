@@ -3,7 +3,7 @@ module TextAdventures
     VALID_TYPES = %i[weapon armor potion tome junk].freeze
 
     attr_reader :name, :display_name, :price, :type,
-                :attack, :defense, :recovery, :spell, :armor_class,
+                :attack, :defense, :recovery, :cures, :spell, :armor_class,
                 :weapon_class, :min_level
 
     def self.weapon(name, price:, attack:, defense: 0, weapon_class: nil, min_level: 1)
@@ -22,8 +22,8 @@ module TextAdventures
       new(name: name, price: price, type: :armor, defense: defense, armor_class: armor_class, min_level: min_level)
     end
 
-    def self.potion(name, price:, recovery:)
-      new(name: name, price: price, type: :potion, recovery: recovery)
+    def self.potion(name, price:, recovery:, cures: [])
+      new(name: name, price: price, type: :potion, recovery: recovery, cures: cures)
     end
 
     def self.tome(name, price:, spell:)
@@ -46,6 +46,7 @@ module TextAdventures
       attack: 0,
       defense: 0,
       recovery: 0,
+      cures: [],
       spell: nil,
       armor_class: nil,
       weapon_class: nil,
@@ -58,6 +59,7 @@ module TextAdventures
       @attack = attack
       @defense = defense
       @recovery = recovery
+      @cures = cures.map { |status| self.class.normalize_name(status).tr(" ", "_").to_sym }.uniq
       @spell = spell && self.class.normalize_name(spell)
       @armor_class = armor_class && self.class.normalize_name(armor_class).to_sym
       @weapon_class = weapon_class && self.class.normalize_name(weapon_class).to_sym

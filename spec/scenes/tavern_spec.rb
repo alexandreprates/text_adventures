@@ -27,6 +27,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
       Here, take a look at these goods!
        Potions:
         1x Potion of Heal - 10g
+        1x Antidote (Cures poison) - 8g
     TEXT
   end
 
