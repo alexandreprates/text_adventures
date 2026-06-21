@@ -566,7 +566,9 @@ pre {
 }
 
 .item-type {
+  justify-self: end;
   color: var(--green-dim);
+  white-space: nowrap;
 }
 
 .context-commands {

@@ -455,8 +455,8 @@ function clearCombatFeedback() {
 
 function renderCollections(player) {
   renderList(elements.inventoryList, player.inventory, item => ({
-    label: item.display_name,
-    meta: item.quantity > 1 ? `x${item.quantity}` : "",
+    label: `${item.quantity || 1}x ${item.display_name}`,
+    meta: item.type || "",
     type: item.type || "",
     commandValue: item.name
   }));
