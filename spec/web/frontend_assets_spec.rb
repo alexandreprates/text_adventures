@@ -202,6 +202,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('!autoCompatibleManualCommand(normalizedCommand)')
     expect(javascript).to include('function autoCompatibleManualCommand(command)')
     expect(javascript).to include('/^(equip|use)\\b/i.test(command.trim())')
+    expect(javascript).to include('if (options.source !== "auto") elements.commandInput.value = ""')
     expect(javascript).to include('event.key === "ArrowUp"')
     expect(javascript).to include('event.key === "ArrowDown"')
     expect(javascript).to include('elements.statusValue.classList.toggle("status-alert"')

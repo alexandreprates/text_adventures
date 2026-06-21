@@ -1373,7 +1373,7 @@ function submitCommand(command, options = {}) {
     stopAutoExplore("stopped");
   }
   if (options.record !== false) recordCommand(normalizedCommand);
-  elements.commandInput.value = "";
+  if (options.source !== "auto") elements.commandInput.value = "";
   runCommand(normalizedCommand, options);
 }
 
