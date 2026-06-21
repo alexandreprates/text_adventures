@@ -265,7 +265,8 @@ function render(payload) {
 
 function urlGameId() {
   try {
-    return new URLSearchParams(window.location.search).get("game_id");
+    const match = window.location.pathname.match(/^\/game\/([^/]+)$/);
+    return match ? decodeURIComponent(match[1]) : null;
   } catch (_error) {
     return null;
   }
@@ -301,10 +302,11 @@ function updateGameUrl(gameId) {
   try {
     const url = new URL(window.location.href);
     if (gameId) {
-      url.searchParams.set("game_id", gameId);
+      url.pathname = `/game/${encodeURIComponent(gameId)}`;
     } else {
-      url.searchParams.delete("game_id");
+      url.pathname = "/";
     }
+    url.search = "";
     window.history.replaceState({}, "", url);
   } catch (_error) {
   }

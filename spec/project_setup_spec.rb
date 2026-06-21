@@ -36,6 +36,7 @@ RSpec.describe "Project dependency setup" do
     expect(orange_compose).to include("cloudflare:")
     expect(orange_compose).to include("condition: service_healthy")
     expect(nginx_config).to include("proxy_pass http://server:4567")
+    expect(nginx_config).to include("location ^~ /game/")
     expect(nginx_config).to include("location /api/")
     expect(nginx_config).to include("location /ws")
   end
@@ -50,6 +51,7 @@ RSpec.describe "Project dependency setup" do
     expect(readme).to include("bin/text_adventures          JSON API server entrypoint")
     expect(readme).to include("TEXT_ADVENTURES_SESSION_TTL_SECONDS")
     expect(readme).to include("TEXT_ADVENTURES_SAVE_DIR")
+    expect(readme).to include("/game/<game_id>")
     expect(readme).to include("curl -sS http://127.0.0.1:4567/api/health")
   end
 end

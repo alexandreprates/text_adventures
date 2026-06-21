@@ -33,7 +33,7 @@ Implemented systems include:
 - Dungeon Siege-style progression where skills improve based on weapons and spells used in battle.
 - JSON API for frontend clients through `bin/text_adventures`.
 - Browser frontend served by the Nginx web container.
-- URL/localStorage-based browser continuation.
+- Bookmarkable `/game/<id>` browser continuation.
 - Persistent save/load backed by one SQLite database per game.
 
 ## Requirements
@@ -96,6 +96,7 @@ server:
 
 ```text
 /                 -> Nginx static frontend
+/game/:id         -> Nginx static frontend, restored by browser game ID
 /assets/*         -> Nginx static assets
 /api/games        -> Ruby game API
 /api/games/:id    -> Ruby game API
@@ -128,6 +129,10 @@ separate SQLite database file named `<game_id>.sqlite3`; SQLite sidecar files
 such as `-wal` and `-shm` may exist while the database is active. Successful
 actions are auto-saved as versioned JSON snapshots. `DELETE /api/games/<game_id>`
 removes both the memory session and the persisted SQLite save.
+
+The browser updates the address bar to `/game/<game_id>` after a game is created
+or restored. Bookmarking that URL is enough to reopen the same game later, even
+after closing the browser, as long as the persisted save still exists.
 
 For multi-instance deployments, all Ruby API instances must share the same
 `TEXT_ADVENTURES_SAVE_DIR`, or routing must ensure a game is always handled by an
