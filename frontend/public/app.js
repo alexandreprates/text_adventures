@@ -263,6 +263,14 @@ function render(payload) {
   scheduleAutoExplore();
 }
 
+function urlGameId() {
+  try {
+    return new URLSearchParams(window.location.search).get("game_id");
+  } catch (_error) {
+    return null;
+  }
+}
+
 function savedGameId() {
   try {
     return window.localStorage.getItem(SAVED_GAME_ID_KEY);
@@ -278,11 +286,26 @@ function rememberGameId(gameId) {
     window.localStorage.setItem(SAVED_GAME_ID_KEY, gameId);
   } catch (_error) {
   }
+  updateGameUrl(gameId);
 }
 
 function forgetGameId() {
   try {
     window.localStorage.removeItem(SAVED_GAME_ID_KEY);
+  } catch (_error) {
+  }
+  updateGameUrl(null);
+}
+
+function updateGameUrl(gameId) {
+  try {
+    const url = new URL(window.location.href);
+    if (gameId) {
+      url.searchParams.set("game_id", gameId);
+    } else {
+      url.searchParams.delete("game_id");
+    }
+    window.history.replaceState({}, "", url);
   } catch (_error) {
   }
 }
@@ -1377,7 +1400,7 @@ async function startGame() {
 }
 
 async function initialGamePayload() {
-  const gameId = savedGameId();
+  const gameId = urlGameId() || savedGameId();
   if (!gameId) return api.createGame();
 
   try {
