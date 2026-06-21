@@ -12,6 +12,9 @@ services:
       TEXT_ADVENTURES_SESSION_TTL_SECONDS: ${TEXT_ADVENTURES_SESSION_TTL_SECONDS:-1800}
       TEXT_ADVENTURES_READ_TIMEOUT_SECONDS: ${TEXT_ADVENTURES_READ_TIMEOUT_SECONDS:-5}
       TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS: ${TEXT_ADVENTURES_WEBSOCKET_IDLE_TIMEOUT_SECONDS:-60}
+      TEXT_ADVENTURES_SAVE_DIR: /text_adventures/storage/games
+    volumes:
+      - text_adventures_orange_games:/text_adventures/storage/games
 
   web:
     build:
@@ -32,3 +35,6 @@ services:
 networks:
   cloudflare:
     external: true
+
+volumes:
+  text_adventures_orange_games:

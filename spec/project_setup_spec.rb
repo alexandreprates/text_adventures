@@ -35,6 +35,8 @@ RSpec.describe "Project dependency setup" do
     expect(compose).to include("condition: service_healthy")
     expect(orange_compose).to include("cloudflare:")
     expect(orange_compose).to include("condition: service_healthy")
+    expect(orange_compose).to include("TEXT_ADVENTURES_SAVE_DIR: /text_adventures/storage/games")
+    expect(orange_compose).to include("text_adventures_orange_games:/text_adventures/storage/games")
     expect(nginx_config).to include("proxy_pass http://server:4567")
     expect(nginx_config).to include("location ^~ /game/")
     expect(nginx_config).to include("location /api/")
