@@ -1446,14 +1446,9 @@ function nextAutoExploreDecision(state) {
   }
   if (state.pending?.confirmation) return { stopReason: "unsafe confirmation" };
 
-  const healingSpell = autoExploreHealingSpell(state);
-  if (healingSpell) {
-    return { command: `cast ${healingSpell.name}`, status: "Auto: healing" };
-  }
-
-  const healingPotion = autoExploreHealingPotion(state);
-  if (healingPotion) {
-    return { command: `use ${healingPotion.name}`, status: "Auto: healing" };
+  const healingAction = autoExploreHealingAction(state);
+  if (healingAction) {
+    return { command: healingAction.command, status: "Auto: healing" };
   }
 
   if (state.battle?.active) {
@@ -1561,15 +1556,6 @@ function nextDirectionAwayFromAutoExploreTarget(state, position) {
   }) || null;
 }
 
-function autoExploreHealingSpell(state) {
-  if (!autoExploreNeedsHealing(state)) return null;
-
-  return state.player.spells.find(spell => (
-    (spell.kind === "healing" || spell.name === "heal") &&
-    canAffordSpell(state.player, spell)
-  ));
-}
-
 function autoExploreDamageSpell(state) {
   return state.player.spells.find(spell => (
     spell.kind === "damage" &&
@@ -1581,21 +1567,42 @@ function canAffordSpell(player, spell) {
   return (player.mana?.current || 0) >= (spell.mp_cost || 0);
 }
 
-function autoExploreHealingPotion(state) {
-  if (!autoExploreNeedsHealing(state)) return null;
+function autoExploreHealingAction(state) {
+  const missingHealth = autoExploreMissingHealth(state);
+  if (!missingHealth) return null;
 
-  return state.player.inventory.find(item => (
-    item.type === "potion" &&
-    item.name === "potion of heal" &&
-    (item.quantity || 0) > 0
-  ));
+  return autoExploreHealingOptions(state)
+    .filter(option => option.recovery > 0 && option.recovery <= missingHealth)
+    .sort((left, right) => right.recovery - left.recovery)[0] || null;
 }
 
-function autoExploreNeedsHealing(state) {
+function autoExploreHealingOptions(state) {
+  const spellOptions = state.player.spells.filter(spell => (
+    (spell.kind === "healing" || spell.name === "heal") &&
+    canAffordSpell(state.player, spell)
+  )).map(spell => ({
+    command: `cast ${spell.name}`,
+    recovery: Number(spell.recovery || 0)
+  }));
+
+  const potionOptions = state.player.inventory.filter(item => (
+    item.type === "potion" &&
+    item.name === "potion of heal" &&
+    (item.quantity || 0) > 0 &&
+    Number(item.recovery || 0) > 0
+  )).map(item => ({
+    command: `use ${item.name}`,
+    recovery: Number(item.recovery || 0)
+  }));
+
+  return [...spellOptions, ...potionOptions];
+}
+
+function autoExploreMissingHealth(state) {
   const health = state?.player?.health;
   if (!health?.max) return false;
 
-  return health.current / health.max < 0.2;
+  return Math.max(0, Number(health.max || 0) - Number(health.current || 0));
 }
 
 function nextAutoExploreDirection(state) {

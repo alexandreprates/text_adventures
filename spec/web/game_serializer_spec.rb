@@ -79,6 +79,20 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state).not_to have_key(:history)
   end
 
+  it "serializes effective healing recovery for healing spells" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.gain_skill_xp(:nature_magic, 50)
+
+    expect(state.dig(:player, :spells)).to include(
+      hash_including(
+        name: "heal",
+        kind: "healing",
+        mp_cost: 4,
+        recovery: 13
+      )
+    )
+  end
+
   it "serializes starter equipment returned to inventory after an equipment swap" do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("rusty_dagger"))
     game.handle("equip rusty dagger")

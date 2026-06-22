@@ -64,7 +64,7 @@ module TextAdventures
             armor: equipment_state(player.equipped_armor)
           },
           inventory: inventory_state(player.inventory),
-          spells: spells_state(player.spells.values),
+          spells: spells_state(player),
           skills: skills_state(player)
         }
       end
@@ -105,17 +105,24 @@ module TextAdventures
         }.compact
       end
 
-      def spells_state(spells)
-        spells.sort_by(&:display_name).map do |spell|
+      def spells_state(player)
+        player.spells.values.sort_by(&:display_name).map do |spell|
           {
             name: spell.command_name,
             display_name: spell.display_name,
             level: spell.level,
             kind: spell.kind.to_s,
             mp_cost: spell.mp_cost,
+            recovery: spell_recovery(spell, player),
             description: spell.description
-          }
+          }.compact
         end
+      end
+
+      def spell_recovery(spell, player)
+        return nil unless spell.healing?
+
+        spell.healing_range.begin + player.nature_magic_healing_bonus
       end
 
       def skills_state(player)
