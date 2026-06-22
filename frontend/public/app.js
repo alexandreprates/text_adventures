@@ -1432,7 +1432,7 @@ function nextAutoExploreDecision(state) {
   }
 
   if (state.battle?.active) {
-    const spell = state.player.spells.find(candidate => candidate.kind === "damage");
+    const spell = autoExploreDamageSpell(state);
     return {
       command: spell ? `cast ${spell.name}` : "attack",
       status: "Auto: fighting"
@@ -1541,6 +1541,13 @@ function autoExploreHealingSpell(state) {
 
   return state.player.spells.find(spell => (
     (spell.kind === "healing" || spell.name === "heal") &&
+    canAffordSpell(state.player, spell)
+  ));
+}
+
+function autoExploreDamageSpell(state) {
+  return state.player.spells.find(spell => (
+    spell.kind === "damage" &&
     canAffordSpell(state.player, spell)
   ));
 }
