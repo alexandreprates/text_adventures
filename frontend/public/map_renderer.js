@@ -20,6 +20,7 @@ globalThis.DungeonMapRenderer = (() => {
   const TILE_WIDTH = 48;
   const TILE_HEIGHT = Math.round(TILE_WIDTH * (TILESET_REFERENCE_CELL.height / TILESET_REFERENCE_CELL.width));
   const TILE_REFERENCE_SIZE = 32;
+  const ENEMY_HEIGHT_SCALE = 1.5;
   const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
@@ -349,7 +350,7 @@ globalThis.DungeonMapRenderer = (() => {
 
   function drawEnemyImage(context, image, tileset, x, y) {
     const target = tileset
-      ? entitySpriteTargetRect(tileset, "player", x, y)
+      ? enemySpriteTargetRect(tileset, image, x, y)
       : containedTileRect(image.naturalWidth, image.naturalHeight, x, y);
     context.drawImage(
       image,
@@ -545,6 +546,19 @@ globalThis.DungeonMapRenderer = (() => {
 
   function entitySpriteTargetRect(tileset, tileName, x, y) {
     return spriteTargetRect(tileset, tileName, entitySpriteSourceRect(tileset, tileName), x, y);
+  }
+
+  function enemySpriteTargetRect(tileset, image, x, y) {
+    const playerTarget = entitySpriteTargetRect(tileset, "player", x, y);
+    const height = playerTarget.height * ENEMY_HEIGHT_SCALE;
+    const width = height * (image.naturalWidth / image.naturalHeight);
+
+    return {
+      x: playerTarget.x + Math.round((playerTarget.width - width) / 2),
+      y: playerTarget.y + playerTarget.height - height,
+      width,
+      height
+    };
   }
 
   function spriteTargetRect(tileset, tileName, sourceRect, x, y) {
