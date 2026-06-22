@@ -328,7 +328,7 @@ globalThis.DungeonMapRenderer = (() => {
   function drawEnemy(context, renderer, enemyImages, tileset, enemy) {
     const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
     if (image?.complete && image.naturalWidth > 0) {
-      drawEnemyImage(context, image, enemy.x, enemy.y);
+      drawEnemyImage(context, image, renderer.ready ? tileset : null, enemy.x, enemy.y);
       return;
     }
 
@@ -347,8 +347,10 @@ globalThis.DungeonMapRenderer = (() => {
     return image;
   }
 
-  function drawEnemyImage(context, image, x, y) {
-    const target = containedTileRect(image.naturalWidth, image.naturalHeight, x, y);
+  function drawEnemyImage(context, image, tileset, x, y) {
+    const target = tileset
+      ? entitySpriteTargetRect(tileset, "player", x, y)
+      : containedTileRect(image.naturalWidth, image.naturalHeight, x, y);
     context.drawImage(
       image,
       target.x,
@@ -521,8 +523,8 @@ globalThis.DungeonMapRenderer = (() => {
     }
 
     if (sprite.underlay) drawTile(context, tileset, sprite.underlay, x, y);
-    const sourceRect = scaledSourceRect(tileset, sprite.source);
-    const targetRect = spriteTargetRect(tileset, tileName, sourceRect, x, y);
+    const sourceRect = entitySpriteSourceRect(tileset, tileName);
+    const targetRect = entitySpriteTargetRect(tileset, tileName, x, y);
 
     context.drawImage(
       tileset,
@@ -535,6 +537,14 @@ globalThis.DungeonMapRenderer = (() => {
       targetRect.width,
       targetRect.height
     );
+  }
+
+  function entitySpriteSourceRect(tileset, tileName) {
+    return scaledSourceRect(tileset, ENTITY_SPRITES[tileName].source);
+  }
+
+  function entitySpriteTargetRect(tileset, tileName, x, y) {
+    return spriteTargetRect(tileset, tileName, entitySpriteSourceRect(tileset, tileName), x, y);
   }
 
   function spriteTargetRect(tileset, tileName, sourceRect, x, y) {
