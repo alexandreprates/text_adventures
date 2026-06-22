@@ -133,6 +133,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('const DUNGEON_MAP_BASE_ZOOM = 1.3')
     expect(javascript).to include('const LOCATION_ART_BASE_ZOOM = 1.12')
     expect(javascript).to include('const MAP_ZOOM_STEP = 0.12')
+    expect(javascript).to include('const MAP_ZOOM_MAX = 2.94')
     expect(javascript).to include('let mapZoom = MAP_ZOOM_MAX')
     expect(javascript).to include('function showCanvasMap(state)')
     expect(javascript).to include('function showTextMap()')
