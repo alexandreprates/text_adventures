@@ -206,6 +206,8 @@ const shopTrade = {
   sell: new Map()
 };
 const MERCHANT_TRADE_MAX_QUANTITY = 99;
+const TRADE_QUANTITY_HOLD_DELAY_MS = 350;
+const TRADE_QUANTITY_HOLD_INTERVAL_MS = 90;
 const dungeonMapRenderer = DungeonMapRenderer.create(elements.mapCanvas);
 
 async function parseResponse(response) {
@@ -859,10 +861,7 @@ function tradeItemQuantityControls(item, mode) {
   decrease.textContent = "-";
   decrease.disabled = disabled || quantity <= 0;
   decrease.setAttribute("aria-label", `Decrease ${item.display_name || item.name}`);
-  decrease.addEventListener("click", event => {
-    event.stopPropagation();
-    setTradeQuantity(mode, item, quantity - 1);
-  });
+  bindTradeQuantityStep(decrease, mode, item, -1);
 
   const value = document.createElement("span");
   value.className = "quantity-value";
@@ -874,10 +873,7 @@ function tradeItemQuantityControls(item, mode) {
   increase.textContent = "+";
   increase.disabled = disabled || quantity >= maxQuantity;
   increase.setAttribute("aria-label", `Increase ${item.display_name || item.name}`);
-  increase.addEventListener("click", event => {
-    event.stopPropagation();
-    setTradeQuantity(mode, item, quantity + 1);
-  });
+  bindTradeQuantityStep(increase, mode, item, 1);
 
   const limit = document.createElement("span");
   limit.className = "quantity-limit";
@@ -885,6 +881,50 @@ function tradeItemQuantityControls(item, mode) {
 
   controls.append(decrease, value, increase, limit);
   return controls;
+}
+
+function bindTradeQuantityStep(button, mode, item, direction) {
+  let holdTimer = null;
+  let repeatTimer = null;
+  let repeated = false;
+
+  const step = () => {
+    const quantity = tradeSelectionFor(mode).get(item.name) || 0;
+    setTradeQuantity(mode, item, quantity + direction);
+  };
+  const stopRepeat = () => {
+    window.clearTimeout(holdTimer);
+    window.clearInterval(repeatTimer);
+    holdTimer = null;
+    repeatTimer = null;
+  };
+
+  button.addEventListener("click", event => {
+    event.stopPropagation();
+    if (repeated) {
+      repeated = false;
+      return;
+    }
+
+    step();
+  });
+  button.addEventListener("pointerdown", event => {
+    if (button.disabled || event.button > 0) return;
+
+    repeated = false;
+    button.setPointerCapture?.(event.pointerId);
+    stopRepeat();
+    window.addEventListener("pointerup", stopRepeat, { once: true });
+    window.addEventListener("pointercancel", stopRepeat, { once: true });
+    holdTimer = window.setTimeout(() => {
+      repeated = true;
+      step();
+      repeatTimer = window.setInterval(step, TRADE_QUANTITY_HOLD_INTERVAL_MS);
+    }, TRADE_QUANTITY_HOLD_DELAY_MS);
+  });
+  button.addEventListener("pointerup", stopRepeat);
+  button.addEventListener("pointercancel", stopRepeat);
+  button.addEventListener("lostpointercapture", stopRepeat);
 }
 
 function tradeItemName(item, mode) {
