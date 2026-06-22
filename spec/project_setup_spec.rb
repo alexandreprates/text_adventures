@@ -32,6 +32,8 @@ RSpec.describe "Project dependency setup" do
     expect(compose).to include("target: app")
     expect(compose).to include("target: web")
     expect(compose).to include("TEXT_ADVENTURES_MAX_CONNECTIONS")
+    expect(compose).to include("TEXT_ADVENTURES_SAVE_DIR: /text_adventures/storage/games")
+    expect(compose).to include("./storage/games:/text_adventures/storage/games")
     expect(compose).to include("condition: service_healthy")
     expect(orange_compose).to include("cloudflare:")
     expect(orange_compose).to include("condition: service_healthy")
