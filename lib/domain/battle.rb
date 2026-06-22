@@ -27,7 +27,7 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
-      recovered_mana = player.recover_mana(1)
+      recovered_mana = player.recover_mana(0.5)
       damage = player_damage(player)
       critical = critical_hit?(player)
       damage *= 2 if critical

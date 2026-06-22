@@ -120,7 +120,10 @@ RSpec.describe TextAdventures::Character do
       expect(character.spend_mana(5)).to be true
       expect(character.mana.current).to eq 7
 
-      expect(character.recover_mana(20)).to eq 5
+      expect(character.recover_mana(0.5)).to eq 0.5
+      expect(character.mana.current).to eq 7.5
+
+      expect(character.recover_mana(20)).to eq 4.5
       expect(character.mana.current).to eq 12
     end
 

@@ -114,7 +114,7 @@ module TextAdventures
           "",
           dungeon.render
         )
-        response = append_mana_recovery(response, game.player.recover_mana(1))
+        response = append_mana_recovery(response, game.player.recover_mana(0.5))
 
         auto_loot = collect_loot_at(game, dungeon.current_global_position, automatic: true)
         response = response.append("", auto_loot) if auto_loot

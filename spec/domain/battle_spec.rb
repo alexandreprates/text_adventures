@@ -27,6 +27,15 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 28
     end
 
+    it "recovers half a mana point when using a physical attack" do
+      player.spend_mana(2)
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to start_with "[recovered 0.5 MP]\n"
+      expect(player.mana.current).to eq 10.5
+    end
+
     it "uses player defense to reduce enemy counterattack damage" do
       heavy_attack = TextAdventures::Creature.new(
         name: "Training Brute",

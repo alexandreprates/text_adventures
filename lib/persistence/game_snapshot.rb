@@ -134,8 +134,8 @@ module TextAdventures
           name: snapshot.fetch("name"),
           health: Integer(snapshot.fetch("health").fetch("current")),
           max_health: Integer(snapshot.fetch("health").fetch("max")),
-          mana: Integer(mana.fetch("current")),
-          max_mana: Integer(mana.fetch("max")),
+          mana: numeric_value(mana.fetch("current")),
+          max_mana: numeric_value(mana.fetch("max")),
           gold: Integer(snapshot.fetch("gold")),
           base_attack: Integer(snapshot.fetch("base_attack")),
           base_defense: Integer(snapshot.fetch("base_defense")),
@@ -157,6 +157,13 @@ module TextAdventures
             "max" => Character.max_mana_for(progression)
           }
         )
+      end
+
+      def numeric_value(value)
+        return value if value.is_a?(Numeric)
+
+        number = Float(value)
+        number == number.to_i ? number.to_i : number
       end
 
       def inventory_snapshot(inventory)

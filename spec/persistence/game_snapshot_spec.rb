@@ -126,4 +126,13 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
 
     expect(loaded.player.mana).to have_attributes(current: 12, max: 12)
   end
+
+  it "round-trips fractional mana values" do
+    player = TextAdventures::Character.new
+    player.spend_mana(4.5)
+
+    loaded = round_trip(TextAdventures::Game.new(player: player, random: TextAdventures::RandomSource.new(seed: 6)))
+
+    expect(loaded.player.mana).to have_attributes(current: 7.5, max: 12)
+  end
 end

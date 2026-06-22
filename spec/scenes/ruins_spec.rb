@@ -554,8 +554,8 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     response = game.handle("go right")
 
-    expect(response).to include "[recovered 1 MP]"
-    expect(game.player.mana.current).to eq 10
+    expect(response).to include "[recovered 0.5 MP]"
+    expect(game.player.mana.current).to eq 9.5
   end
 
   it "gives direct feedback for combat commands without an enemy" do

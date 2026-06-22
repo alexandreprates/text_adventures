@@ -185,18 +185,18 @@ module TextAdventures
     def spend_mana(amount)
       return false unless enough_mana?(amount)
 
-      self.mana = mana - amount.to_i
+      self.mana = mana - amount
       true
     end
 
     def recover_mana(amount)
       before = mana.current
-      self.mana = mana + amount.to_i
+      self.mana = mana + amount
       mana.current - before
     end
 
     def enough_mana?(amount)
-      mana.current >= amount.to_i
+      mana.current >= amount
     end
 
     def alive?
