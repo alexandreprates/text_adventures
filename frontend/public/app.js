@@ -119,6 +119,7 @@ const elements = {
   tradeNetTotal: document.querySelector("#trade-net-total"),
   tradeFinalGold: document.querySelector("#trade-final-gold"),
   tradeConfirm: document.querySelector("#trade-confirm"),
+  tradeSellJunk: document.querySelector("#trade-sell-junk"),
   tradeClear: document.querySelector("#trade-clear"),
   tradeCancel: document.querySelector("#trade-cancel"),
   tradeMessage: document.querySelector("#trade-message"),
@@ -786,6 +787,17 @@ function clearTradeSelection() {
   renderShopOverlay(currentState);
 }
 
+function selectAllJunkForSale() {
+  const junkItems = eligibleJunkItems(currentState);
+  if (!junkItems.length) return;
+
+  junkItems.forEach(item => {
+    shopTrade.sell.set(item.name, maxTradeQuantity(item, "sell"));
+  });
+  renderShopOverlay(currentState);
+  elements.tradeMessage.textContent = "All junk selected. Confirm trade to sell it.";
+}
+
 function renderShopOverlay(state) {
   if (!shopTrade.open || !state?.trade) {
     if (shopTrade.open && !state?.trade) {
@@ -1009,6 +1021,7 @@ function renderTradeSummary(state) {
   elements.tradeFinalGold.textContent = `${totals.finalGold}g`;
   elements.tradeFooterTotal.textContent = `Net: ${signedGold(totals.net)}`;
   elements.tradeConfirm.disabled = totals.itemCount === 0 || totals.finalGold < 0 || Boolean(api.pendingAction);
+  elements.tradeSellJunk.disabled = eligibleJunkItems(state).length === 0 || Boolean(api.pendingAction);
   elements.tradeMessage.textContent = tradeSummaryMessage(totals);
 }
 
@@ -1045,6 +1058,14 @@ function maxTradeQuantity(item, mode) {
   if (mode === "sell") return Math.max(0, Number(item.quantity || 0));
 
   return MERCHANT_TRADE_MAX_QUANTITY;
+}
+
+function eligibleJunkItems(state) {
+  return (state?.trade?.player_items || []).filter(item => (
+    item.type === "junk" &&
+    item.trade_enabled &&
+    maxTradeQuantity(item, "sell") > 0
+  ));
 }
 
 function tradePayload(selection) {
@@ -2190,6 +2211,7 @@ elements.autoSpeedButtons.forEach(button => {
 elements.shopClose.addEventListener("click", closeShop);
 elements.tradeCancel.addEventListener("click", closeShop);
 elements.tradeClear.addEventListener("click", clearTradeSelection);
+elements.tradeSellJunk.addEventListener("click", selectAllJunkForSale);
 elements.tradeConfirm.addEventListener("click", submitTradeSelection);
 elements.mapZoomIn.addEventListener("click", () => adjustMapZoom(1));
 elements.mapZoomOut.addEventListener("click", () => adjustMapZoom(-1));
