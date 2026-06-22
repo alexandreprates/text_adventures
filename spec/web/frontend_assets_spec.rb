@@ -243,6 +243,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('const visibleEnemy = visibleEnemyPosition(state)')
     expect(javascript).to include('status: "Auto: hunting"')
     expect(javascript).to include('if (autoExplore.goal !== "explore") return nextAutoExploreGoalDecision(state)')
+    expect(javascript).to include('if (autoExplore.goal === "descent" && state.dungeon?.nearby_loot)')
     expect(javascript).to include('if (autoExplore.goal === "descent" && !autoExploreDescentFound(state))')
     expect(javascript).to include('function nextAutoExploreDeepExplorationDecision(state)')
     expect(javascript).to include('status: "Auto: seeking descent"')

@@ -1467,6 +1467,10 @@ function autoExploreLevelCompleteDecision(state) {
 }
 
 function nextAutoExploreGoalDecision(state) {
+  if (autoExplore.goal === "descent" && state.dungeon?.nearby_loot) {
+    return { command: "loot", status: "Auto: looting" };
+  }
+
   if (autoExplore.goal === "descent" && !autoExploreDescentFound(state)) {
     return nextAutoExploreDeepExplorationDecision(state);
   }
