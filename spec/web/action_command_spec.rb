@@ -6,6 +6,7 @@ RSpec.describe TextAdventures::Web::ActionCommand do
     expect(described_class.call("type" => "inventory")).to eq "inventory"
     expect(described_class.call("type" => "loot")).to eq "loot"
     expect(described_class.call("type" => "no")).to eq "no"
+    expect(described_class.call("type" => "reload")).to eq "reload"
     expect(described_class.call("type" => "show")).to eq "show"
     expect(described_class.call("type" => "spellbook")).to eq "spellbook"
   end

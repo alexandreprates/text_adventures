@@ -1166,6 +1166,7 @@ function handleContextCommand(command) {
 
 function quickCommandsFor(state) {
   if (!state) return [];
+  if (playerDefeated(state)) return [["Recarregar", "reload", "primary"]];
 
   if (state.pending?.confirmation) {
     return [
@@ -1901,6 +1902,11 @@ function samePosition(left, right) {
 }
 
 function updateCommandPlaceholder(state) {
+  if (playerDefeated(state)) {
+    elements.commandInput.placeholder = "reload";
+    return;
+  }
+
   if (state.pending?.confirmation) {
     elements.commandInput.placeholder = "agree or no";
     return;
@@ -1925,8 +1931,8 @@ function actionFromCommand(command) {
   const normalized = command.trim().toLowerCase().replace(/\s+/g, " ");
   const [rawVerb, ...targetParts] = normalized.split(" ");
   const target = targetParts.join(" ");
-  const verb = { rent: "sleep", rest: "sleep", spell: "cast" }[rawVerb] || rawVerb;
-  const standalone = new Set(["agree", "attack", "cure", "heal", "help", "inventory", "level", "look", "loot", "no", "show", "skills", "sleep", "spellbook"]);
+  const verb = { recarregar: "reload", rent: "sleep", rest: "sleep", spell: "cast" }[rawVerb] || rawVerb;
+  const standalone = new Set(["agree", "attack", "cure", "heal", "help", "inventory", "level", "look", "loot", "no", "reload", "show", "skills", "sleep", "spellbook"]);
 
   if (standalone.has(verb)) return { type: verb };
   if (verb === "go") {

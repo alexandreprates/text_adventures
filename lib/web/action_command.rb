@@ -12,6 +12,7 @@ module TextAdventures
         "loot" => { command: "loot" },
         "look" => { command: "look" },
         "no" => { command: "no" },
+        "reload" => { command: "reload" },
         "show" => { command: "show" },
         "skills" => { command: "skills" },
         "sleep" => { command: "sleep" },

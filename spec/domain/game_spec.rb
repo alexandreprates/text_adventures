@@ -91,6 +91,45 @@ RSpec.describe TextAdventures::Game do
     end
   end
 
+  describe "#reload_after_death" do
+    it "revives a fallen player in town with full health" do
+      player = TextAdventures::Character.new
+      player.apply_status(:poison)
+      player.take_damage(999)
+      game = described_class.new(
+        player: player,
+        current_scene: TextAdventures::Scenes::Ruins.new,
+        pending_confirmation: :pending,
+        battle: :battle,
+        pending_loot: :loot,
+        active_enemy_position: :enemy_position
+      )
+
+      response = game.handle("reload")
+
+      expect(response).to eq <<~TEXT.chomp
+        You wake up in Nee'Peh, restored after the fall.
+        [recovered 30 health]
+        [your health is now 30/30]
+      TEXT
+      expect(game.current_scene_name).to eq :town
+      expect(game.player.health).to have_attributes(current: 30, max: 30)
+      expect(game.player.status_effects).to be_empty
+      expect(game.pending_confirmation).to be_nil
+      expect(game.battle).to be_nil
+      expect(game.pending_loot).to be_nil
+      expect(game.active_enemy_position).to be_nil
+    end
+
+    it "does not reload a living player" do
+      game = described_class.new
+
+      expect(game.handle("reload")).to eq "You are still standing."
+      expect(game.current_scene_name).to eq :town
+      expect(game.player.health.current).to eq 30
+    end
+  end
+
   describe "#handle" do
     it "delegates known commands to the current scene" do
       scene = TestScene.new(response: "scene response")

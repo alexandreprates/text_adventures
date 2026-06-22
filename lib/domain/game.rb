@@ -69,6 +69,24 @@ module TextAdventures
       true
     end
 
+    def reload_after_death
+      return Response.new("You are still standing.") unless player.dead?
+
+      recovered = player.health.max - player.health.current
+      player.heal(player.health.max)
+      player.clear_statuses(*player.status_effects)
+      @battle = nil
+      @pending_loot = nil
+      @active_enemy_position = nil
+      @pending_confirmation = nil
+      transition_to(Scenes::Town.new)
+      Response.new(
+        "You wake up in Nee'Peh, restored after the fall.",
+        "[recovered #{recovered} health]",
+        "[your health is now #{player.health.current}/#{player.health.max}]"
+      )
+    end
+
     def handle(command_text)
       command = CommandParser.parse(command_text.to_s)
       response = Response.render(command.unknown? ? handle_unknown_command(command) : handle_known_command(command))
@@ -94,6 +112,7 @@ module TextAdventures
     end
 
     def handle_known_command(command)
+      return reload_after_death if command.verb == :reload
       return game_over_response if player.dead?
       return help_response if command.verb == :help
       return player.inventory_report if command.verb == :inventory

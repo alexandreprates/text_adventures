@@ -28,6 +28,7 @@ module TextAdventures
       look
       loot
       no
+      reload
       show
       skills
       sleep
