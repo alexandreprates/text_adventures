@@ -117,3 +117,14 @@ Original prompt: abra o navegador e observe a interface, em monitores grandes a 
 - Browser validation: captured `/tmp/text_adventures_player_after_compare.png` comparing the rendered player, source crop, and old full-cell squash; rendered/source aspect ratios now match closely (`0.8125` vs `0.825`).
 - Chrome console validation: no warnings or errors.
 - Validation commands: `node --check frontend/public/map_renderer.js`; `docker compose run --rm server bundle exec rspec spec/web/frontend_assets_spec.rb`; `docker compose run --rm server bundle exec rspec` (438 examples, 0 failures).
+
+## 2026-06-21 Rectangular Dungeon Map Rendering
+
+- Revised the dungeon canvas renderer to use rectangular map cells based on the checked-in tileset proportions (`48x98`, derived from a `151x308` source cell) instead of forcing every source sprite into a square.
+- Updated tile origins, fog, attack centers, slash sizing, external enemy image fitting, and entity sprite placement to use the rectangular map geometry.
+- Kept source-rect sampling gutter-free, and changed player sprite placement to use source-cell-relative scaling so its crop is not manually resized into an arbitrary square.
+- Added contextual wall selection by neighboring terrain: top, left, right, corner, and base wall tiles now appear instead of repeating one wall tile for every `#`.
+- Browser validation: rebuilt Docker Compose, entered Ruins, moved through the dungeon, entered combat, and inspected `/tmp/text_adventures_rectangular_tiles_page.png`, `/tmp/text_adventures_rectangular_tiles_map.png`, and `/tmp/text_adventures_rectangular_tiles_battle.png`.
+- Chrome console validation: no warnings or errors.
+- The Playwright skill client still cannot run because the `playwright` package is not installed where `/home/alexandreprates/.codex/skills/develop-web-game/scripts/web_game_playwright_client.js` resolves imports.
+- Validation commands: `node --check frontend/public/map_renderer.js`; `docker compose run --rm server bundle exec rspec spec/web/frontend_assets_spec.rb`; `docker compose run --rm server bundle exec rspec` (438 examples, 0 failures).

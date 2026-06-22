@@ -16,7 +16,10 @@ globalThis.DungeonMapRenderer = (() => {
     { y: 633, height: 304 },
     { y: 944, height: 305 }
   ];
-  const TILE_SIZE = 32;
+  const TILESET_REFERENCE_CELL = { width: 151, height: 308 };
+  const TILE_WIDTH = 48;
+  const TILE_HEIGHT = Math.round(TILE_WIDTH * (TILESET_REFERENCE_CELL.height / TILESET_REFERENCE_CELL.width));
+  const TILE_REFERENCE_SIZE = 32;
   const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
@@ -59,7 +62,6 @@ globalThis.DungeonMapRenderer = (() => {
   const ENTITY_SPRITES = {
     player: {
       source: { x: 13, y: 358, width: 132, height: 160 },
-      destination: { width: 26, height: 32, offsetX: 3, offsetY: 0 },
       underlay: "floor"
     }
   };
@@ -117,15 +119,15 @@ globalThis.DungeonMapRenderer = (() => {
         renderer.lastRows = rows;
         renderer.lastEntities = entities;
         const columns = Math.max(...rows.map(row => row.length));
-        canvas.width = columns * TILE_SIZE;
-        canvas.height = rows.length * TILE_SIZE;
+        canvas.width = columns * TILE_WIDTH;
+        canvas.height = rows.length * TILE_HEIGHT;
         canvas.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
         context.imageSmoothingEnabled = false;
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         rows.forEach((row, y) => {
           [...row.padEnd(columns, "?")].forEach((symbol, x) => {
-            drawSymbol(context, tileset, renderer.ready, symbol, x, y);
+            drawSymbol(context, tileset, renderer.ready, rows, symbol, x, y);
           });
         });
         drawEntities(context, renderer, enemyImages, tileset, entities);
@@ -196,13 +198,13 @@ globalThis.DungeonMapRenderer = (() => {
     });
   }
 
-  function drawSymbol(context, tileset, tilesetReady, symbol, x, y) {
+  function drawSymbol(context, tileset, tilesetReady, rows, symbol, x, y) {
     if (symbol === "?") {
       drawFog(context, x, y);
       return;
     }
 
-    const tileName = SYMBOL_TILES[symbol] || "fog";
+    const tileName = tileNameForSymbol(rows, symbol, x, y);
 
     if (tilesetReady) {
       drawTile(context, tileset, tileName, x, y);
@@ -210,35 +212,67 @@ globalThis.DungeonMapRenderer = (() => {
     }
 
     context.fillStyle = FALLBACK_COLORS[symbol] || FALLBACK_COLORS["?"];
-    context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    context.fillRect(tileOriginX(x), tileOriginY(y), TILE_WIDTH, TILE_HEIGHT);
+  }
+
+  function tileNameForSymbol(rows, symbol, x, y) {
+    if (symbol === "#") return wallTileName(rows, x, y);
+    if (symbol === "." || symbol === " ") return floorTileName(x, y);
+    return SYMBOL_TILES[symbol] || "fog";
+  }
+
+  function floorTileName(x, y) {
+    return ((x * 17) + (y * 31)) % 11 === 0 ? "crackedFloor" : "floor";
+  }
+
+  function wallTileName(rows, x, y) {
+    const northOpen = openTerrainAt(rows, x, y - 1);
+    const southOpen = openTerrainAt(rows, x, y + 1);
+    const westOpen = openTerrainAt(rows, x - 1, y);
+    const eastOpen = openTerrainAt(rows, x + 1, y);
+
+    if (southOpen && (westOpen || eastOpen)) return "wallCorner";
+    if (southOpen) return "wallTop";
+    if (eastOpen && !westOpen) return "wallLeft";
+    if (westOpen && !eastOpen) return "wallRight";
+    if (northOpen && (westOpen || eastOpen)) return "wallCorner";
+    if (eastOpen) return "wallLeft";
+    if (westOpen) return "wallRight";
+    return ((x + y) % 5 === 0) ? "wallTop" : "wall";
+  }
+
+  function openTerrainAt(rows, x, y) {
+    if (y < 0 || y >= rows.length) return false;
+    const symbol = rows[y]?.[x];
+    return symbol === "." || symbol === " ";
   }
 
   function drawFog(context, x, y) {
-    const originX = x * TILE_SIZE;
-    const originY = y * TILE_SIZE;
+    const originX = tileOriginX(x);
+    const originY = tileOriginY(y);
     const noiseSeed = (x * 37 + y * 53) % 11;
 
     context.fillStyle = "#020305";
-    context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+    context.fillRect(originX, originY, TILE_WIDTH, TILE_HEIGHT);
     context.fillStyle = "rgba(0, 0, 0, 0.55)";
-    context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+    context.fillRect(originX, originY, TILE_WIDTH, TILE_HEIGHT);
 
     FOG_DOTS.forEach(([dotX, dotY, radius, alpha], index) => {
-      const shiftedX = originX + ((dotX + noiseSeed + index * 3) % TILE_SIZE);
-      const shiftedY = originY + ((dotY + noiseSeed * 2 + index * 5) % TILE_SIZE);
-      const gradient = context.createRadialGradient(shiftedX, shiftedY, 0, shiftedX, shiftedY, radius);
+      const shiftedX = originX + ((((dotX + noiseSeed + index * 3) % TILE_REFERENCE_SIZE) / TILE_REFERENCE_SIZE) * TILE_WIDTH);
+      const shiftedY = originY + ((((dotY + noiseSeed * 2 + index * 5) % TILE_REFERENCE_SIZE) / TILE_REFERENCE_SIZE) * TILE_HEIGHT);
+      const gradient = context.createRadialGradient(shiftedX, shiftedY, 0, shiftedX, shiftedY, scaleReference(radius));
       gradient.addColorStop(0, `rgba(32, 36, 48, ${alpha})`);
       gradient.addColorStop(0.55, `rgba(9, 11, 17, ${alpha * 0.55})`);
       gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = gradient;
-      context.fillRect(originX, originY, TILE_SIZE, TILE_SIZE);
+      context.fillRect(originX, originY, TILE_WIDTH, TILE_HEIGHT);
     });
 
     context.fillStyle = "rgba(0, 0, 0, 0.38)";
-    context.fillRect(originX, originY, TILE_SIZE, 2);
-    context.fillRect(originX, originY + TILE_SIZE - 2, TILE_SIZE, 2);
-    context.fillRect(originX, originY, 2, TILE_SIZE);
-    context.fillRect(originX + TILE_SIZE - 2, originY, 2, TILE_SIZE);
+    context.fillRect(originX, originY, TILE_WIDTH, 2);
+    context.fillRect(originX, originY + TILE_HEIGHT - 2, TILE_WIDTH, 2);
+    context.fillRect(originX, originY, 2, TILE_HEIGHT);
+    context.fillRect(originX + TILE_WIDTH - 2, originY, 2, TILE_HEIGHT);
   }
 
   function loadEnemyManifest(renderer, enemyImages, canvas) {
@@ -314,12 +348,13 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function drawEnemyImage(context, image, x, y) {
+    const target = containedTileRect(image.naturalWidth, image.naturalHeight, x, y);
     context.drawImage(
       image,
-      x * TILE_SIZE,
-      y * TILE_SIZE,
-      TILE_SIZE,
-      TILE_SIZE
+      target.x,
+      target.y,
+      target.width,
+      target.height
     );
   }
 
@@ -340,8 +375,8 @@ globalThis.DungeonMapRenderer = (() => {
 
   function tileCenter(position) {
     return {
-      x: (position.x * TILE_SIZE) + (TILE_SIZE / 2),
-      y: (position.y * TILE_SIZE) + (TILE_SIZE / 2)
+      x: tileOriginX(position.x) + (TILE_WIDTH / 2),
+      y: tileOriginY(position.y) + (TILE_HEIGHT / 2)
     };
   }
 
@@ -385,8 +420,8 @@ globalThis.DungeonMapRenderer = (() => {
     const alpha = 1 - (progress * 0.55);
     const color = source === "enemy" ? "255, 77, 77" : "244, 245, 246";
     const angle = source === "enemy" ? -Math.PI / 4 : Math.PI / 4;
-    const length = TILE_SIZE * (0.35 + (progress * 0.45));
-    const spread = TILE_SIZE * 0.14;
+    const length = Math.min(TILE_WIDTH, TILE_HEIGHT) * (0.35 + (progress * 0.45));
+    const spread = Math.min(TILE_WIDTH, TILE_HEIGHT) * 0.14;
 
     context.save();
     context.globalCompositeOperation = "lighter";
@@ -460,7 +495,7 @@ globalThis.DungeonMapRenderer = (() => {
     const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.fog;
     if (!tileset) {
       context.fillStyle = ENTITY_FALLBACK_COLORS[tileName] || FALLBACK_COLORS["?"];
-      context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      context.fillRect(tileOriginX(x), tileOriginY(y), TILE_WIDTH, TILE_HEIGHT);
       return;
     }
     const sourceRect = sourceRectForTile(tileset, tileX, tileY);
@@ -471,10 +506,10 @@ globalThis.DungeonMapRenderer = (() => {
       sourceRect.y,
       sourceRect.width,
       sourceRect.height,
-      x * TILE_SIZE,
-      y * TILE_SIZE,
-      TILE_SIZE,
-      TILE_SIZE
+      tileOriginX(x),
+      tileOriginY(y),
+      TILE_WIDTH,
+      TILE_HEIGHT
     );
   }
 
@@ -486,18 +521,32 @@ globalThis.DungeonMapRenderer = (() => {
     }
 
     if (sprite.underlay) drawTile(context, tileset, sprite.underlay, x, y);
+    const sourceRect = scaledSourceRect(tileset, sprite.source);
+    const targetRect = spriteTargetRect(tileset, tileName, sourceRect, x, y);
 
     context.drawImage(
       tileset,
-      sprite.source.x,
-      sprite.source.y,
-      sprite.source.width,
-      sprite.source.height,
-      (x * TILE_SIZE) + sprite.destination.offsetX,
-      (y * TILE_SIZE) + sprite.destination.offsetY,
-      sprite.destination.width,
-      sprite.destination.height
+      sourceRect.x,
+      sourceRect.y,
+      sourceRect.width,
+      sourceRect.height,
+      targetRect.x,
+      targetRect.y,
+      targetRect.width,
+      targetRect.height
     );
+  }
+
+  function spriteTargetRect(tileset, tileName, sourceRect, x, y) {
+    const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.floor;
+    const sourceCell = sourceRectForTile(tileset, tileX, tileY);
+
+    return {
+      x: tileOriginX(x) + (((sourceRect.x - sourceCell.x) / sourceCell.width) * TILE_WIDTH),
+      y: tileOriginY(y) + (((sourceRect.y - sourceCell.y) / sourceCell.height) * TILE_HEIGHT),
+      width: (sourceRect.width / sourceCell.width) * TILE_WIDTH,
+      height: (sourceRect.height / sourceCell.height) * TILE_HEIGHT
+    };
   }
 
   function sourceRectForTile(tileset, tileX, tileY) {
@@ -514,11 +563,50 @@ globalThis.DungeonMapRenderer = (() => {
     };
   }
 
+  function scaledSourceRect(tileset, source) {
+    const scaleX = tileset.naturalWidth / TILESET_SOURCE_SIZE.width;
+    const scaleY = tileset.naturalHeight / TILESET_SOURCE_SIZE.height;
+
+    return {
+      x: source.x * scaleX,
+      y: source.y * scaleY,
+      width: source.width * scaleX,
+      height: source.height * scaleY
+    };
+  }
+
+  function containedTileRect(sourceWidth, sourceHeight, x, y) {
+    const sourceRatio = sourceWidth / sourceHeight;
+    const tileRatio = TILE_WIDTH / TILE_HEIGHT;
+    const width = sourceRatio > tileRatio ? TILE_WIDTH : Math.round(TILE_HEIGHT * sourceRatio);
+    const height = sourceRatio > tileRatio ? Math.round(TILE_WIDTH / sourceRatio) : TILE_HEIGHT;
+
+    return {
+      x: tileOriginX(x) + Math.round((TILE_WIDTH - width) / 2),
+      y: tileOriginY(y) + TILE_HEIGHT - height,
+      width,
+      height
+    };
+  }
+
+  function tileOriginX(x) {
+    return x * TILE_WIDTH;
+  }
+
+  function tileOriginY(y) {
+    return y * TILE_HEIGHT;
+  }
+
+  function scaleReference(value) {
+    return value * (Math.max(TILE_WIDTH, TILE_HEIGHT) / TILE_REFERENCE_SIZE);
+  }
+
   return {
     create,
     symbolTiles: SYMBOL_TILES,
     tileIndexes: TILE_INDEXES,
     entitySprites: ENTITY_SPRITES,
+    tileSize: { width: TILE_WIDTH, height: TILE_HEIGHT },
     tilesetSourceColumns: TILESET_SOURCE_COLUMNS,
     tilesetSourceRows: TILESET_SOURCE_ROWS,
     tilesetPath: TILESET_PATH,

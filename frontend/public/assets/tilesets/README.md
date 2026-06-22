@@ -6,7 +6,9 @@
 
 It is used by the canvas dungeon renderer as the first visual direction for floor, wall, fog, player, enemy, loot, door, stairs, trap, equipment, altar, and portal tiles.
 
-Important implementation note: this generated image is a concept asset, not a clean fixed-cell spritesheet. The visual grid is readable, but the image dimensions are not an exact clean multiple of the requested `8x4` tile layout. The canvas renderer samples measured gutter-free source rectangles from this checked-in `1254x1254` PNG so black divider pixels do not appear in the dungeon map.
+Important implementation note: this generated image is a concept asset, not a clean fixed-cell spritesheet. The visual grid is readable, but the image dimensions are not an exact clean multiple of the requested `8x4` tile layout. The canvas renderer samples measured gutter-free source rectangles from this checked-in `1254x1254` PNG so black divider pixels do not appear in the dungeon map. It also renders dungeon cells with the same rectangular proportions as the source cells instead of forcing every sprite into a square.
+
+Walls are selected contextually by neighboring terrain so top, side, and corner wall sprites appear in the dungeon instead of repeating a single wall tile everywhere.
 
 Recommended next steps:
 
