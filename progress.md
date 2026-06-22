@@ -106,3 +106,14 @@ Original prompt: abra o navegador e observe a interface, em monitores grandes a 
 - Browser validation: started `Explore` at 3x in Ruins L1 and observed normal exploration/combat/loot with the descent discovered and `Go Deep` enabled.
 - Controlled browser validation: simulated a fully explored level with a known descent; `nextAutoExploreDecision` switched to `go right`/`Auto: going deep`, then `autoExploreGoalReached` on level 2 kept auto enabled and resumed `Auto: exploring`.
 - Final validation commands: `docker compose run --rm server bundle exec rspec` (438 examples, 0 failures). Chrome console had no warnings or errors.
+
+## 2026-06-21 Dungeon Tileset Source Rects
+
+- Measured `frontend/public/assets/tilesets/original-dungeon-tileset.png` as a `1254x1254` PNG with an `8x4` visual grid and black divider gutters.
+- Replaced fractional `naturalWidth / 8` and `naturalHeight / 4` source sampling with measured gutter-free source rectangles in `frontend/public/map_renderer.js`.
+- Updated frontend asset specs to lock the measured source rects and prevent reintroducing fractional tileset slicing.
+- Follow-up: the player still looked flattened because its whole `151x308` source cell was being squeezed into `32x32`.
+- Measured the visible player body at roughly `124x156`; added a player entity sprite crop with margin (`132x160`) rendered into `26x32` over a floor underlay.
+- Browser validation: captured `/tmp/text_adventures_player_after_compare.png` comparing the rendered player, source crop, and old full-cell squash; rendered/source aspect ratios now match closely (`0.8125` vs `0.825`).
+- Chrome console validation: no warnings or errors.
+- Validation commands: `node --check frontend/public/map_renderer.js`; `docker compose run --rm server bundle exec rspec spec/web/frontend_assets_spec.rb`; `docker compose run --rm server bundle exec rspec` (438 examples, 0 failures).

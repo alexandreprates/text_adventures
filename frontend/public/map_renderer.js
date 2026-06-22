@@ -1,6 +1,21 @@
 globalThis.DungeonMapRenderer = (() => {
-  const TILESET_COLUMNS = 8;
-  const TILESET_ROWS = 4;
+  const TILESET_SOURCE_SIZE = { width: 1254, height: 1254 };
+  const TILESET_SOURCE_COLUMNS = [
+    { x: 5, width: 151 },
+    { x: 162, width: 151 },
+    { x: 319, width: 149 },
+    { x: 474, width: 150 },
+    { x: 630, width: 149 },
+    { x: 786, width: 150 },
+    { x: 942, width: 150 },
+    { x: 1098, width: 151 }
+  ];
+  const TILESET_SOURCE_ROWS = [
+    { y: 5, height: 304 },
+    { y: 315, height: 308 },
+    { y: 633, height: 304 },
+    { y: 944, height: 305 }
+  ];
   const TILE_SIZE = 32;
   const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
@@ -39,6 +54,14 @@ globalThis.DungeonMapRenderer = (() => {
     shield: [5, 3],
     altar: [6, 3],
     portal: [7, 3]
+  };
+
+  const ENTITY_SPRITES = {
+    player: {
+      source: { x: 13, y: 358, width: 132, height: 160 },
+      destination: { width: 26, height: 32, offsetX: 3, offsetY: 0 },
+      underlay: "floor"
+    }
   };
 
   const SYMBOL_TILES = {
@@ -241,7 +264,7 @@ globalThis.DungeonMapRenderer = (() => {
       }
 
       const tileName = ENTITY_TILES[entity.type];
-      if (tileName) drawTile(context, renderer.ready ? tileset : null, tileName, entity.x, entity.y);
+      if (tileName) drawEntityTile(context, renderer.ready ? tileset : null, tileName, entity.x, entity.y);
     });
   }
 
@@ -275,7 +298,7 @@ globalThis.DungeonMapRenderer = (() => {
       return;
     }
 
-    drawTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
+    drawEntityTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {
@@ -440,15 +463,14 @@ globalThis.DungeonMapRenderer = (() => {
       context.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       return;
     }
-    const sourceWidth = tileset.naturalWidth / TILESET_COLUMNS;
-    const sourceHeight = tileset.naturalHeight / TILESET_ROWS;
+    const sourceRect = sourceRectForTile(tileset, tileX, tileY);
 
     context.drawImage(
       tileset,
-      tileX * sourceWidth,
-      tileY * sourceHeight,
-      sourceWidth,
-      sourceHeight,
+      sourceRect.x,
+      sourceRect.y,
+      sourceRect.width,
+      sourceRect.height,
       x * TILE_SIZE,
       y * TILE_SIZE,
       TILE_SIZE,
@@ -456,10 +478,49 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
+  function drawEntityTile(context, tileset, tileName, x, y) {
+    const sprite = ENTITY_SPRITES[tileName];
+    if (!sprite || !tileset) {
+      drawTile(context, tileset, tileName, x, y);
+      return;
+    }
+
+    if (sprite.underlay) drawTile(context, tileset, sprite.underlay, x, y);
+
+    context.drawImage(
+      tileset,
+      sprite.source.x,
+      sprite.source.y,
+      sprite.source.width,
+      sprite.source.height,
+      (x * TILE_SIZE) + sprite.destination.offsetX,
+      (y * TILE_SIZE) + sprite.destination.offsetY,
+      sprite.destination.width,
+      sprite.destination.height
+    );
+  }
+
+  function sourceRectForTile(tileset, tileX, tileY) {
+    const column = TILESET_SOURCE_COLUMNS[tileX] || TILESET_SOURCE_COLUMNS[0];
+    const row = TILESET_SOURCE_ROWS[tileY] || TILESET_SOURCE_ROWS[0];
+    const scaleX = tileset.naturalWidth / TILESET_SOURCE_SIZE.width;
+    const scaleY = tileset.naturalHeight / TILESET_SOURCE_SIZE.height;
+
+    return {
+      x: column.x * scaleX,
+      y: row.y * scaleY,
+      width: column.width * scaleX,
+      height: row.height * scaleY
+    };
+  }
+
   return {
     create,
     symbolTiles: SYMBOL_TILES,
     tileIndexes: TILE_INDEXES,
+    entitySprites: ENTITY_SPRITES,
+    tilesetSourceColumns: TILESET_SOURCE_COLUMNS,
+    tilesetSourceRows: TILESET_SOURCE_ROWS,
     tilesetPath: TILESET_PATH,
     enemyManifestPath: ENEMY_MANIFEST_PATH
   };

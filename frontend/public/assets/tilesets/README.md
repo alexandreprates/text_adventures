@@ -6,11 +6,12 @@
 
 It is used by the canvas dungeon renderer as the first visual direction for floor, wall, fog, player, enemy, loot, door, stairs, trap, equipment, altar, and portal tiles.
 
-Important implementation note: this generated image is a concept asset, not yet a production-ready spritesheet. The visual grid is readable, but the image dimensions are not an exact clean multiple of the requested `8x4` tile layout. Before wiring it into the canvas renderer, normalize it into a deterministic spritesheet with exact tile bounds, such as `8 columns x 4 rows` using `32x32`, `48x48`, or `64x64` tiles.
+Important implementation note: this generated image is a concept asset, not a clean fixed-cell spritesheet. The visual grid is readable, but the image dimensions are not an exact clean multiple of the requested `8x4` tile layout. The canvas renderer samples measured gutter-free source rectangles from this checked-in `1254x1254` PNG so black divider pixels do not appear in the dungeon map.
 
 Recommended next steps:
 
-- Normalize/crop the sheet into exact tile cells.
+- Normalize/crop the sheet into exact tile cells if the asset is regenerated.
+- Re-measure the renderer source rectangles if replacing this PNG without normalizing it first.
 - Create a `tileset.json` mapping logical symbols and named entities to tile coordinates.
 - Add tests that assert every structured dungeon terrain and entity type maps to a valid tile.
 - Keep the text map representation available for accessibility and non-canvas inspection.
