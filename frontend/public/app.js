@@ -613,7 +613,7 @@ function renderStatus(state) {
   elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
   elements.manaBar.innerHTML = asciiBar(mana.current, mana.max, "mana");
-  elements.manaValue.textContent = `${mana.current}/${mana.max}`;
+  elements.manaValue.textContent = `${resourceDisplayValue(mana.current)}/${resourceDisplayValue(mana.max)}`;
   elements.statusValue.textContent = statuses;
   elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
@@ -621,6 +621,10 @@ function renderStatus(state) {
 
   renderEquipmentPanel(player);
   renderEnemyStatus(state.battle);
+}
+
+function resourceDisplayValue(value) {
+  return Math.floor(Number(value) || 0);
 }
 
 function renderEquipmentPanel(player) {

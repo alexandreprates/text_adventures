@@ -81,6 +81,8 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('function restoreAutoExploreMemory(state)')
     expect(javascript).to include('function saveAutoExploreMemory()')
     expect(javascript).to include('function canAffordSpell(player, spell)')
+    expect(javascript).to include('function resourceDisplayValue(value)')
+    expect(javascript).to include('Math.floor(Number(value) || 0)')
     expect(javascript).to include('if (state?.scene !== "ruins")')
     expect(javascript).to include('forgetAutoExploreMemory(api.gameId)')
     expect(javascript).to include('function urlGameId()')
