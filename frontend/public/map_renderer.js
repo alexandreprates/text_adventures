@@ -1,69 +1,59 @@
 globalThis.DungeonMapRenderer = (() => {
-  const TILESET_SOURCE_SIZE = { width: 1254, height: 1254 };
-  const TILESET_SOURCE_COLUMNS = [
-    { x: 5, width: 151 },
-    { x: 162, width: 151 },
-    { x: 319, width: 149 },
-    { x: 474, width: 150 },
-    { x: 630, width: 149 },
-    { x: 786, width: 150 },
-    { x: 942, width: 150 },
-    { x: 1098, width: 151 }
-  ];
-  const TILESET_SOURCE_ROWS = [
-    { y: 5, height: 304 },
-    { y: 315, height: 308 },
-    { y: 633, height: 304 },
-    { y: 944, height: 305 }
-  ];
-  const TILESET_REFERENCE_CELL = { width: 151, height: 308 };
+  const SOURCE_TILE_SIZE = 16;
   const TILE_WIDTH = 48;
-  const TILE_HEIGHT = Math.round(TILE_WIDTH * (TILESET_REFERENCE_CELL.height / TILESET_REFERENCE_CELL.width));
+  const TILE_HEIGHT = 48;
   const TILE_REFERENCE_SIZE = 32;
   const ATTACK_ANIMATION_MS = 420;
-  const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
+  const TILESET_BASE_PATH = "/assets/tilesets/dungeon";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
 
-  const TILE_INDEXES = {
-    floor: [0, 0],
-    crackedFloor: [1, 0],
-    wall: [2, 0],
-    wallTop: [3, 0],
-    wallLeft: [4, 0],
-    wallRight: [5, 0],
-    wallCorner: [6, 0],
-    fog: [7, 0],
-    player: [0, 1],
-    goblin: [1, 1],
-    skeleton: [2, 1],
-    slime: [3, 1],
-    lootBag: [4, 1],
-    treasure: [5, 1],
-    closedChest: [6, 1],
-    openChest: [7, 1],
-    door: [0, 2],
-    ironDoor: [1, 2],
-    stairsUp: [2, 2],
-    stairsDown: [3, 2],
-    unlitTorch: [4, 2],
-    litTorch: [5, 2],
-    spikeTrap: [6, 2],
-    pitTrap: [7, 2],
-    potion: [0, 3],
-    tome: [1, 3],
-    sword: [2, 3],
-    spear: [3, 3],
-    dagger: [4, 3],
-    shield: [5, 3],
-    altar: [6, 3],
-    portal: [7, 3]
+  const TILESET_PATHS = {
+    objects: `${TILESET_BASE_PATH}/Objects.png`,
+    waterCoastsAnimation: `${TILESET_BASE_PATH}/Water_coasts_animation.png`,
+    decorativeCracksCoastsAnimation: `${TILESET_BASE_PATH}/decorative_cracks_coasts_animation.png`,
+    decorativeCracksFloor: `${TILESET_BASE_PATH}/decorative_cracks_floor.png`,
+    decorativeCracksWalls: `${TILESET_BASE_PATH}/decorative_cracks_walls.png`,
+    doorsLeverChestAnimation: `${TILESET_BASE_PATH}/doors_lever_chest_animation.png`,
+    fireAnimation: `${TILESET_BASE_PATH}/fire_animation.png`,
+    fireAnimation2: `${TILESET_BASE_PATH}/fire_animation2.png`,
+    trapAnimation: `${TILESET_BASE_PATH}/trap_animation.png`,
+    wallsFloor: `${TILESET_BASE_PATH}/walls_floor.png`,
+    waterDetailization: `${TILESET_BASE_PATH}/water_detilazation_v2.png`
+  };
+
+  const TILE_SPRITES = {
+    floor: { sheet: "wallsFloor", x: 6, y: 4 },
+    crackedFloor: { sheet: "decorativeCracksFloor", x: 0, y: 4 },
+    wall: { sheet: "wallsFloor", x: 1, y: 16 },
+    wallTop: { sheet: "wallsFloor", x: 1, y: 12 },
+    wallLeft: { sheet: "wallsFloor", x: 0, y: 13 },
+    wallRight: { sheet: "wallsFloor", x: 2, y: 13 },
+    wallCorner: { sheet: "wallsFloor", x: 1, y: 13 },
+    door: { sheet: "wallsFloor", x: 5, y: 19, underlay: "floor" },
+    ironDoor: { sheet: "wallsFloor", x: 8, y: 19, underlay: "floor" },
+    stairsUp: { sheet: "objects", x: 6, y: 1, underlay: "floor" },
+    stairsDown: { sheet: "objects", x: 7, y: 1, underlay: "floor" },
+    lootBag: { sheet: "objects", x: 14, y: 1, underlay: "floor" },
+    treasure: { sheet: "objects", x: 10, y: 1, underlay: "floor" },
+    closedChest: { sheet: "doorsLeverChestAnimation", x: 0, y: 0, underlay: "floor" },
+    openChest: { sheet: "doorsLeverChestAnimation", x: 1, y: 0, underlay: "floor" },
+    unlitTorch: { sheet: "objects", x: 0, y: 0, underlay: "wall" },
+    litTorch: { sheet: "fireAnimation2", x: 0, y: 0, frames: 6, frameDuration: 140, underlay: "wall" },
+    spikeTrap: { sheet: "trapAnimation", x: 0, y: 0, frames: 9, frameDuration: 120, underlay: "floor" },
+    pitTrap: { sheet: "trapAnimation", x: 0, y: 5, frames: 9, frameDuration: 120, underlay: "floor" },
+    potion: { sheet: "objects", x: 17, y: 1, underlay: "floor" },
+    tome: { sheet: "objects", x: 11, y: 3, underlay: "floor" },
+    sword: { sheet: "objects", x: 16, y: 5, underlay: "floor" },
+    spear: { sheet: "objects", x: 17, y: 5, underlay: "floor" },
+    dagger: { sheet: "objects", x: 18, y: 5, underlay: "floor" },
+    shield: { sheet: "objects", x: 22, y: 4, underlay: "floor" },
+    altar: { sheet: "objects", x: 20, y: 1, underlay: "floor" }
   };
 
   const ENTITY_SPRITES = {
-    player: {
-      source: { x: 13, y: 358, width: 132, height: 160 },
-      underlay: "floor"
-    }
+    player: { custom: "player", underlay: "floor" },
+    portal: { custom: "portal", underlay: "floor" },
+    goblin: { custom: "enemy", underlay: "floor" }
   };
 
   const SYMBOL_TILES = {
@@ -97,7 +87,7 @@ globalThis.DungeonMapRenderer = (() => {
 
   function create(canvas) {
     const context = canvas?.getContext?.("2d");
-    const tileset = new Image();
+    const tilesheets = new Map();
     const enemyImages = new Map();
     const renderer = {
       ready: false,
@@ -127,10 +117,10 @@ globalThis.DungeonMapRenderer = (() => {
 
         rows.forEach((row, y) => {
           [...row.padEnd(columns, "?")].forEach((symbol, x) => {
-            drawSymbol(context, tileset, renderer.ready, rows, symbol, x, y);
+            drawSymbol(context, tilesheets, renderer.ready, rows, symbol, x, y);
           });
         });
-        drawEntities(context, renderer, enemyImages, tileset, entities);
+        drawEntities(context, renderer, enemyImages, tilesheets, entities);
         if (options.playerDead) drawDeathOverlay(context, canvas);
 
         return true;
@@ -168,18 +158,41 @@ globalThis.DungeonMapRenderer = (() => {
       }
     };
 
-    tileset.onload = () => {
-      renderer.ready = true;
-      canvas.dispatchEvent(new CustomEvent("tileset:ready"));
-    };
-    tileset.onerror = () => {
-      renderer.failed = true;
-      canvas.dispatchEvent(new CustomEvent("tileset:failed"));
-    };
-    tileset.src = TILESET_PATH;
+    loadTilesheets(renderer, tilesheets, canvas);
     loadEnemyManifest(renderer, enemyImages, canvas);
 
     return renderer;
+  }
+
+  function loadTilesheets(renderer, tilesheets, canvas) {
+    const entries = Object.entries(TILESET_PATHS);
+    let loaded = 0;
+    let failed = false;
+
+    entries.forEach(([name, path]) => {
+      const image = new Image();
+      image.onload = () => {
+        tilesheets.set(name, image);
+        loaded += 1;
+        if (loaded === entries.length) {
+          renderer.ready = true;
+          renderer.failed = failed;
+          canvas.dispatchEvent(new CustomEvent("tileset:ready"));
+          rerender(renderer);
+        }
+      };
+      image.onerror = () => {
+        failed = true;
+        loaded += 1;
+        if (loaded === entries.length) {
+          renderer.ready = tilesheets.size > 0;
+          renderer.failed = true;
+          canvas.dispatchEvent(new CustomEvent("tileset:failed"));
+          rerender(renderer);
+        }
+      };
+      image.src = path;
+    });
   }
 
   function normalizeRows(mapRows) {
@@ -198,7 +211,7 @@ globalThis.DungeonMapRenderer = (() => {
     });
   }
 
-  function drawSymbol(context, tileset, tilesetReady, rows, symbol, x, y) {
+  function drawSymbol(context, tilesheets, tilesetReady, rows, symbol, x, y) {
     if (symbol === "?") {
       drawFog(context, x, y);
       return;
@@ -207,7 +220,7 @@ globalThis.DungeonMapRenderer = (() => {
     const tileName = tileNameForSymbol(rows, symbol, x, y);
 
     if (tilesetReady) {
-      drawTile(context, tileset, tileName, x, y);
+      drawTile(context, tilesheets, tileName, x, y);
       return;
     }
 
@@ -290,15 +303,15 @@ globalThis.DungeonMapRenderer = (() => {
       });
   }
 
-  function drawEntities(context, renderer, enemyImages, tileset, entities) {
+  function drawEntities(context, renderer, enemyImages, tilesheets, entities) {
     [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
       if (entity.type === "enemy") {
-        drawEnemy(context, renderer, enemyImages, tileset, entity);
+        drawEnemy(context, renderer, enemyImages, tilesheets, entity);
         return;
       }
 
       const tileName = ENTITY_TILES[entity.type];
-      if (tileName) drawEntityTile(context, renderer.ready ? tileset : null, tileName, entity.x, entity.y);
+      if (tileName) drawEntityTile(context, renderer.ready ? tilesheets : null, tileName, entity.x, entity.y);
     });
   }
 
@@ -325,14 +338,14 @@ globalThis.DungeonMapRenderer = (() => {
     }[type] || 0;
   }
 
-  function drawEnemy(context, renderer, enemyImages, tileset, enemy) {
+  function drawEnemy(context, renderer, enemyImages, tilesheets, enemy) {
     const image = imageForEnemy(renderer, enemyImages, enemy.creature_id);
     if (image?.complete && image.naturalWidth > 0) {
       drawEnemyImage(context, image, enemy.x, enemy.y);
       return;
     }
 
-    drawEntityTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
+    drawEntityTile(context, renderer.ready ? tilesheets : null, "goblin", enemy.x, enemy.y);
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {
@@ -491,17 +504,20 @@ globalThis.DungeonMapRenderer = (() => {
     context.restore();
   }
 
-  function drawTile(context, tileset, tileName, x, y) {
-    const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.fog;
-    if (!tileset) {
+  function drawTile(context, tilesheets, tileName, x, y) {
+    const sprite = TILE_SPRITES[tileName] || TILE_SPRITES.floor;
+    const image = sprite && tilesheets?.get(sprite.sheet);
+    if (!image) {
       context.fillStyle = ENTITY_FALLBACK_COLORS[tileName] || FALLBACK_COLORS["?"];
       context.fillRect(tileOriginX(x), tileOriginY(y), TILE_WIDTH, TILE_HEIGHT);
       return;
     }
-    const sourceRect = sourceRectForTile(tileset, tileX, tileY);
+
+    if (sprite.underlay) drawTile(context, tilesheets, sprite.underlay, x, y);
+    const sourceRect = sourceRectForSprite(sprite);
 
     context.drawImage(
-      tileset,
+      image,
       sourceRect.x,
       sourceRect.y,
       sourceRect.width,
@@ -513,66 +529,98 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
-  function drawEntityTile(context, tileset, tileName, x, y) {
+  function drawEntityTile(context, tilesheets, tileName, x, y) {
     const sprite = ENTITY_SPRITES[tileName];
-    if (!sprite || !tileset) {
-      drawTile(context, tileset, tileName, x, y);
+    if (!sprite) {
+      drawTile(context, tilesheets, tileName, x, y);
       return;
     }
 
-    if (sprite.underlay) drawTile(context, tileset, sprite.underlay, x, y);
-    const sourceRect = scaledSourceRect(tileset, sprite.source);
-    const targetRect = spriteTargetRect(tileset, tileName, sourceRect, x, y);
+    if (sprite.underlay) drawTile(context, tilesheets, sprite.underlay, x, y);
+    if (sprite.custom === "player") {
+      drawPlayerMarker(context, x, y);
+      return;
+    }
+    if (sprite.custom === "portal") {
+      drawPortalMarker(context, x, y);
+      return;
+    }
+    if (sprite.custom === "enemy") {
+      drawEnemyMarker(context, x, y);
+      return;
+    }
 
-    context.drawImage(
-      tileset,
-      sourceRect.x,
-      sourceRect.y,
-      sourceRect.width,
-      sourceRect.height,
-      targetRect.x,
-      targetRect.y,
-      targetRect.width,
-      targetRect.height
-    );
+    drawTile(context, tilesheets, tileName, x, y);
   }
 
-  function spriteTargetRect(tileset, tileName, sourceRect, x, y) {
-    const [tileX, tileY] = TILE_INDEXES[tileName] || TILE_INDEXES.floor;
-    const sourceCell = sourceRectForTile(tileset, tileX, tileY);
+  function sourceRectForSprite(sprite) {
+    const frame = sprite.frames ? Math.floor(performance.now() / (sprite.frameDuration || 160)) % sprite.frames : 0;
 
     return {
-      x: tileOriginX(x) + (((sourceRect.x - sourceCell.x) / sourceCell.width) * TILE_WIDTH),
-      y: tileOriginY(y) + (((sourceRect.y - sourceCell.y) / sourceCell.height) * TILE_HEIGHT),
-      width: (sourceRect.width / sourceCell.width) * TILE_WIDTH,
-      height: (sourceRect.height / sourceCell.height) * TILE_HEIGHT
+      x: (sprite.x + frame) * SOURCE_TILE_SIZE,
+      y: sprite.y * SOURCE_TILE_SIZE,
+      width: SOURCE_TILE_SIZE,
+      height: SOURCE_TILE_SIZE
     };
   }
 
-  function sourceRectForTile(tileset, tileX, tileY) {
-    const column = TILESET_SOURCE_COLUMNS[tileX] || TILESET_SOURCE_COLUMNS[0];
-    const row = TILESET_SOURCE_ROWS[tileY] || TILESET_SOURCE_ROWS[0];
-    const scaleX = tileset.naturalWidth / TILESET_SOURCE_SIZE.width;
-    const scaleY = tileset.naturalHeight / TILESET_SOURCE_SIZE.height;
+  function drawPlayerMarker(context, x, y) {
+    const originX = tileOriginX(x);
+    const originY = tileOriginY(y);
+    const centerX = originX + (TILE_WIDTH / 2);
 
-    return {
-      x: column.x * scaleX,
-      y: row.y * scaleY,
-      width: column.width * scaleX,
-      height: row.height * scaleY
-    };
+    context.save();
+    context.fillStyle = "#f8f5c7";
+    context.beginPath();
+    context.arc(centerX, originY + 15, 7, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = "#7c3aed";
+    context.beginPath();
+    context.moveTo(centerX, originY + 20);
+    context.lineTo(originX + 13, originY + 39);
+    context.lineTo(originX + 35, originY + 39);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = "#facc15";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(originX + 32, originY + 23);
+    context.lineTo(originX + 38, originY + 36);
+    context.stroke();
+    context.restore();
   }
 
-  function scaledSourceRect(tileset, source) {
-    const scaleX = tileset.naturalWidth / TILESET_SOURCE_SIZE.width;
-    const scaleY = tileset.naturalHeight / TILESET_SOURCE_SIZE.height;
+  function drawPortalMarker(context, x, y) {
+    const originX = tileOriginX(x);
+    const originY = tileOriginY(y);
+    const centerX = originX + (TILE_WIDTH / 2);
+    const centerY = originY + (TILE_HEIGHT / 2);
 
-    return {
-      x: source.x * scaleX,
-      y: source.y * scaleY,
-      width: source.width * scaleX,
-      height: source.height * scaleY
-    };
+    context.save();
+    context.strokeStyle = "#7dd3fc";
+    context.lineWidth = 4;
+    context.beginPath();
+    context.ellipse(centerX, centerY, 14, 19, 0, 0, Math.PI * 2);
+    context.stroke();
+    context.strokeStyle = "rgba(192, 132, 252, 0.85)";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.ellipse(centerX, centerY, 8, 13, 0, 0, Math.PI * 2);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawEnemyMarker(context, x, y) {
+    const originX = tileOriginX(x);
+    const originY = tileOriginY(y);
+
+    context.save();
+    context.fillStyle = "#f87171";
+    context.fillRect(originX + 12, originY + 15, 24, 24);
+    context.fillStyle = "#111827";
+    context.fillRect(originX + 17, originY + 22, 4, 4);
+    context.fillRect(originX + 27, originY + 22, 4, 4);
+    context.restore();
   }
 
   function containedTileRect(sourceWidth, sourceHeight, x, y) {
@@ -604,12 +652,11 @@ globalThis.DungeonMapRenderer = (() => {
   return {
     create,
     symbolTiles: SYMBOL_TILES,
-    tileIndexes: TILE_INDEXES,
+    tileSprites: TILE_SPRITES,
     entitySprites: ENTITY_SPRITES,
     tileSize: { width: TILE_WIDTH, height: TILE_HEIGHT },
-    tilesetSourceColumns: TILESET_SOURCE_COLUMNS,
-    tilesetSourceRows: TILESET_SOURCE_ROWS,
-    tilesetPath: TILESET_PATH,
+    sourceTileSize: SOURCE_TILE_SIZE,
+    tilesetPaths: TILESET_PATHS,
     enemyManifestPath: ENEMY_MANIFEST_PATH
   };
 })();
