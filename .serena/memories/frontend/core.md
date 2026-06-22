@@ -1,0 +1,24 @@
+# Frontend Core
+
+- Frontend is static, build-free HTML/CSS/JavaScript in `frontend/public/`.
+- `index.html` defines the browser-playable surface; `styles.css` owns layout/visual styling.
+- `app.js` owns API/WebSocket client behavior, command input/history, quick commands, state merge/rendering, logs, inventory/spell panels, location art, combat feedback, and auto-explore.
+- `map_renderer.js` handles dungeon canvas rendering from structured viewport state; app also derives accessible text rows from viewport terrain/entities.
+- Dungeon command panel behavior:
+  - Outside the dungeon it shows contextual scene commands.
+  - In the dungeon it shows only auto commands: `Explore`, `Go Town`, `Go Deep`.
+  - `Go Deep` is disabled until the descent marker is known by the frontend exploration map.
+  - Typed dungeon commands `explore`, `go town`, and `go deep` are intercepted and mapped to auto-explore goals.
+- Auto-explore behavior in `app.js`:
+  - Uses frontend-known dungeon graph and A* over known walkable cells.
+  - Clears known map state when `state.dungeon.level` changes.
+  - Prioritizes healing spell, healing potion, battle, visible enemy hunting, loot, then exploration.
+  - `Go Town` targets the level-one entrance portal or deeper-level ascent (`ascent`) until town is reached.
+  - `Go Deep` targets known descent (`descent`) and stops after the level changes.
+- Assets are checked in under `frontend/public/assets/`:
+  - `locations/` for town/location art.
+  - `tilesets/` for dungeon rendering, including `stairsUp` for ascent and `stairsDown` for descent.
+  - `enemies/` for enemy sprite manifests, sources, and generated sprites.
+- Nginx serves frontend assets from the `web` Docker target and proxies API/WebSocket calls to the Ruby server.
+- No package manager/build pipeline is present; changes should remain compatible with direct static serving unless deliberately introducing tooling.
+- For UX changes, validate through the Compose browser surface when proxying/assets matter.

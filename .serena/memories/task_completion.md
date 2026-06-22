@@ -1,8 +1,25 @@
 # Task Completion
 
-- Install dependencies first if needed: `bundle install`.
-- Primary completion check: `bundle exec rake`.
-- Equivalent direct test check: `bundle exec rspec`.
-- There is no configured formatter, linter, type checker, or required test watcher to run unless added by the task.
-- Current dependency setup installs successfully in `vendor/bundle` without system Ruby headers after keeping only required local test dependencies.
-- Onboarding verification after dependency cleanup: `bundle exec rake` passed with 23 examples and 0 failures.
+- For routine code/content changes:
+  - Run focused specs covering the changed area.
+  - Run `bundle exec rspec` before finalizing.
+- For gameplay or UX-affecting changes:
+  - Also perform a deterministic smoke run with `TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures` or the Compose browser surface, depending on the affected layer.
+  - Exercise at least one representative action path through API or UI when the change affects commands, routing, serialization, dungeon movement, combat, shops, inventory, or frontend rendering.
+- For dungeon traversal or auto-explore changes:
+  - Run focused domain/scene/serializer/frontend specs.
+  - Verify frontend syntax with `node --check frontend/public/app.js` and `node --check frontend/public/map_renderer.js` when touched.
+  - Prefer a browser validation through Compose for `Explore`, `Go Town`, and `Go Deep` behavior.
+  - When changing multi-level travel, validate at least one deterministic deeper-level route back to town.
+- For dependency changes:
+  - Run `bundle install`.
+  - Verify relevant executable/version when applicable, e.g. `bundle exec ruby-lsp --version`.
+  - Run `bundle exec rspec` because setup specs validate lockfile contents.
+- For persistence changes:
+  - Run `bundle exec rspec spec/persistence spec/web/game_store_spec.rb spec/web/router_spec.rb`.
+  - Include e2e server persistence specs when save/restore/delete behavior changes across process boundaries.
+- For frontend-only asset/CSS/JS changes:
+  - Prefer browser validation through `docker compose up --build` when the change needs Nginx/proxy behavior.
+  - Check that text, controls, map/canvas, and command actions remain usable at the target viewport.
+- Report clearly if any expected validation could not be run.
+- Keep commits focused and use English commit messages.

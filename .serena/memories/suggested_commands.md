@@ -1,9 +1,34 @@
 # Suggested Commands
 
-- `gem install bundler` if `bundle` is missing in the local Ruby environment.
-- `bundle config set --local path vendor/bundle` keeps installed gems inside the project and avoids system gem permission errors.
-- `bundle install` installs project dependencies.
-- `bundle exec rake` runs the default task, which maps to `spec` when RSpec is available.
-- `bundle exec rspec` runs the full spec suite directly.
-- `docker build -t text_adventures .` builds the Alpine Ruby image.
-- `docker run --rm text_adventures` runs the Docker default command (`bundle exec rake`).
+- Install dependencies locally:
+  - `bundle config set --local path vendor/bundle`
+  - `bundle install`
+- Run all tests:
+  - `bundle exec rspec`
+  - `bundle exec rake`
+- Run a focused spec:
+  - `bundle exec rspec spec/path/to_spec.rb`
+- Verify Ruby LSP availability:
+  - `bundle exec ruby-lsp --version`
+- Run Ruby API/WebSocket server directly:
+  - `TEXT_ADVENTURES_RANDOM_SEED=0 bin/text_adventures`
+  - API health check: `curl -sS http://127.0.0.1:4567/api/health`
+- Run browser-playable stack:
+  - `docker compose up --build`
+  - `docker compose up -d --build web`
+  - Open `http://127.0.0.1:3000/` or `http://localhost:3000/`
+- Useful API smoke commands:
+  - Create session: `curl -sS -X POST http://127.0.0.1:4567/api/games -H 'Content-Type: application/json' -d '{"seed":0}'`
+  - Fetch state: `curl -sS http://127.0.0.1:4567/api/games/<game_id>`
+  - Send action: `curl -sS -X POST http://127.0.0.1:4567/api/games/<game_id>/actions -H 'Content-Type: application/json' -d '{"type":"travel","destination":"ruins"}'`
+- Useful validation targets:
+  - Frontend syntax: `node --check frontend/public/app.js && node --check frontend/public/map_renderer.js`
+  - Frontend asset contract: `bundle exec rspec spec/web/frontend_assets_spec.rb`
+  - Dungeon traversal: `bundle exec rspec spec/domain/dungeon_spec.rb spec/scenes/ruins_spec.rb spec/web/game_serializer_spec.rb`
+  - Server descent flow: `bundle exec rspec spec/e2e/text_adventures_server_spec.rb:48`
+  - Persistence: `bundle exec rspec spec/persistence spec/web/game_store_spec.rb spec/web/router_spec.rb`
+- Search files/content:
+  - `rg --files`
+  - `rg "pattern" lib spec data frontend/public`
+- Serena memory sanity check after memory edits:
+  - `serena memories check`
