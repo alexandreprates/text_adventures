@@ -174,7 +174,7 @@ const LOCATION_ARTS = {
 };
 
 let currentState = null;
-let mapZoom = 1;
+let mapZoom = MAP_ZOOM_MAX;
 let messageLogLines = [];
 let combatFeedbackTimers = [];
 const autoExplore = {
