@@ -187,6 +187,7 @@ const autoExplore = {
   goal: "explore",
   goalLevel: null,
   continueAfterDescent: false,
+  continuousDescent: false,
   knownLevel: null,
   lastAction: null,
   lastPositionKey: null,
@@ -1207,7 +1208,7 @@ function autoExploreCommands(state) {
   return [
     ["Explore", "auto explore", "primary"],
     ["Go Town", "auto town", "primary"],
-    ["Go Deep", "auto descent", "primary", "Go Deep", !autoExploreDescentFound(state)]
+    ["Go Deep", "auto descent", "primary"]
   ];
 }
 
@@ -1268,7 +1269,8 @@ function startAutoExplore(goal = "explore") {
   autoExplore.enabled = true;
   autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
-  autoExplore.continueAfterDescent = false;
+  autoExplore.continueAfterDescent = goal === "descent";
+  autoExplore.continuousDescent = goal === "descent";
   markAutoExploreVisited(currentState);
   updateAutoExploreStatus(autoExploreGoalStatus(goal));
   renderContextCommands(currentState);
@@ -1280,6 +1282,7 @@ function stopAutoExplore(reason = "stopped") {
   autoExplore.goal = "explore";
   autoExplore.goalLevel = null;
   autoExplore.continueAfterDescent = false;
+  autoExplore.continuousDescent = false;
   clearAutoExploreTimer();
   autoExplore.pendingSince = null;
   updateAutoExploreStatus(autoExploreStopStatus(reason));
@@ -1299,7 +1302,8 @@ function setAutoExploreGoal(goal) {
 
   autoExplore.goal = goal;
   autoExplore.goalLevel = currentState.dungeon?.level ?? null;
-  autoExplore.continueAfterDescent = false;
+  autoExplore.continueAfterDescent = goal === "descent";
+  autoExplore.continuousDescent = goal === "descent";
   autoExplore.currentPath = [];
   autoExplore.destinationKey = null;
   autoExplore.repeatCount = 0;
@@ -1462,6 +1466,10 @@ function autoExploreLevelCompleteDecision(state) {
 }
 
 function nextAutoExploreGoalDecision(state) {
+  if (autoExplore.goal === "descent" && !autoExploreDescentFound(state)) {
+    return nextAutoExploreDeepExplorationDecision(state);
+  }
+
   const target = autoExploreGoalPosition(state);
   if (!target) return { stopReason: "target unavailable" };
 
@@ -1472,6 +1480,17 @@ function nextAutoExploreGoalDecision(state) {
     command: `go ${direction}`,
     status: autoExploreGoalStatus(autoExplore.goal)
   };
+}
+
+function nextAutoExploreDeepExplorationDecision(state) {
+  if (state.dungeon?.nearby_loot) {
+    return { command: "loot", status: "Auto: looting" };
+  }
+
+  const direction = nextAutoExploreDirection(state);
+  return direction ?
+    { command: `go ${direction}`, status: "Auto: seeking descent" } :
+    autoExploreLevelCompleteDecision(state);
 }
 
 function autoExploreGoalPosition(state) {
@@ -1844,9 +1863,9 @@ function autoExploreGoalReached(state) {
 }
 
 function continueAutoExploreAfterDescent(state) {
-  autoExplore.goal = "explore";
+  autoExplore.goal = autoExplore.continuousDescent ? "descent" : "explore";
   autoExplore.goalLevel = state.dungeon?.level ?? null;
-  autoExplore.continueAfterDescent = false;
+  autoExplore.continueAfterDescent = autoExplore.continuousDescent;
   autoExplore.currentPath = [];
   autoExplore.destinationKey = null;
   autoExplore.lastAction = null;
