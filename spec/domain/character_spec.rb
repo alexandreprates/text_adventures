@@ -20,11 +20,23 @@ RSpec.describe TextAdventures::Character do
       expect(character.health).to have_attributes(current: 30, max: 30, min: 0)
     end
 
+    it "uses Extent for mana" do
+      expect(character.mana).to be_a Extent
+      expect(character.mana).to have_attributes(current: 12, max: 12, min: 0)
+    end
+
     it "derives max health from total class levels" do
       progression = TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 50 })
       leveled_character = described_class.new(progression: progression)
 
       expect(leveled_character.health).to have_attributes(current: 35, max: 35)
+    end
+
+    it "derives max mana from magic skill and overall levels" do
+      progression = TextAdventures::CharacterProgression.new(skill_experience: { combat_magic: 50, nature_magic: 50 })
+      leveled_character = described_class.new(progression: progression)
+
+      expect(leveled_character.mana).to have_attributes(current: 21, max: 21)
     end
 
     it "starts with starter equipment" do
@@ -72,6 +84,8 @@ RSpec.describe TextAdventures::Character do
           name: "Nee Peh",
           health: 12,
           max_health: 40,
+          mana: 5,
+          max_mana: 18,
           gold: 7,
           base_attack: 3,
           base_defense: 2,
@@ -94,9 +108,25 @@ RSpec.describe TextAdventures::Character do
           inventory: inventory
         )
         expect(character.health).to have_attributes(current: 12, max: 40)
+        expect(character.mana).to have_attributes(current: 5, max: 18)
         expect(character.skill_experience[:swordsmanship]).to eq 60
         expect(character.status_effects).to eq %i[poison disease]
       end
+    end
+  end
+
+  describe "#spend_mana and #recover_mana" do
+    it "spends and recovers mana inside the mana extent" do
+      expect(character.spend_mana(5)).to be true
+      expect(character.mana.current).to eq 7
+
+      expect(character.recover_mana(20)).to eq 5
+      expect(character.mana.current).to eq 12
+    end
+
+    it "does not spend mana when the character cannot afford the cost" do
+      expect(character.spend_mana(13)).to be false
+      expect(character.mana.current).to eq 12
     end
   end
 
@@ -470,8 +500,8 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.spellbook).to eq <<~TEXT.chomp
         You can cast:
-         1x Heal (level 1) - Recovery 10~30 of health
-         1x Ice Bolt (level 2) - Causes 8~18 of damage, with 3% chance to freeze your enemy
+         1x Heal (level 1, 4 MP) - Recovery 10~30 of health
+         1x Ice Bolt (level 2, 9 MP) - Causes 8~18 of damage, with 3% chance to freeze your enemy
       TEXT
     end
   end

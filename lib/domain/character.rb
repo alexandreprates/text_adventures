@@ -61,6 +61,8 @@ module TextAdventures
     DEFAULT_NAME = "Adventurer".freeze
     DEFAULT_HEALTH = 30
     HEALTH_PER_CLASS_LEVEL = 5
+    DEFAULT_MANA = 12
+    MANA_PER_MAGIC_LEVEL = 4
     DEFAULT_GOLD = 0
     DEFAULT_BASE_ATTACK = 1
     DEFAULT_BASE_DEFENSE = 0
@@ -76,6 +78,7 @@ module TextAdventures
     STARTER_ARMOR = Equipment.new(name: "Leather Armor", attack: 0, defense: 12).freeze
 
     attr_reader :health
+    attr_reader :mana
     attr_reader :spells
     attr_reader :inventory
     attr_reader :status_effects
@@ -88,6 +91,8 @@ module TextAdventures
       name: DEFAULT_NAME,
       health: nil,
       max_health: nil,
+      mana: nil,
+      max_mana: nil,
       gold: DEFAULT_GOLD,
       base_attack: DEFAULT_BASE_ATTACK,
       base_defense: DEFAULT_BASE_DEFENSE,
@@ -101,10 +106,14 @@ module TextAdventures
     )
       @progression = progression
       @health_derived_from_progression = max_health.nil?
+      @mana_derived_from_progression = max_mana.nil?
       max_health ||= self.class.max_health_for(progression)
       health ||= max_health
+      max_mana ||= self.class.max_mana_for(progression)
+      mana ||= max_mana
       @name = name
       @health = Extent.new(health, max: max_health)
+      @mana = Extent.new(mana, max: max_mana)
       @gold = gold
       @base_attack = base_attack
       @base_defense = base_defense
@@ -122,6 +131,12 @@ module TextAdventures
       DEFAULT_HEALTH + (gained_class_levels * HEALTH_PER_CLASS_LEVEL)
     end
 
+    def self.max_mana_for(progression)
+      combat_levels = [progression.skill_level(:combat_magic) - 1, 0].max
+      nature_levels = [progression.skill_level(:nature_magic) - 1, 0].max
+      DEFAULT_MANA + ((combat_levels + nature_levels) * MANA_PER_MAGIC_LEVEL) + (progression.overall_level / 2)
+    end
+
     def self.starter_inventory
       Inventory.new.tap do |inventory|
         inventory.add(Item.potion("Potion of Heal", price: 10, recovery: 20), quantity: STARTER_POTION_QUANTITY)
@@ -130,8 +145,10 @@ module TextAdventures
 
     def gain_skill_xp(skill, amount)
       previous_max_health = health.max
+      previous_max_mana = mana.max
       progression.add_skill_xp(skill, amount)
       synchronize_derived_health(previous_max_health)
+      synchronize_derived_mana(previous_max_mana)
       self
     end
 
@@ -163,6 +180,23 @@ module TextAdventures
     def heal(amount)
       self.health = health + amount
       self
+    end
+
+    def spend_mana(amount)
+      return false unless enough_mana?(amount)
+
+      self.mana = mana - amount.to_i
+      true
+    end
+
+    def recover_mana(amount)
+      before = mana.current
+      self.mana = mana + amount.to_i
+      mana.current - before
+    end
+
+    def enough_mana?(amount)
+      mana.current >= amount.to_i
     end
 
     def alive?
@@ -304,7 +338,7 @@ module TextAdventures
 
     private
 
-    attr_writer :health
+    attr_writer :health, :mana
 
     def synchronize_derived_health(previous_max_health)
       return unless @health_derived_from_progression
@@ -313,6 +347,15 @@ module TextAdventures
       gained_health = new_max_health - previous_max_health
       current_health = gained_health.positive? ? new_max_health : health.current
       self.health = Extent.new([current_health, new_max_health].min, max: new_max_health, min: health.min)
+    end
+
+    def synchronize_derived_mana(previous_max_mana)
+      return unless @mana_derived_from_progression
+
+      new_max_mana = self.class.max_mana_for(progression)
+      gained_mana = new_max_mana - previous_max_mana
+      current_mana = gained_mana.positive? ? new_max_mana : mana.current
+      self.mana = Extent.new([current_mana, new_max_mana].min, max: new_max_mana, min: mana.min)
     end
 
     def equipment_value(equipment, attribute)
@@ -363,7 +406,7 @@ module TextAdventures
     end
 
     def spellbook_line(spell)
-      "1x #{spell.display_name} (level #{spell.level}) - #{spell.description}"
+      "1x #{spell.display_name} (level #{spell.level}, #{spell.mp_cost} MP) - #{spell.description}"
     end
 
     def skill_label(skill)

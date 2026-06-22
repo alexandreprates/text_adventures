@@ -126,6 +126,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 35/35]
       [Adventurer HP: 30/30]
+      [Adventurer MP: 12/12]
     TEXT
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
     expect(encounter_game.active_enemy_position).to have_attributes(x: 5, y: 2)
@@ -143,6 +144,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 35/35]
       [Adventurer HP: 30/30]
+      [Adventurer MP: 12/12]
     TEXT
     expect(encounter_game.battle.creature.display_name).to eq "Giant Spider"
     expect(encounter_game.active_enemy_position).to have_attributes(x: 4, y: 2)
@@ -216,6 +218,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 35/35]
       [Adventurer HP: 30/30]
+      [Adventurer MP: 12/12]
     TEXT
     expect(game.handle("go right")).to eq "You cannot move while Giant Spider blocks your path."
     expect(game.handle("inventory")).to include "5x Potion of Heal"
@@ -233,6 +236,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 25/35]
       [Adventurer HP: 28/30]
+      [Adventurer MP: 12/12]
     TEXT
     expect(game.battle.creature.health.current).to eq 25
   end
@@ -250,6 +254,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 24/35]
       [Adventurer HP: 28/30]
+      [Adventurer MP: 7/12]
     TEXT
     expect(game.battle.creature.health.current).to eq 24
   end
@@ -268,6 +273,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 31/35]
       [Adventurer HP: 30/30]
+      [Adventurer MP: 6/12]
     TEXT
     expect(game.battle.creature.health.current).to eq 31
   end
@@ -289,6 +295,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 35/35]
       [Adventurer HP: 24/30]
+      [Adventurer MP: 8/12]
     TEXT
     expect(game.player.health.current).to eq 24
 
@@ -299,6 +306,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
       [Giant Spider HP: 35/35]
       [Adventurer HP: 20/30]
+      [Adventurer MP: 5/12]
     TEXT
     expect(game.player).to_not be_status(:poison)
   end
@@ -541,6 +549,15 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     TEXT
   end
 
+  it "recovers MP after successful movement when mana is missing" do
+    game.player.spend_mana(3)
+
+    response = game.handle("go right")
+
+    expect(response).to include "[recovered 1 MP]"
+    expect(game.player.mana.current).to eq 10
+  end
+
   it "gives direct feedback for combat commands without an enemy" do
     expect(game.handle("attack")).to eq "There is no enemy to attack."
     expect(game.handle("cast fireball")).to eq "You do not know fireball, and there is no enemy to target."
@@ -563,14 +580,26 @@ RSpec.describe TextAdventures::Scenes::Ruins do
       [your health is now 28/30]
     TEXT
     expect(game.player.health.current).to eq 28
+    expect(game.player.mana.current).to eq 8
 
     expect(game.handle("cast cure")).to eq "You cast Cure and remove poison."
     expect(game.player).to_not be_status(:poison)
+    expect(game.player.mana.current).to eq 5
   end
 
   it "reports when casting Cure without curable statuses outside combat" do
     game.player.learn_spell(TextAdventures::Spell.cure)
 
     expect(game.handle("cast cure")).to eq "You cast Cure, but there is nothing to cure."
+    expect(game.player.mana.current).to eq 9
+  end
+
+  it "does not cast support spells outside combat without enough MP" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.spend_mana(12)
+    game.player.take_damage(12)
+
+    expect(game.handle("cast heal")).to eq "Not enough MP to cast Heal. [MP: 0/12, cost: 4]"
+    expect(game.player.health.current).to eq 18
   end
 end

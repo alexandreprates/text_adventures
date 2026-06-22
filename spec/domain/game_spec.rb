@@ -95,6 +95,7 @@ RSpec.describe TextAdventures::Game do
     it "revives a fallen player in town with full health" do
       player = TextAdventures::Character.new
       player.apply_status(:poison)
+      player.spend_mana(6)
       player.take_damage(999)
       game = described_class.new(
         player: player,
@@ -110,10 +111,13 @@ RSpec.describe TextAdventures::Game do
       expect(response).to eq <<~TEXT.chomp
         You wake up in Nee'Peh, restored after the fall.
         [recovered 30 health]
+        [recovered 6 MP]
         [your health is now 30/30]
+        [your MP is now 12/12]
       TEXT
       expect(game.current_scene_name).to eq :town
       expect(game.player.health).to have_attributes(current: 30, max: 30)
+      expect(game.player.mana).to have_attributes(current: 12, max: 12)
       expect(game.player.status_effects).to be_empty
       expect(game.pending_confirmation).to be_nil
       expect(game.battle).to be_nil
@@ -180,7 +184,7 @@ RSpec.describe TextAdventures::Game do
 
       expect(response).to eq <<~TEXT.chomp
         You can cast:
-         1x Fireball (level 1) - Causes 12~22 of damage
+         1x Fireball (level 1, 5 MP) - Causes 12~22 of damage
       TEXT
       expect(scene.handled_command).to be_nil
     end

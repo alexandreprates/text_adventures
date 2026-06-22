@@ -22,6 +22,7 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
   it "round-trips mutable player state" do
     player = TextAdventures::Character.new
     player.take_damage(7)
+    player.spend_mana(5)
     player.gold = 42
     player.equipped_weapon = TextAdventures::ContentCatalog.item("hunting_spear")
     player.equipped_armor = TextAdventures::ContentCatalog.item("chain_shirt")
@@ -34,6 +35,8 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
 
     expect(loaded.player.health.current).to eq player.health.current
     expect(loaded.player.health.max).to eq player.health.max
+    expect(loaded.player.mana.current).to eq player.mana.current
+    expect(loaded.player.mana.max).to eq player.mana.max
     expect(loaded.player.gold).to eq 42
     expect(loaded.player.equipped_weapon.command_name).to eq "hunting spear"
     expect(loaded.player.equipped_armor.command_name).to eq "chain shirt"
@@ -113,5 +116,14 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
     snapshot["schema_version"] = described_class::CURRENT_SCHEMA_VERSION + 1
 
     expect { described_class.load(snapshot) }.to raise_error(TextAdventures::Persistence::SnapshotVersionError)
+  end
+
+  it "loads older player snapshots without mana as full mana" do
+    snapshot = described_class.dump(TextAdventures::Game.new(random: TextAdventures::RandomSource.new(seed: 5)))
+    snapshot.fetch("game").fetch("player").delete("mana")
+
+    loaded = described_class.load(snapshot)
+
+    expect(loaded.player.mana).to have_attributes(current: 12, max: 12)
   end
 end

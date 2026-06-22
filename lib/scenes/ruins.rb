@@ -114,6 +114,7 @@ module TextAdventures
           "",
           dungeon.render
         )
+        response = append_mana_recovery(response, game.player.recover_mana(1))
 
         auto_loot = collect_loot_at(game, dungeon.current_global_position, automatic: true)
         response = response.append("", auto_loot) if auto_loot
@@ -193,6 +194,7 @@ module TextAdventures
       def handle_spell(game, spell_name)
         spell = game.player.spells[Spell.normalize_name(spell_name)]
         return Response.new("You do not know #{spell_name}.") unless spell
+        return insufficient_mana_response(game.player, spell) unless game.player.enough_mana?(spell.mp_cost)
 
         result = game.battle.cast_spell(game.player, spell)
         resolve_battle_result(game, result)
@@ -208,6 +210,9 @@ module TextAdventures
       end
 
       def cast_noncombat_healing_spell(game, spell)
+        return insufficient_mana_response(game.player, spell) unless game.player.enough_mana?(spell.mp_cost)
+
+        game.player.spend_mana(spell.mp_cost)
         before = game.player.health.current
         game.player.heal(spell.healing_range.begin + game.player.nature_magic_healing_bonus)
         recovered = game.player.health.current - before
@@ -218,6 +223,9 @@ module TextAdventures
       end
 
       def cast_noncombat_cure_spell(game, spell)
+        return insufficient_mana_response(game.player, spell) unless game.player.enough_mana?(spell.mp_cost)
+
+        game.player.spend_mana(spell.mp_cost)
         cured_statuses = game.player.curable_statuses
         game.player.clear_statuses(*cured_statuses)
         return Response.new("You cast #{spell.display_name}, but there is nothing to cure.") if cured_statuses.empty?
@@ -329,8 +337,19 @@ module TextAdventures
         creature = game.battle.creature
         Response.new(
           "[#{creature.display_name} HP: #{creature.health.current}/#{creature.health.max}]",
-          "[#{game.player.name} HP: #{game.player.health.current}/#{game.player.health.max}]"
+          "[#{game.player.name} HP: #{game.player.health.current}/#{game.player.health.max}]",
+          "[#{game.player.name} MP: #{game.player.mana.current}/#{game.player.mana.max}]"
         )
+      end
+
+      def append_mana_recovery(response, recovered_mana)
+        return response unless recovered_mana.positive?
+
+        response.append("", "[recovered #{recovered_mana} MP]")
+      end
+
+      def insufficient_mana_response(player, spell)
+        Response.new("Not enough MP to cast #{spell.display_name}. [MP: #{player.mana.current}/#{player.mana.max}, cost: #{spell.mp_cost}]")
       end
 
       def status_list(statuses)

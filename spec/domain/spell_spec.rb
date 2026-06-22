@@ -23,6 +23,7 @@ RSpec.describe TextAdventures::Spell do
         display_name: "Heal",
         level: 1,
         kind: :healing,
+        mp_cost: 4,
         healing_range: 10..30
       )
       expect(spell).to be_healing
@@ -38,6 +39,7 @@ RSpec.describe TextAdventures::Spell do
         display_name: "Fireball",
         level: 1,
         kind: :damage,
+        mp_cost: 5,
         damage_range: 12..22
       )
       expect(spell).to be_damage
@@ -53,6 +55,7 @@ RSpec.describe TextAdventures::Spell do
         display_name: "Ice Bolt",
         level: 1,
         kind: :damage,
+        mp_cost: 6,
         damage_range: 5..10,
         status: :freeze,
         status_chance: 2
@@ -64,6 +67,7 @@ RSpec.describe TextAdventures::Spell do
 
       expect(leveled_spell).to have_attributes(
         level: 2,
+        mp_cost: 9,
         damage_range: 8..18,
         status_chance: 3
       )
@@ -78,7 +82,8 @@ RSpec.describe TextAdventures::Spell do
         name: "cure",
         display_name: "Cure",
         level: 1,
-        kind: :cure
+        kind: :cure,
+        mp_cost: 3
       )
       expect(spell).to be_cure
     end

@@ -27,12 +27,14 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
+      recovered_mana = player.recover_mana(1)
       damage = player_damage(player)
       critical = critical_hit?(player)
       damage *= 2 if critical
       creature.take_damage(damage)
       record_contribution(weapon_skill(player.equipped_weapon), damage)
 
+      lines << "[recovered #{recovered_mana} MP]" if recovered_mana.positive?
       lines << player_attack_line(damage, critical)
       if creature.dead?
         lines << "#{creature.display_name} dies."
@@ -47,6 +49,8 @@ module TextAdventures
     end
 
     def cast_spell(player, spell)
+      return insufficient_mana_result(player, spell) unless player.enough_mana?(spell.mp_cost)
+
       return cast_damage_spell(player, spell) if spell.damage?
       return cast_healing_spell(player, spell) if spell.healing?
       return cast_cure_spell(player, spell) if spell.cure?
@@ -58,6 +62,7 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
+      player.spend_mana(spell.mp_cost)
       damage = spell_damage(player, spell)
       creature.take_damage(damage)
       record_contribution(spell_skill(spell), damage)
@@ -80,6 +85,7 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
+      player.spend_mana(spell.mp_cost)
       before = player.health.current
       player.heal(spell.healing_range.begin + player.nature_magic_healing_bonus)
       recovered = player.health.current - before
@@ -95,6 +101,7 @@ module TextAdventures
       lines = poison_tick_lines(player)
       return player_defeat_result(lines) if player.dead?
 
+      player.spend_mana(spell.mp_cost)
       cured_statuses = player.curable_statuses
       player.clear_statuses(*cured_statuses)
       record_contribution(spell_skill(spell), 1)
@@ -115,6 +122,16 @@ module TextAdventures
         finished?: true,
         loot: LootDrop.empty,
         player_defeated?: true
+      )
+    end
+
+    def insufficient_mana_result(player, spell)
+      Result.new(
+        lines: [
+          "Not enough MP to cast #{spell.display_name}. [MP: #{player.mana.current}/#{player.mana.max}, cost: #{spell.mp_cost}]"
+        ],
+        finished?: false,
+        loot: LootDrop.empty
       )
     end
 

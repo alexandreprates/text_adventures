@@ -73,7 +73,9 @@ module TextAdventures
       return Response.new("You are still standing.") unless player.dead?
 
       recovered = player.health.max - player.health.current
+      recovered_mana = player.mana.max - player.mana.current
       player.heal(player.health.max)
+      player.recover_mana(player.mana.max)
       player.clear_statuses(*player.status_effects)
       @battle = nil
       @pending_loot = nil
@@ -83,7 +85,9 @@ module TextAdventures
       Response.new(
         "You wake up in Nee'Peh, restored after the fall.",
         "[recovered #{recovered} health]",
-        "[your health is now #{player.health.current}/#{player.health.max}]"
+        "[recovered #{recovered_mana} MP]",
+        "[your health is now #{player.health.current}/#{player.health.max}]",
+        "[your MP is now #{player.mana.current}/#{player.mana.max}]"
       )
     end
 

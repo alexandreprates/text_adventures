@@ -19,6 +19,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.fetch(:player)).to include(
       name: "Adventurer",
       health: { current: 30, max: 30 },
+      mana: { current: 12, max: 12 },
       gold: 0,
       current_class: "Adventurer",
       level: 1,
@@ -69,7 +70,8 @@ RSpec.describe TextAdventures::Web::GameSerializer do
         name: "fireball",
         display_name: "Fireball",
         level: 1,
-        kind: "damage"
+        kind: "damage",
+        mp_cost: 5
       )
     ]
     expect(state.fetch(:pending)).to eq(confirmation: false)

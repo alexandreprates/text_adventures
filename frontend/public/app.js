@@ -81,6 +81,8 @@ const elements = {
   clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
+  manaBar: document.querySelector("#mana-bar"),
+  manaValue: document.querySelector("#mana-value"),
   statusValue: document.querySelector("#status-value"),
   mapStage: document.querySelector("#map-stage"),
   locationArt: document.querySelector("#location-art"),
@@ -604,11 +606,14 @@ function adjustMapZoom(direction) {
 function renderStatus(state) {
   const player = state.player;
   const health = player.health;
+  const mana = player.mana || { current: 0, max: 0 };
   const statuses = player.statuses?.length ? player.statuses.join(", ") : "clear";
 
   elements.characterClass.textContent = classLine(player);
   elements.healthBar.innerHTML = asciiBar(health.current, health.max, "danger");
   elements.healthValue.textContent = `${health.current}/${health.max}`;
+  elements.manaBar.innerHTML = asciiBar(mana.current, mana.max, "mana");
+  elements.manaValue.textContent = `${mana.current}/${mana.max}`;
   elements.statusValue.textContent = statuses;
   elements.statusValue.classList.toggle("status-alert", statuses !== "clear");
   elements.statusValue.classList.toggle("status-clear", statuses === "clear");
@@ -699,7 +704,7 @@ function renderCollections(player) {
   }));
   renderList(elements.spellsList, player.spells, spell => ({
     label: `${spell.display_name} Lv ${spell.level}`,
-    meta: spell.kind,
+    meta: `${spell.mp_cost} MP`,
     type: spell.description,
     commandValue: spell.name
   }));
@@ -1535,9 +1540,13 @@ function autoExploreHealingSpell(state) {
   if (!autoExploreNeedsHealing(state)) return null;
 
   return state.player.spells.find(spell => (
-    spell.kind === "healing" ||
-    spell.name === "heal"
+    (spell.kind === "healing" || spell.name === "heal") &&
+    canAffordSpell(state.player, spell)
   ));
+}
+
+function canAffordSpell(player, spell) {
+  return (player.mana?.current || 0) >= (spell.mp_cost || 0);
 }
 
 function autoExploreHealingPotion(state) {

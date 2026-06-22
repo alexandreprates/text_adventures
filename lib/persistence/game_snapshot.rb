@@ -102,6 +102,10 @@ module TextAdventures
             "current" => player.health.current,
             "max" => player.health.max
           },
+          "mana" => {
+            "current" => player.mana.current,
+            "max" => player.mana.max
+          },
           "gold" => player.gold,
           "base_attack" => player.base_attack,
           "base_defense" => player.base_defense,
@@ -124,11 +128,14 @@ module TextAdventures
         progression = CharacterProgression.new(
           skill_experience: snapshot.fetch("progression").fetch("skill_experience", {})
         )
+        mana = mana_snapshot(snapshot, progression)
 
         Character.new(
           name: snapshot.fetch("name"),
           health: Integer(snapshot.fetch("health").fetch("current")),
           max_health: Integer(snapshot.fetch("health").fetch("max")),
+          mana: Integer(mana.fetch("current")),
+          max_mana: Integer(mana.fetch("max")),
           gold: Integer(snapshot.fetch("gold")),
           base_attack: Integer(snapshot.fetch("base_attack")),
           base_defense: Integer(snapshot.fetch("base_defense")),
@@ -139,6 +146,16 @@ module TextAdventures
           status_effects: status_effects,
           status_durations: snapshot.fetch("status_durations", {}),
           progression: progression
+        )
+      end
+
+      def mana_snapshot(snapshot, progression)
+        snapshot.fetch(
+          "mana",
+          {
+            "current" => Character.max_mana_for(progression),
+            "max" => Character.max_mana_for(progression)
+          }
         )
       end
 

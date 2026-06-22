@@ -2,7 +2,7 @@ module TextAdventures
   class Spell
     VALID_KINDS = %i[damage healing cure].freeze
 
-    attr_reader :name, :display_name, :level, :kind, :damage_range,
+    attr_reader :name, :display_name, :level, :kind, :mp_cost, :damage_range,
                 :healing_range, :status, :status_chance
 
     def self.for(name, level: 1)
@@ -27,6 +27,7 @@ module TextAdventures
         name: "Heal",
         level: level,
         kind: :healing,
+        mp_cost: 4 + ((level - 1) * 2),
         healing_range: healing_min..healing_max
       )
     end
@@ -38,6 +39,7 @@ module TextAdventures
         name: "Fireball",
         level: level,
         kind: :damage,
+        mp_cost: 5 + ((level - 1) * 3),
         damage_range: damage_min..damage_max
       )
     end
@@ -49,6 +51,7 @@ module TextAdventures
         name: "Ice Bolt",
         level: level,
         kind: :damage,
+        mp_cost: 6 + ((level - 1) * 3),
         damage_range: damage_min..damage_max,
         status: :freeze,
         status_chance: level + 1
@@ -56,7 +59,7 @@ module TextAdventures
     end
 
     def self.cure(level: 1)
-      new(name: "Cure", level: level, kind: :cure)
+      new(name: "Cure", level: level, kind: :cure, mp_cost: 3 + (level - 1))
     end
 
     def self.normalize_name(value)
@@ -67,6 +70,7 @@ module TextAdventures
       name:,
       level: 1,
       kind:,
+      mp_cost: 0,
       display_name: name,
       damage_range: nil,
       healing_range: nil,
@@ -77,6 +81,7 @@ module TextAdventures
       @display_name = display_name
       @level = level
       @kind = validate_kind(kind)
+      @mp_cost = Integer(mp_cost)
       @damage_range = damage_range
       @healing_range = healing_range
       @status = status

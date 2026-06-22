@@ -16,6 +16,7 @@ RSpec.describe TextAdventures::Web::StatePatch do
     )
     expect(patch.fetch(:player)).to include(
       health: { current: 30, max: 30 },
+      mana: { current: 12, max: 12 },
       gold: 0,
       statuses: []
     )

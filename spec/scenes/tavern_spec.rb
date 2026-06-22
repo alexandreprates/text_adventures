@@ -87,15 +87,19 @@ RSpec.describe TextAdventures::Scenes::Tavern do
 
   it "lets the player sleep in a rented room to fully recover health" do
     game.player.take_damage(17)
+    game.player.spend_mana(5)
 
     response = game.handle("sleep")
 
     expect(response).to eq <<~TEXT.chomp
       You rent a quiet room and sleep until fully rested.
       [recovered 17 health]
+      [recovered 5 MP]
       [your health is now 30/30]
+      [your MP is now 12/12]
     TEXT
     expect(game.player.health.current).to eq 30
+    expect(game.player.mana.current).to eq 12
   end
 
   it "accepts rent room as a sleep alias" do
@@ -111,7 +115,9 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.handle("sleep")).to eq <<~TEXT.chomp
       You rent a quiet room and sleep until fully rested.
       [recovered 0 health]
+      [recovered 0 MP]
       [your health is now 30/30]
+      [your MP is now 12/12]
     TEXT
   end
 

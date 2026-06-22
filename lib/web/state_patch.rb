@@ -3,6 +3,7 @@ module TextAdventures
     class StatePatch
       PLAYER_FIELDS = %i[
         health
+        mana
         gold
         statuses
         equipment

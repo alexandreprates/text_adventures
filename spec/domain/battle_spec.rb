@@ -201,6 +201,17 @@ RSpec.describe TextAdventures::Battle do
         Giant Spider attacks you with Bite causing 2 of damage.
       TEXT
       expect(player.health.current).to eq 28
+      expect(player.mana.current).to eq 6
+    end
+
+    it "does not cast or advance the enemy turn without enough MP" do
+      player.spend_mana(12)
+
+      response = battle.cast_spell(player, TextAdventures::Spell.fireball)
+
+      expect(response.to_response.to_text).to eq "Not enough MP to cast Fireball. [MP: 0/12, cost: 5]"
+      expect(player.health.current).to eq 30
+      expect(creature.health.current).to eq 35
     end
 
     it "adds combat magic bonus to offensive spell damage" do
@@ -232,6 +243,7 @@ RSpec.describe TextAdventures::Battle do
         Giant Spider attacks you with Bite causing 2 of damage.
       TEXT
       expect(player.health.current).to eq 26
+      expect(player.mana.current).to eq 8
     end
 
     it "adds nature magic bonus to healing spells" do

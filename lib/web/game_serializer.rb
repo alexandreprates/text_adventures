@@ -48,6 +48,10 @@ module TextAdventures
             current: player.health.current,
             max: player.health.max
           },
+          mana: {
+            current: player.mana.current,
+            max: player.mana.max
+          },
           gold: player.gold,
           current_class: player.current_class,
           level: player.overall_level,
@@ -108,6 +112,7 @@ module TextAdventures
             display_name: spell.display_name,
             level: spell.level,
             kind: spell.kind.to_s,
+            mp_cost: spell.mp_cost,
             description: spell.description
           }
         end
