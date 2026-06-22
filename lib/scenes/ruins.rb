@@ -201,8 +201,28 @@ module TextAdventures
       def no_spell_target(game, spell_name)
         spell = game.player.spells[Spell.normalize_name(spell_name)]
         return Response.new("You do not know #{spell_name}, and there is no enemy to target.") unless spell
+        return cast_noncombat_healing_spell(game, spell) if spell.healing?
+        return cast_noncombat_cure_spell(game, spell) if spell.cure?
 
         Response.new("You know #{spell.display_name}, but there is no enemy to target.")
+      end
+
+      def cast_noncombat_healing_spell(game, spell)
+        before = game.player.health.current
+        game.player.heal(spell.healing_range.begin + game.player.nature_magic_healing_bonus)
+        recovered = game.player.health.current - before
+        Response.new(
+          "You cast #{spell.display_name} and recover #{recovered} health.",
+          "[your health is now #{game.player.health.current}/#{game.player.health.max}]"
+        )
+      end
+
+      def cast_noncombat_cure_spell(game, spell)
+        cured_statuses = game.player.curable_statuses
+        game.player.clear_statuses(*cured_statuses)
+        return Response.new("You cast #{spell.display_name}, but there is nothing to cure.") if cured_statuses.empty?
+
+        Response.new("You cast #{spell.display_name} and remove #{status_list(cured_statuses)}.")
       end
 
       def resolve_battle_result(game, result)
@@ -311,6 +331,10 @@ module TextAdventures
           "[#{creature.display_name} HP: #{creature.health.current}/#{creature.health.max}]",
           "[#{game.player.name} HP: #{game.player.health.current}/#{game.player.health.max}]"
         )
+      end
+
+      def status_list(statuses)
+        statuses.map { |status| status.to_s.tr("_", " ") }.join(" and ")
       end
     end
   end

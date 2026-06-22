@@ -551,4 +551,26 @@ RSpec.describe TextAdventures::Scenes::Ruins do
 
     expect(game.handle("cast fireball")).to eq "You know Fireball, but there is no enemy to target."
   end
+
+  it "casts known healing and cure spells without an enemy target" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.learn_spell(TextAdventures::Spell.cure)
+    game.player.take_damage(12)
+    game.player.apply_status(:poison)
+
+    expect(game.handle("cast heal")).to eq <<~TEXT.chomp
+      You cast Heal and recover 10 health.
+      [your health is now 28/30]
+    TEXT
+    expect(game.player.health.current).to eq 28
+
+    expect(game.handle("cast cure")).to eq "You cast Cure and remove poison."
+    expect(game.player).to_not be_status(:poison)
+  end
+
+  it "reports when casting Cure without curable statuses outside combat" do
+    game.player.learn_spell(TextAdventures::Spell.cure)
+
+    expect(game.handle("cast cure")).to eq "You cast Cure, but there is nothing to cure."
+  end
 end
