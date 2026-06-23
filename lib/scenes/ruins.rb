@@ -216,6 +216,7 @@ module TextAdventures
         before = game.player.health.current
         game.player.heal(spell.healing_range.begin + game.player.nature_magic_healing_bonus)
         recovered = game.player.health.current - before
+        game.player.gain_skill_xp(:nature_magic, recovered) if recovered.positive?
         Response.new(
           "You cast #{spell.display_name} and recover #{recovered} health.",
           "[your health is now #{game.player.health.current}/#{game.player.health.max}]"

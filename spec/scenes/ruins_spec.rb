@@ -581,6 +581,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     TEXT
     expect(game.player.health.current).to eq 28
     expect(game.player.mana.current).to eq 8
+    expect(game.player.skill_experience[:nature_magic]).to eq 10
 
     expect(game.handle("cast cure")).to eq "You cast Cure and remove poison."
     expect(game.player).to_not be_status(:poison)
