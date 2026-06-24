@@ -92,7 +92,7 @@ RSpec.describe TextAdventures::Scenes::Priest do
     game.player.inventory.add(tome)
     game.player.inventory.add(potion)
 
-    expect(game.handle("sell tome of heal")).to include "I can give you 17g for this Tome of Heal."
+    expect(game.handle("sell tome of heal")).to include "I can give you 3g for this Tome of Heal."
     expect(game.handle("no")).to eq "Maybe another time."
     expect(game.handle("sell potion of heal")).to eq "Sorry bud, but I have no interest in this item."
   end

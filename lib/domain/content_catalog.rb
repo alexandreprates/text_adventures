@@ -210,11 +210,12 @@ module TextAdventures
 
       rare_item_ids = rare&.fetch("items", nil) || definition.fetch("loot", [])
       Creature::LootProfile.new(
-        common_chance: common&.fetch("chance", 0).to_i,
+        common_chance: common&.fetch("chance", 0).to_f,
         common_items: items(common&.fetch("items", []) || []),
-        rare_chance: rare&.fetch("chance", 0).to_i,
+        rare_chance: rare&.fetch("chance", 0).to_f,
         rare_items: items(rare_item_ids),
-        gold_range: build_gold_range(gold)
+        gold_range: build_gold_range(gold),
+        gold_chance: gold&.fetch("chance", 0).to_f
       )
     end
 

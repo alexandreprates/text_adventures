@@ -9,7 +9,15 @@ module TextAdventures
         command_name == Creature.normalize_name(query)
       end
     end
-    LootProfile = Struct.new(:common_chance, :common_items, :rare_chance, :rare_items, :gold_range, keyword_init: true)
+    LootProfile = Struct.new(
+      :common_chance,
+      :common_items,
+      :rare_chance,
+      :rare_items,
+      :gold_range,
+      :gold_chance,
+      keyword_init: true
+    )
 
     attr_reader :name, :display_name, :health, :attacks, :defense, :xp_reward,
                 :loot_table, :loot_profile, :status_effects, :active_statuses
@@ -46,7 +54,8 @@ module TextAdventures
         common_items: [],
         rare_chance: 100,
         rare_items: loot_table,
-        gold_range: 0..0
+        gold_range: 0..0,
+        gold_chance: 0
       )
       @status_effects = status_effects.freeze
       @active_statuses = active_statuses.map { |status| normalize_status(status) }.uniq

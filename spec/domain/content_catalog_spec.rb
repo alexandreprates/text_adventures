@@ -130,9 +130,10 @@ RSpec.describe TextAdventures::ContentCatalog do
       )
       expect(creature.loot_table.map(&:display_name)).to eq ["Tome of Freezing"]
       expect(creature.loot_profile).to have_attributes(
-        common_chance: 85,
-        rare_chance: 10,
-        gold_range: 1..6
+        common_chance: 1.0,
+        rare_chance: 0.5,
+        gold_range: 1..1,
+        gold_chance: 1.0
       )
       expect(creature.loot_profile.common_items.map(&:display_name)).to eq ["Cracked Fang", "Torn Hide"]
       expect(creature.loot_profile.rare_items.map(&:display_name)).to eq ["Tome of Freezing"]

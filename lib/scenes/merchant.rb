@@ -2,6 +2,7 @@ module TextAdventures
   module Scenes
     class Merchant
       Confirmation = Struct.new(:merchant, :action, :item, :price, keyword_init: true)
+      SELL_PRICE_RATE = 0.10
 
       attr_reader :name, :display_name, :stock, :accepted_types
 
@@ -54,7 +55,7 @@ module TextAdventures
       end
 
       def sell_price(item)
-        (item.price * 2 / 3.0).round
+        [1, (item.price * SELL_PRICE_RATE).round].max
       end
 
       private

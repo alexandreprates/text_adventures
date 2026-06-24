@@ -84,15 +84,15 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     sword = TextAdventures::Item.weapon("Sword", price: 15, attack: 10)
     game.player.inventory.add(sword)
 
-    expect(game.handle("sell sword")).to include "I can give you 10g for this Sword."
+    expect(game.handle("sell sword")).to include "I can give you 2g for this Sword."
     response = game.handle("agree")
 
     expect(response).to eq <<~TEXT.chomp
-      You sold Sword at 10g.
+      You sold Sword at 2g.
       [1x Sword removed from inventory]
-      [your gold is now 10]
+      [your gold is now 2]
     TEXT
-    expect(game.player.gold).to eq 10
+    expect(game.player.gold).to eq 2
     expect(game.player.inventory.quantity("sword")).to eq 0
   end
 

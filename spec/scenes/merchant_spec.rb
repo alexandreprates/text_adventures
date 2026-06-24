@@ -124,12 +124,12 @@ RSpec.describe TextAdventures::Scenes::Merchant do
 
     response = game.handle("sell sword")
 
-    expect(response).to include "I can give you 10g for this Sword."
+    expect(response).to include "I can give you 2g for this Sword."
     expect(game.pending_confirmation).to have_attributes(
       merchant: merchant,
       action: :sell,
       item: sword,
-      price: 10
+      price: 2
     )
   end
 
@@ -150,23 +150,23 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     response = game.handle("agree")
 
     expect(response).to eq <<~TEXT.chomp
-      You sold Sword at 10g.
+      You sold Sword at 2g.
       [1x Sword removed from inventory]
-      [your gold is now 10]
+      [your gold is now 2]
     TEXT
     expect(game.player.inventory.quantity("sword")).to eq 0
     expect(game.pending_confirmation).to be_nil
   end
 
   it "applies a combined trade with sold and bought items" do
-    game.player.gold = 40
+    game.player.gold = 48
     game.player.inventory.add(sword)
 
     response = game.handle("trade buy=spear;sell=sword")
 
     expect(response).to eq <<~TEXT.chomp
       Trade completed.
-      Sold for 10g.
+      Sold for 2g.
       [1x Sword removed from inventory]
       Bought for 50g.
       [1x Spear added to inventory]
@@ -179,22 +179,22 @@ RSpec.describe TextAdventures::Scenes::Merchant do
   end
 
   it "applies trade quantities in a combined trade" do
-    game.player.gold = 30
+    game.player.gold = 44
     game.player.inventory.add(sword, quantity: 3)
 
     response = game.handle("trade buy=spear;sell=sword:3")
 
     expect(response).to eq <<~TEXT.chomp
       Trade completed.
-      Sold for 30g.
+      Sold for 6g.
       [3x Sword removed from inventory]
       Bought for 50g.
       [1x Spear added to inventory]
-      [your gold is now 10]
+      [your gold is now 0]
     TEXT
     expect(game.player.inventory.quantity("sword")).to eq 0
     expect(game.player.inventory.quantity("spear")).to eq 1
-    expect(game.player.gold).to eq 10
+    expect(game.player.gold).to eq 0
   end
 
   it "rejects trade quantities above the player inventory" do

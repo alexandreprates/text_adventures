@@ -53,16 +53,16 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     game.player.inventory.add(TextAdventures::ContentCatalog.item("potion_of_heal"))
 
     expect(game.handle("sell potion of heal")).to eq <<~TEXT.chomp
-      I can give you 7g for this Potion of Heal.
+      I can give you 1g for this Potion of Heal.
       Select your answer:
        agree - sell item
        no - keep item
     TEXT
 
     expect(game.handle("agree")).to eq <<~TEXT.chomp
-      You sold Potion of Heal at 7g.
+      You sold Potion of Heal at 1g.
       [1x Potion of Heal removed from inventory]
-      [your gold is now 7]
+      [your gold is now 1]
     TEXT
     expect(game.player.inventory.quantity("potion of heal")).to eq 5
   end

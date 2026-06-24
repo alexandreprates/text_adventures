@@ -157,11 +157,13 @@ module TextAdventures
       items << random_item(profile.common_items) if roll_chance?(profile.common_chance) && profile.common_items.any?
       items << random_item(profile.rare_items) if roll_chance?(profile.rare_chance) && profile.rare_items.any?
 
-      LootDrop.new(items: items.compact, gold: roll_gold(profile.gold_range))
+      gold = roll_chance?(profile.gold_chance) ? roll_gold(profile.gold_range) : 0
+      LootDrop.new(items: items.compact, gold: gold)
     end
 
     def roll_chance?(chance)
-      chance.to_i.positive? && random.rand(100) < chance.to_i
+      basis_points = (chance.to_f * 100).round
+      basis_points.positive? && random.rand(10_000) < basis_points
     end
 
     def random_item(items)
