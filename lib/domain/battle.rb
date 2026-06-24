@@ -299,6 +299,8 @@ module TextAdventures
 
     def counterattack_lines(player)
       attack = enemy_attack
+      return ["#{creature.display_name} attacks you with #{attack.name}, but you parry with your sword."] if sword_parry?(player)
+
       damage = counterattack_damage(player, attack)
       player.take_damage(damage)
 
@@ -329,6 +331,11 @@ module TextAdventures
       [raw_damage - reductions.sum { |_label, amount| amount }, 0].max
     end
 
+    def sword_parry?(player)
+      chance = player.sword_parry_chance
+      chance.positive? && random.rand(100) < chance
+    end
+
     def weapon_defense_reductions(player, raw_damage)
       remaining = raw_damage
       reductions = []
@@ -338,9 +345,6 @@ module TextAdventures
         reductions << ["brace with your spear", spear_reduction]
         remaining -= spear_reduction
       end
-
-      sword_reduction = [player.sword_parry_reduction, remaining].min
-      reductions << ["parry with your sword", sword_reduction] if sword_reduction.positive?
 
       reductions
     end

@@ -10,7 +10,7 @@ RSpec.describe TextAdventures::Battle do
   subject(:battle) { described_class.new(creature: creature, random: random) }
 
   let(:creature) { TextAdventures::Creature.giant_spider }
-  let(:random) { BattleSequenceRandom.new([99, 0]) }
+  let(:random) { BattleSequenceRandom.new([99, 0, 99, 0]) }
   let(:player) { TextAdventures::Character.new(equipped_armor: nil) }
 
   describe "#attack" do
@@ -47,7 +47,7 @@ RSpec.describe TextAdventures::Battle do
       defended_player = TextAdventures::Character.new
       exposed_player = TextAdventures::Character.new(equipped_armor: nil)
 
-      described_class.new(creature: heavy_attack, random: BattleSequenceRandom.new([99, 0, 0])).attack(defended_player)
+      described_class.new(creature: heavy_attack, random: BattleSequenceRandom.new([99, 0, 99, 0])).attack(defended_player)
       described_class.new(
         creature: TextAdventures::Creature.new(
           name: "Training Brute",
@@ -56,7 +56,7 @@ RSpec.describe TextAdventures::Battle do
             TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 20..20)
           ]
         ),
-        random: BattleSequenceRandom.new([99, 0, 0])
+        random: BattleSequenceRandom.new([99, 0, 99, 0])
       ).attack(exposed_player)
 
       expect(defended_player.health.current).to eq 12
@@ -85,7 +85,7 @@ RSpec.describe TextAdventures::Battle do
       expect(creature).to be_dead
     end
 
-    it "lets skilled sword users parry counterattack damage" do
+    it "lets sword users parry a counterattack when the parry roll succeeds" do
       creature = TextAdventures::Creature.new(
         name: "Training Brute",
         health: 30,
@@ -102,10 +102,9 @@ RSpec.describe TextAdventures::Battle do
 
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Training Brute causing 11 of damage.
-        Training Brute attacks you with Heavy Swing causing 9 of damage.
-        You parry with your sword, reducing the damage by 1.
+        Training Brute attacks you with Heavy Swing, but you parry with your sword.
       TEXT
-      expect(player.health.current).to eq 26
+      expect(player.health.current).to eq 35
     end
 
     it "lets spears brace against the first counterattack" do
@@ -154,6 +153,7 @@ RSpec.describe TextAdventures::Battle do
 
     it "ends the battle when the creature dies without counterattacking" do
       strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil, equipped_armor: nil)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0, 0, 0]))
 
       response = battle.attack(strong_player)
 
@@ -192,7 +192,7 @@ RSpec.describe TextAdventures::Battle do
     it "applies poison from poison bite when the status roll succeeds" do
       poison_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([99, 1, 0])
+        random: BattleSequenceRandom.new([99, 1, 99, 0, 0])
       )
 
       response = poison_battle.attack(player)
@@ -267,7 +267,7 @@ RSpec.describe TextAdventures::Battle do
     it "counterattacks when Ice Bolt does not freeze" do
       no_freeze_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([99, 0])
+        random: BattleSequenceRandom.new([99, 0, 99, 0])
       )
 
       response = no_freeze_battle.cast_spell(player, TextAdventures::Spell.ice_bolt)
@@ -294,7 +294,7 @@ RSpec.describe TextAdventures::Battle do
       player.gain_skill_xp(:combat_magic, 50)
       battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([0])
+        random: BattleSequenceRandom.new([0, 99, 0])
       )
 
       response = battle.cast_spell(player, TextAdventures::Spell.fireball)
@@ -308,7 +308,7 @@ RSpec.describe TextAdventures::Battle do
     it "casts Heal to restore player health during battle" do
       healing_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([0])
+        random: BattleSequenceRandom.new([0, 99, 0])
       )
       player.take_damage(12)
 
@@ -326,7 +326,7 @@ RSpec.describe TextAdventures::Battle do
       player.gain_skill_xp(:nature_magic, 50)
       healing_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([0])
+        random: BattleSequenceRandom.new([0, 99, 0])
       )
       player.take_damage(20)
 
@@ -342,7 +342,7 @@ RSpec.describe TextAdventures::Battle do
     it "casts Cure to remove poison during battle" do
       cure_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([0])
+        random: BattleSequenceRandom.new([0, 99, 0])
       )
       player.apply_status(:poison)
 
@@ -360,7 +360,7 @@ RSpec.describe TextAdventures::Battle do
     it "casts Cure to remove every curable player debuff during battle" do
       cure_battle = described_class.new(
         creature: creature,
-        random: BattleSequenceRandom.new([0])
+        random: BattleSequenceRandom.new([0, 99, 0])
       )
       player.apply_status(:poison)
       player.apply_status(:disease)

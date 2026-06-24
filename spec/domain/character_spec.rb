@@ -347,6 +347,17 @@ RSpec.describe TextAdventures::Character do
       expect(character.dagger_double_attack_chance).to eq 20
     end
 
+    it "increases sword parry chance with swordsmanship" do
+      sword = TextAdventures::Item.weapon("Longsword", price: 75, attack: 18, weapon_class: :sword)
+      character.equip(sword)
+
+      expect(character.sword_parry_chance).to eq 10
+
+      character.gain_skill_xp(:swordsmanship, 50)
+
+      expect(character.sword_parry_chance).to eq 15
+    end
+
     it "adds magic skill bonuses" do
       character.gain_skill_xp(:combat_magic, 50)
       character.gain_skill_xp(:nature_magic, 50)

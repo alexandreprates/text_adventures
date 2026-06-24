@@ -209,7 +209,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   it "switches to active encounter behavior while a creature is present" do
     game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
-      random: RuinsSequenceRandom.new([99, 0])
+      random: RuinsSequenceRandom.new([99, 0, 99, 0])
     )
 
     expect(game.handle("look")).to eq <<~TEXT.chomp
@@ -227,7 +227,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
   it "attacks during active encounters and keeps battle active while the creature lives" do
     game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
-      random: RuinsSequenceRandom.new([99, 0])
+      random: RuinsSequenceRandom.new([99, 0, 99, 0])
     )
 
     expect(game.handle("attack")).to eq <<~TEXT.chomp
@@ -245,7 +245,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     game.player.learn_spell(TextAdventures::Spell.fireball)
     game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
-      random: RuinsSequenceRandom.new([0])
+      random: RuinsSequenceRandom.new([0, 99, 0])
     )
 
     expect(game.handle("cast fireball")).to eq <<~TEXT.chomp
@@ -285,7 +285,7 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     game.player.apply_status(:poison)
     game.battle = TextAdventures::Battle.new(
       creature: TextAdventures::Creature.giant_spider,
-      random: RuinsSequenceRandom.new([0, 0])
+      random: RuinsSequenceRandom.new([0, 99, 0, 0, 99, 0])
     )
 
     expect(game.handle("cast heal")).to eq <<~TEXT.chomp

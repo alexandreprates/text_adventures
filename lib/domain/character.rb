@@ -227,10 +227,10 @@ module TextAdventures
       15 + (skill_bonus(:dagger_mastery) * 5)
     end
 
-    def sword_parry_reduction
+    def sword_parry_chance
       return 0 unless equipped_weapon_class == :sword
 
-      skill_bonus(:swordsmanship)
+      10 + (skill_bonus(:swordsmanship) * 5)
     end
 
     def spear_brace_reduction
