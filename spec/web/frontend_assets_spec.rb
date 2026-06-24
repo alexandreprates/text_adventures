@@ -62,6 +62,12 @@ RSpec.describe "Frontend assets" do
     expect(html).to include('id="trade-sell-junk"')
     expect(html).to include('Sell all junk')
     expect(html).to include('CURRENT GOLD')
+    left_column = html.index('<aside class="left-column"')
+    center_column = html.index('<section class="center-column"', left_column)
+    character_panel = html.index('class="terminal-panel character-panel"', left_column)
+    log_panel = html.index('class="terminal-panel log-panel"', left_column)
+    expect(log_panel).to be > character_panel
+    expect(log_panel).to be < center_column
     right_column = html.index('<aside class="right-column">')
     inventory_panel = html.index('class="terminal-panel inventory-panel"', right_column)
     commands_panel = html.index('class="terminal-panel commands-panel"', right_column)
