@@ -244,17 +244,28 @@ module TextAdventures
 
         {
           "creature" => creature_snapshot(battle.creature),
-          "contributions" => battle.contributions.to_h { |skill, amount| [skill.to_s, amount] }
+          "contributions" => battle.contributions.to_h { |skill, amount| [skill.to_s, amount] },
+          "spear_brace_used" => battle.spear_brace_used,
+          "creature_bleed" => {
+            "turns" => battle.creature_bleed_turns,
+            "damage" => battle.creature_bleed_damage,
+            "skill" => battle.creature_bleed_skill&.to_s
+          }
         }
       end
 
       def battle_from(snapshot, random:)
         return nil unless snapshot
+        creature_bleed = snapshot.fetch("creature_bleed", {})
 
         Battle.new(
           creature: creature_from(snapshot.fetch("creature")),
           random: random,
-          contributions: snapshot.fetch("contributions", {})
+          contributions: snapshot.fetch("contributions", {}),
+          spear_brace_used: snapshot.fetch("spear_brace_used", false),
+          creature_bleed_turns: creature_bleed.fetch("turns", 0),
+          creature_bleed_damage: creature_bleed.fetch("damage", 0),
+          creature_bleed_skill: creature_bleed["skill"]
         )
       end
 

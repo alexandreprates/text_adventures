@@ -85,6 +85,79 @@ RSpec.describe TextAdventures::Battle do
       expect(creature).to be_dead
     end
 
+    it "lets skilled sword users parry counterattack damage" do
+      creature = TextAdventures::Creature.new(
+        name: "Training Brute",
+        health: 30,
+        attacks: [
+          TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 10..10)
+        ]
+      )
+      sword = TextAdventures::Item.weapon("Longsword", price: 75, attack: 8, weapon_class: :sword)
+      player = TextAdventures::Character.new(equipped_weapon: sword, equipped_armor: nil)
+      player.gain_skill_xp(:swordsmanship, 50)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Training Brute causing 11 of damage.
+        Training Brute attacks you with Heavy Swing causing 9 of damage.
+        You parry with your sword, reducing the damage by 1.
+      TEXT
+      expect(player.health.current).to eq 26
+    end
+
+    it "lets spears brace against the first counterattack" do
+      creature = TextAdventures::Creature.new(
+        name: "Training Brute",
+        health: 30,
+        attacks: [
+          TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 10..10)
+        ]
+      )
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 8, defense: 3, weapon_class: :spear)
+      player = TextAdventures::Character.new(equipped_weapon: spear, equipped_armor: nil)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Training Brute causing 9 of damage.
+        Training Brute attacks you with Heavy Swing causing 7 of damage.
+        You brace with your spear, reducing the damage by 3.
+      TEXT
+      expect(player.health.current).to eq 23
+    end
+
+    it "makes dagger attacks apply bleeding damage over time" do
+      creature = TextAdventures::Creature.new(
+        name: "Training Brute",
+        health: 30,
+        attacks: [
+          TextAdventures::Creature::Attack.new(name: "Heavy Swing", damage_range: 0..0)
+        ]
+      )
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 8, weapon_class: :dagger)
+      player = TextAdventures::Character.new(equipped_weapon: dagger, equipped_armor: nil)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0, 99, 0, 0]))
+
+      first_response = battle.attack(player)
+      second_response = battle.attack(player)
+
+      expect(first_response.to_response.to_text).to eq <<~TEXT.chomp
+        You attack a Training Brute causing 9 of damage.
+        Training Brute starts bleeding.
+        Training Brute attacks you with Heavy Swing causing 0 of damage.
+      TEXT
+      expect(second_response.to_response.to_text).to eq <<~TEXT.chomp
+        Bleed deals 2 damage.
+        You attack a Training Brute causing 9 of damage.
+        Training Brute attacks you with Heavy Swing causing 0 of damage.
+      TEXT
+      expect(creature.health.current).to eq 10
+    end
+
     it "ends the battle when the creature dies without counterattacking" do
       strong_player = TextAdventures::Character.new(base_attack: 40, equipped_weapon: nil, equipped_armor: nil)
 

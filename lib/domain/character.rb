@@ -221,6 +221,24 @@ module TextAdventures
       skill_bonus(:dagger_mastery) * 3
     end
 
+    def sword_parry_reduction
+      return 0 unless equipped_weapon_class == :sword
+
+      skill_bonus(:swordsmanship)
+    end
+
+    def spear_brace_reduction
+      return 0 unless equipped_weapon_class == :spear
+
+      equipment_value(equipped_weapon, :defense) + skill_bonus(:spearmanship)
+    end
+
+    def dagger_bleed_damage
+      return 0 unless equipped_weapon_class == :dagger
+
+      2 + skill_bonus(:dagger_mastery)
+    end
+
     def combat_magic_damage_bonus
       skill_bonus(:combat_magic) * 2
     end

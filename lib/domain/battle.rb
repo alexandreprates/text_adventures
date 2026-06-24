@@ -7,7 +7,9 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    attr_reader :creature, :random, :contributions
+    DAGGER_BLEED_TURNS = 2
+    attr_reader :creature, :random, :contributions,
+                :spear_brace_used, :creature_bleed_turns, :creature_bleed_damage, :creature_bleed_skill
 
     def self.enemy_damage_after_defense(raw_damage, defense)
       return 0 unless raw_damage.positive?
@@ -16,16 +18,29 @@ module TextAdventures
       [mitigated, 1].max
     end
 
-    def initialize(creature:, random: Random.new, contributions: {})
+    def initialize(
+      creature:,
+      random: Random.new,
+      contributions: {},
+      spear_brace_used: false,
+      creature_bleed_turns: 0,
+      creature_bleed_damage: 0,
+      creature_bleed_skill: nil
+    )
       @creature = creature
       @random = random
       @contributions = Hash.new(0)
+      @spear_brace_used = spear_brace_used
+      @creature_bleed_turns = creature_bleed_turns.to_i
+      @creature_bleed_damage = creature_bleed_damage.to_i
+      @creature_bleed_skill = creature_bleed_skill&.to_sym
       contributions.each { |skill, amount| @contributions[skill.to_sym] = amount.to_i }
     end
 
     def attack(player)
-      lines = poison_tick_lines(player)
+      lines = start_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
+      return victory_result(player, lines) if creature.dead?
 
       recovered_mana = player.recover_mana(0.5)
       damage = player_damage(player)
@@ -36,10 +51,9 @@ module TextAdventures
 
       lines << "[recovered #{recovered_mana} MP]" if recovered_mana.positive?
       lines << player_attack_line(damage, critical)
+      lines.concat dagger_bleed_lines(player) unless creature.dead?
       if creature.dead?
-        lines << "#{creature.display_name} dies."
-        lines.concat award_xp_lines(player)
-        return Result.new(lines: lines, finished?: true, loot: roll_loot)
+        return victory_result(player, lines)
       end
 
       lines.concat enemy_turn_lines(player)
@@ -59,8 +73,9 @@ module TextAdventures
     private
 
     def cast_damage_spell(player, spell)
-      lines = poison_tick_lines(player)
+      lines = start_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
+      return victory_result(player, lines) if creature.dead?
 
       player.spend_mana(spell.mp_cost)
       damage = spell_damage(player, spell)
@@ -70,9 +85,7 @@ module TextAdventures
 
       lines.concat spell_status_lines(spell)
       if creature.dead?
-        lines << "#{creature.display_name} dies."
-        lines.concat award_xp_lines(player)
-        return Result.new(lines: lines, finished?: true, loot: roll_loot)
+        return victory_result(player, lines)
       end
 
       lines.concat enemy_turn_lines(player)
@@ -82,8 +95,9 @@ module TextAdventures
     end
 
     def cast_healing_spell(player, spell)
-      lines = poison_tick_lines(player)
+      lines = start_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
+      return victory_result(player, lines) if creature.dead?
 
       player.spend_mana(spell.mp_cost)
       before = player.health.current
@@ -98,8 +112,9 @@ module TextAdventures
     end
 
     def cast_cure_spell(player, spell)
-      lines = poison_tick_lines(player)
+      lines = start_turn_lines(player)
       return player_defeat_result(lines) if player.dead?
+      return victory_result(player, lines) if creature.dead?
 
       player.spend_mana(spell.mp_cost)
       cured_statuses = player.curable_statuses
@@ -123,6 +138,12 @@ module TextAdventures
         loot: LootDrop.empty,
         player_defeated?: true
       )
+    end
+
+    def victory_result(player, lines)
+      lines << "#{creature.display_name} dies."
+      lines.concat award_xp_lines(player)
+      Result.new(lines: lines, finished?: true, loot: roll_loot)
     end
 
     def insufficient_mana_result(player, spell)
@@ -231,6 +252,18 @@ module TextAdventures
       random.rand(100) < CRITICAL_CHANCE + player.dagger_critical_bonus
     end
 
+    def dagger_bleed_lines(player)
+      damage = player.dagger_bleed_damage
+      return [] unless damage.positive?
+
+      already_bleeding = @creature_bleed_turns.positive?
+      @creature_bleed_turns = [@creature_bleed_turns, DAGGER_BLEED_TURNS].max
+      @creature_bleed_damage = [@creature_bleed_damage, damage].max
+      @creature_bleed_skill = weapon_skill(player.equipped_weapon)
+
+      already_bleeding ? [] : ["#{creature.display_name} starts bleeding."]
+    end
+
     def player_attack_line(damage, critical)
       suffix = critical ? " (critical hit)" : ""
       "You attack a #{creature.display_name} causing #{damage} of damage#{suffix}."
@@ -274,10 +307,11 @@ module TextAdventures
 
     def counterattack_lines(player)
       attack = enemy_attack
-      damage = self.class.enemy_damage_after_defense(enemy_attack_damage(attack), player.defense)
+      damage = counterattack_damage(player, attack)
       player.take_damage(damage)
 
       lines = ["#{creature.display_name} attacks you with #{attack.name} causing #{damage} of damage."]
+      lines.concat weapon_defense_lines
       if attack.status && random.rand(100) < attack.status_chance
         player.apply_status(attack.status)
         lines << "You are #{attack.status}ed."
@@ -293,8 +327,68 @@ module TextAdventures
       attack.damage_range.begin + random.rand(attack.damage_range.size)
     end
 
-    def poison_tick_lines(player)
-      player.tick_status_effects
+    def counterattack_damage(player, attack)
+      raw_damage = self.class.enemy_damage_after_defense(enemy_attack_damage(attack), player.defense)
+      reductions = weapon_defense_reductions(player, raw_damage)
+      @weapon_defense_lines = reductions.map do |label, amount|
+        "You #{label}, reducing the damage by #{amount}."
+      end
+
+      [raw_damage - reductions.sum { |_label, amount| amount }, 0].max
     end
+
+    def weapon_defense_reductions(player, raw_damage)
+      remaining = raw_damage
+      reductions = []
+
+      spear_reduction = spear_brace_reduction(player, remaining)
+      if spear_reduction.positive?
+        reductions << ["brace with your spear", spear_reduction]
+        remaining -= spear_reduction
+      end
+
+      sword_reduction = [player.sword_parry_reduction, remaining].min
+      reductions << ["parry with your sword", sword_reduction] if sword_reduction.positive?
+
+      reductions
+    end
+
+    def spear_brace_reduction(player, raw_damage)
+      return 0 if @spear_brace_used
+
+      reduction = [player.spear_brace_reduction, raw_damage].min
+      self.spear_brace_used = true if reduction.positive?
+      reduction
+    end
+
+    def weapon_defense_lines
+      @weapon_defense_lines || []
+    ensure
+      @weapon_defense_lines = []
+    end
+
+    def start_turn_lines(player)
+      player.tick_status_effects + creature_bleed_tick_lines
+    end
+
+    def creature_bleed_tick_lines
+      return [] unless @creature_bleed_turns.positive?
+
+      damage = @creature_bleed_damage
+      creature.take_damage(damage)
+      record_contribution(@creature_bleed_skill, damage)
+      self.creature_bleed_turns -= 1
+      clear_creature_bleed if @creature_bleed_turns.zero? || creature.dead?
+
+      ["Bleed deals #{damage} damage."]
+    end
+
+    def clear_creature_bleed
+      @creature_bleed_turns = 0
+      @creature_bleed_damage = 0
+      @creature_bleed_skill = nil
+    end
+
+    attr_writer :spear_brace_used, :creature_bleed_turns
   end
 end
