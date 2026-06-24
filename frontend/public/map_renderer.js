@@ -25,16 +25,47 @@ globalThis.DungeonMapRenderer = (() => {
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
   const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png";
-  const CLASS_SPRITE_COLUMNS = 16;
-  const CLASS_SPRITE_ROWS = 16;
   const CLASS_WALK_FRAME_COUNT = 4;
   const CLASS_WALK_FRAME_MS = 140;
   const PLAYER_WALK_ANIMATION_MS = CLASS_WALK_FRAME_COUNT * CLASS_WALK_FRAME_MS;
-  const CLASS_DIRECTION_OFFSETS = {
-    down: 0,
-    left: 4,
-    right: 8,
-    up: 12
+  const CLASS_SOURCE_COLUMNS = [
+    { x: 0, width: 91 },
+    { x: 91, width: 89 },
+    { x: 180, width: 87 },
+    { x: 267, width: 95 },
+    { x: 362, width: 101 },
+    { x: 463, width: 86 },
+    { x: 549, width: 88 },
+    { x: 637, width: 98 },
+    { x: 735, width: 85 },
+    { x: 820, width: 102 },
+    { x: 922, width: 99 },
+    { x: 1021, width: 87 },
+    { x: 1108, width: 92 }
+  ];
+  const CLASS_SOURCE_ROWS = [
+    { y: 0, height: 84 },
+    { y: 84, height: 80 },
+    { y: 164, height: 78 },
+    { y: 242, height: 79 },
+    { y: 321, height: 77 },
+    { y: 398, height: 77 },
+    { y: 475, height: 80 },
+    { y: 555, height: 75 },
+    { y: 630, height: 78 },
+    { y: 708, height: 80 },
+    { y: 788, height: 74 },
+    { y: 862, height: 77 },
+    { y: 939, height: 77 },
+    { y: 1016, height: 77 },
+    { y: 1093, height: 73 },
+    { y: 1166, height: 88 }
+  ];
+  const CLASS_DIRECTION_FRAME_COLUMNS = {
+    down: [0, 1, 2, 3],
+    left: [4, 5, 6, 5],
+    right: [7, 8, 9, 8],
+    up: [10, 11, 12, 11]
   };
   const CLASS_SPRITE_INDEXES = {
     adventurer: 0,
@@ -440,15 +471,33 @@ globalThis.DungeonMapRenderer = (() => {
     const key = classSpriteKey(playerClass);
     const index = CLASS_SPRITE_INDEXES[key] ?? CLASS_SPRITE_INDEXES.adventurer;
     const direction = normalizeDirection(playerDirection) || "down";
-    const directionOffset = CLASS_DIRECTION_OFFSETS[direction] || 0;
     const frameOffset = Math.max(0, Math.min(CLASS_WALK_FRAME_COUNT - 1, frame));
-    const sourceWidth = classSprites.naturalWidth / CLASS_SPRITE_COLUMNS;
-    const sourceHeight = classSprites.naturalHeight / CLASS_SPRITE_ROWS;
+    const columnIndex = CLASS_DIRECTION_FRAME_COLUMNS[direction][frameOffset];
+    const column = scaledClassSourceColumn(classSprites, columnIndex);
+    const row = scaledClassSourceRow(classSprites, index);
     return {
-      x: (directionOffset + frameOffset) * sourceWidth,
-      y: index * sourceHeight,
-      width: sourceWidth,
-      height: sourceHeight
+      x: column.x,
+      y: row.y,
+      width: column.width,
+      height: row.height
+    };
+  }
+
+  function scaledClassSourceColumn(classSprites, index) {
+    const scale = classSprites.naturalWidth / 1254;
+    const column = CLASS_SOURCE_COLUMNS[index] || CLASS_SOURCE_COLUMNS[0];
+    return {
+      x: column.x * scale,
+      width: column.width * scale
+    };
+  }
+
+  function scaledClassSourceRow(classSprites, index) {
+    const scale = classSprites.naturalHeight / 1254;
+    const row = CLASS_SOURCE_ROWS[index] || CLASS_SOURCE_ROWS[0];
+    return {
+      y: row.y * scale,
+      height: row.height * scale
     };
   }
 
