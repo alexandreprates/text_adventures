@@ -746,6 +746,7 @@ globalThis.DungeonMapRenderer = (() => {
     tilesetSourceColumns: TILESET_SOURCE_COLUMNS,
     tilesetSourceRows: TILESET_SOURCE_ROWS,
     tilesetPath: TILESET_PATH,
+    classSpritesheetPath: CLASS_SPRITESHEET_PATH,
     enemyManifestPath: ENEMY_MANIFEST_PATH
   };
 })();

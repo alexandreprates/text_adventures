@@ -22,6 +22,14 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/classes/sprites/mystic.png"))
   end
 
+  it "checks in the transparent animated player class spritesheet" do
+    spritesheet = File.binread(File.join(public_root, "assets/classes/class-spritesheet.png"), 33)
+
+    expect(spritesheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
+    expect(spritesheet.byteslice(16, 8).unpack("NN")).to eq([512, 512])
+    expect(spritesheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+  end
+
   it "wires the frontend to the JSON API endpoints" do
     html = File.read(File.join(public_root, "index.html"))
     javascript = File.read(File.join(public_root, "app.js"))
