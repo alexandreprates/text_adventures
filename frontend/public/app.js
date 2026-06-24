@@ -86,6 +86,9 @@ const elements = {
   locationArt: document.querySelector("#location-art"),
   mapCanvas: document.querySelector("#map-canvas"),
   mapGrid: document.querySelector("#map-grid"),
+  deathOverlay: document.querySelector("#death-overlay"),
+  deathRevive: document.querySelector("#death-revive"),
+  deathNewGame: document.querySelector("#death-new-game"),
   mapZoomIn: document.querySelector("#map-zoom-in"),
   mapZoomOut: document.querySelector("#map-zoom-out"),
   autoSpeedButtons: document.querySelectorAll(".map-speed-button[data-auto-speed]"),
@@ -532,6 +535,7 @@ function renderHeader(state) {
 }
 
 function renderMap(state) {
+  renderDeathOverlay(state);
   if (state.scene === "ruins" && state.dungeon?.viewport) {
     showCanvasMap(state);
     return;
@@ -548,6 +552,10 @@ function renderMap(state) {
 
   elements.mapGrid.textContent = (locationPanels[state.scene] || [state.scene_display_name || state.scene]).join("\n");
   if (LOCATION_ARTS[state.scene]) showLocationArt(state.scene);
+}
+
+function renderDeathOverlay(state) {
+  elements.deathOverlay.classList.toggle("hidden", !playerDefeated(state));
 }
 
 function showCanvasMap(state) {
@@ -1235,7 +1243,12 @@ function handleContextCommand(command) {
 
 function quickCommandsFor(state) {
   if (!state) return [];
-  if (playerDefeated(state)) return [["Recarregar", "reload", "primary"]];
+  if (playerDefeated(state)) {
+    return [
+      ["Reviver na Cidade", "reload", "primary"],
+      ["Novo Jogo", "new", "danger"]
+    ];
+  }
 
   if (state.pending?.confirmation) {
     return [
@@ -2242,6 +2255,9 @@ elements.commandInput.addEventListener("keydown", event => {
     recallCommand(1);
   }
 });
+
+elements.deathRevive.addEventListener("click", () => submitCommand("reload"));
+elements.deathNewGame.addEventListener("click", () => submitCommand("new"));
 
 elements.autoExploreToggle.addEventListener("click", () => {
   if (autoExplore.enabled) {

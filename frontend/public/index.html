@@ -141,6 +141,15 @@
                 aria-label="Dungeon map"
               ></canvas>
               <pre class="map-grid" id="map-grid" aria-live="polite"></pre>
+              <div class="death-overlay hidden" id="death-overlay" role="dialog" aria-labelledby="death-title" aria-modal="false">
+                <div class="death-window">
+                  <h3 id="death-title">Você Morreu!</h3>
+                  <div class="death-actions">
+                    <button id="death-revive" type="button">Reviver na Cidade</button>
+                    <button id="death-new-game" type="button">Novo Jogo</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         </section>

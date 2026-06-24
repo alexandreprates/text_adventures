@@ -471,26 +471,9 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function drawDeathOverlay(context, canvas) {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const panelWidth = Math.min(canvas.width - 32, 360);
-    const panelHeight = 78;
-    const panelX = centerX - (panelWidth / 2);
-    const panelY = centerY - (panelHeight / 2);
-
     context.save();
     context.fillStyle = "rgba(0, 0, 0, 0.68)";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "rgba(16, 0, 0, 0.9)";
-    context.fillRect(panelX, panelY, panelWidth, panelHeight);
-    context.strokeStyle = "#ff3333";
-    context.lineWidth = 3;
-    context.strokeRect(panelX + 1.5, panelY + 1.5, panelWidth - 3, panelHeight - 3);
-    context.fillStyle = "#ff3333";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.font = "42px VT323, monospace";
-    context.fillText("Voce Morreu!", centerX, centerY + 2);
     context.restore();
   }
 

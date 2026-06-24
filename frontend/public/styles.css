@@ -446,6 +446,67 @@ pre {
   max-height: none;
 }
 
+.death-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.death-window {
+  width: min(360px, calc(100% - 32px));
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 2px solid var(--red);
+  background: rgba(16, 0, 0, 0.92);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.68), inset 0 0 0 1px rgba(255, 51, 51, 0.24);
+  text-align: center;
+}
+
+.death-window h3 {
+  margin: 0;
+  color: var(--red);
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.death-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.death-actions button {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 8, 0.9);
+  color: var(--green);
+  font-size: var(--font-sm);
+  line-height: 1.1;
+}
+
+.death-actions button:first-child {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.death-actions button:last-child {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.death-actions button:hover,
+.death-actions button:focus-visible {
+  background: var(--panel-active);
+  color: var(--amber);
+}
+
 .location-art {
   display: none;
   width: 100%;
@@ -1135,6 +1196,10 @@ pre {
 
   .map-panel {
     min-height: 360px;
+  }
+
+  .death-actions {
+    grid-template-columns: 1fr;
   }
 
   .shop-overlay {
