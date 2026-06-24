@@ -565,7 +565,10 @@ function showCanvasMap(state) {
   elements.locationArt.style.transform = "";
   const mapRows = textRowsFromViewport(dungeon.viewport);
   elements.mapGrid.textContent = mapRows.join("\n");
-  dungeonMapRenderer.render(dungeon.viewport, { playerDead: playerDefeated(state) });
+  dungeonMapRenderer.render(dungeon.viewport, {
+    playerClass: state.player.current_class,
+    playerDead: playerDefeated(state)
+  });
   resizeCanvasMap();
 }
 
