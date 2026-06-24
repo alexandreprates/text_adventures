@@ -25,7 +25,7 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
   end
 
   it "shows the expanded weapon stock to a high-level player" do
-    game.player.gain_skill_xp(:swordsmanship, 3_200)
+    game.player.gain_skill_xp(:swordsmanship, 16_000)
 
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!

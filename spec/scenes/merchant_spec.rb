@@ -73,7 +73,7 @@ RSpec.describe TextAdventures::Scenes::Merchant do
     TEXT
     expect(gated_game.handle("buy halberd")).to eq "I do not have halberd for sale."
 
-    gated_game.player.gain_skill_xp(:spearmanship, 800)
+    gated_game.player.gain_skill_xp(:spearmanship, 4_000)
 
     expect(gated_game.handle("show")).to include "1x Halberd (Atk: 24, Def: 5) - 110g"
   end

@@ -32,7 +32,7 @@ module TextAdventures
     attr_reader :skill_experience
 
     def self.xp_required_for(level)
-      50 * level * level
+      250 * level * level
     end
 
     def initialize(skill_experience: {})

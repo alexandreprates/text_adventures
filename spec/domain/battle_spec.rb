@@ -76,7 +76,7 @@ RSpec.describe TextAdventures::Battle do
       creature = TextAdventures::Creature.new(name: "Training Shade", health: 20)
       dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 12, weapon_class: :dagger)
       player = TextAdventures::Character.new(equipped_weapon: dagger, equipped_armor: nil)
-      player.gain_skill_xp(:dagger_mastery, 50)
+      player.gain_skill_xp(:dagger_mastery, 250)
       battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([12]))
 
       response = battle.attack(player)
@@ -95,7 +95,7 @@ RSpec.describe TextAdventures::Battle do
       )
       sword = TextAdventures::Item.weapon("Longsword", price: 75, attack: 8, weapon_class: :sword)
       player = TextAdventures::Character.new(equipped_weapon: sword, equipped_armor: nil)
-      player.gain_skill_xp(:swordsmanship, 50)
+      player.gain_skill_xp(:swordsmanship, 250)
       battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0]))
 
       response = battle.attack(player)
@@ -291,7 +291,7 @@ RSpec.describe TextAdventures::Battle do
     end
 
     it "adds combat magic bonus to offensive spell damage" do
-      player.gain_skill_xp(:combat_magic, 50)
+      player.gain_skill_xp(:combat_magic, 250)
       battle = described_class.new(
         creature: creature,
         random: BattleSequenceRandom.new([0, 99, 0])
@@ -323,7 +323,7 @@ RSpec.describe TextAdventures::Battle do
     end
 
     it "adds nature magic bonus to healing spells" do
-      player.gain_skill_xp(:nature_magic, 50)
+      player.gain_skill_xp(:nature_magic, 250)
       healing_battle = described_class.new(
         creature: creature,
         random: BattleSequenceRandom.new([0, 99, 0])

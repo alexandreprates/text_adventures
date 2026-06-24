@@ -26,14 +26,14 @@ RSpec.describe TextAdventures::Character do
     end
 
     it "derives max health from total class levels" do
-      progression = TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 50 })
+      progression = TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 250 })
       leveled_character = described_class.new(progression: progression)
 
       expect(leveled_character.health).to have_attributes(current: 35, max: 35)
     end
 
     it "derives max mana from magic skill and overall levels" do
-      progression = TextAdventures::CharacterProgression.new(skill_experience: { combat_magic: 50, nature_magic: 50 })
+      progression = TextAdventures::CharacterProgression.new(skill_experience: { combat_magic: 250, nature_magic: 250 })
       leveled_character = described_class.new(progression: progression)
 
       expect(leveled_character.mana).to have_attributes(current: 21, max: 21)
@@ -92,7 +92,7 @@ RSpec.describe TextAdventures::Character do
           equipped_weapon: weapon,
           equipped_armor: armor,
           inventory: inventory,
-          progression: TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 60 }),
+          progression: TextAdventures::CharacterProgression.new(skill_experience: { swordsmanship: 260 }),
           status_effects: [:poison, "disease", "poison"]
         }
       end
@@ -109,7 +109,7 @@ RSpec.describe TextAdventures::Character do
         )
         expect(character.health).to have_attributes(current: 12, max: 40)
         expect(character.mana).to have_attributes(current: 5, max: 18)
-        expect(character.skill_experience[:swordsmanship]).to eq 60
+        expect(character.skill_experience[:swordsmanship]).to eq 260
         expect(character.status_effects).to eq %i[poison disease]
       end
     end
@@ -157,17 +157,17 @@ RSpec.describe TextAdventures::Character do
 
   describe "#gain_skill_xp" do
     it "delegates XP gains to character progression" do
-      expect { character.gain_skill_xp(:spearmanship, 50) }
+      expect { character.gain_skill_xp(:spearmanship, 250) }
         .to change { character.skill_experience[:spearmanship] }
-        .from(0).to(50)
+        .from(0).to(250)
 
       expect(character.skill_levels[:spearmanship]).to eq 2
-      expect(character.overall_experience).to eq 50
+      expect(character.overall_experience).to eq 250
       expect(character.overall_level).to eq 2
     end
 
     it "increases max and current health when a class level increases" do
-      expect { character.gain_skill_xp(:spearmanship, 50) }
+      expect { character.gain_skill_xp(:spearmanship, 250) }
         .to change { [character.health.current, character.health.max] }
         .from([30, 30]).to([35, 35])
     end
@@ -175,27 +175,27 @@ RSpec.describe TextAdventures::Character do
     it "fully heals damaged characters when a class level increases" do
       character.take_damage(10)
 
-      expect { character.gain_skill_xp(:spearmanship, 50) }
+      expect { character.gain_skill_xp(:spearmanship, 250) }
         .to change { [character.health.current, character.health.max] }
         .from([20, 30]).to([35, 35])
     end
 
     it "does not change health when XP does not increase a class level" do
-      expect { character.gain_skill_xp(:spearmanship, 49) }
+      expect { character.gain_skill_xp(:spearmanship, 249) }
         .to_not change { [character.health.current, character.health.max] }
     end
 
     it "keeps explicitly configured max health independent from progression" do
       custom_character = described_class.new(health: 12, max_health: 40)
 
-      expect { custom_character.gain_skill_xp(:spearmanship, 50) }
+      expect { custom_character.gain_skill_xp(:spearmanship, 250) }
         .to_not change { custom_character.health.max }
     end
 
     it "tracks health through class name changes and class level increases" do
       character.take_damage(12)
 
-      character.gain_skill_xp(:swordsmanship, 49)
+      character.gain_skill_xp(:swordsmanship, 249)
       expect(character.current_class).to eq "Warlord"
       expect(character.progression.total_class_level).to eq 5
       expect(character.health).to have_attributes(current: 18, max: 30)
@@ -207,21 +207,21 @@ RSpec.describe TextAdventures::Character do
       expect(character.health).to have_attributes(current: 35, max: 35)
 
       character.take_damage(7)
-      character.gain_skill_xp(:combat_magic, 50)
+      character.gain_skill_xp(:combat_magic, 250)
       expect(character.current_class).to eq "Spellblade"
       expect(character.skill_levels.values_at(:swordsmanship, :combat_magic)).to eq [2, 2]
       expect(character.progression.total_class_level).to eq 7
       expect(character.health).to have_attributes(current: 40, max: 40)
 
       character.take_damage(15)
-      character.gain_skill_xp(:dagger_mastery, 200)
+      character.gain_skill_xp(:dagger_mastery, 1_000)
       expect(character.current_class).to eq "Duelist"
       expect(character.skill_levels[:dagger_mastery]).to eq 3
       expect(character.progression.total_class_level).to eq 9
       expect(character.health).to have_attributes(current: 50, max: 50)
 
       character.take_damage(20)
-      character.gain_skill_xp(:dagger_mastery, 250)
+      character.gain_skill_xp(:dagger_mastery, 1_250)
       expect(character.current_class).to eq "Nightblade"
       expect(character.skill_levels[:dagger_mastery]).to eq 4
       expect(character.progression.total_class_level).to eq 10
@@ -287,7 +287,7 @@ RSpec.describe TextAdventures::Character do
     end
 
     it "adds swordsmanship bonus when using swords" do
-      character.gain_skill_xp(:swordsmanship, 50)
+      character.gain_skill_xp(:swordsmanship, 250)
 
       expect(character.attack).to eq 13
     end
@@ -295,7 +295,7 @@ RSpec.describe TextAdventures::Character do
     it "adds a smaller spearmanship attack bonus when using spears" do
       spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 22, defense: 5, weapon_class: :spear)
       character.equip(spear)
-      character.gain_skill_xp(:spearmanship, 50)
+      character.gain_skill_xp(:spearmanship, 250)
 
       expect(character.attack).to eq 24
     end
@@ -315,7 +315,7 @@ RSpec.describe TextAdventures::Character do
     it "adds spear defense and spearmanship defense bonus when using spears" do
       spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 15, defense: 3, weapon_class: :spear)
       character.equip(spear)
-      character.gain_skill_xp(:spearmanship, 50)
+      character.gain_skill_xp(:spearmanship, 250)
 
       expect(character.defense).to eq 16
     end
@@ -331,7 +331,7 @@ RSpec.describe TextAdventures::Character do
     it "adds dagger mastery to critical chance" do
       dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 12, weapon_class: :dagger)
       character.equip(dagger)
-      character.gain_skill_xp(:dagger_mastery, 50)
+      character.gain_skill_xp(:dagger_mastery, 250)
 
       expect(character.dagger_critical_bonus).to eq 3
     end
@@ -342,7 +342,7 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.dagger_double_attack_chance).to eq 15
 
-      character.gain_skill_xp(:dagger_mastery, 50)
+      character.gain_skill_xp(:dagger_mastery, 250)
 
       expect(character.dagger_double_attack_chance).to eq 20
     end
@@ -353,7 +353,7 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.sword_parry_chance).to eq 10
 
-      character.gain_skill_xp(:swordsmanship, 50)
+      character.gain_skill_xp(:swordsmanship, 250)
 
       expect(character.sword_parry_chance).to eq 15
     end
@@ -365,15 +365,15 @@ RSpec.describe TextAdventures::Character do
       expect(character.spear_thrust_chance).to eq 15
       expect(character.spear_thrust_damage).to eq 4
 
-      character.gain_skill_xp(:spearmanship, 50)
+      character.gain_skill_xp(:spearmanship, 250)
 
       expect(character.spear_thrust_chance).to eq 20
       expect(character.spear_thrust_damage).to eq 5
     end
 
     it "adds magic skill bonuses" do
-      character.gain_skill_xp(:combat_magic, 50)
-      character.gain_skill_xp(:nature_magic, 50)
+      character.gain_skill_xp(:combat_magic, 250)
+      character.gain_skill_xp(:nature_magic, 250)
 
       expect(character.combat_magic_damage_bonus).to eq 2
       expect(character.nature_magic_healing_bonus).to eq 3
@@ -546,27 +546,27 @@ RSpec.describe TextAdventures::Character do
 
   describe "#level_report" do
     it "renders overall level and XP progress" do
-      character.gain_skill_xp(:swordsmanship, 60)
+      character.gain_skill_xp(:swordsmanship, 260)
 
       expect(character.level_report).to eq <<~TEXT.chomp
         Adventurer level 2
-        [60/200 XP]
+        [260/1000 XP]
       TEXT
     end
   end
 
   describe "#skills_report" do
     it "renders every skill track with XP progress" do
-      character.gain_skill_xp(:swordsmanship, 60)
+      character.gain_skill_xp(:swordsmanship, 260)
       character.gain_skill_xp(:combat_magic, 20)
 
       expect(character.skills_report).to eq <<~TEXT.chomp
         Skills:
-         Swordsmanship: level 2 (60/200 XP)
-         Spearmanship: level 1 (0/50 XP)
-         Dagger Mastery: level 1 (0/50 XP)
-         Combat Magic: level 1 (20/50 XP)
-         Nature Magic: level 1 (0/50 XP)
+         Swordsmanship: level 2 (260/1000 XP)
+         Spearmanship: level 1 (0/250 XP)
+         Dagger Mastery: level 1 (0/250 XP)
+         Combat Magic: level 1 (20/250 XP)
+         Nature Magic: level 1 (0/250 XP)
       TEXT
     end
   end

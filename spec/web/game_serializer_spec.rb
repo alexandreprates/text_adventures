@@ -47,7 +47,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
     expect(state.dig(:player, :skills, "swordsmanship")).to eq(
       level: 1,
       xp: 0,
-      next_level_xp: 50
+      next_level_xp: 250
     )
   end
 
@@ -81,7 +81,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
 
   it "serializes effective healing recovery for healing spells" do
     game.player.learn_spell(TextAdventures::Spell.heal)
-    game.player.gain_skill_xp(:nature_magic, 50)
+    game.player.gain_skill_xp(:nature_magic, 250)
 
     expect(state.dig(:player, :spells)).to include(
       hash_including(

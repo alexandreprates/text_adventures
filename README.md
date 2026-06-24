@@ -380,7 +380,7 @@ a spear and finished with Fireball, XP is split between `spearmanship` and
 Overall level is derived from total skill XP. The current level curve is:
 
 ```ruby
-xp_required_for(level) = 50 * level * level
+xp_required_for(level) = 250 * level * level
 ```
 
 Skill levels grant gameplay bonuses:
