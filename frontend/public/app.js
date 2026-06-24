@@ -1497,6 +1497,7 @@ function nextAutoExploreDecision(state) {
     return { stopReason: playerAlive(state) ? "stopped" : "dead" };
   }
   if (state.pending?.confirmation) return { stopReason: "unsafe confirmation" };
+  if (autoExploreShouldReturnForHealing(state)) return autoExploreReturnToTownForHealing(state);
 
   const healingAction = autoExploreHealingAction(state);
   if (healingAction) {
@@ -1606,6 +1607,37 @@ function nextDirectionAwayFromAutoExploreTarget(state, position) {
       !isLevelTransitionPosition(state, nextPosition)
     );
   }) || null;
+}
+
+function autoExploreShouldReturnForHealing(state) {
+  return (
+    autoExplore.goal === "explore" &&
+    !playerHasHealPotion(state) &&
+    !playerKnowsHealingSpell(state)
+  );
+}
+
+function playerHasHealPotion(state) {
+  return state.player.inventory.some(item => (
+    item.type === "potion" &&
+    item.name === "potion of heal" &&
+    (item.quantity || 0) > 0
+  ));
+}
+
+function playerKnowsHealingSpell(state) {
+  return state.player.spells.some(spell => spell.kind === "healing" || spell.name === "heal");
+}
+
+function autoExploreReturnToTownForHealing(state) {
+  autoExplore.goal = "town";
+  autoExplore.goalLevel = state.dungeon?.level ?? null;
+  autoExplore.continueAfterDescent = false;
+  autoExplore.continuousDescent = false;
+  autoExplore.currentPath = [];
+  autoExplore.destinationKey = null;
+  autoExplore.repeatCount = 0;
+  return nextAutoExploreGoalDecision(state);
 }
 
 function autoExploreDamageSpell(state) {
