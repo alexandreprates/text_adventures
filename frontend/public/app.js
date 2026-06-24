@@ -149,6 +149,11 @@ const COLLECTION_TITLES = {
   inventory: ["═══ INVENTARIO", "══"],
   spells: ["═══ MAGIAS", "════"]
 };
+const CONNECTION_STATUS_COLORS = {
+  online: "#33ff57",
+  request: "#ffdd00",
+  offline: "#ff3333"
+};
 const LOCATION_ARTS = {
   town: {
     src: "/assets/locations/village-hub.png",
@@ -341,6 +346,34 @@ function setStatus(text, error = false) {
   elements.serverStatus.dataset.status = status;
   elements.serverStatus.setAttribute("aria-label", label);
   elements.serverStatus.title = label;
+  drawConnectionIndicator(status);
+}
+
+function drawConnectionIndicator(status = "request") {
+  const canvas = elements.serverStatus;
+  const context = canvas?.getContext?.("2d");
+  if (!context) return;
+
+  const color = CONNECTION_STATUS_COLORS[status] || CONNECTION_STATUS_COLORS.request;
+  const { width, height } = canvas;
+  const centerX = width / 2;
+  const baseY = height * 0.72;
+
+  context.clearRect(0, 0, width, height);
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.lineWidth = 4;
+  context.lineCap = "round";
+
+  [22, 15, 8].forEach((radius) => {
+    context.beginPath();
+    context.arc(centerX, baseY, radius, Math.PI * 1.18, Math.PI * 1.82);
+    context.stroke();
+  });
+
+  context.beginPath();
+  context.arc(centerX, baseY + 3, 4, 0, Math.PI * 2);
+  context.fill();
 }
 
 function render(payload) {

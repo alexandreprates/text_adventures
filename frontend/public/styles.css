@@ -374,26 +374,9 @@ pre {
   z-index: 5;
   width: 30px;
   height: 30px;
-  display: grid;
-  place-items: center;
   border: 1px solid var(--border);
   background: rgba(8, 12, 8, 0.88);
-  color: var(--yellow);
-  font-size: var(--font-sm);
-  line-height: 1;
   pointer-events: none;
-}
-
-.connection-indicator[data-status="online"] {
-  color: var(--green);
-}
-
-.connection-indicator[data-status="request"] {
-  color: var(--yellow);
-}
-
-.connection-indicator[data-status="offline"] {
-  color: var(--red);
 }
 
 .map-zoom-controls {

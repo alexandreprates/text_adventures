@@ -70,14 +70,16 @@
               <h2 id="map-title">═══ Town ═══</h2>
             </div>
             <div class="map-stage" id="map-stage">
-              <span
+              <canvas
                 class="connection-indicator"
                 id="server-status"
+                width="60"
+                height="60"
                 data-status="request"
                 role="status"
                 aria-label="Connection request"
                 title="Connection request"
-              >🛜</span>
+              ></canvas>
               <div class="map-zoom-controls" aria-label="Map zoom controls">
                 <button
                   class="map-speed-button"
