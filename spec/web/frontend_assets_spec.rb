@@ -27,6 +27,11 @@ RSpec.describe "Frontend assets" do
 
     expect(html).to include('<link rel="stylesheet" href="/styles.css">')
     expect(html).to include('<canvas')
+    expect(html).not_to include('class="topbar"')
+    expect(html).to include('<span class="terminal-title">Text Adventures</span>')
+    expect(html).to include('class="connection-indicator"')
+    expect(html).to include('id="server-status"')
+    expect(html).to include('>🛜</span>')
     expect(html).to include('id="location-art"')
     expect(html).to include('src="/assets/locations/village-hub.png"')
     expect(html).to include('id="map-canvas"')

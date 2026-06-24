@@ -10,20 +10,9 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div class="topbar-left">
-          <span class="brand-icon" aria-hidden="true">☠</span>
-          <p class="eyebrow">Text Adventures</p>
-          <h1 class="sr-only" id="scene-title">Starting adventure</h1>
-          <span class="session-chip" id="game-id">[PARTIDA ----]</span>
-        </div>
-        <div class="topbar-right" aria-label="Run metrics">
-          <span class="metric" id="server-status">CONNECTING</span>
-          <span class="metric" id="clock">--:--:--</span>
-        </div>
-      </header>
-
       <nav class="terminal-tabs" aria-label="Game sections">
+        <span class="terminal-title">Text Adventures</span>
+        <h1 class="sr-only" id="scene-title">Starting adventure</h1>
         <button class="terminal-tab active" data-tab="inventory" type="button">[I]nventario</button>
         <button class="terminal-tab" data-tab="spells" type="button">[M]agias</button>
       </nav>
@@ -81,6 +70,14 @@
               <h2 id="map-title">═══ Town ═══</h2>
             </div>
             <div class="map-stage" id="map-stage">
+              <span
+                class="connection-indicator"
+                id="server-status"
+                data-status="request"
+                role="status"
+                aria-label="Connection request"
+                title="Connection request"
+              >🛜</span>
               <div class="map-zoom-controls" aria-label="Map zoom controls">
                 <button
                   class="map-speed-button"

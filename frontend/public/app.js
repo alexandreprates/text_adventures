@@ -76,9 +76,7 @@ const elements = {
   sceneTitle: document.querySelector("#scene-title"),
   mapTitle: document.querySelector("#map-title"),
   serverStatus: document.querySelector("#server-status"),
-  gameId: document.querySelector("#game-id"),
   characterClass: document.querySelector("#character-class"),
-  clock: document.querySelector("#clock"),
   healthBar: document.querySelector("#health-bar"),
   healthValue: document.querySelector("#health-value"),
   manaBar: document.querySelector("#mana-bar"),
@@ -332,8 +330,17 @@ function webSocketActionPayload(action) {
 }
 
 function setStatus(text, error = false) {
-  elements.serverStatus.textContent = text;
-  elements.serverStatus.classList.toggle("error", error);
+  const normalizedText = text.toLowerCase();
+  const status = error || normalizedText === "offline" ? "offline" :
+    normalizedText === "online" ? "online" :
+    "request";
+  const label = status === "online" ? "Connection online" :
+    status === "offline" ? "Connection offline" :
+    "Connection request";
+
+  elements.serverStatus.dataset.status = status;
+  elements.serverStatus.setAttribute("aria-label", label);
+  elements.serverStatus.title = label;
 }
 
 function render(payload) {
@@ -489,7 +496,6 @@ function updateGameUrl(gameId) {
 function renderHeader(state) {
   elements.sceneTitle.textContent = state.scene_display_name || state.scene;
   elements.mapTitle.textContent = `═══ ${state.prompt} ═══`;
-  elements.gameId.textContent = api.gameId ? `[PARTIDA #${api.gameId.slice(0, 4).toUpperCase()}]` : "[PARTIDA ----]";
 }
 
 function renderMap(state) {
@@ -2266,15 +2272,4 @@ function activateTopTab(index) {
   elements.terminalTabs.forEach((button, buttonIndex) => button.classList.toggle("active", buttonIndex === index));
 }
 
-function updateClock() {
-  if (!elements.clock) return;
-  elements.clock.textContent = new Date().toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-}
-
-updateClock();
-setInterval(updateClock, 1000);
 startGame();
