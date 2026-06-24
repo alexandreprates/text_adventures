@@ -2,8 +2,9 @@
 
 `class-spritesheet.png` contains transparent animated chibi pixel-art player class sprites.
 
-- Cell size: 32x32 px
+- Source size: 1254x1254 px
 - Layout: 16 columns x 16 rows
+- Source cell size is computed from the image dimensions at runtime.
 - Rows: Adventurer, Blademaster, Dragoon, Nightblade, Arcanist, Druid, Warlord, Duelist, Spellblade, Warden, Skirmisher, Battlemage, Sentinel, Hexblade, Ranger, Mystic
 - Columns 0-3: walking down
 - Columns 4-7: walking left

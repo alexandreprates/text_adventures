@@ -26,7 +26,7 @@ RSpec.describe "Frontend assets" do
     spritesheet = File.binread(File.join(public_root, "assets/classes/class-spritesheet.png"), 33)
 
     expect(spritesheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
-    expect(spritesheet.byteslice(16, 8).unpack("NN")).to eq([512, 512])
+    expect(spritesheet.byteslice(16, 8).unpack("NN")).to eq([1254, 1254])
     expect(spritesheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
   end
 
@@ -486,13 +486,13 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('"?": "fog"')
     expect(renderer).to include('portal: [7, 3]')
     expect(renderer).to include('const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png"')
-    expect(renderer).to include('const CLASS_SPRITE_SIZE = 32')
     expect(renderer).to include('const CLASS_SPRITE_COLUMNS = 16')
+    expect(renderer).to include('const CLASS_SPRITE_ROWS = 16')
     expect(renderer).to include('const CLASS_DIRECTION_OFFSETS = {')
     expect(renderer).to include('const CLASS_WALK_FRAME_COUNT = 4')
     expect(renderer).to include('mystic: 15')
     expect(renderer).to include('function drawPlayer(context, renderer, tileset, classSprites, player, playerClass, playerDirection)')
-    expect(renderer).to include('function classSpriteSourceRect(playerClass, playerDirection = "down", frame = 0)')
+    expect(renderer).to include('function classSpriteSourceRect(classSprites, playerClass, playerDirection = "down", frame = 0)')
     expect(renderer).to include('function classSpriteKey(playerClass)')
     expect(renderer).to include('animatePlayerWalk(direction)')
     expect(renderer).to include('function normalizeDirection(direction)')

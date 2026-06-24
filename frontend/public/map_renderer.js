@@ -25,8 +25,8 @@ globalThis.DungeonMapRenderer = (() => {
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
   const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png";
-  const CLASS_SPRITE_SIZE = 32;
   const CLASS_SPRITE_COLUMNS = 16;
+  const CLASS_SPRITE_ROWS = 16;
   const CLASS_WALK_FRAME_COUNT = 4;
   const CLASS_WALK_FRAME_MS = 140;
   const PLAYER_WALK_ANIMATION_MS = CLASS_WALK_FRAME_COUNT * CLASS_WALK_FRAME_MS;
@@ -421,8 +421,8 @@ globalThis.DungeonMapRenderer = (() => {
     }
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
-    const source = classSpriteSourceRect(playerClass, playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
-    const target = containedTileRect(CLASS_SPRITE_SIZE, CLASS_SPRITE_SIZE, player.x, player.y);
+    const source = classSpriteSourceRect(classSprites, playerClass, playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
+    const target = containedTileRect(source.width, source.height, player.x, player.y);
     context.drawImage(
       classSprites,
       source.x,
@@ -436,17 +436,19 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
-  function classSpriteSourceRect(playerClass, playerDirection = "down", frame = 0) {
+  function classSpriteSourceRect(classSprites, playerClass, playerDirection = "down", frame = 0) {
     const key = classSpriteKey(playerClass);
     const index = CLASS_SPRITE_INDEXES[key] ?? CLASS_SPRITE_INDEXES.adventurer;
     const direction = normalizeDirection(playerDirection) || "down";
     const directionOffset = CLASS_DIRECTION_OFFSETS[direction] || 0;
     const frameOffset = Math.max(0, Math.min(CLASS_WALK_FRAME_COUNT - 1, frame));
+    const sourceWidth = classSprites.naturalWidth / CLASS_SPRITE_COLUMNS;
+    const sourceHeight = classSprites.naturalHeight / CLASS_SPRITE_ROWS;
     return {
-      x: (directionOffset + frameOffset) * CLASS_SPRITE_SIZE,
-      y: index * CLASS_SPRITE_SIZE,
-      width: CLASS_SPRITE_SIZE,
-      height: CLASS_SPRITE_SIZE
+      x: (directionOffset + frameOffset) * sourceWidth,
+      y: index * sourceHeight,
+      width: sourceWidth,
+      height: sourceHeight
     };
   }
 
