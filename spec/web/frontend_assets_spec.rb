@@ -321,7 +321,7 @@ RSpec.describe "Frontend assets" do
     expect(javascript).to include('return `drop ${item.name}`')
     expect(javascript).to include('label: `${item.quantity || 1}x ${inventoryItemLabel(item)}`')
     expect(javascript).to include('meta: item.type || ""')
-    expect(javascript).to include('commandValue: spell.name')
+    expect(javascript).to include('commandValue: `cast ${spell.name}`')
     expect(javascript).to include('button.className = "collection-item-command"')
     expect(javascript).to include('button.addEventListener("click", () => fillCommandInput(details.commandValue || details.label))')
     expect(javascript).to include('function fillCommandInput(value)')

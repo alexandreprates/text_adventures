@@ -750,7 +750,7 @@ function renderCollections(player) {
     label: `${spell.display_name} Lv ${spell.level}`,
     meta: `${spell.mp_cost} MP`,
     type: spell.description,
-    commandValue: spell.name
+    commandValue: `cast ${spell.name}`
   }));
 }
 
