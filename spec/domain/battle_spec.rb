@@ -130,7 +130,7 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 23
     end
 
-    it "makes dagger attacks apply bleeding damage over time" do
+    it "lets daggers strike twice when the double attack roll succeeds" do
       creature = TextAdventures::Creature.new(
         name: "Training Brute",
         health: 30,
@@ -140,22 +140,16 @@ RSpec.describe TextAdventures::Battle do
       )
       dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 8, weapon_class: :dagger)
       player = TextAdventures::Character.new(equipped_weapon: dagger, equipped_armor: nil)
-      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0, 99, 0, 0]))
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0, 0]))
 
-      first_response = battle.attack(player)
-      second_response = battle.attack(player)
+      response = battle.attack(player)
 
-      expect(first_response.to_response.to_text).to eq <<~TEXT.chomp
+      expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Training Brute causing 9 of damage.
-        Training Brute starts bleeding.
+        You strike again with your dagger causing 9 of damage.
         Training Brute attacks you with Heavy Swing causing 0 of damage.
       TEXT
-      expect(second_response.to_response.to_text).to eq <<~TEXT.chomp
-        Bleed deals 2 damage.
-        You attack a Training Brute causing 9 of damage.
-        Training Brute attacks you with Heavy Swing causing 0 of damage.
-      TEXT
-      expect(creature.health.current).to eq 10
+      expect(creature.health.current).to eq 12
     end
 
     it "ends the battle when the creature dies without counterattacking" do

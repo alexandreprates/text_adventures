@@ -336,6 +336,17 @@ RSpec.describe TextAdventures::Character do
       expect(character.dagger_critical_bonus).to eq 3
     end
 
+    it "increases dagger double attack chance with dagger mastery" do
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 12, weapon_class: :dagger)
+      character.equip(dagger)
+
+      expect(character.dagger_double_attack_chance).to eq 15
+
+      character.gain_skill_xp(:dagger_mastery, 50)
+
+      expect(character.dagger_double_attack_chance).to eq 20
+    end
+
     it "adds magic skill bonuses" do
       character.gain_skill_xp(:combat_magic, 50)
       character.gain_skill_xp(:nature_magic, 50)

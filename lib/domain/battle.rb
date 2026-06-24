@@ -7,9 +7,7 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    DAGGER_BLEED_TURNS = 2
-    attr_reader :creature, :random, :contributions,
-                :spear_brace_used, :creature_bleed_turns, :creature_bleed_damage, :creature_bleed_skill
+    attr_reader :creature, :random, :contributions, :spear_brace_used
 
     def self.enemy_damage_after_defense(raw_damage, defense)
       return 0 unless raw_damage.positive?
@@ -22,18 +20,12 @@ module TextAdventures
       creature:,
       random: Random.new,
       contributions: {},
-      spear_brace_used: false,
-      creature_bleed_turns: 0,
-      creature_bleed_damage: 0,
-      creature_bleed_skill: nil
+      spear_brace_used: false
     )
       @creature = creature
       @random = random
       @contributions = Hash.new(0)
       @spear_brace_used = spear_brace_used
-      @creature_bleed_turns = creature_bleed_turns.to_i
-      @creature_bleed_damage = creature_bleed_damage.to_i
-      @creature_bleed_skill = creature_bleed_skill&.to_sym
       contributions.each { |skill, amount| @contributions[skill.to_sym] = amount.to_i }
     end
 
@@ -51,7 +43,7 @@ module TextAdventures
 
       lines << "[recovered #{recovered_mana} MP]" if recovered_mana.positive?
       lines << player_attack_line(damage, critical)
-      lines.concat dagger_bleed_lines(player) unless creature.dead?
+      lines.concat dagger_double_attack_lines(player) unless creature.dead?
       if creature.dead?
         return victory_result(player, lines)
       end
@@ -252,16 +244,16 @@ module TextAdventures
       random.rand(100) < CRITICAL_CHANCE + player.dagger_critical_bonus
     end
 
-    def dagger_bleed_lines(player)
-      damage = player.dagger_bleed_damage
-      return [] unless damage.positive?
+    def dagger_double_attack_lines(player)
+      chance = player.dagger_double_attack_chance
+      return [] unless chance.positive?
+      return [] unless random.rand(100) < chance
 
-      already_bleeding = @creature_bleed_turns.positive?
-      @creature_bleed_turns = [@creature_bleed_turns, DAGGER_BLEED_TURNS].max
-      @creature_bleed_damage = [@creature_bleed_damage, damage].max
-      @creature_bleed_skill = weapon_skill(player.equipped_weapon)
+      damage = player_damage(player)
+      creature.take_damage(damage)
+      record_contribution(weapon_skill(player.equipped_weapon), damage)
 
-      already_bleeding ? [] : ["#{creature.display_name} starts bleeding."]
+      ["You strike again with your dagger causing #{damage} of damage."]
     end
 
     def player_attack_line(damage, critical)
@@ -368,27 +360,9 @@ module TextAdventures
     end
 
     def start_turn_lines(player)
-      player.tick_status_effects + creature_bleed_tick_lines
+      player.tick_status_effects
     end
 
-    def creature_bleed_tick_lines
-      return [] unless @creature_bleed_turns.positive?
-
-      damage = @creature_bleed_damage
-      creature.take_damage(damage)
-      record_contribution(@creature_bleed_skill, damage)
-      self.creature_bleed_turns -= 1
-      clear_creature_bleed if @creature_bleed_turns.zero? || creature.dead?
-
-      ["Bleed deals #{damage} damage."]
-    end
-
-    def clear_creature_bleed
-      @creature_bleed_turns = 0
-      @creature_bleed_damage = 0
-      @creature_bleed_skill = nil
-    end
-
-    attr_writer :spear_brace_used, :creature_bleed_turns
+    attr_writer :spear_brace_used
   end
 end
