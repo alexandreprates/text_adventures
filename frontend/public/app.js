@@ -184,6 +184,7 @@ let currentState = null;
 let mapZoom = MAP_ZOOM_MAX;
 let messageLogLines = [];
 let combatFeedbackTimers = [];
+let playerFacingDirection = "down";
 const autoExplore = {
   enabled: false,
   timer: null,
@@ -567,6 +568,7 @@ function showCanvasMap(state) {
   elements.mapGrid.textContent = mapRows.join("\n");
   dungeonMapRenderer.render(dungeon.viewport, {
     playerClass: state.player.current_class,
+    playerDirection: playerFacingDirection,
     playerDead: playerDefeated(state)
   });
   resizeCanvasMap();
@@ -2187,8 +2189,12 @@ async function runCommand(command, options = {}) {
   if (!api.gameId) return;
   try {
     const action = actionFromCommand(command);
+    if (action.type === "move") playerFacingDirection = action.direction;
     setStatus("Sending");
     await api.sendAction(action);
+    if (action.type === "move") {
+      dungeonMapRenderer.animatePlayerWalk(action.direction);
+    }
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {

@@ -26,7 +26,16 @@ globalThis.DungeonMapRenderer = (() => {
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
   const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png";
   const CLASS_SPRITE_SIZE = 32;
-  const CLASS_SPRITE_COLUMNS = 4;
+  const CLASS_SPRITE_COLUMNS = 16;
+  const CLASS_WALK_FRAME_COUNT = 4;
+  const CLASS_WALK_FRAME_MS = 140;
+  const PLAYER_WALK_ANIMATION_MS = CLASS_WALK_FRAME_COUNT * CLASS_WALK_FRAME_MS;
+  const CLASS_DIRECTION_OFFSETS = {
+    down: 0,
+    left: 4,
+    right: 8,
+    up: 12
+  };
   const CLASS_SPRITE_INDEXES = {
     adventurer: 0,
     blademaster: 1,
@@ -128,6 +137,9 @@ globalThis.DungeonMapRenderer = (() => {
       enemiesReady: false,
       failed: false,
       animationFrame: null,
+      playerWalkFrame: null,
+      playerWalkStartedAt: null,
+      playerDirection: "down",
       enemyManifest: {},
       lastViewport: null,
       lastOptions: {},
@@ -189,6 +201,35 @@ globalThis.DungeonMapRenderer = (() => {
         if (renderer.animationFrame) cancelAnimationFrame(renderer.animationFrame);
         renderer.animationFrame = null;
         rerender(renderer);
+      },
+      animatePlayerWalk(direction) {
+        const playerDirection = normalizeDirection(direction);
+        if (!playerDirection || !renderer.lastViewport) return false;
+
+        renderer.playerDirection = playerDirection;
+        renderer.playerWalkStartedAt = performance.now();
+        if (renderer.playerWalkFrame) cancelAnimationFrame(renderer.playerWalkFrame);
+
+        function drawWalkFrame(now) {
+          renderer.render(renderer.lastViewport, {
+            ...renderer.lastOptions,
+            playerDirection
+          });
+
+          if (now - renderer.playerWalkStartedAt < PLAYER_WALK_ANIMATION_MS) {
+            renderer.playerWalkFrame = requestAnimationFrame(drawWalkFrame);
+          } else {
+            renderer.playerWalkFrame = null;
+            renderer.playerWalkStartedAt = null;
+            renderer.render(renderer.lastViewport, {
+              ...renderer.lastOptions,
+              playerDirection
+            });
+          }
+        }
+
+        renderer.playerWalkFrame = requestAnimationFrame(drawWalkFrame);
+        return true;
       }
     };
 
@@ -331,7 +372,7 @@ globalThis.DungeonMapRenderer = (() => {
         return;
       }
       if (entity.type === "player") {
-        drawPlayer(context, renderer, tileset, classSprites, entity, options.playerClass);
+        drawPlayer(context, renderer, tileset, classSprites, entity, options.playerClass, options.playerDirection);
         return;
       }
 
@@ -373,14 +414,14 @@ globalThis.DungeonMapRenderer = (() => {
     drawEntityTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
   }
 
-  function drawPlayer(context, renderer, tileset, classSprites, player, playerClass) {
+  function drawPlayer(context, renderer, tileset, classSprites, player, playerClass, playerDirection) {
     if (!renderer.classSpritesReady || !classSprites.complete || classSprites.naturalWidth <= 0) {
       drawEntityTile(context, renderer.ready ? tileset : null, "player", player.x, player.y);
       return;
     }
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
-    const source = classSpriteSourceRect(playerClass);
+    const source = classSpriteSourceRect(playerClass, playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
     const target = containedTileRect(CLASS_SPRITE_SIZE, CLASS_SPRITE_SIZE, player.x, player.y);
     context.drawImage(
       classSprites,
@@ -395,12 +436,15 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
-  function classSpriteSourceRect(playerClass) {
+  function classSpriteSourceRect(playerClass, playerDirection = "down", frame = 0) {
     const key = classSpriteKey(playerClass);
     const index = CLASS_SPRITE_INDEXES[key] ?? CLASS_SPRITE_INDEXES.adventurer;
+    const direction = normalizeDirection(playerDirection) || "down";
+    const directionOffset = CLASS_DIRECTION_OFFSETS[direction] || 0;
+    const frameOffset = Math.max(0, Math.min(CLASS_WALK_FRAME_COUNT - 1, frame));
     return {
-      x: (index % CLASS_SPRITE_COLUMNS) * CLASS_SPRITE_SIZE,
-      y: Math.floor(index / CLASS_SPRITE_COLUMNS) * CLASS_SPRITE_SIZE,
+      x: (directionOffset + frameOffset) * CLASS_SPRITE_SIZE,
+      y: index * CLASS_SPRITE_SIZE,
       width: CLASS_SPRITE_SIZE,
       height: CLASS_SPRITE_SIZE
     };
@@ -408,6 +452,17 @@ globalThis.DungeonMapRenderer = (() => {
 
   function classSpriteKey(playerClass) {
     return String(playerClass || "adventurer").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  }
+
+  function normalizeDirection(direction) {
+    return ["up", "right", "down", "left"].includes(direction) ? direction : null;
+  }
+
+  function playerWalkFrame(renderer) {
+    if (!renderer.playerWalkStartedAt) return 0;
+
+    const elapsed = performance.now() - renderer.playerWalkStartedAt;
+    return Math.floor(elapsed / CLASS_WALK_FRAME_MS) % CLASS_WALK_FRAME_COUNT;
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {
