@@ -107,7 +107,7 @@ RSpec.describe TextAdventures::Battle do
       expect(player.health.current).to eq 35
     end
 
-    it "lets spears brace against the first counterattack" do
+    it "lets spears add a thrust on the first attack when the thrust roll succeeds" do
       creature = TextAdventures::Creature.new(
         name: "Training Brute",
         health: 30,
@@ -117,16 +117,16 @@ RSpec.describe TextAdventures::Battle do
       )
       spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 8, defense: 3, weapon_class: :spear)
       player = TextAdventures::Character.new(equipped_weapon: spear, equipped_armor: nil)
-      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0]))
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0, 0, 0]))
 
       response = battle.attack(player)
 
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You attack a Training Brute causing 9 of damage.
-        Training Brute attacks you with Heavy Swing causing 7 of damage.
-        You brace with your spear, reducing the damage by 3.
+        You drive a precise thrust with your spear causing 4 of damage.
+        Training Brute attacks you with Heavy Swing causing 10 of damage.
       TEXT
-      expect(player.health.current).to eq 23
+      expect(creature.health.current).to eq 17
     end
 
     it "lets daggers strike twice when the double attack roll succeeds" do
@@ -396,11 +396,11 @@ RSpec.describe TextAdventures::Battle do
       expect(response.to_response.to_text).to eq <<~TEXT.chomp
         You cast Fireball causing 12 of damage.
         Arcane Dummy dies.
-        [66 XP gained in Spearmanship]
-        [34 XP gained in Combat Magic]
+        [69 XP gained in Spearmanship]
+        [31 XP gained in Combat Magic]
       TEXT
-      expect(player.skill_experience[:spearmanship]).to eq 66
-      expect(player.skill_experience[:combat_magic]).to eq 34
+      expect(player.skill_experience[:spearmanship]).to eq 69
+      expect(player.skill_experience[:combat_magic]).to eq 31
       expect(player.overall_experience).to eq 100
     end
   end

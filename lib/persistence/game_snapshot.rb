@@ -245,7 +245,7 @@ module TextAdventures
         {
           "creature" => creature_snapshot(battle.creature),
           "contributions" => battle.contributions.to_h { |skill, amount| [skill.to_s, amount] },
-          "spear_brace_used" => battle.spear_brace_used
+          "spear_thrust_used" => battle.spear_thrust_used
         }
       end
 
@@ -256,7 +256,7 @@ module TextAdventures
           creature: creature_from(snapshot.fetch("creature")),
           random: random,
           contributions: snapshot.fetch("contributions", {}),
-          spear_brace_used: snapshot.fetch("spear_brace_used", false)
+          spear_thrust_used: snapshot.fetch("spear_thrust_used", false)
         )
       end
 

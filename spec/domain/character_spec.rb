@@ -312,12 +312,12 @@ RSpec.describe TextAdventures::Character do
       expect(character.defense).to eq 12
     end
 
-    it "adds spearmanship defense bonus when using spears" do
+    it "adds spear defense and spearmanship defense bonus when using spears" do
       spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 15, defense: 3, weapon_class: :spear)
       character.equip(spear)
       character.gain_skill_xp(:spearmanship, 50)
 
-      expect(character.defense).to eq 13
+      expect(character.defense).to eq 16
     end
 
     it "falls back to base defense without equipped armor" do
@@ -356,6 +356,19 @@ RSpec.describe TextAdventures::Character do
       character.gain_skill_xp(:swordsmanship, 50)
 
       expect(character.sword_parry_chance).to eq 15
+    end
+
+    it "increases spear thrust chance and damage with spearmanship" do
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 15, defense: 3, weapon_class: :spear)
+      character.equip(spear)
+
+      expect(character.spear_thrust_chance).to eq 15
+      expect(character.spear_thrust_damage).to eq 4
+
+      character.gain_skill_xp(:spearmanship, 50)
+
+      expect(character.spear_thrust_chance).to eq 20
+      expect(character.spear_thrust_damage).to eq 5
     end
 
     it "adds magic skill bonuses" do

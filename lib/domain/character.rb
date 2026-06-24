@@ -233,10 +233,16 @@ module TextAdventures
       10 + (skill_bonus(:swordsmanship) * 5)
     end
 
-    def spear_brace_reduction
+    def spear_thrust_chance
       return 0 unless equipped_weapon_class == :spear
 
-      equipment_value(equipped_weapon, :defense) + skill_bonus(:spearmanship)
+      15 + (skill_bonus(:spearmanship) * 5)
+    end
+
+    def spear_thrust_damage
+      return 0 unless equipped_weapon_class == :spear
+
+      4 + skill_bonus(:spearmanship)
     end
 
     def combat_magic_damage_bonus
@@ -396,7 +402,7 @@ module TextAdventures
     def spear_defense_bonus
       return 0 unless equipped_weapon_class == :spear
 
-      skill_bonus(:spearmanship)
+      equipment_value(equipped_weapon, :defense) + skill_bonus(:spearmanship)
     end
 
     def skill_bonus(skill)

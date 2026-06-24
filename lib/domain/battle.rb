@@ -7,7 +7,7 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    attr_reader :creature, :random, :contributions, :spear_brace_used
+    attr_reader :creature, :random, :contributions, :spear_thrust_used
 
     def self.enemy_damage_after_defense(raw_damage, defense)
       return 0 unless raw_damage.positive?
@@ -20,12 +20,12 @@ module TextAdventures
       creature:,
       random: Random.new,
       contributions: {},
-      spear_brace_used: false
+      spear_thrust_used: false
     )
       @creature = creature
       @random = random
       @contributions = Hash.new(0)
-      @spear_brace_used = spear_brace_used
+      @spear_thrust_used = spear_thrust_used
       contributions.each { |skill, amount| @contributions[skill.to_sym] = amount.to_i }
     end
 
@@ -43,6 +43,7 @@ module TextAdventures
 
       lines << "[recovered #{recovered_mana} MP]" if recovered_mana.positive?
       lines << player_attack_line(damage, critical)
+      lines.concat spear_thrust_lines(player) unless creature.dead?
       lines.concat dagger_double_attack_lines(player) unless creature.dead?
       if creature.dead?
         return victory_result(player, lines)
@@ -256,6 +257,21 @@ module TextAdventures
       ["You strike again with your dagger causing #{damage} of damage."]
     end
 
+    def spear_thrust_lines(player)
+      chance = player.spear_thrust_chance
+      return [] unless chance.positive?
+      return [] if @spear_thrust_used
+
+      self.spear_thrust_used = true
+      return [] unless random.rand(100) < chance
+
+      damage = player.spear_thrust_damage
+      creature.take_damage(damage)
+      record_contribution(weapon_skill(player.equipped_weapon), damage)
+
+      ["You drive a precise thrust with your spear causing #{damage} of damage."]
+    end
+
     def player_attack_line(damage, critical)
       suffix = critical ? " (critical hit)" : ""
       "You attack a #{creature.display_name} causing #{damage} of damage#{suffix}."
@@ -305,7 +321,6 @@ module TextAdventures
       player.take_damage(damage)
 
       lines = ["#{creature.display_name} attacks you with #{attack.name} causing #{damage} of damage."]
-      lines.concat weapon_defense_lines
       if attack.status && random.rand(100) < attack.status_chance
         player.apply_status(attack.status)
         lines << "You are #{attack.status}ed."
@@ -322,13 +337,7 @@ module TextAdventures
     end
 
     def counterattack_damage(player, attack)
-      raw_damage = self.class.enemy_damage_after_defense(enemy_attack_damage(attack), player.defense)
-      reductions = weapon_defense_reductions(player, raw_damage)
-      @weapon_defense_lines = reductions.map do |label, amount|
-        "You #{label}, reducing the damage by #{amount}."
-      end
-
-      [raw_damage - reductions.sum { |_label, amount| amount }, 0].max
+      self.class.enemy_damage_after_defense(enemy_attack_damage(attack), player.defense)
     end
 
     def sword_parry?(player)
@@ -336,37 +345,10 @@ module TextAdventures
       chance.positive? && random.rand(100) < chance
     end
 
-    def weapon_defense_reductions(player, raw_damage)
-      remaining = raw_damage
-      reductions = []
-
-      spear_reduction = spear_brace_reduction(player, remaining)
-      if spear_reduction.positive?
-        reductions << ["brace with your spear", spear_reduction]
-        remaining -= spear_reduction
-      end
-
-      reductions
-    end
-
-    def spear_brace_reduction(player, raw_damage)
-      return 0 if @spear_brace_used
-
-      reduction = [player.spear_brace_reduction, raw_damage].min
-      self.spear_brace_used = true if reduction.positive?
-      reduction
-    end
-
-    def weapon_defense_lines
-      @weapon_defense_lines || []
-    ensure
-      @weapon_defense_lines = []
-    end
-
     def start_turn_lines(player)
       player.tick_status_effects
     end
 
-    attr_writer :spear_brace_used
+    attr_writer :spear_thrust_used
   end
 end

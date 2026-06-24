@@ -68,7 +68,7 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
       creature: creature,
       random: random,
       contributions: { swordsmanship: 12 },
-      spear_brace_used: true
+      spear_thrust_used: true
     )
     dungeon = TextAdventures::Dungeon.new(random: random)
     scene = TextAdventures::Scenes::Ruins.new(dungeon: dungeon)
@@ -86,7 +86,7 @@ RSpec.describe TextAdventures::Persistence::GameSnapshot do
     expect(loaded.battle.creature.health.current).to eq creature.health.current
     expect(loaded.battle.creature.active_statuses).to eq [:poison]
     expect(loaded.battle.contributions.fetch(:swordsmanship)).to eq 12
-    expect(loaded.battle.spear_brace_used).to be true
+    expect(loaded.battle.spear_thrust_used).to be true
     expect(loaded.active_enemy_position).to have_attributes(x: 3, y: 2)
   end
 
