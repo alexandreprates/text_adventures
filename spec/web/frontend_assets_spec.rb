@@ -481,6 +481,7 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('function entitySpriteTargetRect(tileset, tileName, x, y)')
     expect(renderer).to include('function enemySpriteTargetRect(tileset, image, x, y)')
     expect(renderer).to include('const height = playerTarget.height * ENEMY_HEIGHT_SCALE')
+    expect(renderer).to include('function scaledActorTargetRect(tileset, sourceWidth, sourceHeight, x, y)')
     expect(renderer).to include('function spriteTargetRect(tileset, tileName, sourceRect, x, y)')
     expect(renderer).to include('function containedTileRect(sourceWidth, sourceHeight, x, y)')
     expect(renderer).to include('drawEntityTile(context, renderer.ready ? tileset : null, tileName, entity.x, entity.y)')

@@ -412,7 +412,9 @@ globalThis.DungeonMapRenderer = (() => {
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
     const source = classSpriteSourceRect(playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
-    const target = containedTileRect(source.width, source.height, player.x, player.y);
+    const target = renderer.ready
+      ? scaledActorTargetRect(tileset, source.width, source.height, player.x, player.y)
+      : containedTileRect(source.width, source.height, player.x, player.y);
     context.drawImage(
       classImage,
       source.x,
@@ -661,9 +663,13 @@ globalThis.DungeonMapRenderer = (() => {
   }
 
   function enemySpriteTargetRect(tileset, image, x, y) {
+    return scaledActorTargetRect(tileset, image.naturalWidth, image.naturalHeight, x, y);
+  }
+
+  function scaledActorTargetRect(tileset, sourceWidth, sourceHeight, x, y) {
     const playerTarget = entitySpriteTargetRect(tileset, "player", x, y);
     const height = playerTarget.height * ENEMY_HEIGHT_SCALE;
-    const width = height * (image.naturalWidth / image.naturalHeight);
+    const width = height * (sourceWidth / sourceHeight);
 
     return {
       x: playerTarget.x + Math.round((playerTarget.width - width) / 2),
