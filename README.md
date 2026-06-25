@@ -59,6 +59,10 @@ Run the browser frontend and game API together:
 docker compose up --build
 ```
 
+The Compose stack bind-mounts the Ruby source, game data, and browser assets
+into the containers. After the first build, local code and frontend asset
+changes are visible from the running containers without rebuilding the images.
+
 Open:
 
 ```text

@@ -15,6 +15,12 @@ services:
       TEXT_ADVENTURES_SAVE_DIR: /text_adventures/storage/games
       TEXT_ADVENTURES_SAVE_HISTORY_LIMIT: ${TEXT_ADVENTURES_SAVE_HISTORY_LIMIT:-1}
     volumes:
+      - ./bin:/text_adventures/bin:ro
+      - ./data:/text_adventures/data:ro
+      - ./frontend:/text_adventures/frontend:ro
+      - ./lib:/text_adventures/lib:ro
+      - ./spec:/text_adventures/spec:ro
+      - ./Rakefile:/text_adventures/Rakefile:ro
       - ./storage/games:/text_adventures/storage/games
 
   web:
@@ -31,3 +37,6 @@ services:
           - text-adventures
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/public:/usr/share/nginx/html:ro
