@@ -33,9 +33,6 @@ globalThis.DungeonMapRenderer = (() => {
     right: 2,
     up: 3
   };
-  const CLASS_WALK_FRAME_COUNT = 4;
-  const CLASS_WALK_FRAME_MS = 140;
-  const PLAYER_WALK_ANIMATION_MS = CLASS_WALK_FRAME_COUNT * CLASS_WALK_FRAME_MS;
   const CLASS_SPRITE_INDEXES = {
     adventurer: 0,
     blademaster: 1,
@@ -136,8 +133,6 @@ globalThis.DungeonMapRenderer = (() => {
       enemiesReady: false,
       failed: false,
       animationFrame: null,
-      playerWalkFrame: null,
-      playerWalkStartedAt: null,
       playerDirection: "down",
       enemyManifest: {},
       lastViewport: null,
@@ -200,35 +195,6 @@ globalThis.DungeonMapRenderer = (() => {
         if (renderer.animationFrame) cancelAnimationFrame(renderer.animationFrame);
         renderer.animationFrame = null;
         rerender(renderer);
-      },
-      animatePlayerWalk(direction) {
-        const playerDirection = normalizeDirection(direction);
-        if (!playerDirection || !renderer.lastViewport) return false;
-
-        renderer.playerDirection = playerDirection;
-        renderer.playerWalkStartedAt = performance.now();
-        if (renderer.playerWalkFrame) cancelAnimationFrame(renderer.playerWalkFrame);
-
-        function drawWalkFrame(now) {
-          renderer.render(renderer.lastViewport, {
-            ...renderer.lastOptions,
-            playerDirection
-          });
-
-          if (now - renderer.playerWalkStartedAt < PLAYER_WALK_ANIMATION_MS) {
-            renderer.playerWalkFrame = requestAnimationFrame(drawWalkFrame);
-          } else {
-            renderer.playerWalkFrame = null;
-            renderer.playerWalkStartedAt = null;
-            renderer.render(renderer.lastViewport, {
-              ...renderer.lastOptions,
-              playerDirection
-            });
-          }
-        }
-
-        renderer.playerWalkFrame = requestAnimationFrame(drawWalkFrame);
-        return true;
       }
     };
 
@@ -411,7 +377,7 @@ globalThis.DungeonMapRenderer = (() => {
     }
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
-    const source = classSpriteSourceRect(playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
+    const source = classSpriteSourceRect(playerDirection || renderer.playerDirection);
     const target = renderer.ready
       ? scaledActorTargetRect(tileset, source.width, source.height, player.x, player.y)
       : containedTileRect(source.width, source.height, player.x, player.y);
@@ -428,12 +394,11 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
-  function classSpriteSourceRect(playerDirection = "down", frame = 0) {
+  function classSpriteSourceRect(playerDirection = "down") {
     const direction = normalizeDirection(playerDirection) || "down";
-    const frameOffset = Math.max(0, Math.min(CLASS_WALK_FRAME_COUNT - 1, frame));
     const rowIndex = CLASS_WALK_ROW_INDEXES[direction] ?? CLASS_WALK_ROW_INDEXES.down;
     return {
-      x: frameOffset * CLASS_SPRITE_WIDTH,
+      x: 0,
       y: rowIndex * CLASS_SPRITE_HEIGHT,
       width: CLASS_SPRITE_WIDTH,
       height: CLASS_SPRITE_HEIGHT
@@ -458,13 +423,6 @@ globalThis.DungeonMapRenderer = (() => {
 
   function normalizeDirection(direction) {
     return ["up", "right", "down", "left"].includes(direction) ? direction : null;
-  }
-
-  function playerWalkFrame(renderer) {
-    if (!renderer.playerWalkStartedAt) return 0;
-
-    const elapsed = performance.now() - renderer.playerWalkStartedAt;
-    return Math.floor(elapsed / CLASS_WALK_FRAME_MS) % CLASS_WALK_FRAME_COUNT;
   }
 
   function imageForEnemy(renderer, enemyImages, creatureId) {

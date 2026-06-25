@@ -2192,9 +2192,6 @@ async function runCommand(command, options = {}) {
     if (action.type === "move") playerFacingDirection = action.direction;
     setStatus("Sending");
     await api.sendAction(action);
-    if (action.type === "move") {
-      dungeonMapRenderer.animatePlayerWalk(action.direction);
-    }
     syncNavigationForCommand(command);
     setStatus("Online");
   } catch (error) {
