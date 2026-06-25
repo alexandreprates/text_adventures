@@ -379,8 +379,8 @@ globalThis.DungeonMapRenderer = (() => {
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
     const source = classSpriteSourceRect(playerDirection || renderer.playerDirection);
     const target = renderer.ready
-      ? scaledActorTargetRect(tileset, source.width, source.height, player.x, player.y)
-      : containedTileRect(source.width, source.height, player.x, player.y);
+      ? classSpriteTargetRect(tileset, source, player.x, player.y)
+      : unscaledTileActorTargetRect(source.width, source.height, player.x, player.y);
     context.drawImage(
       classImage,
       source.x,
@@ -624,6 +624,17 @@ globalThis.DungeonMapRenderer = (() => {
     return scaledActorTargetRect(tileset, image.naturalWidth, image.naturalHeight, x, y);
   }
 
+  function classSpriteTargetRect(tileset, source, x, y) {
+    const playerTarget = entitySpriteTargetRect(tileset, "player", x, y);
+
+    return {
+      x: playerTarget.x + Math.round((playerTarget.width - source.width) / 2),
+      y: playerTarget.y + playerTarget.height - source.height,
+      width: source.width,
+      height: source.height
+    };
+  }
+
   function scaledActorTargetRect(tileset, sourceWidth, sourceHeight, x, y) {
     const playerTarget = entitySpriteTargetRect(tileset, "player", x, y);
     const height = playerTarget.height * ENEMY_HEIGHT_SCALE;
@@ -646,6 +657,15 @@ globalThis.DungeonMapRenderer = (() => {
       y: tileOriginY(y) + (((sourceRect.y - sourceCell.y) / sourceCell.height) * TILE_HEIGHT),
       width: (sourceRect.width / sourceCell.width) * TILE_WIDTH,
       height: (sourceRect.height / sourceCell.height) * TILE_HEIGHT
+    };
+  }
+
+  function unscaledTileActorTargetRect(sourceWidth, sourceHeight, x, y) {
+    return {
+      x: tileOriginX(x) + Math.round((TILE_WIDTH - sourceWidth) / 2),
+      y: tileOriginY(y) + TILE_HEIGHT - sourceHeight,
+      width: sourceWidth,
+      height: sourceHeight
     };
   }
 
