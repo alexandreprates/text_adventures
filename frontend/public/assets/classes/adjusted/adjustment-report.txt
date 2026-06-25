@@ -1,16 +1,37 @@
-adventurer: non_empty_frames=48/48 min_alpha_pixels=1930 max_alpha_pixels=8673
-blademaster: non_empty_frames=48/48 min_alpha_pixels=2503 max_alpha_pixels=8083
-dragoon: non_empty_frames=48/48 min_alpha_pixels=2028 max_alpha_pixels=7616
-nightblade: non_empty_frames=48/48 min_alpha_pixels=2083 max_alpha_pixels=7183
-arcanist: non_empty_frames=48/48 min_alpha_pixels=4962 max_alpha_pixels=8059
-druid: non_empty_frames=48/48 min_alpha_pixels=4592 max_alpha_pixels=10055
-warlord: non_empty_frames=48/48 min_alpha_pixels=2919 max_alpha_pixels=9230
-duelist: non_empty_frames=48/48 min_alpha_pixels=2320 max_alpha_pixels=5840
-spellblade: non_empty_frames=48/48 min_alpha_pixels=501 max_alpha_pixels=7121
-warden: non_empty_frames=48/48 min_alpha_pixels=862 max_alpha_pixels=7635
-skirmisher: non_empty_frames=48/48 min_alpha_pixels=3732 max_alpha_pixels=7503
-battlemage: non_empty_frames=48/48 min_alpha_pixels=3491 max_alpha_pixels=8512
-sentinel: non_empty_frames=48/48 min_alpha_pixels=1084 max_alpha_pixels=7627
-hexblade: non_empty_frames=48/48 min_alpha_pixels=3399 max_alpha_pixels=8021
-ranger: non_empty_frames=48/48 min_alpha_pixels=548 max_alpha_pixels=8016
-mystic: non_empty_frames=48/48 min_alpha_pixels=3072 max_alpha_pixels=8240
+Manual validation report - 2026-06-25
+
+Scope:
+- Active class sheets: frontend/public/assets/classes/*.png
+- Adjusted class sheets: frontend/public/assets/classes/adjusted/*.png
+- Cell size: 127x149
+- Sheet size: 508x1788
+
+Validated:
+- Rows 0-3, the runtime walking rows used by map_renderer.js, were rebuilt from player_sheet.png.
+- Walk down, walk left, walk right, and walk up were reviewed visually for all 16 classes.
+- No rebuilt walking cell is empty or touches the cell border.
+- Walk left and walk right use opposite orientations.
+- Preview sprites were regenerated from the rebuilt first walking frame.
+
+Not approved:
+- Rows 4-11 still come from the generated source sheets and contain visible split/cut frames.
+- These rows should not be treated as validated attack or damage animations.
+- The current browser renderer does not consume rows 4-11.
+
+Per-class walking validation:
+- adventurer: passed
+- arcanist: passed
+- battlemage: passed
+- blademaster: passed
+- dragoon: passed
+- druid: passed
+- duelist: passed
+- hexblade: passed
+- mystic: passed
+- nightblade: passed
+- ranger: passed
+- sentinel: passed
+- skirmisher: passed
+- spellblade: passed
+- warden: passed
+- warlord: passed
