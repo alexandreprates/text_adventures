@@ -24,49 +24,18 @@ globalThis.DungeonMapRenderer = (() => {
   const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
-  const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png";
+  const CLASS_SPRITE_PATH_PREFIX = "/assets/classes/";
+  const CLASS_SPRITE_WIDTH = 127;
+  const CLASS_SPRITE_HEIGHT = 149;
+  const CLASS_WALK_ROW_INDEXES = {
+    down: 0,
+    left: 1,
+    right: 2,
+    up: 3
+  };
   const CLASS_WALK_FRAME_COUNT = 4;
   const CLASS_WALK_FRAME_MS = 140;
   const PLAYER_WALK_ANIMATION_MS = CLASS_WALK_FRAME_COUNT * CLASS_WALK_FRAME_MS;
-  const CLASS_SOURCE_COLUMNS = [
-    { x: 0, width: 91 },
-    { x: 91, width: 89 },
-    { x: 180, width: 87 },
-    { x: 267, width: 95 },
-    { x: 362, width: 101 },
-    { x: 463, width: 86 },
-    { x: 549, width: 88 },
-    { x: 637, width: 98 },
-    { x: 735, width: 85 },
-    { x: 820, width: 102 },
-    { x: 922, width: 99 },
-    { x: 1021, width: 87 },
-    { x: 1108, width: 92 }
-  ];
-  const CLASS_SOURCE_ROWS = [
-    { y: 0, height: 84 },
-    { y: 84, height: 80 },
-    { y: 164, height: 78 },
-    { y: 242, height: 79 },
-    { y: 321, height: 77 },
-    { y: 398, height: 77 },
-    { y: 475, height: 80 },
-    { y: 555, height: 75 },
-    { y: 630, height: 78 },
-    { y: 708, height: 80 },
-    { y: 788, height: 74 },
-    { y: 862, height: 77 },
-    { y: 939, height: 77 },
-    { y: 1016, height: 77 },
-    { y: 1093, height: 73 },
-    { y: 1166, height: 88 }
-  ];
-  const CLASS_DIRECTION_FRAME_COLUMNS = {
-    down: [0, 1, 2, 3],
-    left: [4, 5, 6, 5],
-    right: [7, 8, 9, 8],
-    up: [10, 11, 12, 11]
-  };
   const CLASS_SPRITE_INDEXES = {
     adventurer: 0,
     blademaster: 1,
@@ -160,11 +129,10 @@ globalThis.DungeonMapRenderer = (() => {
   function create(canvas) {
     const context = canvas?.getContext?.("2d");
     const tileset = new Image();
-    const classSprites = new Image();
+    const classImages = new Map();
     const enemyImages = new Map();
     const renderer = {
       ready: false,
-      classSpritesReady: false,
       enemiesReady: false,
       failed: false,
       animationFrame: null,
@@ -197,7 +165,7 @@ globalThis.DungeonMapRenderer = (() => {
             drawSymbol(context, tileset, renderer.ready, rows, symbol, x, y);
           });
         });
-        drawEntities(context, renderer, enemyImages, tileset, classSprites, entities, options);
+        drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options);
         if (options.playerDead) drawDeathOverlay(context, canvas);
 
         return true;
@@ -273,16 +241,6 @@ globalThis.DungeonMapRenderer = (() => {
       canvas.dispatchEvent(new CustomEvent("tileset:failed"));
     };
     tileset.src = TILESET_PATH;
-    classSprites.onload = () => {
-      renderer.classSpritesReady = true;
-      canvas.dispatchEvent(new CustomEvent("classes:ready"));
-      rerender(renderer);
-    };
-    classSprites.onerror = () => {
-      renderer.classSpritesReady = false;
-      canvas.dispatchEvent(new CustomEvent("classes:failed"));
-    };
-    classSprites.src = CLASS_SPRITESHEET_PATH;
     loadEnemyManifest(renderer, enemyImages, canvas);
 
     return renderer;
@@ -396,14 +354,14 @@ globalThis.DungeonMapRenderer = (() => {
       });
   }
 
-  function drawEntities(context, renderer, enemyImages, tileset, classSprites, entities, options) {
+  function drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options) {
     [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
       if (entity.type === "enemy") {
         drawEnemy(context, renderer, enemyImages, tileset, entity);
         return;
       }
       if (entity.type === "player") {
-        drawPlayer(context, renderer, tileset, classSprites, entity, options.playerClass, options.playerDirection);
+        drawPlayer(context, renderer, tileset, classImages, entity, options.playerClass, options.playerDirection);
         return;
       }
 
@@ -445,17 +403,18 @@ globalThis.DungeonMapRenderer = (() => {
     drawEntityTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
   }
 
-  function drawPlayer(context, renderer, tileset, classSprites, player, playerClass, playerDirection) {
-    if (!renderer.classSpritesReady || !classSprites.complete || classSprites.naturalWidth <= 0) {
+  function drawPlayer(context, renderer, tileset, classImages, player, playerClass, playerDirection) {
+    const classImage = imageForClass(renderer, classImages, playerClass);
+    if (!classImage?.complete || classImage.naturalWidth <= 0) {
       drawEntityTile(context, renderer.ready ? tileset : null, "player", player.x, player.y);
       return;
     }
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
-    const source = classSpriteSourceRect(classSprites, playerClass, playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
+    const source = classSpriteSourceRect(playerDirection || renderer.playerDirection, playerWalkFrame(renderer));
     const target = containedTileRect(source.width, source.height, player.x, player.y);
     context.drawImage(
-      classSprites,
+      classImage,
       source.x,
       source.y,
       source.width,
@@ -467,42 +426,32 @@ globalThis.DungeonMapRenderer = (() => {
     );
   }
 
-  function classSpriteSourceRect(classSprites, playerClass, playerDirection = "down", frame = 0) {
-    const key = classSpriteKey(playerClass);
-    const index = CLASS_SPRITE_INDEXES[key] ?? CLASS_SPRITE_INDEXES.adventurer;
+  function classSpriteSourceRect(playerDirection = "down", frame = 0) {
     const direction = normalizeDirection(playerDirection) || "down";
     const frameOffset = Math.max(0, Math.min(CLASS_WALK_FRAME_COUNT - 1, frame));
-    const columnIndex = CLASS_DIRECTION_FRAME_COLUMNS[direction][frameOffset];
-    const column = scaledClassSourceColumn(classSprites, columnIndex);
-    const row = scaledClassSourceRow(classSprites, index);
+    const rowIndex = CLASS_WALK_ROW_INDEXES[direction] ?? CLASS_WALK_ROW_INDEXES.down;
     return {
-      x: column.x,
-      y: row.y,
-      width: column.width,
-      height: row.height
-    };
-  }
-
-  function scaledClassSourceColumn(classSprites, index) {
-    const scale = classSprites.naturalWidth / 1254;
-    const column = CLASS_SOURCE_COLUMNS[index] || CLASS_SOURCE_COLUMNS[0];
-    return {
-      x: column.x * scale,
-      width: column.width * scale
-    };
-  }
-
-  function scaledClassSourceRow(classSprites, index) {
-    const scale = classSprites.naturalHeight / 1254;
-    const row = CLASS_SOURCE_ROWS[index] || CLASS_SOURCE_ROWS[0];
-    return {
-      y: row.y * scale,
-      height: row.height * scale
+      x: frameOffset * CLASS_SPRITE_WIDTH,
+      y: rowIndex * CLASS_SPRITE_HEIGHT,
+      width: CLASS_SPRITE_WIDTH,
+      height: CLASS_SPRITE_HEIGHT
     };
   }
 
   function classSpriteKey(playerClass) {
-    return String(playerClass || "adventurer").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    const key = String(playerClass || "adventurer").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    return Object.hasOwn(CLASS_SPRITE_INDEXES, key) ? key : "adventurer";
+  }
+
+  function imageForClass(renderer, classImages, playerClass) {
+    const key = classSpriteKey(playerClass);
+    if (classImages.has(key)) return classImages.get(key);
+
+    const image = new Image();
+    image.onload = () => rerender(renderer);
+    image.src = `${CLASS_SPRITE_PATH_PREFIX}${key}.png`;
+    classImages.set(key, image);
+    return image;
   }
 
   function normalizeDirection(direction) {
@@ -797,7 +746,7 @@ globalThis.DungeonMapRenderer = (() => {
     tilesetSourceColumns: TILESET_SOURCE_COLUMNS,
     tilesetSourceRows: TILESET_SOURCE_ROWS,
     tilesetPath: TILESET_PATH,
-    classSpritesheetPath: CLASS_SPRITESHEET_PATH,
+    classSpritePathPrefix: CLASS_SPRITE_PATH_PREFIX,
     enemyManifestPath: ENEMY_MANIFEST_PATH
   };
 })();

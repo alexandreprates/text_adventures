@@ -17,17 +17,28 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/locations/armorsmith-shop.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/temple-sanctuary.png"))
     expect(File).to exist(File.join(public_root, "assets/figma/dungeon-terminal-reference.png"))
-    expect(File).to exist(File.join(public_root, "assets/classes/class-spritesheet.png"))
+    expect(File).to exist(File.join(public_root, "assets/classes/adventurer.png"))
+    expect(File).to exist(File.join(public_root, "assets/classes/mystic.png"))
     expect(File).to exist(File.join(public_root, "assets/classes/sprites/adventurer.png"))
     expect(File).to exist(File.join(public_root, "assets/classes/sprites/mystic.png"))
   end
 
-  it "checks in the transparent animated player class spritesheet" do
-    spritesheet = File.binread(File.join(public_root, "assets/classes/class-spritesheet.png"), 33)
+  it "checks in transparent animated player class sheets with 127x149 frames" do
+    %w[
+      adventurer blademaster dragoon nightblade
+      arcanist druid warlord duelist
+      spellblade warden skirmisher battlemage
+      sentinel hexblade ranger mystic
+    ].each do |class_name|
+      sheet = File.binread(File.join(public_root, "assets/classes/#{class_name}.png"), 33)
+      preview = File.binread(File.join(public_root, "assets/classes/sprites/#{class_name}.png"), 33)
 
-    expect(spritesheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
-    expect(spritesheet.byteslice(16, 8).unpack("NN")).to eq([1254, 1254])
-    expect(spritesheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+      expect(sheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
+      expect(sheet.byteslice(16, 8).unpack("NN")).to eq([508, 1788])
+      expect(sheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+      expect(preview.byteslice(16, 8).unpack("NN")).to eq([127, 149])
+      expect(preview.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+    end
   end
 
   it "wires the frontend to the JSON API endpoints" do
@@ -485,19 +496,15 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('" ": "floor"')
     expect(renderer).to include('"?": "fog"')
     expect(renderer).to include('portal: [7, 3]')
-    expect(renderer).to include('const CLASS_SPRITESHEET_PATH = "/assets/classes/class-spritesheet.png"')
-    expect(renderer).to include('const CLASS_SOURCE_COLUMNS = [')
-    expect(renderer).to include('{ x: 1108, width: 92 }')
-    expect(renderer).to include('const CLASS_SOURCE_ROWS = [')
-    expect(renderer).to include('const CLASS_DIRECTION_FRAME_COLUMNS = {')
-    expect(renderer).to include('left: [4, 5, 6, 5]')
-    expect(renderer).to include('up: [10, 11, 12, 11]')
+    expect(renderer).to include('const CLASS_SPRITE_PATH_PREFIX = "/assets/classes/"')
+    expect(renderer).to include('const CLASS_SPRITE_WIDTH = 127')
+    expect(renderer).to include('const CLASS_SPRITE_HEIGHT = 149')
+    expect(renderer).to include('const CLASS_WALK_ROW_INDEXES = {')
     expect(renderer).to include('const CLASS_WALK_FRAME_COUNT = 4')
     expect(renderer).to include('mystic: 15')
-    expect(renderer).to include('function drawPlayer(context, renderer, tileset, classSprites, player, playerClass, playerDirection)')
-    expect(renderer).to include('function classSpriteSourceRect(classSprites, playerClass, playerDirection = "down", frame = 0)')
-    expect(renderer).to include('function scaledClassSourceColumn(classSprites, index)')
-    expect(renderer).to include('function scaledClassSourceRow(classSprites, index)')
+    expect(renderer).to include('function drawPlayer(context, renderer, tileset, classImages, player, playerClass, playerDirection)')
+    expect(renderer).to include('function classSpriteSourceRect(playerDirection = "down", frame = 0)')
+    expect(renderer).to include('function imageForClass(renderer, classImages, playerClass)')
     expect(renderer).to include('function classSpriteKey(playerClass)')
     expect(renderer).to include('animatePlayerWalk(direction)')
     expect(renderer).to include('function normalizeDirection(direction)')
@@ -515,8 +522,8 @@ RSpec.describe "Frontend assets" do
     expect(renderer).to include('drawDeathOverlay(context, canvas)')
     expect(renderer).not_to include('fillText("Voce Morreu!"')
     expect(renderer).to include('function rowsFromViewport(viewport)')
-    expect(renderer).to include('function drawEntities(context, renderer, enemyImages, tileset, classSprites, entities, options)')
-    expect(renderer).to include('drawEntities(context, renderer, enemyImages, tileset, classSprites, entities, options)')
+    expect(renderer).to include('function drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options)')
+    expect(renderer).to include('drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options)')
     expect(renderer).to include('const ENTITY_FALLBACK_COLORS')
     expect(renderer).to include('player: "#f8f5c7"')
     expect(renderer).to include('const ENTITY_TILES')

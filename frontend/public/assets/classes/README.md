@@ -1,13 +1,12 @@
 # Class Sprites
 
-`class-spritesheet.png` contains transparent animated chibi pixel-art player class sprites.
+This directory contains transparent animated chibi pixel-art player class sprites.
 
-- Source size: 1254x1254 px
-- Layout: 13 visual pose columns x 16 class rows
-- Source frame rectangles are measured at runtime from fixed crop metadata because the generated sheet does not use evenly spaced columns.
-- Rows: Adventurer, Blademaster, Dragoon, Nightblade, Arcanist, Druid, Warlord, Duelist, Spellblade, Warden, Skirmisher, Battlemage, Sentinel, Hexblade, Ranger, Mystic
-- Columns 0-3: walking down
-- Columns 4-6: walking left, with the center frame repeated for the 4-frame cycle
-- Columns 7-9: walking right, with the center frame repeated for the 4-frame cycle
-- Columns 10-12: walking up, with the center frame repeated for the 4-frame cycle
+- One class sheet per class: `<class>.png`
+- Source sheet size: 508x1788 px
+- Frame size: 127x149 px
+- Layout: 4 columns x 12 rows
+- Rows 0-3: walking down, left, right, up
+- Rows 4-7: attacking down, left, right, up
+- Rows 8-11: defeated/damage rows from the generated source
 - Individual first-frame sprite exports are kept in `sprites/` for inspection and future iteration.
