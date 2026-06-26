@@ -168,6 +168,48 @@ RSpec.describe TextAdventures::Battle do
       expect(strong_player.health.current).to eq 30
     end
 
+    it "raises junk loot drops to at least a forty percent chance" do
+      fang = TextAdventures::Item.junk("Cracked Fang", price: 2)
+      creature = TextAdventures::Creature.new(
+        name: "Spent Husk",
+        health: 0,
+        loot_profile: TextAdventures::Creature::LootProfile.new(
+          common_chance: 1,
+          common_items: [fang],
+          rare_chance: 0,
+          rare_items: [],
+          gold_range: 0..0,
+          gold_chance: 0
+        )
+      )
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([3999, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.loot.items).to eq [fang]
+    end
+
+    it "does not apply the junk loot minimum to non-junk drops" do
+      tome = TextAdventures::Item.tome("Tome of Sparks", price: 25, spell: "Fireball")
+      creature = TextAdventures::Creature.new(
+        name: "Spent Acolyte",
+        health: 0,
+        loot_profile: TextAdventures::Creature::LootProfile.new(
+          common_chance: 1,
+          common_items: [tome],
+          rare_chance: 0,
+          rare_items: [],
+          gold_range: 0..0,
+          gold_chance: 0
+        )
+      )
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([3999, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.loot).to be_empty
+    end
+
     it "awards victory XP to the equipped weapon skill" do
       creature = TextAdventures::Creature.new(
         name: "Training Shade",

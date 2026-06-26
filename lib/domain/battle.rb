@@ -7,6 +7,8 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
+    JUNK_DROP_CHANCE_MULTIPLIER = 1.3
+    JUNK_DROP_MINIMUM_CHANCE = 40
     attr_reader :creature, :random, :contributions, :spear_thrust_used
 
     def self.enemy_damage_after_defense(raw_damage, defense)
@@ -154,11 +156,21 @@ module TextAdventures
       return LootDrop.new(items: creature.loot_table) unless profile
 
       items = []
-      items << random_item(profile.common_items) if roll_chance?(profile.common_chance) && profile.common_items.any?
-      items << random_item(profile.rare_items) if roll_chance?(profile.rare_chance) && profile.rare_items.any?
+      items << random_item(profile.common_items) if roll_loot_items?(profile.common_chance, profile.common_items)
+      items << random_item(profile.rare_items) if roll_loot_items?(profile.rare_chance, profile.rare_items)
 
       gold = roll_chance?(profile.gold_chance) ? roll_gold(profile.gold_range) : 0
       LootDrop.new(items: items.compact, gold: gold)
+    end
+
+    def roll_loot_items?(chance, items)
+      items.any? && roll_chance?(adjusted_loot_chance(chance, items))
+    end
+
+    def adjusted_loot_chance(chance, items)
+      return chance unless items.all?(&:junk?)
+
+      [[chance.to_f * JUNK_DROP_CHANCE_MULTIPLIER, JUNK_DROP_MINIMUM_CHANCE].max, 100].min
     end
 
     def roll_chance?(chance)
