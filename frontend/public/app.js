@@ -149,8 +149,8 @@ const AUTO_EXPLORE_STEPS = {
   left: { x: -1, y: 0 }
 };
 const COLLECTION_TITLES = {
-  inventory: ["═══ INVENTARIO", "══"],
-  spells: ["═══ MAGIAS", "════"]
+  inventory: ["═══ INVENTORY", "══"],
+  spells: ["═══ SPELLS", "════"]
 };
 const CONNECTION_STATUS_COLORS = {
   online: "#33ff57",
@@ -1250,15 +1250,15 @@ function quickCommandsFor(state) {
   if (!state) return [];
   if (playerDefeated(state)) {
     return [
-      ["Reviver na Cidade", "reload", "primary"],
-      ["Novo Jogo", "new", "danger"]
+      ["Revive in Town", "reload", "primary"],
+      ["New Game", "new", "danger"]
     ];
   }
 
   if (state.pending?.confirmation) {
     return [
-      ["Confirmar", "agree", "primary"],
-      ["Cancelar", "no", "danger"]
+      ["Confirm", "agree", "primary"],
+      ["Cancel", "no", "danger"]
     ];
   }
 
@@ -1267,19 +1267,19 @@ function quickCommandsFor(state) {
   if (autoExplore.enabled) return autoExploreCommands(state);
 
   const travel = [
-    ["Cidade", "go town"],
-    ["Ruinas", "go ruins"],
-    ["Taverna", "go tavern"],
-    ["Templo", "go priest"],
-    ["Ferreiro", "go blacksmith"],
-    ["Armeiro", "go armorsmith"]
+    ["Town", "go town"],
+    ["Ruins", "go ruins"],
+    ["Tavern", "go tavern"],
+    ["Temple", "go priest"],
+    ["Blacksmith", "go blacksmith"],
+    ["Armorsmith", "go armorsmith"]
   ];
   const sceneCommands = {
-    town: travel.filter(([label]) => label !== "Cidade"),
-    tavern: [["Descansar", "rent room", "primary"], ["Loja", "shop", "primary"], ["Cidade", "go town"]],
-    priest: [["Curar", "heal", "primary"], ["Remover Status", "cure"], ["Loja", "shop", "primary"], ["Cidade", "go town"]],
-    blacksmith: [["Loja", "shop", "primary"], ["Cidade", "go town"]],
-    armorsmith: [["Loja", "shop", "primary"], ["Cidade", "go town"]]
+    town: travel.filter(([label]) => label !== "Town"),
+    tavern: [["Rest", "rent room", "primary"], ["Shop", "shop", "primary"], ["Town", "go town"]],
+    priest: [["Heal", "heal", "primary"], ["Cleanse", "cure"], ["Shop", "shop", "primary"], ["Town", "go town"]],
+    blacksmith: [["Shop", "shop", "primary"], ["Town", "go town"]],
+    armorsmith: [["Shop", "shop", "primary"], ["Town", "go town"]]
   };
 
   return sceneCommands[state.scene] || travel;
@@ -1287,7 +1287,7 @@ function quickCommandsFor(state) {
 
 function battleCommands(state) {
   return [
-    ["Atacar", "attack", "primary"],
+    ["Attack", "attack", "primary"],
     ...suggestedItemCommands(state.player)
   ];
 }
