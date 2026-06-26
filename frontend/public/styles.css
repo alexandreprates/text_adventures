@@ -369,7 +369,7 @@ pre {
 
 .connection-indicator {
   position: absolute;
-  top: 44px;
+  top: 8px;
   left: 8px;
   z-index: 5;
   width: 30px;
@@ -381,7 +381,7 @@ pre {
 
 .map-zoom-controls {
   position: absolute;
-  top: 44px;
+  top: 8px;
   right: 8px;
   z-index: 4;
   display: grid;
@@ -1110,13 +1110,13 @@ pre {
   }
 
   .connection-indicator {
-    top: 52px;
+    top: 10px;
     width: 36px;
     height: 36px;
   }
 
   .map-zoom-controls {
-    top: 52px;
+    top: 10px;
     grid-template-columns: repeat(3, 48px) repeat(2, 36px);
   }
 
@@ -1157,13 +1157,13 @@ pre {
   }
 
   .connection-indicator {
-    top: 62px;
+    top: 12px;
     width: 46px;
     height: 46px;
   }
 
   .map-zoom-controls {
-    top: 62px;
+    top: 12px;
     grid-template-columns: repeat(3, 58px) repeat(2, 46px);
   }
 
