@@ -21,35 +21,1028 @@ globalThis.DungeonMapRenderer = (() => {
   const TILE_HEIGHT = Math.round(TILE_WIDTH * (TILESET_REFERENCE_CELL.height / TILESET_REFERENCE_CELL.width));
   const TILE_REFERENCE_SIZE = 32;
   const ENEMY_HEIGHT_SCALE = 1.5;
+  const CLASS_SPRITE_SCALE = 0.49;
+  const CLASS_SPRITE_SCALE_OVERRIDES = {
+    battlemage: 0.62
+  };
   const ATTACK_ANIMATION_MS = 420;
   const TILESET_PATH = "/assets/tilesets/original-dungeon-tileset.png";
   const ENEMY_MANIFEST_PATH = "/assets/enemies/enemies.json";
-  const CLASS_SPRITE_PATH_PREFIX = "/assets/classes/";
-  const CLASS_SPRITE_WIDTH = 127;
-  const CLASS_SPRITE_HEIGHT = 149;
-  const CLASS_WALK_ROW_INDEXES = {
-    down: 0,
-    left: 1,
-    right: 2,
-    up: 3
+  const CLASS_SPRITE_PATH_PREFIX = "/assets/atlas/class/";
+  const CLASS_CHROMA_KEY = { redMax: 90, greenMin: 170, blueMax: 90 };
+  const CLASS_SPRITE_FILES = {
+    adventurer: "Adventurer.png",
+    blademaster: "Blademaster.png",
+    dragoon: "Dragoon.png",
+    nightblade: "Nightblade.png",
+    arcanist: "Arcanist.png",
+    warlord: "Warlord.png",
+    duelist: "Duelist.png",
+    mystic: "Mystic.png",
+    spellblade: "Spellblade.png",
+    warden: "Warden.png",
+    skirmisher: "Skirmisher.png",
+    battlemage: "Battlemage.png",
+    sentinel: "Sentinel.png",
+    hexblade: "Hexblade.png",
+    ranger: "Ranger.png"
   };
-  const CLASS_SPRITE_INDEXES = {
-    adventurer: 0,
-    blademaster: 1,
-    dragoon: 2,
-    nightblade: 3,
-    arcanist: 4,
-    druid: 5,
-    warlord: 6,
-    duelist: 7,
-    spellblade: 8,
-    warden: 9,
-    skirmisher: 10,
-    battlemage: 11,
-    sentinel: 12,
-    hexblade: 13,
-    ranger: 14,
-    mystic: 15
+  const CLASS_SPRITE_FLIPS = {
+    duelist: {
+      walk: { right: true },
+      attack: { right: true },
+      damage: { right: true },
+      dead: { right: true }
+    },
+    mystic: {
+      walk: { right: true }
+    },
+    warlord: {
+      walk: { left: true }
+    },
+    spellblade: {
+      walk: { right: true }
+    },
+    warden: {
+      walk: { left: true }
+    },
+    battlemage: {
+      walk: { right: true }
+    },
+    sentinel: {
+      walk: { right: true }
+    },
+    hexblade: {
+      walk: { right: true }
+    }
+  };
+  const CLASS_SPRITE_COORDINATES = {
+    adventurer: {
+      walk: {
+        down: [
+          { x: 57, y: 0, width: 114, height: 142 },
+          { x: 257, y: 0, width: 116, height: 142 },
+          { x: 457, y: 0, width: 116, height: 142 },
+          { x: 658, y: 0, width: 117, height: 138 }
+        ],
+        left: [
+          { x: 58, y: 134, width: 108, height: 141 },
+          { x: 260, y: 134, width: 107, height: 141 },
+          { x: 458, y: 134, width: 108, height: 141 },
+          { x: 658, y: 134, width: 108, height: 141 }
+        ],
+        right: [
+          { x: 52, y: 264, width: 111, height: 144 },
+          { x: 251, y: 265, width: 109, height: 143 },
+          { x: 451, y: 267, width: 105, height: 141 },
+          { x: 651, y: 267, width: 107, height: 141 }
+        ],
+        up: [
+          { x: 57, y: 401, width: 115, height: 136 },
+          { x: 257, y: 401, width: 115, height: 137 },
+          { x: 457, y: 401, width: 115, height: 136 },
+          { x: 658, y: 401, width: 116, height: 137 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 65, y: 448, width: 99, height: 116 },
+          { x: 265, y: 448, width: 99, height: 116 },
+          { x: 465, y: 448, width: 99, height: 116 },
+          { x: 666, y: 448, width: 100, height: 116 }
+        ],
+        left: [
+          { x: 54, y: 560, width: 126, height: 117 },
+          { x: 250, y: 560, width: 189, height: 117 },
+          { x: 435, y: 560, width: 179, height: 117 },
+          { x: 660, y: 560, width: 139, height: 117 }
+        ],
+        right: [
+          { x: 43, y: 673, width: 133, height: 110 },
+          { x: 243, y: 673, width: 156, height: 106 },
+          { x: 436, y: 673, width: 179, height: 110 },
+          { x: 659, y: 673, width: 159, height: 108 }
+        ],
+        up: [
+          { x: 53, y: 792, width: 127, height: 110 },
+          { x: 248, y: 792, width: 150, height: 110 },
+          { x: 446, y: 793, width: 162, height: 109 },
+          { x: 666, y: 792, width: 129, height: 110 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 62, y: 898, width: 104, height: 116 },
+          { x: 245, y: 898, width: 137, height: 116 },
+          { x: 435, y: 898, width: 173, height: 116 },
+          { x: 662, y: 898, width: 108, height: 116 }
+        ],
+        left: [
+          { x: 58, y: 1010, width: 111, height: 116 },
+          { x: 263, y: 1010, width: 105, height: 116 },
+          { x: 465, y: 1010, width: 97, height: 116 },
+          { x: 659, y: 1010, width: 121, height: 116 }
+        ],
+        right: [
+          { x: 63, y: 1122, width: 101, height: 117 },
+          { x: 265, y: 1122, width: 91, height: 117 },
+          { x: 470, y: 1122, width: 92, height: 117 },
+          { x: 670, y: 1122, width: 115, height: 117 }
+        ],
+        up: [
+          { x: 60, y: 1235, width: 100, height: 116 },
+          { x: 269, y: 1235, width: 93, height: 116 },
+          { x: 478, y: 1235, width: 89, height: 116 },
+          { x: 678, y: 1235, width: 91, height: 116 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 61, y: 1347, width: 91, height: 117 },
+          { x: 260, y: 1347, width: 87, height: 117 },
+          { x: 460, y: 1347, width: 87, height: 67 },
+          { x: 660, y: 1347, width: 91, height: 67 }
+        ],
+        left: [
+          { x: 58, y: 1460, width: 111, height: 116 },
+          { x: 246, y: 1460, width: 135, height: 116 },
+          { x: 441, y: 1468, width: 217, height: 108 },
+          { x: 654, y: 1470, width: 137, height: 106 }
+        ],
+        right: [
+          { x: 58, y: 1572, width: 111, height: 117 },
+          { x: 261, y: 1572, width: 109, height: 117 },
+          { x: 450, y: 1572, width: 117, height: 117 },
+          { x: 672, y: 1572, width: 112, height: 77 }
+        ],
+        up: [
+          { x: 61, y: 1685, width: 108, height: 75 },
+          { x: 261, y: 1685, width: 109, height: 75 },
+          { x: 444, y: 1685, width: 214, height: 72 },
+          { x: 654, y: 1698, width: 138, height: 61 }
+        ]
+      }
+    },
+    blademaster: {
+      walk: {
+        down: [
+          { x: 28, y: 0, width: 153, height: 138 },
+          { x: 217, y: 0, width: 176, height: 138 },
+          { x: 418, y: 0, width: 202, height: 138 },
+          { x: 642, y: 0, width: 203, height: 138 }
+        ],
+        left: [
+          { x: 28, y: 129, width: 153, height: 134 },
+          { x: 217, y: 129, width: 176, height: 134 },
+          { x: 418, y: 129, width: 202, height: 134 },
+          { x: 642, y: 129, width: 203, height: 134 }
+        ],
+        right: [
+          { x: 28, y: 254, width: 153, height: 133 },
+          { x: 217, y: 254, width: 176, height: 133 },
+          { x: 418, y: 254, width: 202, height: 133 },
+          { x: 642, y: 254, width: 203, height: 133 }
+        ],
+        up: [
+          { x: 28, y: 379, width: 153, height: 131 },
+          { x: 217, y: 379, width: 176, height: 131 },
+          { x: 418, y: 379, width: 202, height: 131 },
+          { x: 642, y: 379, width: 203, height: 131 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 40, y: 440, width: 122, height: 132 },
+          { x: 262, y: 440, width: 185, height: 132 },
+          { x: 427, y: 440, width: 171, height: 132 },
+          { x: 700, y: 440, width: 118, height: 132 }
+        ],
+        left: [
+          { x: 44, y: 552, width: 131, height: 133 },
+          { x: 224, y: 552, width: 147, height: 133 },
+          { x: 469, y: 552, width: 197, height: 133 },
+          { x: 646, y: 552, width: 179, height: 133 }
+        ],
+        right: [
+          { x: 52, y: 665, width: 96, height: 132 },
+          { x: 218, y: 665, width: 229, height: 132 },
+          { x: 427, y: 665, width: 182, height: 132 },
+          { x: 676, y: 665, width: 155, height: 132 }
+        ],
+        up: [
+          { x: 52, y: 777, width: 107, height: 133 },
+          { x: 217, y: 777, width: 164, height: 133 },
+          { x: 431, y: 777, width: 173, height: 133 },
+          { x: 677, y: 777, width: 154, height: 133 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 39, y: 890, width: 136, height: 132 },
+          { x: 260, y: 890, width: 133, height: 118 },
+          { x: 479, y: 890, width: 127, height: 132 },
+          { x: 699, y: 890, width: 124, height: 132 }
+        ],
+        left: [
+          { x: 43, y: 1002, width: 133, height: 127 },
+          { x: 259, y: 1011, width: 115, height: 117 },
+          { x: 466, y: 1002, width: 114, height: 127 },
+          { x: 686, y: 1002, width: 114, height: 127 }
+        ],
+        right: [
+          { x: 53, y: 1121, width: 95, height: 126 },
+          { x: 272, y: 1121, width: 105, height: 126 },
+          { x: 443, y: 1121, width: 158, height: 126 },
+          { x: 682, y: 1122, width: 139, height: 125 }
+        ],
+        up: [
+          { x: 40, y: 1227, width: 124, height: 132 },
+          { x: 261, y: 1227, width: 125, height: 132 },
+          { x: 443, y: 1227, width: 153, height: 132 },
+          { x: 699, y: 1227, width: 116, height: 132 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 49, y: 1339, width: 119, height: 133 },
+          { x: 266, y: 1339, width: 125, height: 133 },
+          { x: 468, y: 1339, width: 147, height: 133 },
+          { x: 672, y: 1339, width: 159, height: 133 }
+        ],
+        left: [
+          { x: 45, y: 1452, width: 104, height: 132 },
+          { x: 269, y: 1452, width: 101, height: 132 },
+          { x: 469, y: 1452, width: 145, height: 132 },
+          { x: 684, y: 1452, width: 158, height: 132 }
+        ],
+        right: [
+          { x: 40, y: 1564, width: 113, height: 133 },
+          { x: 261, y: 1564, width: 112, height: 133 },
+          { x: 482, y: 1564, width: 130, height: 133 },
+          { x: 692, y: 1564, width: 153, height: 133 }
+        ],
+        up: [
+          { x: 40, y: 1677, width: 141, height: 121 },
+          { x: 251, y: 1677, width: 140, height: 122 },
+          { x: 457, y: 1677, width: 163, height: 122 },
+          { x: 671, y: 1677, width: 167, height: 122 }
+        ]
+      }
+    },
+    dragoon: {
+      walk: {
+        down: [
+          { x: 59, y: 0, width: 117, height: 145 },
+          { x: 273, y: 0, width: 116, height: 145 },
+          { x: 482, y: 0, width: 120, height: 145 },
+          { x: 694, y: 0, width: 120, height: 145 }
+        ],
+        left: [
+          { x: 19, y: 140, width: 158, height: 123 },
+          { x: 231, y: 140, width: 155, height: 123 },
+          { x: 445, y: 140, width: 154, height: 123 },
+          { x: 662, y: 140, width: 147, height: 123 }
+        ],
+        right: [
+          { x: 54, y: 260, width: 159, height: 120 },
+          { x: 267, y: 260, width: 160, height: 120 },
+          { x: 483, y: 260, width: 152, height: 120 },
+          { x: 698, y: 260, width: 151, height: 120 }
+        ],
+        up: [
+          { x: 61, y: 490, width: 99, height: 142 },
+          { x: 272, y: 490, width: 101, height: 142 },
+          { x: 476, y: 490, width: 107, height: 142 },
+          { x: 689, y: 490, width: 107, height: 142 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 55, y: 438, width: 157, height: 136 },
+          { x: 267, y: 438, width: 150, height: 136 },
+          { x: 478, y: 438, width: 151, height: 136 },
+          { x: 694, y: 438, width: 150, height: 136 }
+        ],
+        left: [
+          { x: 53, y: 550, width: 104, height: 136 },
+          { x: 255, y: 550, width: 114, height: 136 },
+          { x: 472, y: 550, width: 109, height: 136 },
+          { x: 689, y: 550, width: 104, height: 136 }
+        ],
+        right: [
+          { x: 54, y: 662, width: 177, height: 137 },
+          { x: 207, y: 662, width: 243, height: 137 },
+          { x: 426, y: 662, width: 242, height: 137 },
+          { x: 644, y: 662, width: 225, height: 137 }
+        ],
+        up: [
+          { x: 0, y: 775, width: 231, height: 136 },
+          { x: 207, y: 775, width: 243, height: 136 },
+          { x: 426, y: 775, width: 242, height: 136 },
+          { x: 644, y: 775, width: 167, height: 136 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 45, y: 887, width: 170, height: 136 },
+          { x: 257, y: 887, width: 192, height: 136 },
+          { x: 473, y: 887, width: 190, height: 136 },
+          { x: 687, y: 887, width: 168, height: 136 }
+        ],
+        left: [
+          { x: 59, y: 999, width: 98, height: 137 },
+          { x: 274, y: 999, width: 96, height: 137 },
+          { x: 489, y: 999, width: 90, height: 137 },
+          { x: 699, y: 999, width: 101, height: 137 }
+        ],
+        right: [
+          { x: 45, y: 1112, width: 125, height: 136 },
+          { x: 257, y: 1112, width: 130, height: 136 },
+          { x: 458, y: 1112, width: 140, height: 136 },
+          { x: 695, y: 1112, width: 113, height: 136 }
+        ],
+        up: [
+          { x: 13, y: 1224, width: 158, height: 136 },
+          { x: 215, y: 1224, width: 164, height: 136 },
+          { x: 444, y: 1224, width: 157, height: 136 },
+          { x: 651, y: 1224, width: 158, height: 136 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 45, y: 1336, width: 167, height: 137 },
+          { x: 261, y: 1336, width: 166, height: 137 },
+          { x: 473, y: 1336, width: 173, height: 137 },
+          { x: 689, y: 1336, width: 168, height: 137 }
+        ],
+        left: [
+          { x: 57, y: 1449, width: 103, height: 136 },
+          { x: 254, y: 1449, width: 121, height: 136 },
+          { x: 464, y: 1449, width: 128, height: 136 },
+          { x: 696, y: 1449, width: 107, height: 136 }
+        ],
+        right: [
+          { x: 57, y: 1561, width: 101, height: 137 },
+          { x: 232, y: 1561, width: 155, height: 137 },
+          { x: 448, y: 1561, width: 155, height: 137 },
+          { x: 678, y: 1561, width: 131, height: 137 }
+        ],
+        up: [
+          { x: 60, y: 1674, width: 168, height: 66 },
+          { x: 245, y: 1674, width: 205, height: 68 },
+          { x: 426, y: 1674, width: 242, height: 71 },
+          { x: 644, y: 1674, width: 213, height: 72 }
+        ]
+      }
+    },
+    nightblade: {
+      walk: {
+        down: [
+          { x: 101, y: 0, width: 111, height: 140 },
+          { x: 282, y: 0, width: 111, height: 140 },
+          { x: 466, y: 0, width: 113, height: 140 },
+          { x: 647, y: 0, width: 111, height: 140 }
+        ],
+        left: [
+          { x: 101, y: 136, width: 109, height: 134 },
+          { x: 286, y: 136, width: 109, height: 134 },
+          { x: 467, y: 136, width: 108, height: 134 },
+          { x: 650, y: 136, width: 108, height: 134 }
+        ],
+        right: [
+          { x: 104, y: 266, width: 109, height: 132 },
+          { x: 288, y: 266, width: 107, height: 132 },
+          { x: 472, y: 266, width: 106, height: 132 },
+          { x: 649, y: 266, width: 112, height: 132 }
+        ],
+        up: [
+          { x: 104, y: 389, width: 103, height: 137 },
+          { x: 284, y: 389, width: 108, height: 137 },
+          { x: 467, y: 389, width: 106, height: 137 },
+          { x: 652, y: 389, width: 104, height: 137 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 104, y: 438, width: 103, height: 136 },
+          { x: 284, y: 438, width: 108, height: 136 },
+          { x: 467, y: 438, width: 201, height: 136 },
+          { x: 644, y: 438, width: 112, height: 136 }
+        ],
+        left: [
+          { x: 96, y: 550, width: 118, height: 136 },
+          { x: 272, y: 550, width: 159, height: 136 },
+          { x: 466, y: 550, width: 202, height: 136 },
+          { x: 644, y: 550, width: 145, height: 136 }
+        ],
+        right: [
+          { x: 99, y: 662, width: 123, height: 137 },
+          { x: 234, y: 662, width: 216, height: 137 },
+          { x: 426, y: 662, width: 242, height: 137 },
+          { x: 644, y: 662, width: 155, height: 137 }
+        ],
+        up: [
+          { x: 88, y: 775, width: 143, height: 136 },
+          { x: 207, y: 775, width: 228, height: 135 },
+          { x: 442, y: 775, width: 226, height: 136 },
+          { x: 644, y: 775, width: 140, height: 136 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 94, y: 887, width: 130, height: 136 },
+          { x: 273, y: 887, width: 138, height: 136 },
+          { x: 436, y: 887, width: 232, height: 136 },
+          { x: 644, y: 887, width: 137, height: 136 }
+        ],
+        left: [
+          { x: 95, y: 999, width: 121, height: 137 },
+          { x: 276, y: 999, width: 123, height: 137 },
+          { x: 453, y: 999, width: 215, height: 137 },
+          { x: 644, y: 999, width: 117, height: 137 }
+        ],
+        right: [
+          { x: 93, y: 1112, width: 123, height: 136 },
+          { x: 271, y: 1112, width: 127, height: 136 },
+          { x: 445, y: 1112, width: 223, height: 136 },
+          { x: 644, y: 1112, width: 119, height: 136 }
+        ],
+        up: [
+          { x: 88, y: 1224, width: 116, height: 136 },
+          { x: 278, y: 1224, width: 119, height: 136 },
+          { x: 459, y: 1224, width: 209, height: 136 },
+          { x: 644, y: 1224, width: 117, height: 136 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 99, y: 1336, width: 112, height: 137 },
+          { x: 270, y: 1336, width: 129, height: 137 },
+          { x: 451, y: 1336, width: 125, height: 137 },
+          { x: 648, y: 1336, width: 120, height: 137 }
+        ],
+        left: [
+          { x: 94, y: 1449, width: 123, height: 136 },
+          { x: 272, y: 1449, width: 138, height: 136 },
+          { x: 446, y: 1449, width: 222, height: 136 },
+          { x: 644, y: 1449, width: 136, height: 136 }
+        ],
+        right: [
+          { x: 91, y: 1561, width: 115, height: 137 },
+          { x: 273, y: 1561, width: 125, height: 137 },
+          { x: 452, y: 1561, width: 216, height: 83 },
+          { x: 644, y: 1561, width: 126, height: 84 }
+        ],
+        up: [
+          { x: 0, y: 1674, width: 215, height: 124 },
+          { x: 279, y: 1674, width: 118, height: 109 },
+          { x: 443, y: 1692, width: 225, height: 88 },
+          { x: 644, y: 1695, width: 231, height: 103 }
+        ]
+      }
+    },
+    arcanist: {
+      walk: {
+        down: [
+          { x: 22, y: 0, width: 130, height: 144 },
+          { x: 196, y: 0, width: 131, height: 144 },
+          { x: 372, y: 0, width: 131, height: 144 },
+          { x: 551, y: 0, width: 131, height: 144 }
+        ],
+        left: [
+          { x: 27, y: 144, width: 127, height: 130 },
+          { x: 202, y: 144, width: 130, height: 130 },
+          { x: 379, y: 144, width: 125, height: 130 },
+          { x: 559, y: 144, width: 126, height: 130 }
+        ],
+        right: [
+          { x: 24, y: 274, width: 130, height: 129 },
+          { x: 200, y: 274, width: 127, height: 129 },
+          { x: 376, y: 274, width: 126, height: 129 },
+          { x: 555, y: 274, width: 123, height: 129 }
+        ],
+        up: [
+          { x: 26, y: 403, width: 130, height: 125 },
+          { x: 201, y: 403, width: 121, height: 125 },
+          { x: 375, y: 403, width: 123, height: 125 },
+          { x: 556, y: 403, width: 121, height: 125 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 24, y: 531, width: 130, height: 160 },
+          { x: 197, y: 531, width: 177, height: 160 },
+          { x: 350, y: 531, width: 205, height: 160 },
+          { x: 531, y: 531, width: 170, height: 160 }
+        ],
+        left: [
+          { x: 24, y: 667, width: 128, height: 159 },
+          { x: 198, y: 667, width: 176, height: 159 },
+          { x: 350, y: 667, width: 205, height: 159 },
+          { x: 531, y: 667, width: 154, height: 159 }
+        ],
+        right: [
+          { x: 28, y: 802, width: 126, height: 160 },
+          { x: 198, y: 802, width: 176, height: 160 },
+          { x: 350, y: 802, width: 205, height: 160 },
+          { x: 531, y: 802, width: 153, height: 160 }
+        ],
+        up: [
+          { x: 34, y: 938, width: 122, height: 160 },
+          { x: 203, y: 938, width: 122, height: 160 },
+          { x: 373, y: 938, width: 136, height: 160 },
+          { x: 554, y: 938, width: 123, height: 160 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 34, y: 1074, width: 118, height: 160 },
+          { x: 208, y: 1074, width: 118, height: 160 },
+          { x: 386, y: 1074, width: 117, height: 160 },
+          { x: 560, y: 1074, width: 119, height: 160 }
+        ],
+        left: [
+          { x: 45, y: 1210, width: 109, height: 160 },
+          { x: 217, y: 1210, width: 111, height: 160 },
+          { x: 390, y: 1210, width: 115, height: 160 },
+          { x: 563, y: 1210, width: 115, height: 160 }
+        ],
+        right: [
+          { x: 38, y: 1346, width: 116, height: 159 },
+          { x: 214, y: 1346, width: 115, height: 159 },
+          { x: 382, y: 1346, width: 120, height: 159 },
+          { x: 557, y: 1346, width: 120, height: 159 }
+        ],
+        up: [
+          { x: 25, y: 1481, width: 126, height: 160 },
+          { x: 193, y: 1481, width: 131, height: 160 },
+          { x: 371, y: 1481, width: 131, height: 160 },
+          { x: 555, y: 1481, width: 117, height: 160 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 33, y: 1617, width: 134, height: 160 },
+          { x: 204, y: 1617, width: 170, height: 160 },
+          { x: 350, y: 1617, width: 205, height: 160 },
+          { x: 531, y: 1617, width: 181, height: 100 }
+        ],
+        left: [
+          { x: 35, y: 1753, width: 117, height: 159 },
+          { x: 212, y: 1753, width: 162, height: 159 },
+          { x: 350, y: 1753, width: 205, height: 159 },
+          { x: 531, y: 1754, width: 164, height: 158 }
+        ],
+        right: [
+          { x: 44, y: 1888, width: 113, height: 160 },
+          { x: 216, y: 1888, width: 113, height: 160 },
+          { x: 377, y: 1888, width: 178, height: 160 },
+          { x: 531, y: 1888, width: 169, height: 160 }
+        ],
+        up: [
+          { x: 0, y: 2024, width: 146, height: 148 },
+          { x: 200, y: 2024, width: 118, height: 99 },
+          { x: 362, y: 2024, width: 121, height: 97 },
+          { x: 532, y: 2024, width: 121, height: 99 }
+        ]
+      }
+    },
+    warlord: {
+      walk: {
+        down: [
+          { x: 47, y: 0, width: 133, height: 126 },
+          { x: 246, y: 0, width: 131, height: 126 },
+          { x: 446, y: 0, width: 128, height: 126 },
+          { x: 655, y: 0, width: 130, height: 126 }
+        ],
+        left: [
+          { x: 69, y: 124, width: 118, height: 114 },
+          { x: 269, y: 124, width: 119, height: 114 },
+          { x: 469, y: 124, width: 114, height: 114 },
+          { x: 679, y: 124, width: 112, height: 114 }
+        ],
+        right: [
+          { x: 64, y: 236, width: 130, height: 116 },
+          { x: 259, y: 236, width: 129, height: 116 },
+          { x: 462, y: 236, width: 129, height: 116 },
+          { x: 673, y: 236, width: 129, height: 116 }
+        ],
+        up: [
+          { x: 61, y: 350, width: 133, height: 115 },
+          { x: 260, y: 350, width: 132, height: 115 },
+          { x: 465, y: 350, width: 131, height: 115 },
+          { x: 675, y: 350, width: 131, height: 115 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 71, y: 437, width: 117, height: 136 },
+          { x: 249, y: 437, width: 124, height: 136 },
+          { x: 451, y: 437, width: 124, height: 136 },
+          { x: 661, y: 437, width: 126, height: 136 }
+        ],
+        left: [
+          { x: 63, y: 549, width: 110, height: 137 },
+          { x: 249, y: 549, width: 138, height: 137 },
+          { x: 428, y: 549, width: 145, height: 137 },
+          { x: 678, y: 549, width: 167, height: 137 }
+        ],
+        right: [
+          { x: 35, y: 670, width: 168, height: 128 },
+          { x: 252, y: 668, width: 163, height: 130 },
+          { x: 444, y: 662, width: 185, height: 133 },
+          { x: 681, y: 670, width: 194, height: 127 }
+        ],
+        up: [
+          { x: 22, y: 774, width: 147, height: 134 },
+          { x: 225, y: 776, width: 225, height: 132 },
+          { x: 426, y: 780, width: 243, height: 130 },
+          { x: 645, y: 780, width: 148, height: 130 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 36, y: 887, width: 143, height: 134 },
+          { x: 239, y: 889, width: 141, height: 132 },
+          { x: 439, y: 886, width: 141, height: 135 },
+          { x: 652, y: 886, width: 143, height: 135 }
+        ],
+        left: [
+          { x: 59, y: 1005, width: 136, height: 127 },
+          { x: 263, y: 1007, width: 131, height: 127 },
+          { x: 464, y: 1003, width: 136, height: 130 },
+          { x: 679, y: 1006, width: 148, height: 128 }
+        ],
+        right: [
+          { x: 67, y: 1115, width: 121, height: 126 },
+          { x: 260, y: 1116, width: 128, height: 131 },
+          { x: 465, y: 1114, width: 128, height: 133 },
+          { x: 682, y: 1113, width: 128, height: 131 }
+        ],
+        up: [
+          { x: 58, y: 1225, width: 120, height: 132 },
+          { x: 261, y: 1223, width: 120, height: 135 },
+          { x: 462, y: 1223, width: 121, height: 136 },
+          { x: 677, y: 1227, width: 128, height: 132 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 62, y: 1340, width: 136, height: 131 },
+          { x: 263, y: 1342, width: 134, height: 125 },
+          { x: 466, y: 1343, width: 126, height: 126 },
+          { x: 682, y: 1343, width: 143, height: 126 }
+        ],
+        left: [
+          { x: 48, y: 1447, width: 158, height: 135 },
+          { x: 245, y: 1457, width: 162, height: 125 },
+          { x: 445, y: 1465, width: 161, height: 117 },
+          { x: 660, y: 1465, width: 160, height: 117 }
+        ],
+        right: [
+          { x: 41, y: 1569, width: 167, height: 125 },
+          { x: 242, y: 1596, width: 170, height: 92 },
+          { x: 443, y: 1596, width: 168, height: 92 },
+          { x: 651, y: 1595, width: 190, height: 89 }
+        ],
+        up: [
+          { x: 38, y: 1716, width: 189, height: 80 },
+          { x: 240, y: 1713, width: 189, height: 83 },
+          { x: 441, y: 1711, width: 189, height: 85 },
+          { x: 651, y: 1720, width: 190, height: 76 }
+        ]
+      }
+    },
+    duelist: {
+      walk: {
+        down: [
+          { x: 32, y: 0, width: 108, height: 137 },
+          { x: 212, y: 0, width: 109, height: 137 },
+          { x: 392, y: 0, width: 109, height: 137 },
+          { x: 568, y: 0, width: 116, height: 137 }
+        ],
+        left: [
+          { x: 21, y: 137, width: 123, height: 127 },
+          { x: 208, y: 137, width: 121, height: 127 },
+          { x: 386, y: 137, width: 126, height: 127 },
+          { x: 567, y: 137, width: 123, height: 127 }
+        ],
+        right: [
+          { x: 27, y: 264, width: 120, height: 130 },
+          { x: 209, y: 264, width: 118, height: 130 },
+          { x: 388, y: 264, width: 121, height: 130 },
+          { x: 571, y: 264, width: 114, height: 130 }
+        ],
+        up: [
+          { x: 45, y: 394, width: 107, height: 135 },
+          { x: 224, y: 394, width: 106, height: 135 },
+          { x: 405, y: 394, width: 109, height: 135 },
+          { x: 585, y: 394, width: 110, height: 135 }
+        ]
+      },
+      attack: {
+        down: [
+          { x: 14, y: 529, width: 135, height: 134 },
+          { x: 179, y: 529, width: 154, height: 134 },
+          { x: 326, y: 529, width: 219, height: 134 },
+          { x: 570, y: 529, width: 113, height: 134 }
+        ],
+        left: [
+          { x: 12, y: 663, width: 131, height: 134 },
+          { x: 183, y: 669, width: 179, height: 128 },
+          { x: 369, y: 663, width: 145, height: 134 },
+          { x: 535, y: 663, width: 160, height: 134 }
+        ],
+        right: [
+          { x: 18, y: 797, width: 129, height: 134 },
+          { x: 191, y: 797, width: 142, height: 134 },
+          { x: 398, y: 797, width: 135, height: 134 },
+          { x: 545, y: 797, width: 154, height: 134 }
+        ],
+        up: [
+          { x: 34, y: 931, width: 117, height: 136 },
+          { x: 185, y: 931, width: 146, height: 136 },
+          { x: 385, y: 931, width: 199, height: 136 },
+          { x: 577, y: 931, width: 121, height: 136 }
+        ]
+      },
+      damage: {
+        down: [
+          { x: 18, y: 1067, width: 133, height: 136 },
+          { x: 226, y: 1067, width: 108, height: 136 },
+          { x: 397, y: 1067, width: 116, height: 136 },
+          { x: 593, y: 1067, width: 96, height: 136 }
+        ],
+        left: [
+          { x: 28, y: 1203, width: 120, height: 133 },
+          { x: 224, y: 1203, width: 106, height: 133 },
+          { x: 401, y: 1203, width: 109, height: 133 },
+          { x: 571, y: 1203, width: 117, height: 133 }
+        ],
+        right: [
+          { x: 26, y: 1336, width: 122, height: 131 },
+          { x: 227, y: 1336, width: 105, height: 131 },
+          { x: 410, y: 1336, width: 99, height: 131 },
+          { x: 569, y: 1336, width: 122, height: 131 }
+        ],
+        up: [
+          { x: 50, y: 1467, width: 96, height: 137 },
+          { x: 216, y: 1467, width: 111, height: 135 },
+          { x: 395, y: 1467, width: 111, height: 136 },
+          { x: 594, y: 1467, width: 101, height: 137 }
+        ]
+      },
+      dead: {
+        down: [
+          { x: 17, y: 1604, width: 128, height: 130 },
+          { x: 188, y: 1611, width: 139, height: 123 },
+          { x: 371, y: 1621, width: 156, height: 113 },
+          { x: 538, y: 1645, width: 173, height: 89 }
+        ],
+        left: [
+          { x: 18, y: 1734, width: 129, height: 128 },
+          { x: 179, y: 1750, width: 156, height: 112 },
+          { x: 354, y: 1773, width: 175, height: 89 },
+          { x: 533, y: 1782, width: 180, height: 80 }
+        ],
+        right: [
+          { x: 26, y: 1862, width: 116, height: 141 },
+          { x: 198, y: 1870, width: 133, height: 133 },
+          { x: 365, y: 1895, width: 160, height: 108 },
+          { x: 523, y: 1923, width: 184, height: 80 }
+        ],
+        up: [
+          { x: 41, y: 2003, width: 106, height: 148 },
+          { x: 215, y: 2012, width: 128, height: 141 },
+          { x: 350, y: 2070, width: 181, height: 88 },
+          { x: 523, y: 2074, width: 181, height: 86 }
+        ]
+      }
+    },
+    mystic: {
+      walk: {
+        down: [
+          { x: 45, y: 0, width: 123, height: 124 },
+          { x: 186, y: 0, width: 128, height: 124 },
+          { x: 337, y: 0, width: 127, height: 124 },
+          { x: 486, y: 0, width: 127, height: 124 }
+        ],
+        left: [
+          { x: 34, y: 121, width: 133, height: 121 },
+          { x: 183, y: 121, width: 134, height: 120 },
+          { x: 331, y: 121, width: 136, height: 120 },
+          { x: 484, y: 121, width: 134, height: 120 }
+        ],
+        right: [
+          { x: 32, y: 240, width: 135, height: 116 },
+          { x: 184, y: 240, width: 133, height: 116 },
+          { x: 333, y: 240, width: 133, height: 116 },
+          { x: 484, y: 240, width: 134, height: 116 }
+        ],
+        up: [
+          { x: 49, y: 470, width: 121, height: 117 },
+          { x: 191, y: 470, width: 122, height: 117 },
+          { x: 349, y: 470, width: 120, height: 117 },
+          { x: 502, y: 470, width: 120, height: 117 }
+        ]
+      }
+    },
+    spellblade: {
+      walk: {
+        down: [
+          { x: 18, y: 6, width: 130, height: 134 },
+          { x: 189, y: 6, width: 130, height: 134 },
+          { x: 358, y: 6, width: 126, height: 134 },
+          { x: 525, y: 6, width: 125, height: 134 }
+        ],
+        left: [
+          { x: 23, y: 132, width: 126, height: 121 },
+          { x: 226, y: 132, width: 100, height: 120 },
+          { x: 396, y: 132, width: 93, height: 120 },
+          { x: 524, y: 132, width: 128, height: 120 }
+        ],
+        right: [
+          { x: 62, y: 256, width: 104, height: 120 },
+          { x: 226, y: 255, width: 110, height: 121 },
+          { x: 393, y: 256, width: 109, height: 120 },
+          { x: 561, y: 256, width: 110, height: 120 }
+        ],
+        up: [
+          { x: 47, y: 379, width: 116, height: 121 },
+          { x: 218, y: 380, width: 97, height: 120 },
+          { x: 382, y: 380, width: 119, height: 120 },
+          { x: 552, y: 379, width: 96, height: 121 }
+        ]
+      }
+    },
+    warden: {
+      walk: {
+        down: [
+          { x: 25, y: 0, width: 115, height: 140 },
+          { x: 160, y: 0, width: 145, height: 140 },
+          { x: 330, y: 0, width: 131, height: 140 },
+          { x: 476, y: 0, width: 147, height: 140 }
+        ],
+        left: [
+          { x: 24, y: 138, width: 120, height: 127 },
+          { x: 185, y: 138, width: 113, height: 127 },
+          { x: 330, y: 138, width: 134, height: 127 },
+          { x: 508, y: 138, width: 109, height: 127 }
+        ],
+        right: [
+          { x: 24, y: 268, width: 115, height: 124 },
+          { x: 182, y: 268, width: 115, height: 124 },
+          { x: 343, y: 268, width: 118, height: 124 },
+          { x: 501, y: 268, width: 117, height: 124 }
+        ],
+        up: [
+          { x: 17, y: 392, width: 121, height: 128 },
+          { x: 181, y: 392, width: 124, height: 128 },
+          { x: 334, y: 392, width: 129, height: 128 },
+          { x: 496, y: 392, width: 129, height: 140 }
+        ]
+      }
+    },
+    skirmisher: {
+      walk: {
+        down: [
+          { x: 56, y: 0, width: 126, height: 120 },
+          { x: 262, y: 0, width: 124, height: 120 },
+          { x: 467, y: 0, width: 125, height: 120 },
+          { x: 676, y: 0, width: 124, height: 120 }
+        ],
+        left: [
+          { x: 70, y: 112, width: 94, height: 124 },
+          { x: 274, y: 112, width: 97, height: 124 },
+          { x: 481, y: 112, width: 94, height: 124 },
+          { x: 692, y: 112, width: 87, height: 124 }
+        ],
+        right: [
+          { x: 77, y: 232, width: 100, height: 120 },
+          { x: 277, y: 232, width: 100, height: 120 },
+          { x: 479, y: 232, width: 103, height: 120 },
+          { x: 691, y: 232, width: 100, height: 120 }
+        ],
+        up: [
+          { x: 62, y: 344, width: 123, height: 120 },
+          { x: 262, y: 344, width: 124, height: 120 },
+          { x: 467, y: 344, width: 124, height: 120 },
+          { x: 676, y: 344, width: 123, height: 120 }
+        ]
+      }
+    },
+    battlemage: {
+      walk: {
+        down: [
+          { x: 45, y: 0, width: 111, height: 100 },
+          { x: 259, y: 0, width: 106, height: 100 },
+          { x: 469, y: 0, width: 112, height: 100 },
+          { x: 678, y: 0, width: 108, height: 100 }
+        ],
+        left: [
+          { x: 271, y: 198, width: 84, height: 104 },
+          { x: 484, y: 198, width: 87, height: 106 },
+          { x: 694, y: 198, width: 88, height: 104 },
+          { x: 50, y: 198, width: 97, height: 104 }
+        ],
+        right: [
+          { x: 271, y: 198, width: 84, height: 104 },
+          { x: 484, y: 198, width: 87, height: 106 },
+          { x: 694, y: 198, width: 88, height: 104 },
+          { x: 50, y: 198, width: 97, height: 104 }
+        ],
+        up: [
+          { x: 45, y: 396, width: 112, height: 104 },
+          { x: 268, y: 396, width: 102, height: 104 },
+          { x: 465, y: 396, width: 116, height: 104 },
+          { x: 690, y: 396, width: 102, height: 104 }
+        ]
+      }
+    },
+    sentinel: {
+      walk: {
+        down: [
+          { x: 46, y: 0, width: 111, height: 134 },
+          { x: 237, y: 0, width: 112, height: 134 },
+          { x: 391, y: 0, width: 111, height: 134 },
+          { x: 538, y: 0, width: 113, height: 134 }
+        ],
+        left: [
+          { x: 42, y: 264, width: 115, height: 132 },
+          { x: 221, y: 268, width: 115, height: 128 },
+          { x: 393, y: 270, width: 112, height: 126 },
+          { x: 549, y: 270, width: 121, height: 126 }
+        ],
+        right: [
+          { x: 42, y: 264, width: 115, height: 132 },
+          { x: 221, y: 268, width: 115, height: 128 },
+          { x: 393, y: 270, width: 112, height: 126 },
+          { x: 549, y: 270, width: 121, height: 126 }
+        ],
+        up: [
+          { x: 48, y: 392, width: 104, height: 136 },
+          { x: 225, y: 394, width: 105, height: 134 },
+          { x: 394, y: 392, width: 105, height: 136 },
+          { x: 549, y: 392, width: 107, height: 136 }
+        ]
+      }
+    },
+    hexblade: {
+      walk: {
+        down: [
+          { x: 59, y: 0, width: 143, height: 148 },
+          { x: 251, y: 0, width: 156, height: 148 },
+          { x: 458, y: 0, width: 162, height: 148 },
+          { x: 663, y: 0, width: 146, height: 148 }
+        ],
+        left: [
+          { x: 69, y: 142, width: 117, height: 136 },
+          { x: 251, y: 142, width: 130, height: 136 },
+          { x: 466, y: 142, width: 144, height: 136 },
+          { x: 667, y: 142, width: 129, height: 136 }
+        ],
+        right: [
+          { x: 69, y: 142, width: 117, height: 136 },
+          { x: 251, y: 142, width: 130, height: 136 },
+          { x: 466, y: 142, width: 144, height: 136 },
+          { x: 667, y: 142, width: 129, height: 136 }
+        ],
+        up: [
+          { x: 47, y: 528, width: 154, height: 140 },
+          { x: 242, y: 528, width: 173, height: 140 },
+          { x: 453, y: 528, width: 158, height: 140 },
+          { x: 647, y: 528, width: 161, height: 140 }
+        ]
+      }
+    },
+    ranger: {
+      walk: {
+        down: [
+          { x: 133, y: 4, width: 115, height: 122 },
+          { x: 293, y: 4, width: 116, height: 122 },
+          { x: 455, y: 4, width: 116, height: 122 },
+          { x: 618, y: 4, width: 116, height: 122 }
+        ],
+        left: [
+          { x: 120, y: 122, width: 120, height: 110 },
+          { x: 284, y: 122, width: 123, height: 110 },
+          { x: 444, y: 122, width: 122, height: 110 },
+          { x: 606, y: 122, width: 122, height: 110 }
+        ],
+        right: [
+          { x: 123, y: 232, width: 117, height: 106 },
+          { x: 290, y: 232, width: 116, height: 106 },
+          { x: 452, y: 232, width: 117, height: 106 },
+          { x: 617, y: 232, width: 114, height: 106 }
+        ],
+        up: [
+          { x: 119, y: 344, width: 117, height: 106 },
+          { x: 295, y: 344, width: 110, height: 106 },
+          { x: 454, y: 344, width: 112, height: 106 },
+          { x: 622, y: 344, width: 112, height: 106 }
+        ]
+      }
+    }
   };
 
   const TILE_INDEXES = {
@@ -127,6 +1120,7 @@ globalThis.DungeonMapRenderer = (() => {
     const context = canvas?.getContext?.("2d");
     const tileset = new Image();
     const classImages = new Map();
+    const classSpriteCache = new WeakMap();
     const enemyImages = new Map();
     const renderer = {
       ready: false,
@@ -160,7 +1154,7 @@ globalThis.DungeonMapRenderer = (() => {
             drawSymbol(context, tileset, renderer.ready, rows, symbol, x, y);
           });
         });
-        drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options);
+        drawEntities(context, renderer, enemyImages, classImages, classSpriteCache, tileset, entities, options);
         if (options.playerDead) drawDeathOverlay(context, canvas);
 
         return true;
@@ -320,14 +1314,14 @@ globalThis.DungeonMapRenderer = (() => {
       });
   }
 
-  function drawEntities(context, renderer, enemyImages, classImages, tileset, entities, options) {
+  function drawEntities(context, renderer, enemyImages, classImages, classSpriteCache, tileset, entities, options) {
     [...entities].sort(compareEntitiesForDrawing).forEach(entity => {
       if (entity.type === "enemy") {
         drawEnemy(context, renderer, enemyImages, tileset, entity);
         return;
       }
       if (entity.type === "player") {
-        drawPlayer(context, renderer, tileset, classImages, entity, options.playerClass, options.playerDirection);
+        drawPlayer(context, renderer, tileset, classImages, classSpriteCache, entity, options.playerClass, options.playerDirection);
         return;
       }
 
@@ -369,56 +1363,93 @@ globalThis.DungeonMapRenderer = (() => {
     drawEntityTile(context, renderer.ready ? tileset : null, "goblin", enemy.x, enemy.y);
   }
 
-  function drawPlayer(context, renderer, tileset, classImages, player, playerClass, playerDirection) {
-    const classImage = imageForClass(renderer, classImages, playerClass);
+  function drawPlayer(context, renderer, tileset, classImages, classSpriteCache, player, playerClass, playerDirection) {
+    const classKey = classSpriteKey(playerClass);
+    const classImage = imageForClass(renderer, classImages, classKey);
     if (!classImage?.complete || classImage.naturalWidth <= 0) {
       drawEntityTile(context, renderer.ready ? tileset : null, "player", player.x, player.y);
       return;
     }
 
     if (renderer.ready) drawTile(context, tileset, "floor", player.x, player.y);
-    const source = classSpriteSourceRect(playerDirection || renderer.playerDirection);
+    const action = "walk";
+    const direction = normalizeDirection(playerDirection || renderer.playerDirection) || "down";
+    const source = classSpriteSourceRect(classKey, action, direction, 0);
     const target = renderer.ready
-      ? classSpriteTargetRect(tileset, source, player.x, player.y)
+      ? classSpriteTargetRect(tileset, source, player.x, player.y, classKey)
       : unscaledTileActorTargetRect(source.width, source.height, player.x, player.y);
-    context.drawImage(
-      classImage,
-      source.x,
-      source.y,
-      source.width,
-      source.height,
-      target.x,
-      target.y,
-      target.width,
-      target.height
-    );
+    const sprite = chromaKeyedClassSprite(classImage, classSpriteCache, source);
+    drawClassSprite(context, sprite, target, classSpriteFlipX(classKey, action, direction));
   }
 
-  function classSpriteSourceRect(playerDirection = "down") {
+  function classSpriteSourceRect(classKey, action = "walk", playerDirection = "down", frameIndex = 0) {
     const direction = normalizeDirection(playerDirection) || "down";
-    const rowIndex = CLASS_WALK_ROW_INDEXES[direction] ?? CLASS_WALK_ROW_INDEXES.down;
-    return {
-      x: 0,
-      y: rowIndex * CLASS_SPRITE_HEIGHT,
-      width: CLASS_SPRITE_WIDTH,
-      height: CLASS_SPRITE_HEIGHT
-    };
+    const frames = CLASS_SPRITE_COORDINATES[classKey]?.[action]?.[direction] ||
+      CLASS_SPRITE_COORDINATES.adventurer.walk.down;
+    return frames[frameIndex % frames.length] || frames[0];
   }
 
   function classSpriteKey(playerClass) {
     const key = String(playerClass || "adventurer").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    return Object.hasOwn(CLASS_SPRITE_INDEXES, key) ? key : "adventurer";
+    return Object.hasOwn(CLASS_SPRITE_FILES, key) ? key : "adventurer";
   }
 
-  function imageForClass(renderer, classImages, playerClass) {
-    const key = classSpriteKey(playerClass);
+  function imageForClass(renderer, classImages, key) {
     if (classImages.has(key)) return classImages.get(key);
 
     const image = new Image();
     image.onload = () => rerender(renderer);
-    image.src = `${CLASS_SPRITE_PATH_PREFIX}${key}.png`;
+    image.src = `${CLASS_SPRITE_PATH_PREFIX}${CLASS_SPRITE_FILES[key]}`;
     classImages.set(key, image);
     return image;
+  }
+
+  function chromaKeyedClassSprite(image, classSpriteCache, source) {
+    let imageCache = classSpriteCache.get(image);
+    if (!imageCache) {
+      imageCache = new Map();
+      classSpriteCache.set(image, imageCache);
+    }
+
+    const cacheKey = `${source.x},${source.y},${source.width},${source.height}`;
+    if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = source.width;
+    canvas.height = source.height;
+    const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = false;
+    context.drawImage(image, source.x, source.y, source.width, source.height, 0, 0, source.width, source.height);
+
+    const sprite = context.getImageData(0, 0, source.width, source.height);
+    for (let index = 0; index < sprite.data.length; index += 4) {
+      const red = sprite.data[index];
+      const green = sprite.data[index + 1];
+      const blue = sprite.data[index + 2];
+      if (red <= CLASS_CHROMA_KEY.redMax && green >= CLASS_CHROMA_KEY.greenMin && blue <= CLASS_CHROMA_KEY.blueMax) {
+        sprite.data[index + 3] = 0;
+      }
+    }
+    context.putImageData(sprite, 0, 0);
+    imageCache.set(cacheKey, canvas);
+    return canvas;
+  }
+
+  function classSpriteFlipX(classKey, action, direction) {
+    return CLASS_SPRITE_FLIPS[classKey]?.[action]?.[direction] === true;
+  }
+
+  function drawClassSprite(context, sprite, target, flipX = false) {
+    if (!flipX) {
+      context.drawImage(sprite, target.x, target.y, target.width, target.height);
+      return;
+    }
+
+    context.save();
+    context.translate(target.x + target.width, target.y);
+    context.scale(-1, 1);
+    context.drawImage(sprite, 0, 0, target.width, target.height);
+    context.restore();
   }
 
   function normalizeDirection(direction) {
@@ -624,14 +1655,17 @@ globalThis.DungeonMapRenderer = (() => {
     return scaledActorTargetRect(tileset, image.naturalWidth, image.naturalHeight, x, y);
   }
 
-  function classSpriteTargetRect(tileset, source, x, y) {
+  function classSpriteTargetRect(tileset, source, x, y, classKey = "adventurer") {
     const playerTarget = entitySpriteTargetRect(tileset, "player", x, y);
+    const scale = CLASS_SPRITE_SCALE_OVERRIDES[classKey] || CLASS_SPRITE_SCALE;
+    const width = source.width * scale;
+    const height = source.height * scale;
 
     return {
-      x: playerTarget.x + Math.round((playerTarget.width - source.width) / 2),
-      y: playerTarget.y + playerTarget.height - source.height,
-      width: source.width,
-      height: source.height
+      x: playerTarget.x + Math.round((playerTarget.width - width) / 2),
+      y: playerTarget.y + playerTarget.height - height,
+      width,
+      height
     };
   }
 
