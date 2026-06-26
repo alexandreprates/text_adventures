@@ -184,7 +184,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
   end
 
   it "serializes pending merchant confirmation" do
-    game.player.gold = 100
+    game.player.gold = 200
     game.handle("go blacksmith")
     game.handle("buy sword")
 
@@ -202,7 +202,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       accepted_types: ["weapon"]
     )
     expect(state.dig(:trade, :merchant_items)).to include(
-      hash_including(name: "iron dagger", display_name: "Iron Dagger", buy_price: 18, trade_enabled: true)
+      hash_including(name: "iron dagger", display_name: "Iron Dagger", buy_price: 180, trade_enabled: true)
     )
     expect(state.dig(:trade, :player_items)).to include(
       hash_including(name: "rusty dagger", display_name: "Rusty Dagger", sell_price: 1, trade_enabled: true)

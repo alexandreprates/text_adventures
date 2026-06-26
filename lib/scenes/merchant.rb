@@ -3,6 +3,8 @@ module TextAdventures
     class Merchant
       Confirmation = Struct.new(:merchant, :action, :item, :price, keyword_init: true)
       SELL_PRICE_RATE = 0.10
+      BUY_PRICE_MULTIPLIER = 10
+      MULTIPLIED_BUY_PRICE_TYPES = %i[weapon armor tome].freeze
 
       attr_reader :name, :display_name, :stock, :accepted_types
 
@@ -58,6 +60,12 @@ module TextAdventures
         [1, (item.price * SELL_PRICE_RATE).round].max
       end
 
+      def buy_price(item)
+        return item.price * BUY_PRICE_MULTIPLIER if MULTIPLIED_BUY_PRICE_TYPES.include?(item.type)
+
+        item.price
+      end
+
       private
 
       def back_to_town(game)
@@ -76,16 +84,17 @@ module TextAdventures
       def request_buy(game, query)
         item = find_stock(game.player, query)
         return Response.new("I do not have #{query} for sale.") unless item
-        return Response.new("Sorry, but you do not have enough money for this.") if game.player.gold < item.price
+        price = buy_price(item)
+        return Response.new("Sorry, but you do not have enough money for this.") if game.player.gold < price
 
         game.pending_confirmation = Confirmation.new(
           merchant: self,
           action: :buy,
           item: item,
-          price: item.price
+          price: price
         )
         Response.new(
-          "Excellent choice. It is yours for #{item.price}g.",
+          "Excellent choice. It is yours for #{price}g.",
           "Select your answer:",
           " agree - buy it",
           " no - forget it"
@@ -125,7 +134,7 @@ module TextAdventures
         return sell_items if sell_items.is_a?(Response)
 
         sell_total = sell_items.sum { |selection| sell_price(selection.fetch(:item)) * selection.fetch(:quantity) }
-        buy_total = buy_items.sum { |selection| selection.fetch(:item).price * selection.fetch(:quantity) }
+        buy_total = buy_items.sum { |selection| buy_price(selection.fetch(:item)) * selection.fetch(:quantity) }
         final_gold = game.player.gold + sell_total - buy_total
         return Response.new("Sorry, but you do not have enough money for this trade.") if final_gold.negative?
 
@@ -276,7 +285,7 @@ module TextAdventures
         details << "Cures #{status_list(item.cures)}" if item.respond_to?(:cures) && item.cures.any?
         suffix = details.empty? ? "" : " (#{details.join(', ')})"
 
-        "1x #{item.display_name}#{suffix} - #{item.price}g"
+        "1x #{item.display_name}#{suffix} - #{buy_price(item)}g"
       end
 
       def grouped_stock_lines(items)

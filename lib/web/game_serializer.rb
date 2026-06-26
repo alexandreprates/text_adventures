@@ -214,7 +214,7 @@ module TextAdventures
         merchant.stock_available_to(game.player).map do |item|
           item_state(item).merge(
             quantity: 1,
-            buy_price: item.price,
+            buy_price: merchant.buy_price(item),
             trade_enabled: true,
             trade_note: "available"
           )

@@ -15,12 +15,12 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Swords:
-        1x Sword (Atk: 10) - 15g
+        1x Sword (Atk: 10) - 150g
        Spears and Polearms:
-        1x Hunting Spear (Atk: 12, Def: 2) - 25g
+        1x Hunting Spear (Atk: 12, Def: 2) - 250g
        Daggers:
-        1x Rusty Dagger (Atk: 6) - 8g
-        1x Iron Dagger (Atk: 10) - 18g
+        1x Rusty Dagger (Atk: 6) - 80g
+        1x Iron Dagger (Atk: 10) - 180g
     TEXT
   end
 
@@ -30,23 +30,23 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Swords:
-        1x Sword (Atk: 10) - 15g
-        1x Bastard Sword (Atk: 14) - 30g
-        1x Longsword (Atk: 18) - 75g
-        1x Greatsword (Atk: 23) - 120g
-        1x King's Nep Sword (Atk: 30) - 500g
+        1x Sword (Atk: 10) - 150g
+        1x Bastard Sword (Atk: 14) - 300g
+        1x Longsword (Atk: 18) - 750g
+        1x Greatsword (Atk: 23) - 1200g
+        1x King's Nep Sword (Atk: 30) - 5000g
        Spears and Polearms:
-        1x Hunting Spear (Atk: 12, Def: 2) - 25g
-        1x Spear (Atk: 15, Def: 3) - 50g
-        1x Iron Spear (Atk: 19, Def: 4) - 65g
-        1x Halberd (Atk: 24, Def: 5) - 110g
-        1x Dragon Lance (Atk: 29, Def: 6) - 220g
+        1x Hunting Spear (Atk: 12, Def: 2) - 250g
+        1x Spear (Atk: 15, Def: 3) - 500g
+        1x Iron Spear (Atk: 19, Def: 4) - 650g
+        1x Halberd (Atk: 24, Def: 5) - 1100g
+        1x Dragon Lance (Atk: 29, Def: 6) - 2200g
        Daggers:
-        1x Rusty Dagger (Atk: 6) - 8g
-        1x Iron Dagger (Atk: 10) - 18g
-        1x Curved Dagger (Atk: 14) - 35g
-        1x Shadow Dagger (Atk: 20) - 90g
-        1x Assassin Dagger (Atk: 26) - 160g
+        1x Rusty Dagger (Atk: 6) - 80g
+        1x Iron Dagger (Atk: 10) - 180g
+        1x Curved Dagger (Atk: 14) - 350g
+        1x Shadow Dagger (Atk: 20) - 900g
+        1x Assassin Dagger (Atk: 26) - 1600g
     TEXT
   end
 
@@ -58,18 +58,18 @@ RSpec.describe TextAdventures::Scenes::Blacksmith do
   end
 
   it "buys available starter weapons and reduces player gold" do
-    game.player.gold = 100
+    game.player.gold = 300
 
-    expect(game.handle("buy hunting spear")).to include "Excellent choice. It is yours for 25g."
+    expect(game.handle("buy hunting spear")).to include "Excellent choice. It is yours for 250g."
 
     response = game.handle("agree")
 
     expect(response).to eq <<~TEXT.chomp
       You bought Hunting Spear.
       [1x Hunting Spear added to inventory]
-      [your gold is now 75]
+      [your gold is now 50]
     TEXT
-    expect(game.player.gold).to eq 75
+    expect(game.player.gold).to eq 50
     expect(game.player.inventory.quantity("hunting spear")).to eq 1
   end
 
