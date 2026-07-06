@@ -368,6 +368,11 @@ export function useAutoExplore({
       return { command: "loot", status: "Auto: looting" };
     }
 
+    if (model.goal === "descent" && autoExploreShouldHuntBeforeDescent()) {
+      const direction = nextAutoExploreDirection();
+      if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
+    }
+
     if (model.goal === "descent" && !autoExploreDescentFound()) {
       return nextAutoExploreDeepExplorationDecision();
     }
@@ -393,6 +398,15 @@ export function useAutoExplore({
     return direction
       ? { command: `go ${direction}`, status: "Auto: seeking descent" }
       : autoExploreLevelCompleteDecision();
+  }
+
+  function autoExploreShouldHuntBeforeDescent() {
+    const currentState = stateRef.current;
+    return Boolean(
+      modelRef.current.continuousDescent &&
+        currentState?.dungeon &&
+        Number(currentState.dungeon.level || 0) >= Number(currentState.player.level || 0),
+    );
   }
 
   function autoExploreGoalPosition() {

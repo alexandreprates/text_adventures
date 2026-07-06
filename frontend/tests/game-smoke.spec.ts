@@ -250,6 +250,65 @@ const resupplyStates = {
   },
 };
 
+const controlledDescentPlayer = {
+  ...(townPayload.state.player as Record<string, unknown>),
+  level: 1,
+};
+
+const controlledDescentHuntingPayload: MockGamePayload = {
+  ...townPayload,
+  state: {
+    ...townPayload.state,
+    scene: "ruins",
+    scene_display_name: "Ruins",
+    prompt: "Ruins L1",
+    player: controlledDescentPlayer,
+    dungeon: {
+      level: 1,
+      player_position: { x: 1, y: 1 },
+      entrance_portal: null,
+      ascent: null,
+      descent: { x: 2, y: 1 },
+      nearby_loot: null,
+      viewport: {
+        width: 3,
+        height: 3,
+        origin: { x: 0, y: 0 },
+        terrain: ".........",
+        entities: [
+          { type: "player", x: 1, y: 1 },
+          { type: "descent", x: 2, y: 1 },
+        ],
+      },
+    },
+  },
+};
+
+const controlledDescentCompletePayload: MockGamePayload = {
+  ...controlledDescentHuntingPayload,
+  state: {
+    ...controlledDescentHuntingPayload.state,
+    dungeon: {
+      level: 1,
+      player_position: { x: 1, y: 1 },
+      entrance_portal: null,
+      ascent: null,
+      descent: { x: 2, y: 1 },
+      nearby_loot: null,
+      viewport: {
+        width: 3,
+        height: 3,
+        origin: { x: 0, y: 0 },
+        terrain: "####..###",
+        entities: [
+          { type: "player", x: 1, y: 1 },
+          { type: "descent", x: 2, y: 1 },
+        ],
+      },
+    },
+  },
+};
+
 async function mockGame(page: Page, payload: MockGamePayload) {
   await page.addInitScript((payload) => {
     class FakeWebSocket extends EventTarget {
@@ -413,6 +472,78 @@ async function mockAutoResupplyGame(page: Page) {
   });
 }
 
+async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
+  await page.addInitScript((payload) => {
+    const sentActions = [] as Array<Record<string, unknown>>;
+    (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions =
+      sentActions;
+
+    class FakeWebSocket extends EventTarget {
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSING = 2;
+      static CLOSED = 3;
+
+      readyState = FakeWebSocket.CONNECTING;
+
+      constructor() {
+        super();
+        window.setTimeout(() => {
+          this.readyState = FakeWebSocket.OPEN;
+          this.dispatchEvent(new Event("open"));
+          this.dispatchEvent(
+            new MessageEvent("message", {
+              data: JSON.stringify({
+                type: "state",
+                game_id: payload.game_id,
+                state: payload.state,
+              }),
+            }),
+          );
+        }, 0);
+      }
+
+      send(data: string) {
+        sentActions.push(JSON.parse(String(data)) as Record<string, unknown>);
+        window.setTimeout(() => {
+          this.dispatchEvent(
+            new MessageEvent("message", {
+              data: JSON.stringify({
+                type: "events",
+                game_id: payload.game_id,
+                events: [{ type: "message", text: "Action accepted" }],
+                patch: {},
+              }),
+            }),
+          );
+        }, 0);
+      }
+
+      close() {
+        this.readyState = FakeWebSocket.CLOSED;
+        this.dispatchEvent(new CloseEvent("close"));
+      }
+    }
+
+    window.WebSocket = FakeWebSocket as unknown as typeof WebSocket;
+  }, payload);
+
+  await page.route("**/api/games", async (route) => {
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+  });
+  await page.route("**/api/games/demo-game", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(payload),
+    });
+  });
+}
+
 test("renders the migrated game shell", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
@@ -495,6 +626,57 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
   await autoToggle.click();
   await expect(page.getByText("Auto: stopped")).toBeVisible();
+});
+
+test("go deep hunts the current floor when it matches the player level", async ({ page }) => {
+  await mockRecordedSocketGame(page, controlledDescentHuntingPayload);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Go Deep" }).click();
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions
+              .length,
+        ),
+      { timeout: 5000 },
+    )
+    .toBeGreaterThanOrEqual(1);
+
+  const firstAction = await page.evaluate(
+    () => (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions[0],
+  );
+
+  expect(firstAction).toEqual({ type: "action", action: "move", direction: "up" });
+  await expect(page.getByText("Auto: hunting")).toBeVisible();
+});
+
+test("go deep descends when the level-matched floor is complete", async ({ page }) => {
+  await mockRecordedSocketGame(page, controlledDescentCompletePayload);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Go Deep" }).click();
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions
+              .length,
+        ),
+      { timeout: 5000 },
+    )
+    .toBeGreaterThanOrEqual(1);
+
+  const firstAction = await page.evaluate(
+    () => (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions[0],
+  );
+
+  expect(firstAction).toEqual({ type: "action", action: "move", direction: "right" });
 });
 
 test("auto-explore resupplies at the tavern before returning to ruins", async ({ page }) => {
