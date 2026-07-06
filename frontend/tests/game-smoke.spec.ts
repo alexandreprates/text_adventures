@@ -203,6 +203,12 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByLabel("Game title")).toContainText("Text Adventures");
   await expect(page.getByRole("button", { name: "Text Adventures" })).toHaveCount(0);
   await expect(page.getByLabel("Current location")).toContainText("Town");
+  await expect(page.getByRole("button", { name: "Inventory" })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+  await expect(page.getByText("Potion of Heal")).toBeHidden();
+  await page.getByRole("button", { name: "Inventory" }).click();
   await expect(page.getByText("Potion of Heal")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveAttribute(
     "placeholder",

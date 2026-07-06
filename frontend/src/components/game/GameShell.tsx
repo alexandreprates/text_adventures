@@ -60,7 +60,7 @@ export function GameShell({
   const player = state?.player || null;
   const mana = player?.mana || { current: 0, max: 0 };
   const xp = currentSkillProgress(player);
-  const [collectionOpen, setCollectionOpen] = useState(true);
+  const [collectionOpen, setCollectionOpen] = useState(false);
   const [statusDrawer, setStatusDrawer] = useState<{ scene: string | null; open: boolean }>({
     scene: null,
     open: false,
