@@ -26,7 +26,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Potions:
-        1x Potion of Heal - 10g
+        1x Potion of Heal - 1g
         1x Antidote (Cures poison) - 8g
     TEXT
   end
@@ -35,7 +35,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     game.player.gold = 100
 
     expect(game.handle("buy potion of heal")).to eq <<~TEXT.chomp
-      Excellent choice. It is yours for 10g.
+      Excellent choice. It is yours for 1g.
       Select your answer:
        agree - buy it
        no - forget it
@@ -44,7 +44,7 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(game.handle("agree")).to eq <<~TEXT.chomp
       You bought Potion of Heal.
       [1x Potion of Heal added to inventory]
-      [your gold is now 90]
+      [your gold is now 99]
     TEXT
     expect(game.player.inventory.quantity("potion of heal")).to eq 6
   end

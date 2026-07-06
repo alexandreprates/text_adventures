@@ -218,7 +218,7 @@ items:
   potion_of_heal:
     type: potion
     name: Potion of Heal
-    price: 10
+    price: 1
     recovery: 20
   antidote:
     type: potion
