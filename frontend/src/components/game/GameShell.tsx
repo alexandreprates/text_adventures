@@ -143,21 +143,27 @@ export function GameShell({
         <main
           className={`platform-live-playfield ${state?.scene === "ruins" ? "is-ruins" : ""}`}
         >
-          <details
-            className="platform-status-drawer"
-            open={statusOpen}
-            onToggle={(event) =>
-              setStatusDrawer({ scene: statusScene, open: event.currentTarget.open })
-            }
-          >
-            <summary>
-              Status
-              <span className="status-drawer-state" aria-hidden="true">
-                {statusOpen ? "-" : "+"}
-              </span>
-            </summary>
-            <CharacterPanel state={state} />
-          </details>
+          {actionsMode ? (
+            <aside className="platform-live-character" aria-label="Character overview">
+              <CharacterPanel state={state} />
+            </aside>
+          ) : (
+            <details
+              className="platform-status-drawer"
+              open={statusOpen}
+              onToggle={(event) =>
+                setStatusDrawer({ scene: statusScene, open: event.currentTarget.open })
+              }
+            >
+              <summary>
+                Status
+                <span className="status-drawer-state" aria-hidden="true">
+                  {statusOpen ? "-" : "+"}
+                </span>
+              </summary>
+              <CharacterPanel state={state} />
+            </details>
+          )}
 
           {actionsMode ? (
             <aside className="platform-loadout-rail" aria-label="Loadout">

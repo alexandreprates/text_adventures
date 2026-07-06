@@ -1466,6 +1466,24 @@
   background: rgba(9, 17, 18, 0.94);
 }
 
+.platform-live-character {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 9;
+  width: min(286px, calc(100% - 120px));
+  max-height: min(560px, calc(100% - 150px));
+  min-width: 0;
+  overflow: auto;
+}
+
+.platform-live-character .character-panel {
+  max-height: inherit;
+  overflow: auto;
+  padding: 12px;
+  background: rgba(9, 17, 18, 0.92);
+}
+
 .platform-live-playfield .platform-loadout-rail {
   z-index: 9;
 }
@@ -1943,6 +1961,17 @@
 
   .platform-status-drawer .character-panel {
     max-height: min(390px, calc(100svh - 420px));
+  }
+
+  .platform-live-character {
+    top: 10px;
+    left: 10px;
+    width: min(286px, calc(100% - 96px));
+    max-height: min(184px, calc(100% - 342px));
+  }
+
+  .platform-live-character .character-panel {
+    padding: 8px;
   }
 
   .platform-live-collection {

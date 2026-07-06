@@ -204,6 +204,8 @@ test("renders the migrated game shell", async ({ page }) => {
     "Actions",
   );
   await expect(page.getByLabel("Current location")).toContainText("Town");
+  await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
+  await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveCount(0);
   await expect(page.getByText("=== LOG ==")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveAttribute(
@@ -226,6 +228,8 @@ test("switches from action mode to text mode", async ({ page }) => {
   );
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Ruins" })).toHaveCount(0);
+  await expect(page.locator(".platform-live-character")).toHaveCount(0);
+  await expect(page.locator(".platform-status-drawer summary")).toBeVisible();
   await expect(page.getByText("=== LOG ==")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveAttribute(
     "placeholder",
@@ -280,6 +284,7 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
 
   await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
   await expect(page.getByLabel("Recent messages")).toContainText("[Skeleton Guard HP: 28/28]");
+  await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
   await expect(page.getByRole("button", { name: "Inventory" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Spellbook" })).toBeVisible();
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeHidden();
