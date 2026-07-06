@@ -122,6 +122,134 @@ const blacksmithPayload: MockGamePayload = {
   },
 };
 
+const resupplyPlayer = {
+  name: "Adventurer",
+  health: { current: 30, max: 30 },
+  mana: { current: 12, max: 12 },
+  gold: 2,
+  current_class: "Adventurer",
+  level: 1,
+  xp: 0,
+  statuses: [],
+  equipment: {
+    weapon: { name: "sword", display_name: "Sword", attack: 10, defense: 0 },
+    armor: { name: "leather armor", display_name: "Leather Armor", attack: 0, defense: 12 },
+  },
+  inventory: [
+    {
+      name: "cracked fang",
+      display_name: "Cracked Fang",
+      type: "junk",
+      quantity: 3,
+    },
+  ],
+  spells: [],
+  skills: {
+    swordsmanship: { level: 1, xp: 0, next_level_xp: 250 },
+  },
+};
+
+const resupplyRuinsPayload: MockGamePayload = {
+  ...ruinsPayload,
+  state: {
+    ...ruinsPayload.state,
+    player: resupplyPlayer,
+  },
+};
+
+const resupplyStates = {
+  town: {
+    ...townPayload.state,
+    player: resupplyPlayer,
+  },
+  tavern: {
+    ...townPayload.state,
+    scene: "tavern",
+    scene_display_name: "Tavern",
+    prompt: "Tavern",
+    player: resupplyPlayer,
+    trade: {
+      merchant: "tavern",
+      display_name: "Tavern",
+      player_items: [
+        {
+          name: "cracked fang",
+          display_name: "Cracked Fang",
+          type: "junk",
+          quantity: 3,
+          sell_price: 1,
+          trade_enabled: true,
+        },
+      ],
+      merchant_items: [
+        {
+          name: "potion of heal",
+          display_name: "Potion of Heal",
+          type: "potion",
+          buy_price: 1,
+          trade_enabled: true,
+        },
+      ],
+    },
+  },
+  tavernResupplied: {
+    ...townPayload.state,
+    scene: "tavern",
+    scene_display_name: "Tavern",
+    prompt: "Tavern",
+    player: {
+      ...resupplyPlayer,
+      gold: 0,
+      inventory: [
+        {
+          name: "potion of heal",
+          display_name: "Potion of Heal",
+          type: "potion",
+          quantity: 5,
+        },
+      ],
+    },
+    trade: {
+      merchant: "tavern",
+      display_name: "Tavern",
+      player_items: [
+        {
+          name: "potion of heal",
+          display_name: "Potion of Heal",
+          type: "potion",
+          quantity: 5,
+          sell_price: 1,
+          trade_enabled: true,
+        },
+      ],
+      merchant_items: [
+        {
+          name: "potion of heal",
+          display_name: "Potion of Heal",
+          type: "potion",
+          buy_price: 1,
+          trade_enabled: true,
+        },
+      ],
+    },
+  },
+  ruinsResupplied: {
+    ...ruinsPayload.state,
+    player: {
+      ...resupplyPlayer,
+      gold: 0,
+      inventory: [
+        {
+          name: "potion of heal",
+          display_name: "Potion of Heal",
+          type: "potion",
+          quantity: 5,
+        },
+      ],
+    },
+  },
+};
+
 async function mockGame(page: Page, payload: MockGamePayload) {
   await page.addInitScript((payload) => {
     class FakeWebSocket extends EventTarget {
@@ -192,6 +320,95 @@ async function mockGame(page: Page, payload: MockGamePayload) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(payload),
+    });
+  });
+}
+
+async function mockAutoResupplyGame(page: Page) {
+  await page.addInitScript(({ initial, states }) => {
+    const sentActions = [] as Array<Record<string, unknown>>;
+    (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions =
+      sentActions;
+
+    class FakeWebSocket extends EventTarget {
+      static CONNECTING = 0;
+      static OPEN = 1;
+      static CLOSING = 2;
+      static CLOSED = 3;
+
+      readyState = FakeWebSocket.CONNECTING;
+      currentState = initial.state;
+
+      constructor() {
+        super();
+        window.setTimeout(() => {
+          this.readyState = FakeWebSocket.OPEN;
+          this.dispatchEvent(new Event("open"));
+          this.dispatchState();
+        }, 0);
+      }
+
+      send(data: string) {
+        const action = JSON.parse(String(data)) as Record<string, unknown>;
+        sentActions.push(action);
+
+        if (action.action === "move" && action.direction === "left") {
+          this.currentState = states.town;
+        } else if (action.action === "travel" && action.destination === "tavern") {
+          this.currentState = states.tavern;
+        } else if (action.action === "trade") {
+          this.currentState = states.tavernResupplied;
+        } else if (action.action === "travel" && action.destination === "ruins") {
+          this.currentState = states.ruinsResupplied;
+        }
+
+        window.setTimeout(() => {
+          this.dispatchEvent(
+            new MessageEvent("message", {
+              data: JSON.stringify({
+                type: "events",
+                game_id: initial.game_id,
+                events: [{ type: "message", text: "Action accepted" }],
+                patch: this.currentState,
+              }),
+            }),
+          );
+        }, 0);
+      }
+
+      close() {
+        this.readyState = FakeWebSocket.CLOSED;
+        this.dispatchEvent(new CloseEvent("close"));
+      }
+
+      dispatchState() {
+        this.dispatchEvent(
+          new MessageEvent("message", {
+            data: JSON.stringify({
+              type: "state",
+              game_id: initial.game_id,
+              state: this.currentState,
+            }),
+          }),
+        );
+      }
+    }
+
+    window.WebSocket = FakeWebSocket as unknown as typeof WebSocket;
+  }, { initial: resupplyRuinsPayload, states: resupplyStates });
+
+  await page.route("**/api/games", async (route) => {
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify(resupplyRuinsPayload),
+    });
+  });
+  await page.route("**/api/games/demo-game", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(resupplyRuinsPayload),
     });
   });
 }
@@ -278,6 +495,47 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
   await autoToggle.click();
   await expect(page.getByText("Auto: stopped")).toBeVisible();
+});
+
+test("auto-explore resupplies at the tavern before returning to ruins", async ({ page }) => {
+  await mockAutoResupplyGame(page);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Explore" }).click();
+
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions
+              .length,
+        ),
+      { timeout: 5000 },
+    )
+    .toBeGreaterThanOrEqual(4);
+
+  const resupplyActions = await page.evaluate(() =>
+      (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions.slice(
+        0,
+        4,
+      ),
+    );
+
+  expect(resupplyActions).toEqual([
+    { type: "action", action: "move", direction: "left" },
+    { type: "action", action: "travel", destination: "tavern" },
+    {
+      type: "action",
+      action: "trade",
+      buy: [{ item: "potion of heal", quantity: 5 }],
+      sell: [{ item: "cracked fang", quantity: 3 }],
+    },
+    { type: "action", action: "travel", destination: "ruins" },
+  ]);
+
+  await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByText("Auto: exploring")).toBeVisible();
 });
 
 test("keeps mobile ruins feedback and loadout visible during combat", async ({ page }) => {

@@ -37,6 +37,23 @@ describe("actionFromCommand", () => {
     });
   });
 
+  it("maps combined trade commands to structured actions", () => {
+    expect(
+      actionFromCommand("trade sell=cracked fang:2|bent nail;buy=potion of heal:5"),
+    ).toEqual({
+      type: "trade",
+      sell: [
+        { item: "cracked fang", quantity: 2 },
+        { item: "bent nail", quantity: 1 },
+      ],
+      buy: [{ item: "potion of heal", quantity: 5 }],
+    });
+
+    expect(() => actionFromCommand("trade buy=potion of heal:0")).toThrow(
+      "Trade quantity must be positive.",
+    );
+  });
+
   it("keeps context command sets focused by scene", () => {
     expect(quickCommandsFor(baseState).map((command) => command.command)).toContain("go ruins");
     expect(

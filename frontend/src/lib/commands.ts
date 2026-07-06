@@ -1,4 +1,11 @@
-import type { AutoExploreGoal, GameAction, GameState, Item, StandaloneAction } from "./types";
+import type {
+  AutoExploreGoal,
+  GameAction,
+  GameState,
+  Item,
+  StandaloneAction,
+  TradeLine,
+} from "./types";
 
 const standaloneActions = new Set([
   "agree",
@@ -45,6 +52,8 @@ export function actionFromCommand(command: string): GameAction {
 
     return { type: "cast", spell: target };
   }
+
+  if (verb === "trade") return tradeActionFromTarget(target);
 
   throw actionCommandError(`Unsupported command: ${rawVerb}.`, "unsupported_command");
 }
@@ -167,6 +176,46 @@ function normalizeVerb(verb: string): string {
     rest: "sleep",
     spell: "cast",
   }[verb] || verb;
+}
+
+function tradeActionFromTarget(target: string): GameAction {
+  const selections = target.split(";").reduce(
+    (result, segment) => {
+      const [rawKey = "", rawItems = ""] = segment.split("=", 2);
+      const key = rawKey.trim();
+      if (key !== "buy" && key !== "sell") return result;
+
+      result[key] = tradeLinesFromTarget(rawItems);
+      return result;
+    },
+    { buy: [], sell: [] } as { buy: TradeLine[]; sell: TradeLine[] },
+  );
+
+  if (!selections.buy.length && !selections.sell.length) {
+    throw actionCommandError("At least one trade item is required.");
+  }
+
+  return { type: "trade", buy: selections.buy, sell: selections.sell };
+}
+
+function tradeLinesFromTarget(target: string): TradeLine[] {
+  return target
+    .split("|")
+    .map((segment) => tradeLineFromSegment(segment))
+    .filter((line): line is TradeLine => Boolean(line));
+}
+
+function tradeLineFromSegment(segment: string): TradeLine | null {
+  const [rawItem = "", rawQuantity = ""] = segment.split(":", 2);
+  const item = rawItem.trim();
+  if (!item) return null;
+
+  const quantity = rawQuantity.trim() ? Number(rawQuantity.trim()) : 1;
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    throw actionCommandError("Trade quantity must be positive.");
+  }
+
+  return { item, quantity };
 }
 
 function suggestedItemCommands(items: Item[], state: GameState): QuickCommand[] {

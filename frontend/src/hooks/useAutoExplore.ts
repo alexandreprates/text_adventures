@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { AutoExploreGoal, ConnectionStatus, GameState, Position, Spell } from "../lib/types";
+import type { AutoExploreGoal, ConnectionStatus, GameState, Item, Position, Spell } from "../lib/types";
 import { samePosition } from "../lib/viewModels";
 
 type KnownCellType = "open" | "wall" | "transition";
@@ -17,6 +17,7 @@ export type AutoExploreStopReason =
 
 type AutoExploreModel = {
   enabled: boolean;
+  resupplying: boolean;
   memoryGameId: string | null;
   knownCells: Map<string, KnownCellType>;
   visited: Set<string>;
@@ -74,6 +75,8 @@ const AUTO_EXPLORE_DELAY_MS = 520;
 const AUTO_EXPLORE_SPEEDS = [1, 2, 3];
 const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
 const AUTO_EXPLORE_REPEAT_LIMIT = 8;
+const AUTO_EXPLORE_HEAL_POTION_NAME = "potion of heal";
+const AUTO_EXPLORE_TARGET_HEAL_POTIONS = 5;
 const AUTO_EXPLORE_DIRECTIONS = ["up", "right", "down", "left"] as const;
 const AUTO_EXPLORE_STEPS: Record<(typeof AUTO_EXPLORE_DIRECTIONS)[number], Position> = {
   up: { x: 0, y: -1 },
@@ -94,6 +97,7 @@ export function useAutoExplore({
   const timerRef = useRef<number | null>(null);
   const modelRef = useRef<AutoExploreModel>({
     enabled: false,
+    resupplying: false,
     memoryGameId: null,
     knownCells: new Map(),
     visited: new Set(),
@@ -161,6 +165,7 @@ export function useAutoExplore({
     model.lastPositionKey = null;
     model.pendingSince = null;
     model.repeatCount = 0;
+    model.resupplying = false;
     restoreAutoExploreMemory();
     updateAutoExploreKnowledge();
     model.enabled = true;
@@ -195,6 +200,7 @@ export function useAutoExplore({
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
     model.continueAfterDescent = goal === "descent";
     model.continuousDescent = goal === "descent";
+    model.resupplying = false;
     model.currentPath = [];
     model.destinationKey = null;
     model.repeatCount = 0;
@@ -279,6 +285,7 @@ export function useAutoExplore({
   function stopModel(reason: AutoExploreStopReason = "stopped") {
     const model = modelRef.current;
     model.enabled = false;
+    model.resupplying = false;
     model.goal = "explore";
     model.goalLevel = null;
     model.continueAfterDescent = false;
@@ -295,11 +302,11 @@ export function useAutoExplore({
   function nextAutoExploreDecision(): Decision {
     const currentState = stateRef.current;
     const model = modelRef.current;
+    if (model.resupplying) return nextAutoExploreResupplyDecision();
     if (!canAutoExplore(currentState)) {
       return { stopReason: playerAlive(currentState) ? "stopped" : "dead" };
     }
     if (currentState.pending?.confirmation) return { stopReason: "unsafe confirmation" };
-    if (autoExploreShouldReturnForHealing()) return autoExploreReturnToTownForHealing();
 
     const healingAction = autoExploreHealingAction();
     if (healingAction) return { command: healingAction.command, status: "Auto: healing" };
@@ -311,6 +318,8 @@ export function useAutoExplore({
         status: "Auto: fighting",
       };
     }
+
+    if (autoExploreShouldReturnForHealing()) return startAutoExploreResupply();
 
     const visibleEnemy = visibleEnemyPosition();
     if (visibleEnemy) {
@@ -429,24 +438,15 @@ export function useAutoExplore({
   }
 
   function autoExploreShouldReturnForHealing() {
-    const currentState = stateRef.current;
-    return (
-      modelRef.current.goal === "explore" &&
-      Boolean(currentState) &&
-      !playerHasHealPotion() &&
-      !playerKnowsHealingSpell()
-    );
+    return modelRef.current.goal === "explore" && playerNeedsHealingSupply();
+  }
+
+  function playerNeedsHealingSupply() {
+    return Boolean(stateRef.current) && !playerHasHealPotion() && !playerKnowsHealingSpell();
   }
 
   function playerHasHealPotion() {
-    return Boolean(
-      stateRef.current?.player.inventory.some(
-        (item) =>
-          item.type === "potion" &&
-          item.name === "potion of heal" &&
-          (item.quantity || 0) > 0,
-      ),
-    );
+    return healPotionQuantity(stateRef.current) > 0;
   }
 
   function playerKnowsHealingSpell() {
@@ -457,7 +457,13 @@ export function useAutoExplore({
     );
   }
 
-  function autoExploreReturnToTownForHealing(): Decision {
+  function startAutoExploreResupply(): Decision {
+    modelRef.current.resupplying = true;
+    prepareAutoExploreTownGoal();
+    return nextAutoExploreGoalDecision();
+  }
+
+  function prepareAutoExploreTownGoal() {
     const model = modelRef.current;
     model.goal = "town";
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
@@ -466,7 +472,67 @@ export function useAutoExplore({
     model.currentPath = [];
     model.destinationKey = null;
     model.repeatCount = 0;
-    return nextAutoExploreGoalDecision();
+  }
+
+  function nextAutoExploreResupplyDecision(): Decision {
+    const currentState = stateRef.current;
+    if (!currentState) return { stopReason: "stopped" };
+    if (!playerAlive(currentState)) return { stopReason: "dead" };
+    if (currentState.pending?.confirmation) return { stopReason: "unsafe confirmation" };
+
+    const healingAction = currentState.scene === "ruins" ? autoExploreHealingAction() : null;
+    if (healingAction) return { command: healingAction.command, status: "Auto: healing" };
+
+    if (currentState.battle?.active) {
+      const spell = autoExploreDamageSpell();
+      return {
+        command: spell ? `cast ${spell.name}` : "attack",
+        status: "Auto: fighting",
+      };
+    }
+
+    if (currentState.scene === "ruins") {
+      if (!canAutoExplore(currentState)) return { stopReason: "stopped" };
+      if (!playerNeedsHealingSupply()) {
+        finishAutoExploreResupply();
+        return nextAutoExploreDecision();
+      }
+
+      prepareAutoExploreTownGoal();
+      return nextAutoExploreGoalDecision();
+    }
+
+    if (currentState.scene === "town") {
+      return { command: "go tavern", status: "Auto: resupplying" };
+    }
+
+    if (currentState.scene === "tavern") {
+      const tradeCommand = autoExploreResupplyTradeCommand(currentState);
+      if (tradeCommand) return { command: tradeCommand, status: "Auto: resupplying" };
+      if (!autoExploreTavernHasHealPotionStock(currentState) || healPotionQuantity(currentState) <= 0) {
+        return { stopReason: "target unavailable" };
+      }
+
+      return { command: "go ruins", status: "Auto: returning" };
+    }
+
+    return { command: "go town", status: "Auto: resupplying" };
+  }
+
+  function finishAutoExploreResupply() {
+    const model = modelRef.current;
+    model.resupplying = false;
+    model.goal = "explore";
+    model.goalLevel = stateRef.current?.dungeon?.level ?? null;
+    model.continueAfterDescent = false;
+    model.continuousDescent = false;
+    model.currentPath = [];
+    model.destinationKey = null;
+    model.lastAction = null;
+    model.lastPositionKey = null;
+    model.pendingSince = null;
+    model.repeatCount = 0;
+    model.statusText = autoExploreGoalStatus(model.goal);
   }
 
   function autoExploreDamageSpell() {
@@ -903,6 +969,19 @@ export function useAutoExplore({
     const model = modelRef.current;
     const currentState = stateRef.current;
     if (model.goal === "town" && currentState?.scene !== "ruins") {
+      if (model.resupplying) {
+        model.goal = "explore";
+        model.goalLevel = null;
+        model.currentPath = [];
+        model.destinationKey = null;
+        model.lastAction = null;
+        model.lastPositionKey = null;
+        model.pendingSince = null;
+        model.repeatCount = 0;
+        model.statusText = "Auto: resupplying";
+        return false;
+      }
+
       stopModel("town reached");
       return true;
     }
@@ -1035,6 +1114,80 @@ function canAutoExplore(state: GameState | null): state is RuinsGameState {
 
 function playerAlive(state: GameState | null) {
   return (state?.player.health.current || 0) > 0;
+}
+
+export function autoExploreResupplyTradeCommand(state: GameState): string | null {
+  const sellItems = autoExploreSellableJunkItems(state);
+  const healPotion = autoExploreHealPotionStock(state);
+  const buyQuantity = healPotion
+    ? autoExploreHealPotionBuyQuantity(state, healPotion, sellItems)
+    : 0;
+  const segments: string[] = [];
+
+  if (sellItems.length) {
+    segments.push(`sell=${sellItems.map(autoExploreTradeItemSegment).join("|")}`);
+  }
+  if (buyQuantity > 0) {
+    segments.push(`buy=${AUTO_EXPLORE_HEAL_POTION_NAME}:${buyQuantity}`);
+  }
+
+  return segments.length ? `trade ${segments.join(";")}` : null;
+}
+
+function autoExploreTavernHasHealPotionStock(state: GameState) {
+  return Boolean(autoExploreHealPotionStock(state));
+}
+
+function autoExploreHealPotionStock(state: GameState) {
+  return (
+    state.trade?.merchant_items.find(
+      (item) => item.name === AUTO_EXPLORE_HEAL_POTION_NAME && item.trade_enabled !== false,
+    ) || null
+  );
+}
+
+function autoExploreSellableJunkItems(state: GameState) {
+  return (state.trade?.player_items || []).filter(
+    (item) => item.type === "junk" && item.trade_enabled && autoExploreTradeItemQuantity(item) > 0,
+  );
+}
+
+function autoExploreHealPotionBuyQuantity(
+  state: GameState,
+  healPotion: Item,
+  sellItems: Item[],
+) {
+  const needed = Math.max(0, AUTO_EXPLORE_TARGET_HEAL_POTIONS - healPotionQuantity(state));
+  const price = Number(healPotion.buy_price ?? healPotion.price ?? 0);
+  if (!needed || price <= 0) return 0;
+
+  const sellTotal = sellItems.reduce(
+    (total, item) => total + Number(item.sell_price || 0) * autoExploreTradeItemQuantity(item),
+    0,
+  );
+  const availableGold = Number(state.player.gold || 0) + sellTotal;
+
+  return Math.min(needed, Math.floor(availableGold / price));
+}
+
+function autoExploreTradeItemSegment(item: Item) {
+  return `${item.name}:${autoExploreTradeItemQuantity(item)}`;
+}
+
+function autoExploreTradeItemQuantity(item: Item) {
+  return Math.max(0, Number(item.quantity || 1));
+}
+
+function healPotionQuantity(state: GameState | null) {
+  return (
+    state?.player.inventory
+      .filter((item) => item.type === "potion" && item.name === AUTO_EXPLORE_HEAL_POTION_NAME)
+      .reduce((total, item) => total + autoExploreInventoryItemQuantity(item), 0) || 0
+  );
+}
+
+function autoExploreInventoryItemQuantity(item: Item) {
+  return Math.max(0, Number(item.quantity || 0));
 }
 
 function autoExploreGoalStatus(goal: AutoExploreGoal) {
