@@ -206,6 +206,7 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
   await expect(page.getByRole("button", { name: "Text Adventures" })).toHaveCount(0);
   await expect(page.getByLabel("Current location")).toContainText("Town");
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
   await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveCount(0);

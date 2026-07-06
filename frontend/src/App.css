@@ -258,8 +258,8 @@
 
 .connection-indicator {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  right: 12px;
+  bottom: 12px;
   z-index: 4;
   width: 44px;
   height: 44px;
@@ -1408,8 +1408,8 @@
 }
 
 .platform-live-playfield .connection-indicator {
-  top: 84px;
-  left: 14px;
+  right: 14px;
+  bottom: 14px;
 }
 
 .platform-live-playfield .map-zoom-controls {
@@ -1896,7 +1896,14 @@
   }
 
   .platform-live-playfield .connection-indicator {
-    display: none;
+    right: 10px;
+    bottom: 190px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .platform-live-shell.is-mode-text .platform-live-playfield .connection-indicator {
+    bottom: 228px;
   }
 
   .platform-live-playfield .map-zoom-controls {
