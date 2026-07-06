@@ -8,10 +8,10 @@ import {
 type CollectionPanelProps = {
   player: PlayerState | null;
   activeTab: CollectionTab;
-  onFillCommand: (command: string) => void;
+  onItemCommand: (command: string) => void;
 };
 
-export function CollectionPanel({ player, activeTab, onFillCommand }: CollectionPanelProps) {
+export function CollectionPanel({ player, activeTab, onItemCommand }: CollectionPanelProps) {
   const title = activeTab === "inventory" ? "=== INVENTORY ==" : "=== SPELLS ====";
 
   return (
@@ -27,7 +27,7 @@ export function CollectionPanel({ player, activeTab, onFillCommand }: Collection
                 <button
                   className="collection-item-command"
                   type="button"
-                  onClick={() => onFillCommand(inventoryCommandValue(item))}
+                  onClick={() => onItemCommand(inventoryCommandValue(item))}
                 >
                   <span className="collection-item-name">
                     {item.quantity || 1}x {inventoryItemLabel(item)}
@@ -52,7 +52,7 @@ export function CollectionPanel({ player, activeTab, onFillCommand }: Collection
                 <button
                   className="collection-item-command"
                   type="button"
-                  onClick={() => onFillCommand(spellCommandValue(spell))}
+                  onClick={() => onItemCommand(spellCommandValue(spell))}
                 >
                   <span className="collection-item-name">
                     {spell.display_name} Lv {spell.level}

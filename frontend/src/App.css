@@ -968,6 +968,42 @@
   white-space: nowrap;
 }
 
+.interface-mode-toggle {
+  min-width: 104px;
+  min-height: 44px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 0 14px;
+  border: 1px solid var(--platform-gold);
+  border-radius: 6px;
+  color: #161007;
+  background: var(--platform-gold);
+  font-family: var(--mono);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.interface-mode-toggle:hover,
+.interface-mode-toggle:focus-visible {
+  border-color: var(--platform-text);
+  background: #ffe08a;
+}
+
+.interface-mode-toggle span {
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(22, 16, 7, 0.72);
+}
+
+.interface-mode-toggle strong {
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  color: #161007;
+}
+
 .platform-location-chip,
 .platform-pocket {
   min-height: 44px;
@@ -1377,6 +1413,10 @@
   right: 84px;
 }
 
+.platform-live-shell.is-mode-text .platform-live-playfield .map-zoom-controls {
+  display: none;
+}
+
 .platform-status-drawer {
   position: absolute;
   top: 12px;
@@ -1465,6 +1505,15 @@
   bottom: 132px;
 }
 
+.platform-live-shell.is-mode-text .platform-live-log {
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  width: min(720px, calc(100% - 28px));
+  max-height: min(264px, calc(100% - 132px));
+  z-index: 10;
+}
+
 .platform-live-collection .inventory-panel,
 .platform-live-log .log-panel {
   padding: 10px;
@@ -1477,6 +1526,10 @@
 
 .platform-live-log .message-log {
   height: 128px;
+}
+
+.platform-live-shell.is-mode-text .platform-live-log .message-log {
+  height: clamp(180px, 32svh, 248px);
 }
 
 .platform-live-playfield .commands-panel {
@@ -1650,6 +1703,19 @@
     display: none;
   }
 
+  .platform-live-shell.is-mode-text .platform-live-log {
+    display: block;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: calc(100% - 24px);
+    max-height: min(236px, calc(100% - 124px));
+  }
+
+  .platform-live-shell.is-mode-text .platform-live-log .message-log {
+    height: clamp(168px, 30svh, 220px);
+  }
+
   .platform-live-playfield .commands-panel {
     width: calc(100% - 24px);
   }
@@ -1779,19 +1845,29 @@
   }
 
   .platform-brand,
+  .interface-mode-toggle,
   .platform-location-chip {
     min-width: 0;
   }
 
   .platform-brand,
+  .interface-mode-toggle,
   .platform-location-chip,
   .platform-pocket {
     min-height: 38px;
   }
 
-  .platform-brand {
+  .platform-brand,
+  .interface-mode-toggle {
     padding: 0 12px;
+  }
+
+  .platform-brand {
     font-size: 13px;
+  }
+
+  .interface-mode-toggle {
+    min-width: 88px;
   }
 
   .platform-location-chip {
@@ -1882,6 +1958,10 @@
     max-height: 116px;
   }
 
+  .platform-live-playfield.is-ruins .platform-live-collection.is-hidden {
+    display: none;
+  }
+
   .platform-live-playfield.is-ruins .platform-loadout-rail {
     display: grid;
   }
@@ -1960,6 +2040,19 @@
   .platform-live-shell > .command-bar {
     min-height: 58px;
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .platform-live-shell.is-mode-text .platform-live-log {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: min(208px, calc(100% - 110px));
+  }
+
+  .platform-live-shell.is-mode-text .platform-live-log .message-log {
+    height: clamp(128px, 22svh, 184px);
+    min-height: 128px;
   }
 
   .platform-live-shell > .command-bar label {

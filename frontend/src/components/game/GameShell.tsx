@@ -18,6 +18,10 @@ import { MapPanel } from "./MapPanel";
 import { MessageLog } from "./MessageLog";
 import { TradeOverlay } from "./TradeOverlay";
 
+type InterfaceMode = "actions" | "text";
+
+const interfaceModeStorageKey = "text_adventures.interface_mode";
+
 type GameShellProps = {
   state: GameState | null;
   status: ConnectionStatus;
@@ -61,6 +65,7 @@ export function GameShell({
   const mana = player?.mana || { current: 0, max: 0 };
   const xp = currentSkillProgress(player);
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [interfaceMode, setInterfaceMode] = useState<InterfaceMode>(() => savedInterfaceMode());
   const [statusDrawer, setStatusDrawer] = useState<{ scene: string | null; open: boolean }>({
     scene: null,
     open: false,
@@ -69,6 +74,7 @@ export function GameShell({
   const recentLogLines = useMemo(() => logLines.slice(-2), [logLines]);
   const statusScene = state?.scene || null;
   const statusOpen = statusDrawer.open && statusDrawer.scene === statusScene && !shopOpen;
+  const actionsMode = interfaceMode === "actions";
 
   function toggleCollection(tab: CollectionTab) {
     if (activeTab === tab) {
@@ -80,16 +86,26 @@ export function GameShell({
     setCollectionOpen(true);
   }
 
+  function toggleInterfaceMode() {
+    const nextMode: InterfaceMode = actionsMode ? "text" : "actions";
+    setCollectionOpen(false);
+    setInterfaceMode(nextMode);
+    rememberInterfaceMode(nextMode);
+  }
+
   return (
     <>
-      <div className="app-shell platform-live-shell">
+      <div className={`app-shell platform-live-shell is-mode-${interfaceMode}`}>
         <header className="platform-top-hud" aria-label="Game status">
-          <div
-            className="platform-brand"
-            aria-label="Game title"
+          <button
+            className="interface-mode-toggle"
+            type="button"
+            aria-label={actionsMode ? "Switch to text mode" : "Switch to button mode"}
+            onClick={toggleInterfaceMode}
           >
-            Text Adventures
-          </div>
+            <span>Mode</span>
+            <strong>{actionsMode ? "Actions" : "Text"}</strong>
+          </button>
           <h1 className="sr-only">{state?.scene_display_name || "Starting adventure"}</h1>
 
           <div className="platform-location-chip" aria-label="Current location">
@@ -143,24 +159,26 @@ export function GameShell({
             <CharacterPanel state={state} />
           </details>
 
-          <aside className="platform-loadout-rail" aria-label="Loadout">
-            <button
-              type="button"
-              aria-label="Inventory"
-              aria-pressed={collectionOpen && activeTab === "inventory"}
-              onClick={() => toggleCollection("inventory")}
-            >
-              INV
-            </button>
-            <button
-              type="button"
-              aria-label="Spellbook"
-              aria-pressed={collectionOpen && activeTab === "spells"}
-              onClick={() => toggleCollection("spells")}
-            >
-              SPL
-            </button>
-          </aside>
+          {actionsMode ? (
+            <aside className="platform-loadout-rail" aria-label="Loadout">
+              <button
+                type="button"
+                aria-label="Inventory"
+                aria-pressed={collectionOpen && activeTab === "inventory"}
+                onClick={() => toggleCollection("inventory")}
+              >
+                INV
+              </button>
+              <button
+                type="button"
+                aria-label="Spellbook"
+                aria-pressed={collectionOpen && activeTab === "spells"}
+                onClick={() => toggleCollection("spells")}
+              >
+                SPL
+              </button>
+            </aside>
+          ) : null}
 
           <MapPanel
             state={state}
@@ -172,36 +190,44 @@ export function GameShell({
             onCommand={onCommand}
           />
 
-          <aside
-            className={`platform-live-collection ${collectionOpen ? "" : "is-hidden"}`}
-            aria-hidden={!collectionOpen}
-          >
-            <CollectionPanel
-              player={player}
-              activeTab={activeTab}
-              onFillCommand={onCommandValueChange}
+          {actionsMode ? (
+            <aside
+              className={`platform-live-collection ${collectionOpen ? "" : "is-hidden"}`}
+              aria-hidden={!collectionOpen}
+            >
+              <CollectionPanel
+                player={player}
+                activeTab={activeTab}
+                onItemCommand={onCommand}
+              />
+            </aside>
+          ) : null}
+
+          {!actionsMode ? (
+            <aside className="platform-live-log">
+              <MessageLog lines={logLines} />
+            </aside>
+          ) : null}
+
+          {actionsMode ? (
+            <CommandPanel
+              state={state}
+              autoExplore={autoExplore}
+              recentLines={recentLogLines}
+              onCommand={onCommand}
+              onOpenShop={onOpenShop}
             />
-          </aside>
-
-          <aside className="platform-live-log">
-            <MessageLog lines={logLines} />
-          </aside>
-
-          <CommandPanel
-            state={state}
-            autoExplore={autoExplore}
-            recentLines={recentLogLines}
-            onCommand={onCommand}
-            onOpenShop={onOpenShop}
-          />
+          ) : null}
         </main>
 
-        <CommandBar
-          placeholder={commandPlaceholder(state, compactViewport)}
-          value={commandValue}
-          onValueChange={onCommandValueChange}
-          onSubmitCommand={onCommand}
-        />
+        {!actionsMode ? (
+          <CommandBar
+            placeholder={commandPlaceholder(state, compactViewport)}
+            value={commandValue}
+            onValueChange={onCommandValueChange}
+            onSubmitCommand={onCommand}
+          />
+        ) : null}
       </div>
 
       <TradeOverlay
@@ -256,6 +282,22 @@ function currentSkillProgress(player: PlayerState | null): { label: string; perc
 
 function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function savedInterfaceMode(): InterfaceMode {
+  try {
+    return window.localStorage.getItem(interfaceModeStorageKey) === "text" ? "text" : "actions";
+  } catch {
+    return "actions";
+  }
+}
+
+function rememberInterfaceMode(mode: InterfaceMode): void {
+  try {
+    window.localStorage.setItem(interfaceModeStorageKey, mode);
+  } catch {
+    // localStorage can be unavailable in restricted browser contexts.
+  }
 }
 
 function useCompactViewport(): boolean {

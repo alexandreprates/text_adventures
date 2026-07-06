@@ -200,9 +200,12 @@ test("renders the migrated game shell", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  await expect(page.getByLabel("Game title")).toContainText("Text Adventures");
-  await expect(page.getByRole("button", { name: "Text Adventures" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Switch to text mode" })).toContainText(
+    "Actions",
+  );
   await expect(page.getByLabel("Current location")).toContainText("Town");
+  await expect(page.locator("#command-input")).toHaveCount(0);
+  await expect(page.getByText("=== LOG ==")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveAttribute(
     "aria-pressed",
     "false",
@@ -210,10 +213,37 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByText("Potion of Heal")).toBeHidden();
   await page.getByRole("button", { name: "Inventory" }).click();
   await expect(page.getByText("Potion of Heal")).toBeVisible();
+});
+
+test("switches from action mode to text mode", async ({ page }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+
+  await expect(page.getByRole("button", { name: "Switch to button mode" })).toContainText(
+    "Text",
+  );
+  await expect(page.getByRole("button", { name: "Inventory" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ruins" })).toHaveCount(0);
+  await expect(page.getByText("=== LOG ==")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveAttribute(
     "placeholder",
     /go ruins, (go blacksmith, )?inventory/,
   );
+});
+
+test("persists the selected interface mode", async ({ page }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.reload();
+
+  await expect(page.getByRole("button", { name: "Switch to button mode" })).toContainText(
+    "Text",
+  );
+  await expect(page.locator("#command-input")).toBeVisible();
 });
 
 test("renders auto-explore controls in ruins", async ({ page }) => {
@@ -252,6 +282,10 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
   await expect(page.getByLabel("Recent messages")).toContainText("[Skeleton Guard HP: 28/28]");
   await expect(page.getByRole("button", { name: "Inventory" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Spellbook" })).toBeVisible();
+  await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeHidden();
+
+  await page.getByRole("button", { name: "Inventory" }).click();
+  await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
 });
 
 test("uses mobile trade tabs with merchant stock first", async ({ page }) => {
