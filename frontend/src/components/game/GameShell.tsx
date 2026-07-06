@@ -91,15 +91,9 @@ export function GameShell({
     <>
       <div className={`app-shell platform-live-shell is-mode-${interfaceMode}`}>
         <header className="platform-top-hud" aria-label="Game status">
-          <button
-            className="interface-mode-toggle"
-            type="button"
-            aria-label={actionsMode ? "Switch to text mode" : "Switch to button mode"}
-            onClick={toggleInterfaceMode}
-          >
-            <span>Mode</span>
-            <strong>{actionsMode ? "Actions" : "Text"}</strong>
-          </button>
+          <div className="platform-brand" aria-label="Game title">
+            Text Adventures
+          </div>
           <h1 className="sr-only">{state?.scene_display_name || "Starting adventure"}</h1>
 
           <div className="platform-location-chip" aria-label="Current location">
@@ -132,6 +126,16 @@ export function GameShell({
             <span>Gold</span>
             <strong>{player?.gold || 0}</strong>
           </div>
+
+          <button
+            className="interface-mode-toggle"
+            type="button"
+            aria-label={actionsMode ? "Switch to text mode" : "Switch to button mode"}
+            onClick={toggleInterfaceMode}
+          >
+            <span>Mode</span>
+            <strong>{actionsMode ? "Actions" : "Text"}</strong>
+          </button>
         </header>
 
         <main

@@ -947,7 +947,7 @@
 .platform-top-hud {
   min-height: 64px;
   display: grid;
-  grid-template-columns: auto minmax(160px, 0.8fr) minmax(360px, 1.6fr) auto;
+  grid-template-columns: auto minmax(150px, 0.78fr) minmax(300px, 1.5fr) auto auto;
   gap: 8px;
   align-items: center;
   padding: 8px;
@@ -966,6 +966,10 @@
   font: 900 15px/1 var(--mono);
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.platform-live-shell .platform-brand {
+  text-transform: none;
 }
 
 .interface-mode-toggle {
@@ -1648,7 +1652,7 @@
 
 @media (max-width: 980px) {
   .platform-top-hud {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
   }
 
   .platform-meter-group {
@@ -1832,18 +1836,26 @@
   }
 
   .platform-brand {
+    grid-column: 1;
+    grid-row: 1;
     font-size: 13px;
   }
 
   .interface-mode-toggle {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
     min-width: 88px;
   }
 
   .platform-location-chip {
-    grid-column: 1 / -1;
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .platform-meter-group {
+    grid-column: 1 / -1;
+    grid-row: 3;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -1863,7 +1875,8 @@
 
   .platform-pocket {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
+    justify-self: end;
   }
 
   .platform-encounter-panel {
