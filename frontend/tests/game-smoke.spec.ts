@@ -229,7 +229,7 @@ test("switches from action mode to text mode", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Ruins" })).toHaveCount(0);
   await expect(page.locator(".platform-live-character")).toHaveCount(0);
-  await expect(page.locator(".platform-status-drawer summary")).toBeVisible();
+  await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
   await expect(page.getByText("=== LOG ==")).toBeVisible();
   await expect(page.locator("#command-input")).toHaveAttribute(
     "placeholder",

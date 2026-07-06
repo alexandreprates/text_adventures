@@ -1417,55 +1417,6 @@
   display: none;
 }
 
-.platform-status-drawer {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 9;
-  max-width: 286px;
-}
-
-.platform-status-drawer summary {
-  width: 86px;
-  min-height: 57px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-  align-items: center;
-  border: 1px solid var(--platform-line);
-  border-radius: 6px;
-  padding: 0 10px;
-  color: var(--platform-gold);
-  background: rgba(9, 17, 18, 0.9);
-  box-shadow: var(--platform-shadow);
-  cursor: pointer;
-  font: 900 12px/1 var(--mono);
-  list-style: none;
-  text-transform: uppercase;
-}
-
-.platform-status-drawer summary::-webkit-details-marker {
-  display: none;
-}
-
-.platform-status-drawer[open] summary {
-  width: 100%;
-  padding: 0 12px;
-}
-
-.status-drawer-state {
-  color: var(--platform-muted);
-  font-size: 12px;
-}
-
-.platform-status-drawer .character-panel {
-  max-height: min(580px, calc(100svh - 190px));
-  margin-top: 8px;
-  overflow: auto;
-  padding: 12px;
-  background: rgba(9, 17, 18, 0.94);
-}
-
 .platform-live-character {
   position: absolute;
   top: 12px;
@@ -1943,24 +1894,6 @@
   .platform-live-playfield .map-zoom-button {
     width: 44px;
     min-height: 44px;
-  }
-
-  .platform-status-drawer {
-    top: 10px;
-    left: 10px;
-  }
-
-  .platform-status-drawer summary {
-    width: 86px;
-    min-height: 57px;
-  }
-
-  .platform-status-drawer[open] {
-    width: min(286px, calc(100% - 20px));
-  }
-
-  .platform-status-drawer .character-panel {
-    max-height: min(390px, calc(100svh - 420px));
   }
 
   .platform-live-character {

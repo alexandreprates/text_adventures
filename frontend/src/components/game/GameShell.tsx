@@ -66,14 +66,8 @@ export function GameShell({
   const xp = currentSkillProgress(player);
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [interfaceMode, setInterfaceMode] = useState<InterfaceMode>(() => savedInterfaceMode());
-  const [statusDrawer, setStatusDrawer] = useState<{ scene: string | null; open: boolean }>({
-    scene: null,
-    open: false,
-  });
   const compactViewport = useCompactViewport();
   const recentLogLines = useMemo(() => logLines.slice(-2), [logLines]);
-  const statusScene = state?.scene || null;
-  const statusOpen = statusDrawer.open && statusDrawer.scene === statusScene && !shopOpen;
   const actionsMode = interfaceMode === "actions";
 
   function toggleCollection(tab: CollectionTab) {
@@ -147,23 +141,7 @@ export function GameShell({
             <aside className="platform-live-character" aria-label="Character overview">
               <CharacterPanel state={state} />
             </aside>
-          ) : (
-            <details
-              className="platform-status-drawer"
-              open={statusOpen}
-              onToggle={(event) =>
-                setStatusDrawer({ scene: statusScene, open: event.currentTarget.open })
-              }
-            >
-              <summary>
-                Status
-                <span className="status-drawer-state" aria-hidden="true">
-                  {statusOpen ? "-" : "+"}
-                </span>
-              </summary>
-              <CharacterPanel state={state} />
-            </details>
-          )}
+          ) : null}
 
           {actionsMode ? (
             <aside className="platform-loadout-rail" aria-label="Loadout">
