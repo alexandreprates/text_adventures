@@ -1,0 +1,43 @@
+- generic [ref=f13e3]:
+  - banner "Game status" [ref=f13e4]:
+    - button "Text Adventures" [ref=f13e5] [cursor=pointer]
+    - heading "Starting adventure" [level=1] [ref=f13e6]
+    - generic "Current location" [ref=f13e7]:
+      - generic [ref=f13e8]: Starting
+      - strong [ref=f13e9]: Connecting
+    - generic "Resources" [ref=f13e10]:
+      - generic [ref=f13e12]: HP
+      - generic [ref=f13e15]: MP
+      - generic [ref=f13e18]: XP
+    - generic "Wallet" [ref=f13e20]:
+      - generic [ref=f13e21]: Gold
+      - strong [ref=f13e22]: "0"
+  - main [ref=f13e23]:
+    - group [ref=f13e24]:
+      - generic "Status" [ref=f13e25] [cursor=pointer]
+    - complementary "Loadout" [ref=f13e26]:
+      - button "Inventory" [pressed] [ref=f13e27] [cursor=pointer]: INV
+      - button "Spellbook" [ref=f13e28] [cursor=pointer]: SPL
+    - region "Starting map" [ref=f13e29]:
+      - generic [ref=f13e31]:
+        - generic "Map zoom controls" [ref=f13e32]:
+          - button "Zoom in" [ref=f13e33] [cursor=pointer]: +
+          - button "Zoom out" [ref=f13e34] [cursor=pointer]: "-"
+        - generic [ref=f13e35]: Connecting
+        - dialog "You Died!" [ref=f13e36]:
+          - generic [ref=f13e37]:
+            - heading "You Died!" [level=3] [ref=f13e38]
+            - generic [ref=f13e39]:
+              - button "Revive in Town" [ref=f13e40] [cursor=pointer]
+              - button "New Game" [ref=f13e41] [cursor=pointer]
+    - complementary [ref=f13e42]:
+      - region "=== INVENTORY ==" [ref=f13e43]:
+        - generic [ref=f13e44]: === INVENTORY ==
+        - list [ref=f13e45]:
+          - listitem [ref=f13e46]:
+            - generic [ref=f13e47]: Nothing here yet
+    - region "=== COMMANDS ==" [ref=f13e48]
+  - generic [ref=f13e49]:
+    - textbox "COMMAND" [ref=f13e50]:
+      - /placeholder: reload
+    - button "Send" [ref=f13e51] [cursor=pointer]

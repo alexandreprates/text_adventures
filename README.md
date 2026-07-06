@@ -59,9 +59,9 @@ Run the browser frontend and game API together:
 docker compose up --build
 ```
 
-The Compose stack bind-mounts the Ruby source, game data, and browser assets
-into the containers. After the first build, local code and frontend asset
-changes are visible from the running containers without rebuilding the images.
+The Compose stack bind-mounts the Ruby source and game data into the server
+container. The web image builds the React frontend with Vite and serves the
+generated `frontend/dist` output through Nginx.
 
 Open:
 
@@ -94,9 +94,10 @@ docker compose up --build
 http://127.0.0.1:3000/
 ```
 
-Browser assets live under `frontend/public/`. Container deployments use the
-Nginx web target as the public entrypoint and proxy API requests to the Ruby game
-server:
+The browser app lives under `frontend/`. Source code is in `frontend/src/`,
+static game assets are in `frontend/public/`, and container deployments serve
+the Vite build output through the Nginx web target while proxying API requests
+to the Ruby game server:
 
 ```text
 /                 -> Nginx static frontend
@@ -234,13 +235,25 @@ Errors are returned as JSON:
 }
 ```
 
-The frontend source assets are checked in under `frontend/public/`:
+The frontend app is a React + TypeScript Vite project:
 
 ```text
-frontend/public/index.html
-frontend/public/styles.css
-frontend/public/app.js
+frontend/index.html
+frontend/src/
+frontend/public/assets/
+frontend/public/map_renderer.js
 frontend/nginx.conf
+```
+
+Useful frontend commands:
+
+```sh
+cd frontend
+pnpm dev
+pnpm lint
+pnpm test
+pnpm build
+pnpm playwright test
 ```
 
 ## Running Tests
@@ -438,8 +451,9 @@ markers are runtime render markers, not YAML tile characters.
 
 ```text
 bin/text_adventures          JSON API server entrypoint
-frontend/public              browser frontend assets
-frontend/nginx.conf          static frontend and API proxy config
+frontend/src                 React browser frontend source
+frontend/public              static frontend assets copied by Vite
+frontend/nginx.conf          Vite build static frontend and API proxy config
 lib/commands                 command parsing
 lib/domain                   gameplay domain objects
 lib/scenes                   town, shops, tavern, priest, and ruins scenes

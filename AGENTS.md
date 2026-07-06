@@ -2,6 +2,36 @@
 
 These instructions apply to this repository.
 
+## Frontend rules
+
+- Use React + TypeScript.
+- Prefer existing components in `src/components/ui`.
+- Use shadcn/ui before creating custom components.
+- Use Tailwind utility classes; avoid custom CSS unless necessary.
+- Do not introduce new UI libraries without approval.
+- Every screen must support desktop and mobile layouts.
+- Every async page must handle loading, empty, error and success states.
+- Forms must include validation messages and accessible labels.
+- Prefer semantic HTML.
+- Do not hardcode colors directly; use design tokens/classes.
+- Keep components small and composable.
+
+## Visual quality
+
+- Use consistent spacing: 4, 6, 8, 12, 16, 24, 32.
+- Use one visual hierarchy per page: title, description, primary action, secondary actions.
+- Avoid generic AI-looking gradients unless requested.
+- Prioritize clean enterprise SaaS UI: cards, clear typography, whitespace, responsive grids.
+
+## Commands
+
+After frontend changes, run:
+
+- `pnpm lint`
+- `pnpm test`
+- `pnpm playwright test`
+- `pnpm storybook` when changing reusable components
+
 ## Communication
 
 - Speak with the user in Brazilian Portuguese.

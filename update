@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+git pull
+printf TEXT_ADVENTURES_ASSET_VERSION=%sn "$(git rev-parse --short HEAD)" > .env
+docker compose -f docker-compose.yml up --build --force-recreate -d

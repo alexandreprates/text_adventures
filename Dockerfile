@@ -1,7 +1,19 @@
+FROM node:alpine AS frontend-build
+
+WORKDIR /text_adventures/frontend
+
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+RUN npm install --global pnpm@10.34.4 && pnpm install --frozen-lockfile
+
+COPY frontend ./
+
+RUN pnpm build
+
 FROM nginx:alpine AS web
 
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY frontend/public /usr/share/nginx/html
+COPY --from=frontend-build /text_adventures/frontend/dist /usr/share/nginx/html
 
 EXPOSE 3000
 
