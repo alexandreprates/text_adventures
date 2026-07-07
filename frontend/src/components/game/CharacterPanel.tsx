@@ -15,7 +15,6 @@ export function CharacterPanel({ state }: CharacterPanelProps) {
   const player = state?.player;
   const mana = player?.mana || { current: 0, max: 0 };
   const statuses = player?.statuses?.length ? player.statuses.join(", ") : "clear";
-  const enemy = state?.battle?.active ? state.battle.enemy : null;
 
   return (
     <section className="terminal-panel character-panel" aria-label="Adventurer status">
@@ -50,26 +49,6 @@ export function CharacterPanel({ state }: CharacterPanelProps) {
       <pre className="terminal-output status-output" aria-live="polite">
         {player ? equipmentLines(player) : "Gold    --"}
       </pre>
-
-      <div className={`enemy-panel ${enemy ? "" : "hidden"}`}>
-        <div className="section-label">-- ENEMY --</div>
-        {enemy ? (
-          <>
-            <ResourceBar
-              label="HP"
-              current={enemy.health.current}
-              max={enemy.health.max}
-              kind="danger"
-            />
-            <div className="status-row">
-              <span>STATUS</span>
-              <strong className={enemy.statuses?.length ? "status-alert" : "status-clear"}>
-                {enemy.statuses?.length ? enemy.statuses.join(", ") : "clear"}
-              </strong>
-            </div>
-          </>
-        ) : null}
-      </div>
     </section>
   );
 }

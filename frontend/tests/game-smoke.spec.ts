@@ -725,9 +725,14 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
   await mockGame(page, combatPayload);
   await page.goto("/");
 
-  await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
+  await expect(page.locator(".commands-panel").getByLabel("Enemy status")).toContainText(
+    "Skeleton Guard",
+  );
   await expect(page.getByLabel("Recent messages")).toContainText("[Skeleton Guard HP: 28/28]");
   await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
+  await expect(
+    page.locator(".platform-live-character .character-panel").getByText("Skeleton Guard"),
+  ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Inventory" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Spellbook" })).toBeVisible();
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeHidden();
