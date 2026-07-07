@@ -7,8 +7,8 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    JUNK_DROP_CHANCE_MULTIPLIER = 1.3
-    JUNK_DROP_MINIMUM_CHANCE = 40
+    JUNK_DROP_CHANCE_MULTIPLIER = 1.56
+    JUNK_DROP_MINIMUM_CHANCE = 48
     attr_reader :creature, :random, :contributions, :spear_thrust_used
 
     def self.enemy_damage_after_defense(raw_damage, defense)

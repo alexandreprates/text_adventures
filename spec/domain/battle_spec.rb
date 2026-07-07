@@ -168,7 +168,7 @@ RSpec.describe TextAdventures::Battle do
       expect(strong_player.health.current).to eq 30
     end
 
-    it "raises junk loot drops to at least a forty percent chance" do
+    it "raises junk loot drops to at least a forty-eight percent chance" do
       fang = TextAdventures::Item.junk("Cracked Fang", price: 2)
       creature = TextAdventures::Creature.new(
         name: "Spent Husk",
@@ -182,7 +182,7 @@ RSpec.describe TextAdventures::Battle do
           gold_chance: 0
         )
       )
-      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([3999, 0]))
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([4799, 0]))
 
       response = battle.attack(player)
 
@@ -203,7 +203,7 @@ RSpec.describe TextAdventures::Battle do
           gold_chance: 0
         )
       )
-      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([3999, 0]))
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([4799, 0]))
 
       response = battle.attack(player)
 
