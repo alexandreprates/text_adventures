@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 type MockGamePayload = {
   game_id: string;
@@ -115,6 +115,46 @@ const blacksmithPayload: MockGamePayload = {
           type: "weapon",
           buy_price: 150,
           attack: 10,
+          trade_enabled: true,
+        },
+        {
+          name: "hunting spear",
+          display_name: "Hunting Spear",
+          type: "weapon",
+          buy_price: 80,
+          attack: 7,
+          trade_enabled: true,
+        },
+        {
+          name: "rusty dagger",
+          display_name: "Rusty Dagger",
+          type: "weapon",
+          buy_price: 25,
+          attack: 4,
+          trade_enabled: true,
+        },
+        {
+          name: "iron helm",
+          display_name: "Iron Helm",
+          type: "armor",
+          buy_price: 65,
+          defense: 4,
+          trade_enabled: true,
+        },
+        {
+          name: "chain vest",
+          display_name: "Chain Vest",
+          type: "armor",
+          buy_price: 120,
+          defense: 10,
+          trade_enabled: true,
+        },
+        {
+          name: "warhammer",
+          display_name: "Warhammer",
+          type: "weapon",
+          buy_price: 180,
+          attack: 13,
           trade_enabled: true,
         },
       ],
@@ -309,8 +349,14 @@ const controlledDescentCompletePayload: MockGamePayload = {
   },
 };
 
-async function mockGame(page: Page, payload: MockGamePayload) {
-  await page.addInitScript((payload) => {
+type MockSocketStatus = "offline" | "error";
+
+async function mockGame(
+  page: Page,
+  payload: MockGamePayload,
+  options: { socketStatus?: MockSocketStatus } = {},
+) {
+  await page.addInitScript(({ payload, socketStatus }) => {
     class FakeWebSocket extends EventTarget {
       static CONNECTING = 0;
       static OPEN = 1;
@@ -333,6 +379,24 @@ async function mockGame(page: Page, payload: MockGamePayload) {
               }),
             }),
           );
+
+          if (socketStatus === "offline") {
+            window.setTimeout(() => {
+              this.readyState = FakeWebSocket.CLOSED;
+              this.dispatchEvent(new CloseEvent("close"));
+            }, 30);
+          } else if (socketStatus === "error") {
+            window.setTimeout(() => {
+              this.dispatchEvent(
+                new MessageEvent("message", {
+                  data: JSON.stringify({
+                    type: "error",
+                    error: { message: "Simulated socket error." },
+                  }),
+                }),
+              );
+            }, 30);
+          }
         }, 0);
       }
 
@@ -358,7 +422,7 @@ async function mockGame(page: Page, payload: MockGamePayload) {
     }
 
     window.WebSocket = FakeWebSocket as unknown as typeof WebSocket;
-  }, payload);
+  }, { payload, socketStatus: options.socketStatus || null });
 
   await page.route("**/api/games", async (route) => {
     await route.fulfill({
@@ -381,6 +445,16 @@ async function mockGame(page: Page, payload: MockGamePayload) {
       body: JSON.stringify(payload),
     });
   });
+}
+
+async function expectControlHeightAtLeast(locator: Locator, minHeight = 44) {
+  await expect(locator).toBeVisible();
+  await expect(locator).toBeEnabled();
+
+  const box = await locator.boundingBox();
+  if (!box) throw new Error("Expected control to have a visible bounding box.");
+
+  expect(box.height).toBeGreaterThanOrEqual(minHeight - 0.01);
 }
 
 async function mockAutoResupplyGame(page: Page) {
@@ -590,6 +664,23 @@ test("switches from action mode to text mode", async ({ page }) => {
   );
 });
 
+test("keeps mobile Town and text controls at comfortable touch target heights", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, townPayload);
+  await page.goto("/");
+
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Ruins" }));
+
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to button mode" }));
+  await expectControlHeightAtLeast(page.locator("#command-input"));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Send" }));
+});
+
 test("persists the selected interface mode", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
@@ -628,6 +719,41 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
   await autoToggle.click();
   await expect(page.getByText("Auto: stopped")).toBeVisible();
+});
+
+test("keeps mobile Ruins action controls at comfortable touch target heights", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, ruinsPayload);
+  await page.goto("/");
+
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: /^Auto$/ }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 1x" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 2x" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 3x" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Explore" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
+});
+
+test("shows a mobile command panel warning when the connection is offline", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, ruinsPayload, { socketStatus: "offline" });
+  await page.goto("/");
+
+  await expect(page.getByRole("status", { name: "Connection offline" })).toBeVisible();
+  await expect(page.getByLabel("Connection warning")).toContainText("Connection lost");
+});
+
+test("shows a mobile command panel warning when the connection errors", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, ruinsPayload, { socketStatus: "error" });
+  await page.goto("/");
+
+  await expect(page.getByRole("status", { name: "Connection offline" })).toBeVisible();
+  await expect(page.getByLabel("Connection warning")).toContainText("Connection problem");
 });
 
 test("go deep hunts the current floor when it matches the player level", async ({ page }) => {
@@ -756,6 +882,48 @@ test("uses mobile trade tabs with merchant stock first", async ({ page }) => {
   );
   await expect(page.getByRole("heading", { name: "MERCHANT STOCK" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "PLAYER ITEMS" })).toBeHidden();
+
+  const tradeLayout = await page.locator(".shop-grid").evaluate((grid) => {
+    const footer = document.querySelector<HTMLElement>(".shop-foot");
+    if (!footer) throw new Error("Missing shop footer.");
+
+    const gridStyle = window.getComputedStyle(grid);
+    const footerStyle = window.getComputedStyle(footer);
+
+    return {
+      footerDirection: footerStyle.flexDirection,
+      footerHeight: footer.getBoundingClientRect().height,
+      gridClientHeight: grid.clientHeight,
+      gridScrollHeight: grid.scrollHeight,
+      paddingBottom: Number.parseFloat(gridStyle.paddingBottom),
+      scrollPaddingBottom: Number.parseFloat(gridStyle.scrollPaddingBottom),
+    };
+  });
+
+  expect(tradeLayout.footerDirection).toBe("row");
+  expect(tradeLayout.footerHeight).toBeLessThanOrEqual(56);
+  expect(tradeLayout.gridScrollHeight).toBeGreaterThan(tradeLayout.gridClientHeight);
+  expect(tradeLayout.paddingBottom).toBeGreaterThanOrEqual(64);
+  expect(tradeLayout.scrollPaddingBottom).toBeGreaterThanOrEqual(tradeLayout.footerHeight);
+
+  const lastBuyControl = page.getByRole("button", { name: "Increase Warhammer" });
+  await lastBuyControl.scrollIntoViewIfNeeded();
+  await expectControlHeightAtLeast(lastBuyControl);
+
+  const lastControlLayout = await lastBuyControl.evaluate((control) => {
+    const footer = document.querySelector<HTMLElement>(".shop-foot");
+    if (!footer) throw new Error("Missing shop footer.");
+
+    const controlRect = control.getBoundingClientRect();
+    const footerRect = footer.getBoundingClientRect();
+
+    return {
+      controlBottom: controlRect.bottom,
+      footerTop: footerRect.top,
+    };
+  });
+
+  expect(lastControlLayout.controlBottom).toBeLessThanOrEqual(lastControlLayout.footerTop + 0.5);
 
   await page.getByRole("button", { name: "Increase Sword" }).click();
   await page.getByRole("button", { name: "Summary" }).click();

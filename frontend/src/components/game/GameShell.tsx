@@ -200,6 +200,7 @@ export function GameShell({
           {actionsMode ? (
             <CommandPanel
               state={state}
+              connectionStatus={status}
               autoExplore={autoExplore}
               recentLines={recentLogLines}
               onCommand={onCommand}

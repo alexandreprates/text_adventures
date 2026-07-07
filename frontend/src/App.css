@@ -478,7 +478,7 @@
 }
 
 .auto-explore-controls > button {
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 10px;
   color: var(--text);
   font: 800 12px/1 var(--mono);
@@ -505,7 +505,7 @@
 
 .map-speed-button {
   width: 40px;
-  min-height: 38px;
+  min-height: 44px;
   padding: 0;
   color: var(--text-muted);
   font: 800 11px/1 var(--mono);
@@ -597,6 +597,19 @@
   display: none;
 }
 
+.command-connection-warning {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  margin-bottom: 10px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 107, 107, 0.34);
+  border-radius: 6px;
+  color: var(--danger);
+  background: rgba(53, 18, 23, 0.5);
+  font: 800 12px/1.25 var(--mono);
+}
+
 .context-commands button::after {
   content: attr(data-shortcut);
   position: absolute;
@@ -625,7 +638,7 @@
 
 .command-bar input {
   min-width: 0;
-  height: 42px;
+  height: 44px;
   border: 1px solid var(--panel-line);
   border-radius: 6px;
   padding: 0 12px;
@@ -640,7 +653,8 @@
 }
 
 .command-bar button {
-  height: 42px;
+  height: 44px;
+  min-height: 44px;
   padding: 0 16px;
   color: #061109;
   background: var(--accent);
@@ -1183,7 +1197,7 @@
 
 .platform-loadout-rail button {
   width: 46px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0;
   border-color: var(--platform-line-soft);
   color: var(--platform-text);
@@ -1560,7 +1574,7 @@
 }
 
 .platform-live-playfield .auto-explore-controls > button {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 9px;
 }
 
@@ -1570,7 +1584,7 @@
 
 .platform-live-playfield .map-speed-button {
   width: 40px;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .platform-live-shell > .command-bar {
@@ -1594,7 +1608,7 @@
 
 .platform-live-shell > .command-bar input {
   min-width: 0;
-  height: 40px;
+  height: 44px;
   border: 1px solid var(--platform-line-soft);
   border-radius: 6px;
   padding: 0 12px;
@@ -1608,8 +1622,8 @@
 }
 
 .platform-live-shell > .command-bar button {
-  height: 40px;
-  min-height: 40px;
+  height: 44px;
+  min-height: 44px;
   padding: 0 16px;
   border-color: var(--platform-gold);
   color: #161007;
@@ -1771,7 +1785,9 @@
 
   .shop-grid {
     grid-template-columns: 1fr;
+    padding: 10px 10px 72px;
     scroll-padding-bottom: 72px;
+    overscroll-behavior: contain;
   }
 
   .trade-summary {
@@ -1822,7 +1838,6 @@
   }
 
   .platform-brand,
-  .interface-mode-toggle,
   .platform-location-chip,
   .platform-pocket {
     min-height: 38px;
@@ -1844,6 +1859,7 @@
     grid-row: 1;
     justify-self: end;
     min-width: 88px;
+    min-height: 44px;
   }
 
   .platform-location-chip {
@@ -2111,8 +2127,27 @@
     justify-self: start;
   }
 
-  .shop-head,
-  .shop-foot {
+  .shop-head {
     flex-direction: column;
+  }
+
+  .shop-foot {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .shop-foot span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shop-foot strong {
+    flex: 0 0 auto;
   }
 }

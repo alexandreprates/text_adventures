@@ -1,9 +1,10 @@
-import type { AutoExploreGoal, GameState } from "../../lib/types";
+import type { AutoExploreGoal, ConnectionStatus, GameState } from "../../lib/types";
 import type { AutoExploreControls } from "../../hooks/useAutoExplore";
 import { quickCommandsFor, type QuickCommand } from "../../lib/commands";
 
 type CommandPanelProps = {
   state: GameState | null;
+  connectionStatus: ConnectionStatus;
   autoExplore: AutoExploreControls;
   recentLines: string[];
   onCommand: (command: string) => void;
@@ -12,6 +13,7 @@ type CommandPanelProps = {
 
 export function CommandPanel({
   state,
+  connectionStatus,
   autoExplore,
   recentLines,
   onCommand,
@@ -20,6 +22,7 @@ export function CommandPanel({
   const commands = shouldShowAutoExploreCommands(state, autoExplore)
     ? autoExploreCommands()
     : quickCommandsFor(state);
+  const connectionWarning = connectionWarningFor(connectionStatus);
 
   return (
     <section className="terminal-panel commands-panel" aria-labelledby="commands-title">
@@ -28,6 +31,15 @@ export function CommandPanel({
       </div>
       <CombatSummary state={state} />
       <MobileCommandFeed lines={recentLines} />
+      {connectionWarning ? (
+        <aside
+          className="command-connection-warning"
+          role="status"
+          aria-label="Connection warning"
+        >
+          {connectionWarning}
+        </aside>
+      ) : null}
       {state?.scene === "ruins" || autoExplore.enabled ? (
         <div className="auto-explore-controls" aria-live="polite">
           <button
@@ -85,6 +97,13 @@ export function CommandPanel({
       </div>
     </section>
   );
+}
+
+function connectionWarningFor(status: ConnectionStatus): string | null {
+  if (status === "offline") return "Connection lost. Commands may not send.";
+  if (status === "error") return "Connection problem. Commands may not send.";
+
+  return null;
 }
 
 function shouldShowAutoExploreCommands(
