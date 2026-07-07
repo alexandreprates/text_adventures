@@ -1205,6 +1205,10 @@
   font: 900 11px/1 var(--mono);
 }
 
+.character-toggle-button {
+  display: none;
+}
+
 .platform-minimap {
   position: absolute;
   right: 12px;
@@ -1921,13 +1925,17 @@
   }
 
   .platform-live-playfield .map-zoom-controls {
-    top: 76px;
+    top: 204px;
     right: 10px;
   }
 
   .platform-live-playfield .map-zoom-button {
     width: 44px;
     min-height: 44px;
+  }
+
+  .character-toggle-button {
+    display: block;
   }
 
   .platform-live-character {

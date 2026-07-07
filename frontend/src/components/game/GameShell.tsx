@@ -64,13 +64,17 @@ export function GameShell({
   const player = state?.player || null;
   const mana = player?.mana || { current: 0, max: 0 };
   const xp = currentSkillProgress(player);
-  const [collectionOpen, setCollectionOpen] = useState(false);
-  const [interfaceMode, setInterfaceMode] = useState<InterfaceMode>(() => savedInterfaceMode());
   const compactViewport = useCompactViewport();
+  const [collectionOpen, setCollectionOpen] = useState(false);
+  const [characterOpen, setCharacterOpen] = useState(false);
+  const [interfaceMode, setInterfaceMode] = useState<InterfaceMode>(() => savedInterfaceMode());
   const recentLogLines = useMemo(() => logLines.slice(-2), [logLines]);
   const actionsMode = interfaceMode === "actions";
+  const characterVisible = !compactViewport || characterOpen;
 
   function toggleCollection(tab: CollectionTab) {
+    setCharacterOpen(false);
+
     if (activeTab === tab) {
       setCollectionOpen((open) => !open);
       return;
@@ -80,9 +84,15 @@ export function GameShell({
     setCollectionOpen(true);
   }
 
+  function toggleCharacterPanel() {
+    setCollectionOpen(false);
+    setCharacterOpen((open) => !open);
+  }
+
   function toggleInterfaceMode() {
     const nextMode: InterfaceMode = actionsMode ? "text" : "actions";
     setCollectionOpen(false);
+    setCharacterOpen(false);
     setInterfaceMode(nextMode);
     rememberInterfaceMode(nextMode);
   }
@@ -141,7 +151,7 @@ export function GameShell({
         <main
           className={`platform-live-playfield ${state?.scene === "ruins" ? "is-ruins" : ""}`}
         >
-          {actionsMode ? (
+          {actionsMode && characterVisible ? (
             <aside className="platform-live-character" aria-label="Character overview">
               <CharacterPanel state={state} />
             </aside>
@@ -149,6 +159,15 @@ export function GameShell({
 
           {actionsMode ? (
             <aside className="platform-loadout-rail" aria-label="Loadout">
+              <button
+                className="character-toggle-button"
+                type="button"
+                aria-label="Character"
+                aria-pressed={characterVisible}
+                onClick={toggleCharacterPanel}
+              >
+                CHAR
+              </button>
               <button
                 type="button"
                 aria-label="Inventory"

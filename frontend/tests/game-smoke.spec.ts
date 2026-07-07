@@ -632,7 +632,13 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByLabel("Wallet")).toHaveCount(0);
   await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
-  await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
+  if ((page.viewportSize()?.width || 0) <= 700) {
+    await expect(page.getByRole("button", { name: "Character" })).toBeVisible();
+    await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
+  } else {
+    await expect(page.getByRole("button", { name: "Character" })).toHaveCount(0);
+    await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
+  }
   await expect(page.locator("#command-input")).toHaveCount(0);
   await expect(page.getByText("=== LOG ==")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveAttribute(
@@ -670,6 +676,7 @@ test("keeps mobile Town and text controls at comfortable touch target heights", 
   await page.goto("/");
 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Character" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Ruins" }));
@@ -679,6 +686,27 @@ test("keeps mobile Town and text controls at comfortable touch target heights", 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to button mode" }));
   await expectControlHeightAtLeast(page.locator("#command-input"));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Send" }));
+});
+
+test("toggles the mobile character panel from the loadout rail", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, townPayload);
+  await page.goto("/");
+
+  const characterButton = page.getByRole("button", { name: "Character" });
+  const characterPanel = page.locator(".platform-live-character .character-panel");
+
+  await expect(characterButton).toHaveAttribute("aria-pressed", "false");
+  await expect(characterPanel).toHaveCount(0);
+
+  await characterButton.click();
+  await expect(characterButton).toHaveAttribute("aria-pressed", "true");
+  await expect(characterPanel).toBeVisible();
+
+  await page.getByRole("button", { name: "Inventory" }).click();
+  await expect(characterButton).toHaveAttribute("aria-pressed", "false");
+  await expect(characterPanel).toHaveCount(0);
+  await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
 });
 
 test("persists the selected interface mode", async ({ page }) => {
@@ -727,6 +755,7 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await page.goto("/");
 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Character" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: /^Auto$/ }));
@@ -857,6 +886,9 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
     "Skeleton Guard",
   );
   await expect(page.getByLabel("Recent messages")).toContainText("[Skeleton Guard HP: 28/28]");
+  await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Character" })).toBeVisible();
+  await page.getByRole("button", { name: "Character" }).click();
   await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
   await expect(
     page.locator(".platform-live-character .character-panel").getByText("Skeleton Guard"),
@@ -866,6 +898,7 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeHidden();
 
   await page.getByRole("button", { name: "Inventory" }).click();
+  await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
 });
 
