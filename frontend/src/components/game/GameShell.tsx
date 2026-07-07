@@ -122,9 +122,9 @@ export function GameShell({
             />
           </div>
 
-          <div className="platform-pocket" aria-label="Wallet">
-            <span>Gold</span>
-            <strong>{player?.gold || 0}</strong>
+          <div className="platform-pocket" aria-label="Player level">
+            <span>Level</span>
+            <strong>{player?.level || 0}</strong>
           </div>
 
           <button

@@ -59,9 +59,9 @@ export function PlatformerFrontendMockup() {
           <Meter label="MP" value="09/12" kind="mana" />
           <Meter label="XP" value="68%" kind="stamina" />
         </div>
-        <div className="platform-pocket" aria-label="Wallet">
-          <span>Gold</span>
-          <strong>128</strong>
+        <div className="platform-pocket" aria-label="Player level">
+          <span>Level</span>
+          <strong>5</strong>
         </div>
       </header>
 
