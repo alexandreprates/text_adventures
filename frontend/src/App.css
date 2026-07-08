@@ -1963,6 +1963,59 @@
 
   .platform-live-character .character-panel {
     padding: 8px;
+    font-size: 8px;
+  }
+
+  .platform-live-character .character-frame {
+    gap: 1px;
+    margin-bottom: 7px;
+    font-size: 8px;
+    line-height: 1.2;
+  }
+
+  .platform-live-character .vitals {
+    gap: 4px;
+    margin-bottom: 7px;
+  }
+
+  .platform-live-character .bar-row,
+  .platform-live-character .status-row {
+    grid-template-columns: 23px minmax(48px, 1fr) auto;
+    gap: 4px;
+    font-size: 8px;
+  }
+
+  .platform-live-character .status-row {
+    grid-template-columns: 33px 1fr;
+  }
+
+  .platform-live-character .bar-row span:first-child,
+  .platform-live-character .status-row span:first-child,
+  .platform-live-character .section-label {
+    font: 700 6px/1.2 var(--mono);
+  }
+
+  .platform-live-character .bar-row strong,
+  .platform-live-character .status-row strong {
+    font-size: 6.5px;
+  }
+
+  .platform-live-character .section-label {
+    margin: 7px 0 4px;
+  }
+
+  .platform-live-character .terminal-output {
+    font: 6.5px/1.45 var(--mono);
+  }
+
+  .platform-live-character .class-output,
+  .platform-live-character .status-output {
+    min-height: 36px;
+  }
+
+  .platform-live-character .class-row {
+    grid-template-columns: minmax(45px, 1fr) 14px auto;
+    gap: 4px;
   }
 
   .platform-live-collection {

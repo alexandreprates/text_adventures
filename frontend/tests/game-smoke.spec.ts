@@ -472,6 +472,16 @@ async function expectHorizontalPadding(locator: Locator, left: number, right = l
   expect(padding.right).toBeCloseTo(right, 1);
 }
 
+async function expectFontSize(locator: Locator, fontSize: number) {
+  await expect(locator).toBeVisible();
+
+  const computedFontSize = await locator.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize),
+  );
+
+  expect(computedFontSize).toBeCloseTo(fontSize, 1);
+}
+
 async function mockAutoResupplyGame(page: Page) {
   await page.addInitScript(({ initial, states }) => {
     const sentActions = [] as Array<Record<string, unknown>>;
@@ -719,11 +729,27 @@ test("toggles the mobile character panel from the loadout rail", async ({ page }
   await characterButton.click();
   await expect(characterButton).toHaveAttribute("aria-pressed", "true");
   await expect(characterPanel).toBeVisible();
+  await expectFontSize(characterPanel.locator(".frame-name"), 8);
+  await expectFontSize(characterPanel.locator(".section-label").first(), 6);
+  await expectFontSize(characterPanel.locator(".terminal-output").first(), 6.5);
 
   await page.getByRole("button", { name: "Inventory" }).click();
   await expect(characterButton).toHaveAttribute("aria-pressed", "false");
   await expect(characterPanel).toHaveCount(0);
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
+});
+
+test("keeps desktop character panel typography unchanged", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockGame(page, townPayload);
+  await page.goto("/");
+
+  const characterPanel = page.locator(".platform-live-character .character-panel");
+
+  await expect(characterPanel).toBeVisible();
+  await expectFontSize(characterPanel.locator(".frame-name"), 16);
+  await expectFontSize(characterPanel.locator(".section-label").first(), 12);
+  await expectFontSize(characterPanel.locator(".terminal-output").first(), 13);
 });
 
 test("persists the selected interface mode", async ({ page }) => {
