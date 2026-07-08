@@ -732,6 +732,13 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Explore" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Town" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Deep" })).toBeVisible();
+  if ((page.viewportSize()?.width || 0) <= 700) {
+    await expect(page.getByRole("button", { name: "Zoom in" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Zoom out" })).toHaveCount(0);
+  } else {
+    await expect(page.getByRole("button", { name: "Zoom in" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Zoom out" })).toBeVisible();
+  }
   await expect(autoToggle).toHaveAttribute("aria-pressed", "false");
 
   await page.getByRole("button", { name: "Auto speed 3x" }).click();

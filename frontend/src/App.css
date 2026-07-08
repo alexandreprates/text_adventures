@@ -1924,14 +1924,8 @@
     bottom: 228px;
   }
 
-  .platform-live-playfield .map-zoom-controls {
-    top: 204px;
-    right: 10px;
-  }
-
-  .platform-live-playfield .map-zoom-button {
-    width: 44px;
-    min-height: 44px;
+  .map-zoom-controls {
+    display: none;
   }
 
   .character-toggle-button {
