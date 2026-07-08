@@ -349,14 +349,40 @@ const controlledDescentCompletePayload: MockGamePayload = {
   },
 };
 
-type MockSocketStatus = "offline" | "error";
+type MockSocketStatus = "offline" | "error" | "close-once";
 
 async function mockGame(
   page: Page,
   payload: MockGamePayload,
-  options: { socketStatus?: MockSocketStatus } = {},
+  options: {
+    socketStatus?: MockSocketStatus;
+    heartbeatIntervalMs?: number;
+    reconnectDelayMs?: number;
+  } = {},
 ) {
-  await page.addInitScript(({ payload, socketStatus }) => {
+  await page.addInitScript(({ payload, socketStatus, heartbeatIntervalMs, reconnectDelayMs }) => {
+    const testWindow = window as unknown as {
+      __sentSocketMessages: Array<Record<string, unknown>>;
+      __socketConnectionCount: number;
+      __TEXT_ADVENTURES_SOCKET_HEARTBEAT_INTERVAL_MS?: number;
+      __TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS?: number;
+    };
+    const sentSocketMessages: Array<Record<string, unknown>> = [];
+    let connectionCount = 0;
+
+    testWindow.__sentSocketMessages = sentSocketMessages;
+    testWindow.__socketConnectionCount = connectionCount;
+
+    if (typeof heartbeatIntervalMs === "number") {
+      testWindow.__TEXT_ADVENTURES_SOCKET_HEARTBEAT_INTERVAL_MS = heartbeatIntervalMs;
+    }
+
+    if (typeof reconnectDelayMs === "number") {
+      testWindow.__TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS = reconnectDelayMs;
+    } else if (socketStatus === "offline" || socketStatus === "error") {
+      testWindow.__TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS = 60_000;
+    }
+
     class FakeWebSocket extends EventTarget {
       static CONNECTING = 0;
       static OPEN = 1;
@@ -367,6 +393,9 @@ async function mockGame(
 
       constructor() {
         super();
+        connectionCount += 1;
+        testWindow.__socketConnectionCount = connectionCount;
+
         window.setTimeout(() => {
           this.readyState = FakeWebSocket.OPEN;
           this.dispatchEvent(new Event("open"));
@@ -380,7 +409,10 @@ async function mockGame(
             }),
           );
 
-          if (socketStatus === "offline") {
+          if (
+            socketStatus === "offline" ||
+            (socketStatus === "close-once" && connectionCount === 1)
+          ) {
             window.setTimeout(() => {
               this.readyState = FakeWebSocket.CLOSED;
               this.dispatchEvent(new CloseEvent("close"));
@@ -400,7 +432,24 @@ async function mockGame(
         }, 0);
       }
 
-      send() {
+      send(data: string) {
+        const message = JSON.parse(String(data)) as Record<string, unknown>;
+        sentSocketMessages.push(message);
+
+        if (message.type === "ping") {
+          window.setTimeout(() => {
+            this.dispatchEvent(
+              new MessageEvent("message", {
+                data: JSON.stringify({
+                  type: "pong",
+                  game_id: payload.game_id,
+                }),
+              }),
+            );
+          }, 0);
+          return;
+        }
+
         window.setTimeout(() => {
           this.dispatchEvent(
             new MessageEvent("message", {
@@ -422,7 +471,12 @@ async function mockGame(
     }
 
     window.WebSocket = FakeWebSocket as unknown as typeof WebSocket;
-  }, { payload, socketStatus: options.socketStatus || null });
+  }, {
+    payload,
+    socketStatus: options.socketStatus || null,
+    heartbeatIntervalMs: options.heartbeatIntervalMs ?? null,
+    reconnectDelayMs: options.reconnectDelayMs ?? null,
+  });
 
   await page.route("**/api/games", async (route) => {
     await route.fulfill({
@@ -509,6 +563,20 @@ async function mockAutoResupplyGame(page: Page) {
       send(data: string) {
         const action = JSON.parse(String(data)) as Record<string, unknown>;
         sentActions.push(action);
+
+        if (action.type === "ping") {
+          window.setTimeout(() => {
+            this.dispatchEvent(
+              new MessageEvent("message", {
+                data: JSON.stringify({
+                  type: "pong",
+                  game_id: initial.game_id,
+                }),
+              }),
+            );
+          }, 0);
+          return;
+        }
 
         if (action.action === "move" && action.direction === "left") {
           this.currentState = states.town;
@@ -603,7 +671,23 @@ async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
       }
 
       send(data: string) {
-        sentActions.push(JSON.parse(String(data)) as Record<string, unknown>);
+        const action = JSON.parse(String(data)) as Record<string, unknown>;
+        sentActions.push(action);
+
+        if (action.type === "ping") {
+          window.setTimeout(() => {
+            this.dispatchEvent(
+              new MessageEvent("message", {
+                data: JSON.stringify({
+                  type: "pong",
+                  game_id: payload.game_id,
+                }),
+              }),
+            );
+          }, 0);
+          return;
+        }
+
         window.setTimeout(() => {
           this.dispatchEvent(
             new MessageEvent("message", {
@@ -817,6 +901,57 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 6, 11);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
+});
+
+test("keeps an idle WebSocket alive with heartbeat pings", async ({ page }) => {
+  await mockGame(page, ruinsPayload, { heartbeatIntervalMs: 20 });
+  await page.goto("/");
+
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            (window as unknown as { __sentSocketMessages?: Array<Record<string, unknown>> })
+              .__sentSocketMessages || []
+          ).filter((message) => message.type === "ping").length,
+      ),
+    )
+    .toBeGreaterThanOrEqual(1);
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+});
+
+test("reconnects after an unexpected WebSocket close", async ({ page }) => {
+  await mockGame(page, ruinsPayload, {
+    socketStatus: "close-once",
+    heartbeatIntervalMs: 20,
+    reconnectDelayMs: 20,
+  });
+  await page.goto("/");
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __socketConnectionCount?: number }).__socketConnectionCount ||
+          0,
+      ),
+    )
+    .toBeGreaterThanOrEqual(2);
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Explore" }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          (window as unknown as { __sentSocketMessages?: Array<Record<string, unknown>> })
+            .__sentSocketMessages || []
+        ).some((message) => message.type === "action"),
+      ),
+    )
+    .toBe(true);
 });
 
 test("shows a mobile command panel warning when the connection is offline", async ({ page }) => {

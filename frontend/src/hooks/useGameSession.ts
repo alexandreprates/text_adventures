@@ -6,6 +6,7 @@ import {
   fetchGame,
   parseSocketMessage,
   socketActionPayload,
+  socketPingPayload,
   socketUrl,
 } from "../lib/gameApi";
 import { forgetGameId, gameIdFromUrl, rememberGameId, savedGameId } from "../lib/storage";
@@ -23,6 +24,16 @@ type PendingAction = {
   reject: (error: Error) => void;
 };
 
+declare global {
+  interface Window {
+    __TEXT_ADVENTURES_SOCKET_HEARTBEAT_INTERVAL_MS?: number;
+    __TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS?: number;
+  }
+}
+
+const defaultSocketHeartbeatIntervalMs = 25_000;
+const defaultSocketReconnectDelayMs = 1_000;
+
 type GameSnapshot = {
   gameId: string | null;
   state: GameState | null;
@@ -37,6 +48,12 @@ const emptySnapshot: GameSnapshot = {
   lastEvents: [],
 };
 
+function socketTimingValue(key: keyof Window, fallback: number): number {
+  const configured = window[key];
+
+  return typeof configured === "number" && configured >= 0 ? configured : fallback;
+}
+
 export type GameSession = GameSnapshot & {
   status: ConnectionStatus;
   sendAction: (action: GameAction) => Promise<GamePayload>;
@@ -50,6 +67,11 @@ export function useGameSession(): GameSession {
   const gameIdRef = useRef<string | null>(null);
   const stateRef = useRef<GameState | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
+  const openSocketRef = useRef<(gameId: string) => Promise<void>>(() =>
+    Promise.reject(new Error("WebSocket opener is not ready.")),
+  );
+  const heartbeatIntervalRef = useRef<number | null>(null);
+  const reconnectTimeoutRef = useRef<number | null>(null);
   const pendingActionRef = useRef<PendingAction | null>(null);
   const manuallyDisconnectedRef = useRef(false);
 
@@ -100,19 +122,88 @@ export function useGameSession(): GameSession {
     if (pending) pending.reject(error);
   }, []);
 
+  const clearHeartbeat = useCallback(() => {
+    if (heartbeatIntervalRef.current === null) return;
+
+    window.clearInterval(heartbeatIntervalRef.current);
+    heartbeatIntervalRef.current = null;
+  }, []);
+
+  const clearReconnect = useCallback(() => {
+    if (reconnectTimeoutRef.current === null) return;
+
+    window.clearTimeout(reconnectTimeoutRef.current);
+    reconnectTimeoutRef.current = null;
+  }, []);
+
+  const startHeartbeat = useCallback(
+    (socket: WebSocket) => {
+      clearHeartbeat();
+
+      const intervalMs = socketTimingValue(
+        "__TEXT_ADVENTURES_SOCKET_HEARTBEAT_INTERVAL_MS",
+        defaultSocketHeartbeatIntervalMs,
+      );
+      if (intervalMs <= 0) return;
+
+      heartbeatIntervalRef.current = window.setInterval(() => {
+        if (socketRef.current !== socket) {
+          clearHeartbeat();
+          return;
+        }
+
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(socketPingPayload());
+        }
+      }, intervalMs);
+    },
+    [clearHeartbeat],
+  );
+
+  const scheduleReconnect = useCallback(
+    (gameId: string) => {
+      clearReconnect();
+
+      const delayMs = socketTimingValue(
+        "__TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS",
+        defaultSocketReconnectDelayMs,
+      );
+
+      reconnectTimeoutRef.current = window.setTimeout(() => {
+        reconnectTimeoutRef.current = null;
+        if (manuallyDisconnectedRef.current || socketRef.current) return;
+
+        setStatus("connecting");
+        void openSocketRef
+          .current(gameId)
+          .then(() => {
+            if (!manuallyDisconnectedRef.current) setStatus("online");
+          })
+          .catch(() => {
+            if (!manuallyDisconnectedRef.current) setStatus("offline");
+          });
+      }, delayMs);
+    },
+    [clearReconnect],
+  );
+
   const disconnectSocket = useCallback((manual = true) => {
     manuallyDisconnectedRef.current = manual;
     pendingActionRef.current = null;
+    clearHeartbeat();
+    if (manual) clearReconnect();
 
     if (socketRef.current) {
-      socketRef.current.close();
+      const socket = socketRef.current;
       socketRef.current = null;
+      socket.close();
     }
-  }, []);
+  }, [clearHeartbeat, clearReconnect]);
 
   const openSocket = useCallback(
     (gameId: string): Promise<void> => {
       disconnectSocket(false);
+      clearReconnect();
       manuallyDisconnectedRef.current = false;
 
       const socket = new WebSocket(socketUrl(gameId));
@@ -122,6 +213,7 @@ export function useGameSession(): GameSession {
         socket.addEventListener(
           "open",
           () => {
+            startHeartbeat(socket);
             resolve();
           },
           { once: true },
@@ -137,6 +229,8 @@ export function useGameSession(): GameSession {
 
         socket.addEventListener("message", (event) => {
           const message = parseSocketMessage(String(event.data));
+
+          if (message.type === "pong") return;
 
           if (message.type === "state") {
             applyPayload({ game_id: message.game_id, state: message.state });
@@ -164,16 +258,34 @@ export function useGameSession(): GameSession {
         });
 
         socket.addEventListener("close", () => {
+          clearHeartbeat();
           if (socketRef.current !== socket) return;
 
           socketRef.current = null;
           rejectPendingAction(new Error("Connection lost."));
-          if (!manuallyDisconnectedRef.current) setStatus("offline");
+          if (!manuallyDisconnectedRef.current) {
+            setStatus("offline");
+            scheduleReconnect(gameId);
+          }
         });
       });
     },
-    [appendError, applyPayload, disconnectSocket, rejectPendingAction, resolvePendingAction],
+    [
+      appendError,
+      applyPayload,
+      clearHeartbeat,
+      clearReconnect,
+      disconnectSocket,
+      rejectPendingAction,
+      resolvePendingAction,
+      scheduleReconnect,
+      startHeartbeat,
+    ],
   );
+
+  useEffect(() => {
+    openSocketRef.current = openSocket;
+  }, [openSocket]);
 
   const sendViaSocket = useCallback((action: GameAction): Promise<GamePayload> => {
     const socket = socketRef.current;
@@ -270,15 +382,17 @@ export function useGameSession(): GameSession {
         if (cancelled) return;
 
         applyPayload(payload);
+        let socketConnected = false;
         if (payload.game_id) {
           try {
             await openSocket(payload.game_id);
+            socketConnected = true;
           } catch (error) {
             appendError(error);
           }
         }
 
-        if (!cancelled) setStatus("online");
+        if (!cancelled) setStatus(socketConnected || !payload.game_id ? "online" : "offline");
       } catch (error) {
         if (!cancelled) {
           setStatus("error");

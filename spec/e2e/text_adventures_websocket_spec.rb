@@ -39,6 +39,26 @@ RSpec.describe "text_adventures WebSocket server" do
     end
   end
 
+  it "responds to application heartbeat pings without changing game state" do
+    with_server do |port|
+      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      game_id = JSON.parse(create_response.body).fetch("game_id")
+
+      socket = open_websocket(port, game_id)
+      read_json_frame(socket)
+
+      write_json_frame(socket, type: "ping")
+      pong = read_json_frame(socket)
+
+      expect(pong).to eq("type" => "pong", "game_id" => game_id)
+
+      state_response = request_json(port, Net::HTTP::Get, "/api/games/#{game_id}")
+      expect(JSON.parse(state_response.body).dig("state", "scene")).to eq "town"
+    ensure
+      socket&.close
+    end
+  end
+
   it "continues serving HTTP requests while a WebSocket remains open" do
     with_server do |port|
       create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)

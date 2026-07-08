@@ -88,6 +88,7 @@ RSpec.describe "Frontend assets" do
     expect(api).to include('socketUrl(gameId: string)')
     expect(session_hook).to include('new WebSocket(socketUrl(gameId))')
     expect(session_hook).to include('socketActionPayload(action)')
+    expect(session_hook).to include('socketPingPayload()')
     expect(session_hook).to include('parseSocketMessage(String(event.data))')
     expect(session_hook).to include('mergeStatePatch(stateRef.current, message.patch)')
     expect(session_hook).to include('executeAction(gameId, action)')

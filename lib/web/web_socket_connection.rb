@@ -67,6 +67,11 @@ module TextAdventures
 
       def handle_message(socket, game_id, payload)
         message = JSON.parse(payload)
+        if message.fetch("type", "").to_s == "ping"
+          write_json(socket, type: "pong", game_id: game_id)
+          return
+        end
+
         update = store.with_game(game_id, save: true) do |game|
           command = command_for(message)
           response = game.handle(command)

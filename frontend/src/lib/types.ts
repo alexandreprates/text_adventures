@@ -221,4 +221,13 @@ export type SocketErrorMessage = {
   };
 };
 
-export type SocketMessage = SocketStateMessage | SocketEventsMessage | SocketErrorMessage;
+export type SocketPongMessage = {
+  type: "pong";
+  game_id?: string;
+};
+
+export type SocketMessage =
+  | SocketStateMessage
+  | SocketEventsMessage
+  | SocketErrorMessage
+  | SocketPongMessage;

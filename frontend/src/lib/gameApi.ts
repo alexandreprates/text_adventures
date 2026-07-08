@@ -61,6 +61,10 @@ export function socketActionPayload(action: GameAction): string {
   return JSON.stringify({ type: "action", action: type, ...fields });
 }
 
+export function socketPingPayload(): string {
+  return JSON.stringify({ type: "ping" });
+}
+
 export function parseSocketMessage(data: string): SocketMessage {
   return JSON.parse(data) as SocketMessage;
 }
