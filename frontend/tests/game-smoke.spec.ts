@@ -457,6 +457,21 @@ async function expectControlHeightAtLeast(locator: Locator, minHeight = 44) {
   expect(box.height).toBeGreaterThanOrEqual(minHeight - 0.01);
 }
 
+async function expectHorizontalPadding(locator: Locator, left: number, right = left) {
+  await expect(locator).toBeVisible();
+
+  const padding = await locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      left: Number.parseFloat(style.paddingLeft),
+      right: Number.parseFloat(style.paddingRight),
+    };
+  });
+
+  expect(padding.left).toBeCloseTo(left, 1);
+  expect(padding.right).toBeCloseTo(right, 1);
+}
+
 async function mockAutoResupplyGame(page: Page) {
   await page.addInitScript(({ initial, states }) => {
     const sentActions = [] as Array<Record<string, unknown>>;
@@ -676,6 +691,7 @@ test("keeps mobile Town and text controls at comfortable touch target heights", 
   await page.goto("/");
 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectHorizontalPadding(page.getByRole("button", { name: "Switch to text mode" }), 10);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Character" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
@@ -686,6 +702,7 @@ test("keeps mobile Town and text controls at comfortable touch target heights", 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to button mode" }));
   await expectControlHeightAtLeast(page.locator("#command-input"));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Send" }));
+  await expectHorizontalPadding(page.getByRole("button", { name: "Send" }), 13);
 });
 
 test("toggles the mobile character panel from the loadout rail", async ({ page }) => {
@@ -766,10 +783,12 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: /^Auto$/ }));
+  await expectHorizontalPadding(page.getByRole("button", { name: /^Auto$/ }), 7);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 1x" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 2x" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 3x" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Explore" }));
+  await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 6, 11);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
 });

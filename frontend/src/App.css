@@ -1849,7 +1849,7 @@
 
   .platform-brand,
   .interface-mode-toggle {
-    padding: 0 12px;
+    padding: 0 10px;
   }
 
   .platform-brand {
@@ -1932,6 +1932,28 @@
     display: block;
   }
 
+  .collection-action {
+    padding: 2px 5px;
+  }
+
+  .context-commands button {
+    padding: 6px 18px 6px 8px;
+  }
+
+  .auto-explore-controls > button {
+    padding: 0 8px;
+  }
+
+  .command-bar button,
+  .platform-command-strip button,
+  .platform-live-shell > .command-bar button {
+    padding: 0 13px;
+  }
+
+  .shop-tabs button {
+    padding: 0 6px;
+  }
+
   .platform-live-character {
     top: 10px;
     left: 10px;
@@ -1989,8 +2011,12 @@
 
   .platform-live-playfield .context-commands button {
     min-height: 44px;
-    padding: 0 14px 0 7px;
+    padding: 0 11px 0 6px;
     font-size: 11px;
+  }
+
+  .platform-live-playfield .auto-explore-controls > button {
+    padding: 0 7px;
   }
 
   .platform-live-playfield .map-speed-button {
@@ -2077,6 +2103,7 @@
 
   .platform-action-button {
     min-height: 46px;
+    padding: 0 8px;
   }
 
   .platform-command-strip {
