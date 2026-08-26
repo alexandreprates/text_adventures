@@ -32,7 +32,7 @@ function PlayableGame() {
   const [commandValue, setCommandValue] = useState("");
   const [shopOpen, setShopOpen] = useState(false);
   const [mapZoom, setMapZoom] = useState(initialMapZoom);
-  const [playerDirection, setPlayerDirection] = useState("down");
+  const [playerDirection, setPlayerDirection] = useState("right");
 
   const openShop = useCallback(() => {
     if (session.state?.trade) {

@@ -6,7 +6,12 @@ import type {
   ViewportEntity,
 } from "../../lib/types";
 import { latestCombatCue, type CombatAnimationCue } from "./animation";
-import { loadIsometricAssets, torchAnimationLayout, type IsometricAssets } from "./assets";
+import {
+  adventurerFacingFrame,
+  loadIsometricAssets,
+  torchAnimationLayout,
+  type IsometricAssets,
+} from "./assets";
 import {
   depthFor,
   easeOutCubic,
@@ -337,14 +342,22 @@ export class IsometricDungeonRenderer {
       position,
       layer: 20,
       draw: (screen) => {
-        const sheet = entity.type === "player" ? this.assets!.adventurer : this.enemySheet(entity);
+        const useDirectionalPlayerFrame = entity.type === "player" && frame === 0;
+        const sheet = useDirectionalPlayerFrame
+          ? this.assets!.adventurerFacings
+          : entity.type === "player"
+            ? this.assets!.adventurer
+            : this.enemySheet(entity);
+        const sheetFrame = useDirectionalPlayerFrame
+          ? adventurerFacingFrame(this.options.playerDirection)
+          : frame;
         const bob = frame === 0 && !this.options.reducedMotion ? Math.round(Math.sin(this.lastFrameTime / 280)) : 0;
         if (sheet) {
           const foot = screen.y + TILE_HEIGHT;
           const baseline = this.actorBaseline(entity);
           this.drawSheetFrame(
             sheet,
-            frame,
+            sheetFrame,
             ACTOR_SOURCE_WIDTH,
             ACTOR_SOURCE_HEIGHT,
             screen.x - ACTOR_DRAW_WIDTH / 2,
