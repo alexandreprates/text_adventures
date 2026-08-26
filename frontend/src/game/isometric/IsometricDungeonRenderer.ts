@@ -10,6 +10,7 @@ import {
   adventurerFacingFrame,
   animatedPlayerClass,
   arcanistFacingFrame,
+  battlemageFacingFrame,
   blademasterFacingFrame,
   directionalClassAnimationLayout,
   dragoonFacingFrame,
@@ -554,6 +555,8 @@ export class IsometricDungeonRenderer {
     switch (playerClass) {
       case "arcanist":
         return attacking ? this.assets!.arcanistAttack : this.assets!.arcanistWalk;
+      case "battlemage":
+        return attacking ? this.assets!.battlemageAttack : this.assets!.battlemageWalk;
       case "spellblade":
         return attacking ? this.assets!.spellbladeAttack : this.assets!.spellbladeWalk;
       case "warden":
@@ -577,6 +580,8 @@ export class IsometricDungeonRenderer {
     switch (playerClass) {
       case "arcanist":
         return arcanistFacingFrame(this.options.playerDirection);
+      case "battlemage":
+        return battlemageFacingFrame(this.options.playerDirection);
       case "spellblade":
         return spellbladeFacingFrame(this.options.playerDirection);
       case "warden":

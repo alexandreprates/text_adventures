@@ -1,5 +1,39 @@
 # Isometric Actor Sprites
 
+## Battlemage
+
+The Battlemage is a young arcane lancer whose compact martial silhouette pairs
+tousled white hair with pale-lilac shadows, a visible focused face, deep
+indigo-black plated coat armor, plum-magenta shadows, antique-gold piping,
+rounded pauldrons, and a split dark mantle. He carries exactly one ornate
+red-gold spear-catalyst crowned by a faceted icy-cyan crystal. The design
+combines disciplined spearmanship with contained combat magic rather than the
+Dragoon's ceremonial reach or the Arcanist's dedicated spellcasting posture.
+
+The Battlemage animation assets are:
+
+- `battlemage-walk.png`: controlled walk phase A, neutral passing pose, and
+  walk phase B with the spear-catalyst held close and stable.
+- `battlemage-attack.png`: guarded preparation, a compact crystal-led thrust
+  with a contained cyan arcane flare, and balanced recovery with fading motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Battlemage class atlas as the identity reference and the
+existing Dragoon and Arcanist directional actors as layout, polearm-handling,
+and restrained-magic references. Production files were normalized mechanically
+with nearest-neighbor resizing, hard chroma-key removal, fixed per-cell
+padding, row-preserving baseline alignment, binary alpha, and non-dithered
+palette quantization.
+
 ## Skirmisher
 
 The Skirmisher is a lean young front-line scout whose low athletic silhouette

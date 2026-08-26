@@ -7,6 +7,9 @@ import {
   arcanistAnimationLayout,
   arcanistFacingFrame,
   arcanistFacingFrames,
+  battlemageAnimationLayout,
+  battlemageFacingFrame,
+  battlemageFacingFrames,
   blademasterAnimationLayout,
   blademasterFacingFrame,
   blademasterFacingFrames,
@@ -18,6 +21,7 @@ import {
   duelistFacingFrame,
   duelistFacingFrames,
   isArcanistClass,
+  isBattlemageClass,
   isBlademasterClass,
   isDragoonClass,
   isDuelistClass,
@@ -68,6 +72,8 @@ describe("isometricAssetPaths", () => {
       wardenAttack: "/assets/isometric/actors/warden-attack.png",
       skirmisherWalk: "/assets/isometric/actors/skirmisher-walk.png",
       skirmisherAttack: "/assets/isometric/actors/skirmisher-attack.png",
+      battlemageWalk: "/assets/isometric/actors/battlemage-walk.png",
+      battlemageAttack: "/assets/isometric/actors/battlemage-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -78,6 +84,7 @@ describe("isometricAssetPaths", () => {
 describe("animatedPlayerClass", () => {
   it("selects the directional animation family for supported classes", () => {
     expect(animatedPlayerClass("Arcanist")).toBe("arcanist");
+    expect(animatedPlayerClass("Battlemage")).toBe("battlemage");
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
@@ -87,6 +94,31 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Battlemage animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isBattlemageClass("Battlemage")).toBe(true);
+    expect(isBattlemageClass(" battlemage ")).toBe(true);
+    expect(isBattlemageClass("Skirmisher")).toBe(false);
+    expect(battlemageAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(battlemageAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Battlemage sheet's projected facings", () => {
+    expect(battlemageFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(battlemageFacingFrame("up")).toBe(0);
+    expect(battlemageFacingFrame("right")).toBe(1);
+    expect(battlemageFacingFrame("down")).toBe(2);
+    expect(battlemageFacingFrame("left")).toBe(3);
+    expect(battlemageFacingFrame("unknown")).toBe(1);
   });
 });
 
