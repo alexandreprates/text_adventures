@@ -38,14 +38,30 @@ Implemented systems include:
 
 ## Requirements
 
-- Ruby
-- Bundler
+- Ruby 4.0.6
+- Bundler 4.0.13
+
+On macOS, install the matching Ruby and Bundler toolchain with:
+
+```sh
+brew install ruby
+gem install bundler -v 4.0.13 --no-document
+```
 
 Install dependencies with:
 
 ```sh
-bundle config set --local path vendor/bundle
-bundle install
+bundle _4.0.13_ config set --local path vendor/bundle
+bundle _4.0.13_ install
+```
+
+The development bundle includes Ruby LSP for Serena and editor integration.
+Verify the complete local toolchain with:
+
+```sh
+ruby -v
+bundle _4.0.13_ check
+bundle _4.0.13_ exec ruby-lsp --version
 ```
 
 The checked-in `Gemfile.lock` keeps installs reproducible. Local Bundler
