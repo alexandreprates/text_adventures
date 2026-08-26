@@ -331,3 +331,25 @@ The Warlord class previously reused the Adventurer presentation because the rend
 - Compose production build and manual browser inspection passed.
 
 Implementation commit: `3b340a3` (`Add Warlord directional animations`).
+
+## Warlord facing-order correction — completed 2026-08-26
+
+Runtime review found that the Warlord sheets use projected facing columns in NW/SW/SE/NE order, while the renderer incorrectly reused the Adventurer's NE/SE/SW/NW column contract.
+
+### Delivered
+
+- Added a Warlord-specific direction contract: up/NE -> 3, right/SE -> 2, down/SW -> 1, left/NW -> 0.
+- Updated Warlord walk and attack sampling without changing creative pixels, frame anchors, palette, or sheet layout.
+- Added unit coverage for all four directions and the safe default.
+
+### Validation evidence
+
+- Production Canvas sampling confirmed final source x positions: up 288, right 192, down 96, left 0.
+- Browser inspection confirmed the four projected facings, both Warlord PNG requests returned HTTP 200, and the console had no warnings or errors.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 22 tests passed.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and Pixel 5.
+- `bundle exec rspec`: 470 examples, 0 failures.
+- Compose production build: passed and services remained healthy.
+
+Implementation commit: `8f4a21c` (`Fix Warlord movement facings`).
