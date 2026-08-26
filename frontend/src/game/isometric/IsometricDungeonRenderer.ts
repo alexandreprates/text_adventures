@@ -11,6 +11,7 @@ import {
   animatedPlayerClass,
   blademasterFacingFrame,
   directionalClassAnimationLayout,
+  duelistFacingFrame,
   loadIsometricAssets,
   torchAnimationLayout,
   type AnimatedPlayerClass,
@@ -352,10 +353,14 @@ export class IsometricDungeonRenderer {
     const phase = attackPhase ?? this.directionalClassWalkPhase(time);
     const sheet = playerClass === "warlord"
       ? attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack
-      : attackPhase === null ? this.assets!.blademasterWalk : this.assets!.blademasterAttack;
+      : playerClass === "duelist"
+        ? attackPhase === null ? this.assets!.duelistWalk : this.assets!.duelistAttack
+        : attackPhase === null ? this.assets!.blademasterWalk : this.assets!.blademasterAttack;
     const direction = playerClass === "warlord"
       ? warlordFacingFrame(this.options.playerDirection)
-      : blademasterFacingFrame(this.options.playerDirection);
+      : playerClass === "duelist"
+        ? duelistFacingFrame(this.options.playerDirection)
+        : blademasterFacingFrame(this.options.playerDirection);
 
     return {
       position,

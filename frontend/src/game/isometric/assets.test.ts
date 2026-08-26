@@ -8,7 +8,11 @@ import {
   blademasterFacingFrame,
   blademasterFacingFrames,
   directionalClassAnimationLayout,
+  duelistAnimationLayout,
+  duelistFacingFrame,
+  duelistFacingFrames,
   isBlademasterClass,
+  isDuelistClass,
   isWarlordClass,
   isometricAssetPaths,
   torchAnimationLayout,
@@ -26,6 +30,8 @@ describe("isometricAssetPaths", () => {
       warlordAttack: "/assets/isometric/actors/warlord-attack.png",
       blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
       blademasterAttack: "/assets/isometric/actors/blademaster-attack.png",
+      duelistWalk: "/assets/isometric/actors/duelist-walk.png",
+      duelistAttack: "/assets/isometric/actors/duelist-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -36,8 +42,34 @@ describe("isometricAssetPaths", () => {
 describe("animatedPlayerClass", () => {
   it("selects the directional animation family for supported classes", () => {
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
+    expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Duelist animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isDuelistClass("Duelist")).toBe(true);
+    expect(isDuelistClass(" duelist ")).toBe(true);
+    expect(isDuelistClass("Blademaster")).toBe(false);
+    expect(duelistAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(duelistAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Duelist sheet's projected facings", () => {
+    expect(duelistFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(duelistFacingFrame("up")).toBe(0);
+    expect(duelistFacingFrame("right")).toBe(1);
+    expect(duelistFacingFrame("down")).toBe(2);
+    expect(duelistFacingFrame("left")).toBe(3);
+    expect(duelistFacingFrame("unknown")).toBe(1);
   });
 });
 

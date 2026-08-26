@@ -20,6 +20,8 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/isometric/tiles/floor.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/tiles/wall.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/actors/adventurer-actions.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/actors/duelist-walk.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/actors/duelist-attack.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/enemies/goblin-actions.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/enemies/skeleton-actions.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/props/chest-actions.png"))
@@ -62,6 +64,16 @@ RSpec.describe "Frontend assets" do
     expect(sheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
     expect(sheet.byteslice(16, 8).unpack("NN")).to eq([874, 1799])
     expect(sheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+  end
+
+  it "checks in normalized Duelist directional animation sheets" do
+    %w[duelist-walk.png duelist-attack.png].each do |filename|
+      sheet = File.binread(File.join(public_root, "assets/isometric/actors", filename), 33)
+
+      expect(sheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
+      expect(sheet.byteslice(16, 8).unpack("NN")).to eq([384, 384])
+      expect(sheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+    end
   end
 
   it "wires the React frontend to game API, WebSocket, and modular panels" do
