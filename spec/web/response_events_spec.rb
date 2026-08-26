@@ -13,15 +13,52 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
       Unknown command: dance.
     TEXT
 
-    expect(events).to eq [
-      { type: "movement", text: "You move right." },
-      { type: "movement", text: "You descend deeper into the ruins." },
-      { type: "travel.changed_scene", text: "You go to Ruins." },
-      { type: "combat.damage", text: "You attack a Giant Spider causing 10 of damage.", effect: "slash" },
-      { type: "combat.damage", text: "You cast Fireball causing 13 of damage.", effect: "magic" },
-      { type: "combat.damage", text: "Giant Spider attacks you with fangs causing 2 of damage.", effect: "slash" },
-      { type: "inventory.equipped", text: "Equipped Iron Armor." },
-      { type: "error.invalid_action", text: "Unknown command: dance." }
+    expect(events).to include(
+      hash_including(
+        type: "movement",
+        sequence: 0,
+        actor: "player",
+        action: "move",
+        facing: "right",
+        outcome: "success",
+        duration_ms: 300
+      ),
+      hash_including(
+        type: "combat.damage",
+        sequence: 3,
+        actor: "player",
+        target: "enemy",
+        action: "attack",
+        effect: "slash",
+        outcome: "hit",
+        duration_ms: 520
+      ),
+      hash_including(
+        type: "combat.damage",
+        sequence: 4,
+        actor: "player",
+        target: "enemy",
+        action: "cast",
+        effect: "magic"
+      ),
+      hash_including(
+        type: "combat.damage",
+        sequence: 5,
+        actor: "enemy",
+        target: "player",
+        action: "attack"
+      ),
+      hash_including(type: "error.invalid_action", sequence: 7, outcome: "rejected")
+    )
+    expect(events.map { |event| event.fetch(:text) }).to eq [
+      "You move right.",
+      "You descend deeper into the ruins.",
+      "You go to Ruins.",
+      "You attack a Giant Spider causing 10 of damage.",
+      "You cast Fireball causing 13 of damage.",
+      "Giant Spider attacks you with fangs causing 2 of damage.",
+      "Equipped Iron Armor.",
+      "Unknown command: dance."
     ]
   end
 
@@ -29,8 +66,8 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
     events = described_class.call("Welcome to Text Adventures\n\nWhat will you do now?")
 
     expect(events).to eq [
-      { type: "message", text: "Welcome to Text Adventures" },
-      { type: "message", text: "What will you do now?" }
+      { type: "message", text: "Welcome to Text Adventures", sequence: 0, actor: "world", action: "message" },
+      { type: "message", text: "What will you do now?", sequence: 1, actor: "world", action: "message" }
     ]
   end
 
@@ -49,7 +86,32 @@ RSpec.describe TextAdventures::Web::ResponseEvents do
     TEXT
 
     expect(events).to eq [
-      { type: "movement", text: "You descend deeper into the ruins." }
+      {
+        type: "movement",
+        text: "You descend deeper into the ruins.",
+        sequence: 0,
+        actor: "player",
+        action: "descend",
+        outcome: "success",
+        duration_ms: 300
+      }
     ]
+  end
+
+  it "includes movement coordinates supplied by the web transport" do
+    events = described_class.call(
+      "You move down.",
+      context: {
+        action: { "type" => "move", "direction" => "down" },
+        from: { x: 3, y: 2 },
+        to: { x: 3, y: 3 }
+      }
+    )
+
+    expect(events.first).to include(
+      facing: "down",
+      from: { x: 3, y: 2 },
+      to: { x: 3, y: 3 }
+    )
   end
 end

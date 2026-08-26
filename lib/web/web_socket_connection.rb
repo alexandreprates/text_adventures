@@ -73,10 +73,18 @@ module TextAdventures
         end
 
         update = store.with_game(game_id, save: true) do |game|
+          from = dungeon_player_position(game)
           command = command_for(message)
           response = game.handle(command)
           {
-            events: ResponseEvents.call(response),
+            events: ResponseEvents.call(
+              response,
+              context: {
+                action: message,
+                from: from,
+                to: dungeon_player_position(game)
+              }
+            ),
             patch: StatePatch.new(game, serializer: serializer).to_h
           }
         end
@@ -108,6 +116,11 @@ module TextAdventures
         end
 
         ActionCommand.call(message)
+      end
+
+      def dungeon_player_position(game)
+        position = game.dungeon&.current_global_position
+        position ? { x: position.x, y: position.y } : nil
       end
 
       def write_json(socket, payload)

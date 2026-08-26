@@ -2,7 +2,15 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 
 type MockGamePayload = {
   game_id: string;
-  events: Array<{ type: string; text: string }>;
+  events: Array<{
+    type: string;
+    text: string;
+    actor?: string;
+    target?: string;
+    action?: string;
+    effect?: string;
+    duration_ms?: number;
+  }>;
   state: Record<string, unknown>;
 };
 
@@ -68,15 +76,69 @@ const ruinsPayload: MockGamePayload = {
   },
 };
 
-const combatPayload: MockGamePayload = {
+const isometricRuinsPayload: MockGamePayload = {
   ...ruinsPayload,
+  state: {
+    ...ruinsPayload.state,
+    dungeon: {
+      level: 1,
+      player_position: { x: 2, y: 2 },
+      entrance_portal: { x: 1, y: 2 },
+      ascent: null,
+      descent: { x: 3, y: 3 },
+      nearby_loot: null,
+      viewport: {
+        width: 5,
+        height: 5,
+        origin: { x: 0, y: 0 },
+        theme: "stone_ruins",
+        terrain: "######...##...##...######",
+        decorations: [
+          { kind: "torch", x: 2, y: 0 },
+          { kind: "chest", x: 2, y: 3 },
+        ],
+        entities: [
+          { type: "portal", x: 1, y: 2 },
+          { type: "player", x: 2, y: 2 },
+          { type: "descent", x: 3, y: 3 },
+        ],
+      },
+    },
+  },
+};
+
+const combatPayload: MockGamePayload = {
+  ...isometricRuinsPayload,
   events: [
-    { type: "message", text: "You see a Skeleton Guard" },
+    {
+      type: "combat.damage",
+      text: "You attack a Skeleton Guard causing 4 of damage.",
+      actor: "player",
+      target: "enemy",
+      action: "attack",
+      effect: "slash",
+      duration_ms: 520,
+    },
     { type: "message", text: "A Skeleton Guard is about to attack you!" },
     { type: "message", text: "[Skeleton Guard HP: 28/28]" },
   ],
   state: {
-    ...ruinsPayload.state,
+    ...isometricRuinsPayload.state,
+    dungeon: {
+      ...(isometricRuinsPayload.state.dungeon as Record<string, unknown>),
+      viewport: {
+        ...(
+          (isometricRuinsPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+        ),
+        entities: [
+          { type: "portal", x: 1, y: 2 },
+          { type: "player", x: 2, y: 2 },
+          { type: "enemy", x: 3, y: 2, creature_id: "skeleton_guard" },
+          { type: "loot", x: 2, y: 3 },
+          { type: "descent", x: 3, y: 3 },
+        ],
+      },
+    },
     battle: {
       active: true,
       enemy: {
@@ -850,12 +912,27 @@ test("persists the selected interface mode", async ({ page }) => {
 });
 
 test("renders auto-explore controls in ruins", async ({ page }) => {
-  await mockGame(page, ruinsPayload);
+  await mockGame(page, isometricRuinsPayload);
   await page.goto("/");
 
   const autoToggle = page.getByRole("button", { name: /^Auto$/ });
 
   await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(page.getByLabel("Dungeon map")).toBeVisible();
+  await expect
+    .poll(() =>
+      page.getByLabel("Dungeon map").evaluate((canvas) => {
+        const context = (canvas as HTMLCanvasElement).getContext("2d");
+        if (!context) return 0;
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (let index = 3; index < pixels.length; index += 4) {
+          if (pixels[index] > 0) return 1;
+        }
+        return 0;
+      }),
+    )
+    .toBe(1);
   await expect(page.getByRole("button", { name: "Explore" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Town" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Deep" })).toBeVisible();
@@ -885,7 +962,7 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
 test("keeps mobile Ruins action controls at comfortable touch target heights", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await mockGame(page, ruinsPayload);
+  await mockGame(page, isometricRuinsPayload);
   await page.goto("/");
 
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
@@ -901,6 +978,9 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 6, 11);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  const canvasBox = await page.getByLabel("Dungeon map").boundingBox();
+  expect(canvasBox?.width).toBeGreaterThan(390);
 });
 
 test("keeps an idle WebSocket alive with heartbeat pings", async ({ page }) => {

@@ -1,6 +1,12 @@
 dungeon_blocks:
   right_exit:
     name: Corridor Right Exit
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 3
+          y: 1
     exits:
       - right
     tiles:
@@ -11,6 +17,12 @@ dungeon_blocks:
       - "######"
   left_exit:
     name: Corridor Left Exit
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 2
+          y: 1
     exits:
       - left
     tiles:
@@ -21,6 +33,12 @@ dungeon_blocks:
       - "######"
   down_exit:
     name: Corridor Down Exit
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 1
+          y: 2
     exits:
       - down
     tiles:
@@ -31,6 +49,12 @@ dungeon_blocks:
       - "##  ##"
   up_exit:
     name: Corridor Up Exit
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 4
+          y: 2
     exits:
       - up
     tiles:
@@ -41,6 +65,15 @@ dungeon_blocks:
       - "######"
   four_exits:
     name: Corridor Four Exits
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 1
+          y: 1
+        - kind: torch
+          x: 4
+          y: 3
     exits:
       - up
       - right
@@ -54,6 +87,12 @@ dungeon_blocks:
       - "##  ##"
   corner_down_left:
     name: Corridor Corner Down Left
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 4
+          y: 1
     exits:
       - down
       - left
@@ -65,6 +104,12 @@ dungeon_blocks:
       - "##  ##"
   corner_down_right:
     name: Corridor Corner Down Right
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 1
+          y: 1
     exits:
       - down
       - right
@@ -76,6 +121,12 @@ dungeon_blocks:
       - "##  ##"
   corner_up_left:
     name: Corridor Corner Up Left
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 4
+          y: 3
     exits:
       - up
       - left
@@ -87,6 +138,12 @@ dungeon_blocks:
       - "######"
   corner_up_right:
     name: Corridor Corner Up Right
+    visuals:
+      theme: stone_ruins
+      decorations:
+        - kind: torch
+          x: 1
+          y: 3
     exits:
       - up
       - right

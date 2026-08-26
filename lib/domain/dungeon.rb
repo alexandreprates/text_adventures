@@ -300,8 +300,10 @@ module TextAdventures
         width: render_width,
         height: render_height,
         origin: viewport_origin_state(origin),
+        theme: current_block.theme,
         terrain: viewport_terrain(tiles),
-        entities: viewport_entities(origin, render_width, render_height)
+        entities: viewport_entities(origin, render_width, render_height),
+        decorations: viewport_decorations(origin, render_width, render_height)
       }
     end
 
@@ -403,6 +405,22 @@ module TextAdventures
       entities.concat(viewport_loot_entities(origin, render_width, render_height))
       entities.concat(enemy_viewport_entities(origin, render_width, render_height))
       entities.compact.sort_by { |entity| [entity.fetch(:y), entity.fetch(:x), entity.fetch(:type)] }
+    end
+
+    def viewport_decorations(origin, render_width, render_height)
+      revealed_blocks.flat_map do |(block_x, block_y), block|
+        block_position = BlockPosition.new(x: block_x, y: block_y)
+        block.decorations.filter_map do |decoration|
+          global = global_position(
+            Position.new(x: decoration.fetch(:x), y: decoration.fetch(:y)),
+            block_position
+          )
+          position = viewport_position(global, origin, render_width, render_height)
+          next unless position
+
+          position.merge(decoration.slice(:kind, :variant))
+        end
+      end.sort_by { |decoration| [decoration.fetch(:y), decoration.fetch(:x), decoration.fetch(:kind)] }
     end
 
     def viewport_loot_entities(origin, render_width, render_height)

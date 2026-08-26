@@ -4,4 +4,7 @@
 tmp
 vendor/bundle
 coverage
+frontend/node_modules
+frontend/.pnpm-store
+frontend/dist
 .rspec_status

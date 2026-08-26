@@ -1,0 +1,445 @@
+import type {
+  DungeonDecoration,
+  DungeonViewport,
+  GameEvent,
+  Position,
+  ViewportEntity,
+} from "../../lib/types";
+import { latestCombatCue, type CombatAnimationCue } from "./animation";
+import { loadIsometricAssets, type IsometricAssets } from "./assets";
+import {
+  depthFor,
+  easeOutCubic,
+  interpolatePosition,
+  projectPosition,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+  type ProjectedPoint,
+} from "./projection";
+
+const LOGICAL_WIDTH = 752;
+const LOGICAL_HEIGHT = 416;
+const PLAYER_MOVE_MS = 260;
+const CAMERA_MOVE_MS = 440;
+const TRANSIENT_MS = 1_400;
+const DESKTOP_FRAME_INTERVAL_MS = 1_000 / 60;
+const MOBILE_FRAME_INTERVAL_MS = 1_000 / 30;
+
+type RendererOptions = {
+  playerClass?: string;
+  playerDirection?: string;
+  playerDead?: boolean;
+  reducedMotion?: boolean;
+};
+
+type PositionedEntity = ViewportEntity & Position;
+
+type TransientEntity = PositionedEntity & {
+  expiresAt: number;
+};
+
+type CombatState = CombatAnimationCue & {
+  startedAt: number;
+};
+
+type DepthNode = {
+  position: Position;
+  layer: number;
+  draw: (screen: ProjectedPoint) => void;
+};
+
+export class IsometricDungeonRenderer {
+  private readonly context: CanvasRenderingContext2D;
+  private assets: IsometricAssets | null = null;
+  private viewport: DungeonViewport | null = null;
+  private options: RendererOptions = {};
+  private frameRequest: number | null = null;
+  private lastFrameTime = 0;
+  private playerFrom: Position | null = null;
+  private playerTo: Position | null = null;
+  private cameraFrom: Position | null = null;
+  private cameraTo: Position | null = null;
+  private movementStartedAt = 0;
+  private combat: CombatState | null = null;
+  private vanishedEnemies: TransientEntity[] = [];
+  private openedLoot: TransientEntity[] = [];
+  private readonly fallbackEnemies = new Map<string, HTMLImageElement>();
+
+  constructor(canvas: HTMLCanvasElement) {
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Canvas 2D is unavailable.");
+
+    this.context = context;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(LOGICAL_WIDTH * pixelRatio);
+    canvas.height = Math.round(LOGICAL_HEIGHT * pixelRatio);
+    canvas.dataset.logicalWidth = String(LOGICAL_WIDTH);
+    canvas.dataset.logicalHeight = String(LOGICAL_HEIGHT);
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    context.imageSmoothingEnabled = false;
+  }
+
+  async load(): Promise<void> {
+    this.assets = await loadIsometricAssets();
+    this.requestFrame();
+  }
+
+  render(viewport: DungeonViewport, options: RendererOptions = {}): void {
+    const now = performance.now();
+    const previousPlayer = this.viewport ? playerPosition(this.viewport) : null;
+    const nextPlayer = playerPosition(viewport);
+
+    this.captureTransientEntities(this.viewport, viewport, now);
+    this.viewport = viewport;
+    this.options = options;
+
+    if (nextPlayer) {
+      this.playerFrom = previousPlayer ?? nextPlayer;
+      this.playerTo = nextPlayer;
+      this.cameraFrom = this.cameraTo ?? previousPlayer ?? nextPlayer;
+      this.cameraTo = nextPlayer;
+      this.movementStartedAt = now;
+    }
+
+    this.requestFrame();
+  }
+
+  play(events: GameEvent[]): void {
+    const cue = latestCombatCue(events);
+    this.combat = cue ? { ...cue, startedAt: performance.now() } : null;
+    this.requestFrame();
+  }
+
+  destroy(): void {
+    if (this.frameRequest !== null) cancelAnimationFrame(this.frameRequest);
+    this.frameRequest = null;
+  }
+
+  private requestFrame(): void {
+    if (!this.assets || this.frameRequest !== null) return;
+    this.frameRequest = requestAnimationFrame((time) => {
+      this.frameRequest = null;
+      this.draw(time);
+    });
+  }
+
+  private draw(time: number): void {
+    if (!this.assets || !this.viewport) return;
+    const frameInterval = window.innerWidth <= 700
+      ? MOBILE_FRAME_INTERVAL_MS
+      : DESKTOP_FRAME_INTERVAL_MS;
+    if (this.lastFrameTime && time - this.lastFrameTime < frameInterval) {
+      this.requestFrame();
+      return;
+    }
+
+    this.lastFrameTime = time;
+    this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    this.context.imageSmoothingEnabled = false;
+
+    const camera = this.cameraPosition(time);
+    this.drawTerrain(camera);
+    this.drawLightPools(camera, time);
+    this.drawDepthLayer(camera, time);
+    this.drawCombatEffect(camera, time);
+
+    this.vanishedEnemies = this.vanishedEnemies.filter((entity) => entity.expiresAt > time);
+    this.openedLoot = this.openedLoot.filter((entity) => entity.expiresAt > time);
+    if (this.shouldAnimate(time)) this.requestFrame();
+  }
+
+  private drawTerrain(camera: Position): void {
+    if (!this.assets || !this.viewport) return;
+
+    for (let y = 0; y < this.viewport.height; y += 1) {
+      for (let x = 0; x < this.viewport.width; x += 1) {
+        const terrain = terrainAt(this.viewport, x, y);
+        if (terrain !== "." && terrain !== "#") continue;
+
+        const position = globalPosition(this.viewport, { x, y });
+        const screen = this.screenPosition(position, camera);
+        this.context.drawImage(
+          this.assets.floor,
+          Math.round(screen.x - TILE_WIDTH / 2),
+          Math.round(screen.y),
+        );
+      }
+    }
+  }
+
+  private drawLightPools(camera: Position, time: number): void {
+    if (!this.assets || !this.viewport) return;
+    const pulse = this.options.reducedMotion ? 0.38 : 0.34 + Math.sin(time / 230) * 0.05;
+
+    this.context.save();
+    this.context.globalCompositeOperation = "lighter";
+    this.context.globalAlpha = pulse;
+    this.viewport.decorations
+      ?.filter((decoration) => decoration.kind === "torch")
+      .forEach((decoration) => {
+        const position = globalPosition(this.viewport!, decoration);
+        const screen = this.screenPosition({ x: position.x, y: position.y + 0.8 }, camera);
+        this.context.drawImage(this.assets!.lightPool, screen.x - 64, screen.y - 22);
+      });
+    this.context.restore();
+  }
+
+  private drawDepthLayer(camera: Position, time: number): void {
+    if (!this.assets || !this.viewport) return;
+    const nodes: DepthNode[] = [];
+
+    for (let y = 0; y < this.viewport.height; y += 1) {
+      for (let x = 0; x < this.viewport.width; x += 1) {
+        if (terrainAt(this.viewport, x, y) !== "#") continue;
+        const position = globalPosition(this.viewport, { x, y });
+        nodes.push({
+          position,
+          layer: 0,
+          draw: (screen) => {
+            const foot = screen.y + TILE_HEIGHT;
+            this.context.drawImage(this.assets!.wall, screen.x - 32, foot - 112);
+          },
+        });
+      }
+    }
+
+    this.viewport.decorations?.forEach((decoration) => {
+      const position = globalPosition(this.viewport!, decoration);
+      nodes.push(this.decorationNode(decoration, position, time));
+    });
+
+    positionedEntities(this.viewport).forEach((entity) => {
+      const position = entity.type === "player" ? this.animatedPlayerPosition(time) ?? entity : entity;
+      nodes.push(this.entityNode(entity, position, time));
+    });
+
+    this.vanishedEnemies.forEach((entity) => {
+      nodes.push(this.actorNode(entity, entity, 3, 16));
+    });
+    this.openedLoot.forEach((entity) => {
+      nodes.push(this.chestNode(entity, 3));
+    });
+
+    nodes
+      .sort((left, right) => depthFor(left.position, left.layer) - depthFor(right.position, right.layer))
+      .forEach((node) => node.draw(this.screenPosition(node.position, camera)));
+  }
+
+  private decorationNode(decoration: DungeonDecoration, position: Position, time: number): DepthNode {
+    if (decoration.kind === "torch") {
+      const frame = this.options.reducedMotion ? 0 : Math.floor(time / 150) % 4;
+      return {
+        position,
+        layer: 35,
+        draw: (screen) => this.drawSheetFrame(this.assets!.torch, frame, 64, 96, screen.x - 32, screen.y - 84),
+      };
+    }
+
+    return this.chestNode(position, 0);
+  }
+
+  private entityNode(entity: PositionedEntity, position: Position, time: number): DepthNode {
+    if (entity.type === "player") {
+      const frame = this.options.playerDead ? 3 : this.combatFrame("player", time);
+      return this.actorNode(entity, position, frame, 17);
+    }
+
+    if (entity.type === "enemy") {
+      return this.actorNode(entity, position, this.combatFrame("enemy", time), 16);
+    }
+
+    if (entity.type === "loot") return this.chestNode(position, 2);
+
+    return {
+      position,
+      layer: 6,
+      draw: (screen) => this.drawMarker(entity.type, screen),
+    };
+  }
+
+  private actorNode(
+    entity: PositionedEntity,
+    position: Position,
+    frame: number,
+    baselinePadding: number,
+  ): DepthNode {
+    return {
+      position,
+      layer: 20,
+      draw: (screen) => {
+        const sheet = entity.type === "player" ? this.assets!.adventurer : this.enemySheet(entity);
+        const bob = frame === 0 && !this.options.reducedMotion ? Math.round(Math.sin(this.lastFrameTime / 280)) : 0;
+        if (sheet) {
+          this.drawSheetFrame(sheet, frame, 96, 128, screen.x - 48, screen.y - 128 + baselinePadding + bob);
+          return;
+        }
+
+        this.drawFallbackEnemy(entity, screen);
+      },
+    };
+  }
+
+  private chestNode(position: Position, frame: number): DepthNode {
+    return {
+      position,
+      layer: 12,
+      draw: (screen) => this.drawSheetFrame(this.assets!.chest, frame, 64, 64, screen.x - 32, screen.y - 61),
+    };
+  }
+
+  private enemySheet(entity: PositionedEntity): HTMLImageElement | null {
+    const creatureId = entity.creature_id ?? "";
+    if (creatureId.includes("skeleton")) return this.assets!.skeleton;
+    if (creatureId.includes("goblin")) return this.assets!.goblin;
+    return null;
+  }
+
+  private drawFallbackEnemy(entity: PositionedEntity, screen: ProjectedPoint): void {
+    const creatureId = entity.creature_id;
+    if (!creatureId) return;
+
+    let image = this.fallbackEnemies.get(creatureId);
+    if (!image) {
+      image = new Image();
+      image.decoding = "async";
+      image.addEventListener("load", () => this.requestFrame(), { once: true });
+      image.src = `/assets/enemies/sprites/${encodeURIComponent(creatureId)}.png`;
+      this.fallbackEnemies.set(creatureId, image);
+    }
+    if (!image.complete || image.naturalWidth === 0) return;
+
+    this.context.drawImage(image, screen.x - 40, screen.y - 74, 80, 80);
+  }
+
+  private drawMarker(type: string, screen: ProjectedPoint): void {
+    if (type === "portal") {
+      this.context.drawImage(this.assets!.portal, screen.x - 32, screen.y - 88);
+      return;
+    }
+    if (type === "ascent" || type === "descent") {
+      this.context.drawImage(this.assets!.stairsDown, screen.x - 32, screen.y - 48);
+    }
+  }
+
+  private drawCombatEffect(camera: Position, time: number): void {
+    if (!this.assets || !this.viewport || !this.combat) return;
+    const progress = (time - this.combat.startedAt) / this.combat.durationMs;
+    if (progress < 0 || progress >= 1) return;
+
+    const player = playerPosition(this.viewport);
+    const enemy = positionedEntities(this.viewport).find((entity) => entity.type === "enemy");
+    if (!player || !enemy) return;
+
+    const playerScreen = this.screenPosition(this.animatedPlayerPosition(time) ?? player, camera);
+    const enemyScreen = this.screenPosition(enemy, camera);
+    const center = {
+      x: (playerScreen.x + enemyScreen.x) / 2,
+      y: (playerScreen.y + enemyScreen.y) / 2 - 34,
+    };
+    const frame = Math.min(3, Math.floor(progress * 4));
+    const sheet = this.combat.effect === "magic" ? this.assets.magic : this.assets.slash;
+
+    this.context.save();
+    this.context.globalCompositeOperation = "lighter";
+    this.drawSheetFrame(sheet, frame, 64, 96, center.x - 32, center.y - 48);
+    this.context.restore();
+  }
+
+  private drawSheetFrame(
+    sheet: HTMLImageElement,
+    frame: number,
+    frameWidth: number,
+    frameHeight: number,
+    x: number,
+    y: number,
+  ): void {
+    this.context.drawImage(
+      sheet,
+      Math.max(0, Math.min(3, frame)) * frameWidth,
+      0,
+      frameWidth,
+      frameHeight,
+      Math.round(x),
+      Math.round(y),
+      frameWidth,
+      frameHeight,
+    );
+  }
+
+  private combatFrame(actor: "player" | "enemy", time: number): number {
+    if (!this.combat || this.combat.actor !== actor) return 0;
+    const progress = (time - this.combat.startedAt) / this.combat.durationMs;
+    if (progress < 0 || progress >= 1) return 0;
+    return progress < 0.68 ? 1 : 0;
+  }
+
+  private screenPosition(position: Position, camera: Position): ProjectedPoint {
+    const world = projectPosition(position);
+    const cameraPoint = projectPosition(camera);
+    return {
+      x: LOGICAL_WIDTH / 2 + world.x - cameraPoint.x,
+      y: LOGICAL_HEIGHT / 2 + 42 + world.y - cameraPoint.y,
+    };
+  }
+
+  private animatedPlayerPosition(time: number): Position | null {
+    if (!this.playerFrom || !this.playerTo) return this.playerTo;
+    if (this.options.reducedMotion) return this.playerTo;
+    const progress = easeOutCubic((time - this.movementStartedAt) / PLAYER_MOVE_MS);
+    return interpolatePosition(this.playerFrom, this.playerTo, progress);
+  }
+
+  private cameraPosition(time: number): Position {
+    const target = this.cameraTo ?? this.playerTo ?? { x: 0, y: 0 };
+    if (!this.cameraFrom || this.options.reducedMotion) return target;
+    const progress = easeOutCubic((time - this.movementStartedAt) / CAMERA_MOVE_MS);
+    return interpolatePosition(this.cameraFrom, target, progress);
+  }
+
+  private shouldAnimate(time: number): boolean {
+    if (!this.options.reducedMotion) return true;
+    if (this.combat && time < this.combat.startedAt + this.combat.durationMs) return true;
+    return this.vanishedEnemies.length > 0 || this.openedLoot.length > 0;
+  }
+
+  private captureTransientEntities(
+    previous: DungeonViewport | null,
+    next: DungeonViewport,
+    now: number,
+  ): void {
+    if (!previous) return;
+    const nextKeys = new Set(positionedEntities(next).map(entityKey));
+
+    positionedEntities(previous).forEach((entity) => {
+      if (nextKeys.has(entityKey(entity))) return;
+      if (entity.type === "enemy") this.vanishedEnemies.push({ ...entity, expiresAt: now + TRANSIENT_MS });
+      if (entity.type === "loot") this.openedLoot.push({ ...entity, expiresAt: now + TRANSIENT_MS });
+    });
+  }
+}
+
+function terrainAt(viewport: DungeonViewport, x: number, y: number): string {
+  return viewport.terrain?.[y * viewport.width + x] ?? "?";
+}
+
+function globalPosition(viewport: DungeonViewport, position: Position): Position {
+  return {
+    x: (viewport.origin?.x ?? 0) + position.x,
+    y: (viewport.origin?.y ?? 0) + position.y,
+  };
+}
+
+function positionedEntities(viewport: DungeonViewport): PositionedEntity[] {
+  return (viewport.entities ?? []).map((entity) => ({
+    ...entity,
+    ...globalPosition(viewport, entity),
+  }));
+}
+
+function playerPosition(viewport: DungeonViewport): Position | null {
+  return positionedEntities(viewport).find((entity) => entity.type === "player") ?? null;
+}
+
+function entityKey(entity: PositionedEntity): string {
+  return `${entity.type}:${entity.x}:${entity.y}:${entity.creature_id ?? ""}`;
+}

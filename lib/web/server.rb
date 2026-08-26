@@ -159,7 +159,10 @@ module TextAdventures
       end
 
       def connection_capacity_available?
-        connection_mutex.synchronize { connections.length < max_connections }
+        connection_mutex.synchronize do
+          connections.reject!(&:closed?)
+          connections.length < max_connections
+        end
       end
 
       def reject_over_capacity(socket)

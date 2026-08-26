@@ -284,7 +284,9 @@ RSpec.describe TextAdventures::Dungeon do
       expect(viewport).to include(
         width: 18,
         height: 15,
-        origin: { x: -6, y: -5 }
+        origin: { x: -6, y: -5 },
+        theme: "stone_ruins",
+        decorations: [{ kind: "torch", x: 9, y: 6 }]
       )
       expect(viewport.fetch(:terrain).length).to eq 270
       expect(viewport.fetch(:terrain)).not_to match(/[xE@P> ]/)

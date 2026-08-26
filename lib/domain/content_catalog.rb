@@ -230,7 +230,8 @@ module TextAdventures
         id: id,
         name: definition.fetch("name"),
         tiles: definition.fetch("tiles"),
-        exits: definition.fetch("exits")
+        exits: definition.fetch("exits"),
+        visuals: definition.fetch("visuals", {})
       )
     end
 

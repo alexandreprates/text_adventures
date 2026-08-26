@@ -55,6 +55,46 @@ RSpec.describe TextAdventures::DungeonBlock do
         described_class.new(id: "bad", name: "Bad", tiles: tiles, exits: ["north"])
       end.to raise_error(ArgumentError, "unknown dungeon block exits: north")
     end
+
+    it "normalizes optional visual metadata" do
+      visual_block = described_class.new(
+        id: "lit",
+        name: "Lit corridor",
+        tiles: tiles,
+        exits: ["right"],
+        visuals: {
+          "theme" => "stone_ruins",
+          "decorations" => [{ "kind" => "torch", "x" => 3, "y" => 1 }]
+        }
+      )
+
+      expect(visual_block).to have_attributes(
+        theme: "stone_ruins",
+        decorations: [{ kind: "torch", x: 3, y: 1 }]
+      )
+    end
+
+    it "rejects unknown or out-of-bounds decorations" do
+      expect do
+        described_class.new(
+          id: "unknown_decor",
+          name: "Unknown decor",
+          tiles: tiles,
+          exits: [],
+          visuals: { decorations: [{ kind: "banner", x: 1, y: 1 }] }
+        )
+      end.to raise_error(ArgumentError, "unknown dungeon decoration: banner")
+
+      expect do
+        described_class.new(
+          id: "outside_decor",
+          name: "Outside decor",
+          tiles: tiles,
+          exits: [],
+          visuals: { decorations: [{ kind: "torch", x: 6, y: 1 }] }
+        )
+      end.to raise_error(ArgumentError, "dungeon decoration must be inside its block")
+    end
   end
 
   describe "tile queries" do

@@ -162,11 +162,17 @@ RSpec.describe "text_adventures server binary" do
 
   it "returns a controlled overload response when the connection limit is reached" do
     with_server("TEXT_ADVENTURES_MAX_CONNECTIONS" => "1") do |port|
-      create_response = request_json(port, Net::HTTP::Post, "/api/games", seed: 0)
+      create_response = wait_for_response_code(
+        port,
+        Net::HTTP::Post,
+        "/api/games",
+        "201",
+        seed: 0
+      )
       game_id = JSON.parse(create_response.body).fetch("game_id")
       socket = open_websocket(port, game_id)
 
-      response = request_json(port, Net::HTTP::Get, "/api/health")
+      response = wait_for_response_code(port, Net::HTTP::Get, "/api/health", "503")
 
       expect(response.code).to eq "503"
       expect(JSON.parse(response.body).dig("error", "code")).to eq "server_busy"
@@ -282,6 +288,17 @@ RSpec.describe "text_adventures server binary" do
       request.body = JSON.generate(body)
     end
     Net::HTTP.start(uri.hostname, uri.port) { |http| http.request(request) }
+  end
+
+  def wait_for_response_code(port, request_class, path, expected_code, body = nil)
+    Timeout.timeout(2) do
+      loop do
+        response = request_json(port, request_class, path, body)
+        return response if response.code == expected_code
+
+        sleep 0.02
+      end
+    end
   end
 
   def open_websocket(port, game_id)

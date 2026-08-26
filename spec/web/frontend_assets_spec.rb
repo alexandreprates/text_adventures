@@ -6,7 +6,7 @@ RSpec.describe "Frontend assets" do
   let(:public_root) { File.join(frontend_root, "public") }
   let(:source_root) { File.join(frontend_root, "src") }
 
-  it "checks in the Vite React entrypoints, renderer bridge, and game assets" do
+  it "checks in the Vite React entrypoints, typed renderer, and game assets" do
     expect(File).to exist(File.join(frontend_root, "index.html"))
     expect(File).to exist(File.join(frontend_root, "package.json"))
     expect(File).to exist(File.join(frontend_root, "vite.config.ts"))
@@ -15,7 +15,19 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(source_root, "App.tsx"))
     expect(File).to exist(File.join(source_root, "App.css"))
     expect(File).to exist(File.join(source_root, "index.css"))
-    expect(File).to exist(File.join(public_root, "map_renderer.js"))
+    expect(File).not_to exist(File.join(public_root, "map_renderer.js"))
+    expect(File).to exist(File.join(source_root, "game/isometric/IsometricDungeonRenderer.ts"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/tiles/floor.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/tiles/wall.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/actors/adventurer-actions.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/enemies/goblin-actions.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/enemies/skeleton-actions.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/props/chest-actions.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/props/torch-loop.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/props/portal.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/props/stairs-down.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/effects/slash.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/effects/magic.png"))
     expect(File).to exist(File.join(public_root, "assets/tilesets/original-dungeon-tileset.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/village-hub.png"))
     expect(File).to exist(File.join(public_root, "assets/locations/tavern-interior.png"))
@@ -66,7 +78,7 @@ RSpec.describe "Frontend assets" do
     vite_config = File.read(File.join(frontend_root, "vite.config.ts"))
     dockerfile = File.read(File.join(root, "Dockerfile"))
 
-    expect(html).to include('<script src="/map_renderer.js"></script>')
+    expect(html).not_to include('/map_renderer.js')
     expect(html).to include('<script type="module" src="/src/main.tsx"></script>')
     expect(html).to include('<title>Text Adventures</title>')
     expect(app).to include('useGameSession()')
@@ -105,9 +117,11 @@ RSpec.describe "Frontend assets" do
     expect(command_panel).to include('autoExploreCommands()')
     expect(command_panel).to include('Auto speed')
     expect(command_panel).to include('autoExplore.setGoal(autoGoalFromCommand(command.command))')
-    expect(map_panel).to include('window.DungeonMapRenderer.create(canvasRef.current)')
+    expect(map_panel).to include('new IsometricDungeonRenderer(canvasRef.current)')
     expect(map_panel).to include('rendererRef.current.render(viewport')
-    expect(map_panel).to include('renderer.animateAttack(exchange.source, exchange.effect)')
+    expect(map_panel).to include('rendererRef.current?.play(events)')
+    expect(map_panel).to include('useReducedMotion()')
+    expect(map_panel).to include('Loading isometric dungeon')
     expect(map_panel).to include('textRowsFromViewport(viewport)')
     expect(map_panel).to include('Revive in Town')
     expect(map_panel).to include('New Game')

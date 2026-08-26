@@ -248,11 +248,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    linear-gradient(rgba(123, 232, 143, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(123, 232, 143, 0.04) 1px, transparent 1px),
-    #070b0f;
-  background-size: 24px 24px;
+  background: var(--dungeon-stage-bg);
 }
 
 .connection-indicator {
@@ -286,11 +282,36 @@
   max-width: calc(100% - 24px);
   max-height: calc(100% - 24px);
   image-rendering: pixelated;
+  background: var(--dungeon-canvas-bg);
   z-index: 2;
 }
 
 .map-stage.has-canvas-map .map-canvas {
   display: block;
+}
+
+.map-render-status {
+  position: absolute;
+  z-index: 6;
+  max-width: min(360px, calc(100% - 32px));
+  padding: 12px 16px;
+  border: 1px solid var(--dungeon-stage-line);
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--dungeon-status-bg);
+  font: 700 12px/1.4 var(--mono);
+  text-align: center;
+}
+
+.map-render-status.is-error {
+  color: var(--danger);
+}
+
+@media (max-width: 700px) {
+  .map-canvas {
+    max-width: none;
+    max-height: none;
+  }
 }
 
 .location-art {
@@ -1407,12 +1428,13 @@
 .platform-live-playfield .map-stage {
   height: 100%;
   min-height: 0;
-  background:
-    linear-gradient(rgba(160, 201, 151, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(160, 201, 151, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 50% 18%, rgba(111, 183, 255, 0.12), transparent 32rem),
-    #05090c;
-  background-size: 32px 32px, 32px 32px, auto, auto;
+  background: var(--dungeon-stage-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .location-art {
+    transition: none;
+  }
 }
 
 .platform-live-playfield .location-art {

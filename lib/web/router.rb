@@ -82,9 +82,19 @@ module TextAdventures
       def execute_action(id, body)
         payload = parse_required_json(body)
         response_payload = store.with_game(id, save: true) do |game|
+          from = dungeon_player_position(game)
           command = ActionCommand.call(payload)
           response = game.handle(command)
-          game_payload(id, game, response: response)
+          game_payload(
+            id,
+            game,
+            response: response,
+            event_context: {
+              action: payload,
+              from: from,
+              to: dungeon_player_position(game)
+            }
+          )
         end
         return game_not_found unless response_payload
 
@@ -97,13 +107,18 @@ module TextAdventures
         game_not_found
       end
 
-      def game_payload(id, game, response: nil)
+      def game_payload(id, game, response: nil, event_context: {})
         payload = {
           game_id: id,
           state: serializer.new(game).to_h
         }
-        payload[:events] = ResponseEvents.call(response) if response
+        payload[:events] = ResponseEvents.call(response, context: event_context) if response
         payload
+      end
+
+      def dungeon_player_position(game)
+        position = game.dungeon&.current_global_position
+        position ? { x: position.x, y: position.y } : nil
       end
 
       def health

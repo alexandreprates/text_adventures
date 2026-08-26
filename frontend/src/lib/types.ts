@@ -89,12 +89,19 @@ export type ViewportEntity = {
   creature_id?: string;
 };
 
+export type DungeonDecoration = Position & {
+  kind: "torch" | "chest" | string;
+  variant?: string;
+};
+
 export type DungeonViewport = {
   width: number;
   height: number;
   origin?: Position;
+  theme?: string;
   terrain?: string;
   entities?: ViewportEntity[];
+  decorations?: DungeonDecoration[];
 };
 
 export type LootState = Position & {
@@ -153,6 +160,16 @@ export type GameEvent = {
   type: string;
   text: string;
   effect?: string;
+  sequence?: number;
+  actor?: "player" | "enemy" | "world" | string;
+  target?: "player" | "enemy" | "world" | string;
+  action?: string;
+  from?: Position;
+  to?: Position;
+  facing?: string;
+  outcome?: string;
+  duration_ms?: number;
+  creature_id?: string;
 };
 
 export type GamePayload = {

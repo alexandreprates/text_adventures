@@ -155,7 +155,9 @@ RSpec.describe TextAdventures::ContentCatalog do
         name: "Corridor Right Exit",
         width: 6,
         height: 5,
-        exits: ["right"]
+        exits: ["right"],
+        theme: "stone_ruins",
+        decorations: [{ kind: "torch", x: 3, y: 1 }]
       )
       expect(block).to be_exit("right")
       expect(block).to be_open(5, 2)

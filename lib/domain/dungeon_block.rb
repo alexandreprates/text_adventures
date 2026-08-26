@@ -5,14 +5,19 @@ module TextAdventures
     WIDTH = 6
     HEIGHT = 5
     VALID_EXITS = %w[up right down left].freeze
+    VALID_DECORATION_KINDS = %w[torch chest].freeze
 
-    attr_reader :id, :name, :tiles, :exits
+    attr_reader :id, :name, :tiles, :exits, :theme, :decorations
 
-    def initialize(id:, name:, tiles:, exits:)
+    def initialize(id:, name:, tiles:, exits:, visuals: {})
       @id = id.to_s
       @name = name.to_s
       @tiles = normalize_tiles(tiles)
       @exits = normalize_exits(exits)
+      @theme = visuals.fetch("theme", visuals.fetch(:theme, "stone_ruins")).to_s
+      @decorations = normalize_decorations(
+        visuals.fetch("decorations", visuals.fetch(:decorations, []))
+      )
     end
 
     def width
@@ -62,6 +67,21 @@ module TextAdventures
       raise ArgumentError, "unknown dungeon block exits: #{unknown_exits.join(', ')}" unless unknown_exits.empty?
 
       directions.uniq.freeze
+    end
+
+    def normalize_decorations(value)
+      value.map do |entry|
+        decoration = entry.transform_keys(&:to_s)
+        kind = decoration.fetch("kind").to_s
+        x = Integer(decoration.fetch("x"))
+        y = Integer(decoration.fetch("y"))
+        raise ArgumentError, "unknown dungeon decoration: #{kind}" unless VALID_DECORATION_KINDS.include?(kind)
+        raise ArgumentError, "dungeon decoration must be inside its block" unless in_bounds?(x, y)
+
+        normalized = { kind: kind, x: x, y: y }
+        normalized[:variant] = decoration.fetch("variant").to_s if decoration.key?("variant")
+        normalized.freeze
+      end.freeze
     end
   end
 end

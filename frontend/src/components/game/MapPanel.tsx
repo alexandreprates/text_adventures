@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef } from "react";
-import type { ConnectionStatus, DungeonViewport, GameEvent, GameState } from "../../lib/types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IsometricDungeonRenderer } from "../../game/isometric";
+import type { ConnectionStatus, GameEvent, GameState } from "../../lib/types";
 import {
   locationArts,
   locationPanels,
@@ -7,29 +8,6 @@ import {
   textRowsFromViewport,
 } from "../../lib/viewModels";
 import { ConnectionIndicator } from "./ConnectionIndicator";
-
-declare global {
-  interface Window {
-    DungeonMapRenderer?: DungeonMapRendererFactory;
-  }
-}
-
-type DungeonMapRendererFactory = {
-  create: (canvas: HTMLCanvasElement | null) => DungeonMapRenderer;
-};
-
-type DungeonMapRenderer = {
-  render: (
-    viewport: DungeonViewport,
-    options?: {
-      playerClass?: string;
-      playerDirection?: string;
-      playerDead?: boolean;
-    },
-  ) => boolean;
-  animateAttack: (source: string, effect?: string) => boolean;
-  clearAttackAnimation: () => void;
-};
 
 type MapPanelProps = {
   state: GameState | null;
@@ -46,7 +24,7 @@ const mapZoomMax = 2.94;
 const mapZoomStep = 0.12;
 const dungeonMapBaseZoom = 1.18;
 const locationArtBaseZoom = 1.12;
-const combatFeedbackStepMs = 520;
+type RendererStatus = "loading" | "ready" | "error";
 
 export function MapPanel({
   state,
@@ -59,12 +37,13 @@ export function MapPanel({
 }: MapPanelProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const rendererRef = useRef<DungeonMapRenderer | null>(null);
-  const combatTimersRef = useRef<number[]>([]);
+  const rendererRef = useRef<IsometricDungeonRenderer | null>(null);
+  const [rendererStatus, setRendererStatus] = useState<RendererStatus>("loading");
+  const reducedMotion = useReducedMotion();
   const dungeon = state?.scene === "ruins" ? state.dungeon : null;
   const viewport = dungeon?.viewport;
   const locationArt = state ? locationArts[state.scene] : null;
-  const hasCanvasMap = Boolean(viewport);
+  const hasCanvasMap = Boolean(viewport && rendererStatus !== "error");
   const hasLocationArt = Boolean(!hasCanvasMap && locationArt);
   const textRows = useMemo(() => {
     if (viewport) return textRowsFromViewport(viewport);
@@ -73,9 +52,27 @@ export function MapPanel({
   }, [state, viewport]);
 
   useEffect(() => {
-    if (!rendererRef.current && window.DungeonMapRenderer) {
-      rendererRef.current = window.DungeonMapRenderer.create(canvasRef.current);
-    }
+    if (!canvasRef.current) return;
+
+    let cancelled = false;
+    const renderer = new IsometricDungeonRenderer(canvasRef.current);
+    rendererRef.current = renderer;
+    setRendererStatus("loading");
+
+    renderer
+      .load()
+      .then(() => {
+        if (!cancelled) setRendererStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setRendererStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+      renderer.destroy();
+      rendererRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -85,9 +82,10 @@ export function MapPanel({
       playerClass: state?.player.current_class,
       playerDirection,
       playerDead: playerDefeated(state),
+      reducedMotion,
     });
     fitCanvas(canvasRef.current, stageRef.current, zoom);
-  }, [playerDirection, state, viewport, zoom]);
+  }, [playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
 
   useEffect(() => {
     function handleResize() {
@@ -99,31 +97,7 @@ export function MapPanel({
   }, [viewport, zoom]);
 
   useEffect(() => {
-    const renderer = rendererRef.current;
-    if (!renderer) return;
-
-    combatTimersRef.current.forEach((timer) => window.clearTimeout(timer));
-    combatTimersRef.current = [];
-
-    const exchanges = combatExchanges(events);
-    if (!exchanges.length) return;
-
-    exchanges.forEach((exchange, index) => {
-      const timer = window.setTimeout(() => {
-        renderer.animateAttack(exchange.source, exchange.effect);
-      }, index * combatFeedbackStepMs);
-      combatTimersRef.current.push(timer);
-    });
-
-    const clearTimer = window.setTimeout(() => {
-      renderer.clearAttackAnimation();
-    }, exchanges.length * combatFeedbackStepMs);
-    combatTimersRef.current.push(clearTimer);
-
-    return () => {
-      combatTimersRef.current.forEach((timer) => window.clearTimeout(timer));
-      combatTimersRef.current = [];
-    };
+    rendererRef.current?.play(events);
   }, [events]);
 
   return (
@@ -136,6 +110,7 @@ export function MapPanel({
             hasCanvasMap ? "has-canvas-map" : "",
             hasLocationArt ? "has-location-art" : "",
           ].join(" ")}
+          aria-busy={Boolean(viewport && rendererStatus === "loading")}
         >
           <ConnectionIndicator status={status} />
           {hasCanvasMap ? (
@@ -172,6 +147,16 @@ export function MapPanel({
             />
           ) : null}
           <canvas className="map-canvas" ref={canvasRef} width="576" height="480" aria-label="Dungeon map" />
+          {viewport && rendererStatus !== "ready" ? (
+            <div
+              className={`map-render-status is-${rendererStatus}`}
+              role={rendererStatus === "error" ? "alert" : "status"}
+            >
+              {rendererStatus === "loading"
+                ? "Loading isometric dungeon…"
+                : "The isometric renderer could not load. Showing the tactical map."}
+            </div>
+          ) : null}
           <pre className="map-grid" aria-live="polite">
             {textRows.join("\n")}
           </pre>
@@ -207,34 +192,33 @@ function fitCanvas(
 ): void {
   if (!canvas?.width || !canvas.height || !stage) return;
 
+  const logicalWidth = Number(canvas.dataset.logicalWidth) || canvas.width;
+  const logicalHeight = Number(canvas.dataset.logicalHeight) || canvas.height;
+  const responsiveZoom = stage.clientWidth <= 700 ? 1.45 : 1;
   const scale =
-    Math.min(stage.clientWidth / canvas.width, stage.clientHeight / canvas.height) *
+    Math.min(stage.clientWidth / logicalWidth, stage.clientHeight / logicalHeight) *
     dungeonMapBaseZoom *
-    zoom;
+    zoom *
+    responsiveZoom;
 
-  canvas.style.width = `${Math.floor(canvas.width * scale)}px`;
-  canvas.style.height = `${Math.floor(canvas.height * scale)}px`;
+  canvas.style.width = `${Math.floor(logicalWidth * scale)}px`;
+  canvas.style.height = `${Math.floor(logicalHeight * scale)}px`;
 }
 
 function clampZoom(zoom: number): number {
   return Math.max(mapZoomMin, Math.min(mapZoomMax, Math.round(zoom * 100) / 100));
 }
 
-function combatExchanges(events: GameEvent[]): Array<{ source: string; effect: string }> {
-  return events.flatMap((event) => {
-    if (event.type !== "combat.damage") return [];
+function useReducedMotion(): boolean {
+  const [reducedMotion, setReducedMotion] = useState(false);
 
-    if (/^You (attack|cast) /.test(event.text)) {
-      return [{ source: "player", effect: event.effect || combatEffectFromText(event.text) }];
-    }
-    if (/^[A-Z].+ attacks you with .+ causing \d+ of damage/.test(event.text)) {
-      return [{ source: "enemy", effect: event.effect || combatEffectFromText(event.text) }];
-    }
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
-    return [];
-  });
-}
-
-function combatEffectFromText(text: string): string {
-  return /^You cast /.test(text) ? "magic" : "slash";
+  return reducedMotion;
 }
