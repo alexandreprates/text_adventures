@@ -19,6 +19,11 @@ import {
   warlordFacingFrame,
 } from "./assets";
 import {
+  dungeonLightingLayout,
+  lightBeamGeometry,
+  torchPulseAt,
+} from "./lighting";
+import {
   depthFor,
   easeOutCubic,
   interpolatePosition,
@@ -65,8 +70,26 @@ type DepthNode = {
   draw: (screen: ProjectedPoint) => void;
 };
 
+type DungeonLightingPalette = {
+  ambient: string;
+  visionNear: string;
+  visionSoft: string;
+  visionMid: string;
+  visionEdge: string;
+  playerCore: string;
+  playerSoft: string;
+  playerEdge: string;
+  torchCore: string;
+  torchSoft: string;
+  torchEdge: string;
+  beamCore: string;
+  beamSoft: string;
+  beamEdge: string;
+};
+
 export class IsometricDungeonRenderer {
   private readonly context: CanvasRenderingContext2D;
+  private readonly lightingPalette: DungeonLightingPalette;
   private assets: IsometricAssets | null = null;
   private viewport: DungeonViewport | null = null;
   private options: RendererOptions = {};
@@ -87,6 +110,7 @@ export class IsometricDungeonRenderer {
     if (!context) throw new Error("Canvas 2D is unavailable.");
 
     this.context = context;
+    this.lightingPalette = dungeonLightingPalette(canvas);
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(LOGICAL_WIDTH * pixelRatio);
     canvas.height = Math.round(LOGICAL_HEIGHT * pixelRatio);
@@ -159,6 +183,7 @@ export class IsometricDungeonRenderer {
     this.drawLightPools(camera, time);
     this.drawDepthLayer(camera, time);
     this.drawCombatEffect(camera, time);
+    this.drawDungeonLighting(camera, time);
 
     this.vanishedEnemies = this.vanishedEnemies.filter((entity) => entity.expiresAt > time);
     this.openedLoot = this.openedLoot.filter((entity) => entity.expiresAt > time);
@@ -186,7 +211,7 @@ export class IsometricDungeonRenderer {
 
   private drawLightPools(camera: Position, time: number): void {
     if (!this.assets || !this.viewport) return;
-    const pulse = this.options.reducedMotion ? 0.38 : 0.34 + Math.sin(time / 230) * 0.05;
+    const pulse = torchPulseAt(time, this.options.reducedMotion) * 0.38;
 
     this.context.save();
     this.context.globalCompositeOperation = "lighter";
@@ -198,6 +223,148 @@ export class IsometricDungeonRenderer {
         const screen = this.screenPosition({ x: position.x, y: position.y + 0.8 }, camera);
         this.context.drawImage(this.assets!.lightPool, screen.x - 64, screen.y - 22);
       });
+    this.context.restore();
+  }
+
+  private drawDungeonLighting(camera: Position, time: number): void {
+    if (!this.viewport) return;
+    const player = this.animatedPlayerPosition(time) ?? playerPosition(this.viewport);
+    if (!player) return;
+
+    const projectedPlayer = this.screenPosition(player, camera);
+    const lightCenter = {
+      x: projectedPlayer.x,
+      y: projectedPlayer.y + TILE_HEIGHT * 0.62,
+    };
+
+    this.context.save();
+    this.context.fillStyle = this.lightingPalette.ambient;
+    this.context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    this.context.restore();
+
+    this.drawVisionMask(lightCenter);
+    this.drawEllipticalGlow(
+      lightCenter,
+      dungeonLightingLayout.playerGlowRadius,
+      dungeonLightingLayout.playerGlowVerticalScale,
+      [
+        [0, this.lightingPalette.playerCore],
+        [0.48, this.lightingPalette.playerSoft],
+        [1, this.lightingPalette.playerEdge],
+      ],
+    );
+    this.drawTorchVolumes(camera, time, lightCenter);
+  }
+
+  private drawVisionMask(center: ProjectedPoint): void {
+    this.context.save();
+    this.context.translate(center.x, center.y);
+    this.context.scale(1, dungeonLightingLayout.visionVerticalScale);
+
+    const gradient = this.context.createRadialGradient(
+      0,
+      0,
+      dungeonLightingLayout.visionInnerRadius,
+      0,
+      0,
+      dungeonLightingLayout.visionOuterRadius,
+    );
+    gradient.addColorStop(0, this.lightingPalette.visionNear);
+    gradient.addColorStop(0.34, this.lightingPalette.visionSoft);
+    gradient.addColorStop(0.7, this.lightingPalette.visionMid);
+    gradient.addColorStop(1, this.lightingPalette.visionEdge);
+    this.context.fillStyle = gradient;
+    this.context.fillRect(
+      -LOGICAL_WIDTH,
+      -LOGICAL_HEIGHT / dungeonLightingLayout.visionVerticalScale,
+      LOGICAL_WIDTH * 2,
+      (LOGICAL_HEIGHT * 2) / dungeonLightingLayout.visionVerticalScale,
+    );
+    this.context.restore();
+  }
+
+  private drawTorchVolumes(
+    camera: Position,
+    time: number,
+    playerCenter: ProjectedPoint,
+  ): void {
+    if (!this.viewport) return;
+    const pulse = torchPulseAt(time, this.options.reducedMotion);
+
+    this.viewport.decorations
+      ?.filter((decoration) => decoration.kind === "torch")
+      .forEach((decoration) => {
+        const position = globalPosition(this.viewport!, decoration);
+        const projectedTorch = this.screenPosition(position, camera);
+        const flame = { x: projectedTorch.x, y: projectedTorch.y - 7 };
+
+        this.drawEllipticalGlow(
+          { x: flame.x, y: flame.y + 19 },
+          dungeonLightingLayout.torchGlowRadius,
+          dungeonLightingLayout.torchGlowVerticalScale,
+          [
+            [0, this.lightingPalette.torchCore],
+            [0.46, this.lightingPalette.torchSoft],
+            [1, this.lightingPalette.torchEdge],
+          ],
+          pulse,
+        );
+        this.drawTorchBeam(flame, playerCenter, pulse);
+      });
+  }
+
+  private drawTorchBeam(
+    source: ProjectedPoint,
+    target: ProjectedPoint,
+    pulse: number,
+  ): void {
+    const beam = lightBeamGeometry(
+      source,
+      target,
+      dungeonLightingLayout.torchBeamLength,
+      dungeonLightingLayout.torchBeamSourceHalfWidth,
+      dungeonLightingLayout.torchBeamHalfWidth,
+    );
+    const gradient = this.context.createLinearGradient(
+      source.x,
+      source.y,
+      beam.endCenter.x,
+      beam.endCenter.y,
+    );
+    gradient.addColorStop(0, this.lightingPalette.beamCore);
+    gradient.addColorStop(0.52, this.lightingPalette.beamSoft);
+    gradient.addColorStop(1, this.lightingPalette.beamEdge);
+
+    this.context.save();
+    this.context.globalCompositeOperation = "screen";
+    this.context.globalAlpha = pulse;
+    this.context.fillStyle = gradient;
+    this.context.beginPath();
+    this.context.moveTo(beam.sourceLeft.x, beam.sourceLeft.y);
+    this.context.lineTo(beam.endLeft.x, beam.endLeft.y);
+    this.context.lineTo(beam.endRight.x, beam.endRight.y);
+    this.context.lineTo(beam.sourceRight.x, beam.sourceRight.y);
+    this.context.closePath();
+    this.context.fill();
+    this.context.restore();
+  }
+
+  private drawEllipticalGlow(
+    center: ProjectedPoint,
+    radius: number,
+    verticalScale: number,
+    stops: ReadonlyArray<readonly [number, string]>,
+    alpha = 1,
+  ): void {
+    this.context.save();
+    this.context.globalCompositeOperation = "screen";
+    this.context.globalAlpha = alpha;
+    this.context.translate(center.x, center.y);
+    this.context.scale(1, verticalScale);
+    const gradient = this.context.createRadialGradient(0, 0, 0, 0, 0, radius);
+    stops.forEach(([offset, color]) => gradient.addColorStop(offset, color));
+    this.context.fillStyle = gradient;
+    this.context.fillRect(-radius, -radius, radius * 2, radius * 2);
     this.context.restore();
   }
 
@@ -645,4 +812,30 @@ function playerPosition(viewport: DungeonViewport): Position | null {
 
 function entityKey(entity: PositionedEntity): string {
   return `${entity.type}:${entity.x}:${entity.y}:${entity.creature_id ?? ""}`;
+}
+
+function dungeonLightingPalette(canvas: HTMLCanvasElement): DungeonLightingPalette {
+  const styles = getComputedStyle(canvas);
+  const token = (name: string) => {
+    const value = styles.getPropertyValue(name).trim();
+    if (!value) throw new Error(`Missing dungeon lighting token: ${name}`);
+    return value;
+  };
+
+  return {
+    ambient: token("--dungeon-light-ambient"),
+    visionNear: token("--dungeon-light-vision-near"),
+    visionSoft: token("--dungeon-light-vision-soft"),
+    visionMid: token("--dungeon-light-vision-mid"),
+    visionEdge: token("--dungeon-light-vision-edge"),
+    playerCore: token("--dungeon-light-player-core"),
+    playerSoft: token("--dungeon-light-player-soft"),
+    playerEdge: token("--dungeon-light-player-edge"),
+    torchCore: token("--dungeon-light-torch-core"),
+    torchSoft: token("--dungeon-light-torch-soft"),
+    torchEdge: token("--dungeon-light-torch-edge"),
+    beamCore: token("--dungeon-light-beam-core"),
+    beamSoft: token("--dungeon-light-beam-soft"),
+    beamEdge: token("--dungeon-light-beam-edge"),
+  };
 }

@@ -107,6 +107,44 @@ const isometricRuinsPayload: MockGamePayload = {
   },
 };
 
+const wideRuinsPayload: MockGamePayload = {
+  ...isometricRuinsPayload,
+  state: {
+    ...isometricRuinsPayload.state,
+    dungeon: {
+      level: 1,
+      player_position: { x: 4, y: 4 },
+      entrance_portal: { x: 1, y: 4 },
+      ascent: null,
+      descent: { x: 7, y: 7 },
+      nearby_loot: null,
+      viewport: {
+        width: 9,
+        height: 9,
+        origin: { x: 0, y: 0 },
+        theme: "stone_ruins",
+        terrain: [
+          "#########",
+          "#.......#",
+          "#.......#",
+          "#.......#",
+          "#.......#",
+          "#.......#",
+          "#.......#",
+          "#.......#",
+          "#########",
+        ].join(""),
+        decorations: [],
+        entities: [
+          { type: "portal", x: 1, y: 4 },
+          { type: "player", x: 4, y: 4 },
+          { type: "descent", x: 7, y: 7 },
+        ],
+      },
+    },
+  },
+};
+
 const duelistRuinsPayload: MockGamePayload = {
   ...isometricRuinsPayload,
   state: {
@@ -980,6 +1018,54 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
   await autoToggle.click();
   await expect(page.getByText("Auto: stopped")).toBeVisible();
+});
+
+test("limits dungeon visibility around the player", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, wideRuinsPayload);
+  await page.goto("/");
+
+  const canvas = page.getByLabel("Dungeon map");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(canvas).toBeVisible();
+
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const canvasElement = element as HTMLCanvasElement;
+        const context = canvasElement.getContext("2d");
+        if (!context) return Number.NEGATIVE_INFINITY;
+
+        const logicalWidth = Number(canvasElement.dataset.logicalWidth);
+        const logicalHeight = Number(canvasElement.dataset.logicalHeight);
+        if (!logicalWidth || !logicalHeight) return Number.NEGATIVE_INFINITY;
+
+        const scaleX = canvasElement.width / logicalWidth;
+        const scaleY = canvasElement.height / logicalHeight;
+        const averageAt = (logicalX: number, logicalY: number, radius: number) => {
+          const x = Math.round((logicalX - radius) * scaleX);
+          const y = Math.round((logicalY - radius) * scaleY);
+          const width = Math.round(radius * 2 * scaleX);
+          const height = Math.round(radius * 2 * scaleY);
+          const pixels = context.getImageData(x, y, width, height).data;
+          let total = 0;
+
+          for (let index = 0; index < pixels.length; index += 4) {
+            total += pixels[index] * 0.2126
+              + pixels[index + 1] * 0.7152
+              + pixels[index + 2] * 0.0722;
+          }
+
+          return total / (pixels.length / 4);
+        };
+
+        const near = averageAt(376, 234, 6);
+        const farLeft = averageAt(184, 266, 6);
+        const farRight = averageAt(568, 266, 6);
+        return Math.min(near - farLeft, near - farRight);
+      }),
+    )
+    .toBeGreaterThan(5);
 });
 
 test("renders the Duelist directional player assets", async ({ page }) => {
