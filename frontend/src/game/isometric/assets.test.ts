@@ -17,8 +17,12 @@ import {
   isBlademasterClass,
   isDragoonClass,
   isDuelistClass,
+  isNightbladeClass,
   isWarlordClass,
   isometricAssetPaths,
+  nightbladeAnimationLayout,
+  nightbladeFacingFrame,
+  nightbladeFacingFrames,
   torchAnimationLayout,
   warlordAnimationLayout,
   warlordFacingFrame,
@@ -38,6 +42,8 @@ describe("isometricAssetPaths", () => {
       duelistAttack: "/assets/isometric/actors/duelist-attack.png",
       dragoonWalk: "/assets/isometric/actors/dragoon-walk.png",
       dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
+      nightbladeWalk: "/assets/isometric/actors/nightblade-walk.png",
+      nightbladeAttack: "/assets/isometric/actors/nightblade-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -50,8 +56,34 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
+    expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Nightblade animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isNightbladeClass("Nightblade")).toBe(true);
+    expect(isNightbladeClass(" nightblade ")).toBe(true);
+    expect(isNightbladeClass("Dragoon")).toBe(false);
+    expect(nightbladeAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(nightbladeAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Nightblade sheet's projected facings", () => {
+    expect(nightbladeFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(nightbladeFacingFrame("up")).toBe(0);
+    expect(nightbladeFacingFrame("right")).toBe(1);
+    expect(nightbladeFacingFrame("down")).toBe(2);
+    expect(nightbladeFacingFrame("left")).toBe(3);
+    expect(nightbladeFacingFrame("unknown")).toBe(1);
   });
 });
 

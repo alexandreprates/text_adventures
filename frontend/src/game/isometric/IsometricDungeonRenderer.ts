@@ -14,6 +14,7 @@ import {
   dragoonFacingFrame,
   duelistFacingFrame,
   loadIsometricAssets,
+  nightbladeFacingFrame,
   torchAnimationLayout,
   type AnimatedPlayerClass,
   type IsometricAssets,
@@ -519,20 +520,8 @@ export class IsometricDungeonRenderer {
   ): DepthNode {
     const attackPhase = this.directionalClassAttackPhase(time);
     const phase = attackPhase ?? this.directionalClassWalkPhase(time);
-    const sheet = playerClass === "warlord"
-      ? attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack
-      : playerClass === "duelist"
-        ? attackPhase === null ? this.assets!.duelistWalk : this.assets!.duelistAttack
-        : playerClass === "dragoon"
-          ? attackPhase === null ? this.assets!.dragoonWalk : this.assets!.dragoonAttack
-          : attackPhase === null ? this.assets!.blademasterWalk : this.assets!.blademasterAttack;
-    const direction = playerClass === "warlord"
-      ? warlordFacingFrame(this.options.playerDirection)
-      : playerClass === "duelist"
-        ? duelistFacingFrame(this.options.playerDirection)
-        : playerClass === "dragoon"
-          ? dragoonFacingFrame(this.options.playerDirection)
-          : blademasterFacingFrame(this.options.playerDirection);
+    const sheet = this.directionalClassSheet(playerClass, attackPhase !== null);
+    const direction = this.directionalClassFacing(playerClass);
 
     return {
       position,
@@ -552,6 +541,39 @@ export class IsometricDungeonRenderer {
         );
       },
     };
+  }
+
+  private directionalClassSheet(
+    playerClass: AnimatedPlayerClass,
+    attacking: boolean,
+  ): HTMLImageElement {
+    switch (playerClass) {
+      case "warlord":
+        return attacking ? this.assets!.warlordAttack : this.assets!.warlordWalk;
+      case "duelist":
+        return attacking ? this.assets!.duelistAttack : this.assets!.duelistWalk;
+      case "dragoon":
+        return attacking ? this.assets!.dragoonAttack : this.assets!.dragoonWalk;
+      case "nightblade":
+        return attacking ? this.assets!.nightbladeAttack : this.assets!.nightbladeWalk;
+      default:
+        return attacking ? this.assets!.blademasterAttack : this.assets!.blademasterWalk;
+    }
+  }
+
+  private directionalClassFacing(playerClass: AnimatedPlayerClass): number {
+    switch (playerClass) {
+      case "warlord":
+        return warlordFacingFrame(this.options.playerDirection);
+      case "duelist":
+        return duelistFacingFrame(this.options.playerDirection);
+      case "dragoon":
+        return dragoonFacingFrame(this.options.playerDirection);
+      case "nightblade":
+        return nightbladeFacingFrame(this.options.playerDirection);
+      default:
+        return blademasterFacingFrame(this.options.playerDirection);
+    }
   }
 
   private actorNode(

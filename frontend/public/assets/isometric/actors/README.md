@@ -1,5 +1,39 @@
 # Isometric Actor Sprites
 
+## Nightblade
+
+The Nightblade is a lean ambidextrous assassin whose low silhouette is defined
+by a deep hood, a ragged split cloak, and two matching curved daggers held in
+reverse grip. The face remains almost entirely hidden except for narrow
+ember-magenta eyes. Layered midnight-black and indigo leather, dark-violet
+plates, crimson-magenta straps, fitted bracers, and pale lilac-silver blades
+balance stealth with enough edge contrast to remain readable in the dungeon.
+The visual language emphasizes silence, close-range pressure, and controlled
+lethality rather than magic or theatrical shadow effects.
+
+The Nightblade animation assets are:
+
+- `nightblade-walk.png`: stealth-walk phase A, neutral guarded passing pose,
+  and stealth-walk phase B with both daggers held close.
+- `nightblade-attack.png`: crossed preparation, decisive advancing dual strike,
+  and low guarded recovery.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Nightblade class atlas as the identity reference and the
+existing directional actors as style and layout references. Production files
+were normalized mechanically with nearest-neighbor resizing, hard chroma-key
+removal, row-preserving baseline alignment, binary alpha, and non-dithered
+palette quantization.
+
 ## Dragoon
 
 The Dragoon is a disciplined elite spear fighter whose compact armored

@@ -12,6 +12,8 @@ export const isometricAssetPaths = {
   duelistAttack: "/assets/isometric/actors/duelist-attack.png",
   dragoonWalk: "/assets/isometric/actors/dragoon-walk.png",
   dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
+  nightbladeWalk: "/assets/isometric/actors/nightblade-walk.png",
+  nightbladeAttack: "/assets/isometric/actors/nightblade-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -53,6 +55,7 @@ export const warlordAnimationLayout = directionalClassAnimationLayout;
 export const blademasterAnimationLayout = directionalClassAnimationLayout;
 export const duelistAnimationLayout = directionalClassAnimationLayout;
 export const dragoonAnimationLayout = directionalClassAnimationLayout;
+export const nightbladeAnimationLayout = directionalClassAnimationLayout;
 
 export const warlordFacingFrames = {
   up: 3,
@@ -114,7 +117,27 @@ export function dragoonFacingFrame(direction?: string): number {
   return dragoonFacingFrames.right;
 }
 
-export type AnimatedPlayerClass = "blademaster" | "dragoon" | "duelist" | "warlord";
+export const nightbladeFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function nightbladeFacingFrame(direction?: string): number {
+  if (direction && direction in nightbladeFacingFrames) {
+    return nightbladeFacingFrames[direction as keyof typeof nightbladeFacingFrames];
+  }
+
+  return nightbladeFacingFrames.right;
+}
+
+export type AnimatedPlayerClass =
+  | "blademaster"
+  | "dragoon"
+  | "duelist"
+  | "nightblade"
+  | "warlord";
 
 export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass | null {
   const normalizedClass = playerClass?.trim().toLowerCase();
@@ -122,6 +145,7 @@ export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass |
     normalizedClass === "blademaster"
     || normalizedClass === "dragoon"
     || normalizedClass === "duelist"
+    || normalizedClass === "nightblade"
     || normalizedClass === "warlord"
   ) {
     return normalizedClass;
@@ -144,6 +168,10 @@ export function isDuelistClass(playerClass?: string): boolean {
 
 export function isDragoonClass(playerClass?: string): boolean {
   return animatedPlayerClass(playerClass) === "dragoon";
+}
+
+export function isNightbladeClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "nightblade";
 }
 
 export const torchAnimationLayout = {
