@@ -8,11 +8,13 @@ import type {
 import { animationPhaseAt, latestCombatCue, type CombatAnimationCue } from "./animation";
 import {
   adventurerFacingFrame,
-  isWarlordClass,
+  animatedPlayerClass,
+  blademasterFacingFrame,
+  directionalClassAnimationLayout,
   loadIsometricAssets,
   torchAnimationLayout,
+  type AnimatedPlayerClass,
   type IsometricAssets,
-  warlordAnimationLayout,
   warlordFacingFrame,
 } from "./assets";
 import {
@@ -319,8 +321,9 @@ export class IsometricDungeonRenderer {
 
   private entityNode(entity: PositionedEntity, position: Position, time: number): DepthNode {
     if (entity.type === "player") {
-      if (!this.options.playerDead && isWarlordClass(this.options.playerClass)) {
-        return this.warlordNode(position, time);
+      const animatedClass = animatedPlayerClass(this.options.playerClass);
+      if (!this.options.playerDead && animatedClass) {
+        return this.directionalClassNode(position, time, animatedClass);
       }
 
       const frame = this.options.playerDead ? 3 : this.combatFrame("player", time);
@@ -340,11 +343,19 @@ export class IsometricDungeonRenderer {
     };
   }
 
-  private warlordNode(position: Position, time: number): DepthNode {
-    const attackPhase = this.warlordAttackPhase(time);
-    const phase = attackPhase ?? this.warlordWalkPhase(time);
-    const sheet = attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack;
-    const direction = warlordFacingFrame(this.options.playerDirection);
+  private directionalClassNode(
+    position: Position,
+    time: number,
+    playerClass: AnimatedPlayerClass,
+  ): DepthNode {
+    const attackPhase = this.directionalClassAttackPhase(time);
+    const phase = attackPhase ?? this.directionalClassWalkPhase(time);
+    const sheet = playerClass === "warlord"
+      ? attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack
+      : attackPhase === null ? this.assets!.blademasterWalk : this.assets!.blademasterAttack;
+    const direction = playerClass === "warlord"
+      ? warlordFacingFrame(this.options.playerDirection)
+      : blademasterFacingFrame(this.options.playerDirection);
 
     return {
       position,
@@ -355,10 +366,10 @@ export class IsometricDungeonRenderer {
           sheet,
           direction,
           phase,
-          warlordAnimationLayout.frameWidth,
-          warlordAnimationLayout.frameHeight,
+          directionalClassAnimationLayout.frameWidth,
+          directionalClassAnimationLayout.frameHeight,
           screen.x - ACTOR_DRAW_WIDTH / 2,
-          foot - warlordAnimationLayout.baseline * ACTOR_SCALE,
+          foot - directionalClassAnimationLayout.baseline * ACTOR_SCALE,
           ACTOR_DRAW_WIDTH,
           ACTOR_DRAW_HEIGHT,
         );
@@ -532,25 +543,25 @@ export class IsometricDungeonRenderer {
     );
   }
 
-  private warlordAttackPhase(time: number): number | null {
+  private directionalClassAttackPhase(time: number): number | null {
     if (!this.combat || this.combat.actor !== "player") return null;
     const progress = (time - this.combat.startedAt) / this.combat.durationMs;
     if (progress < 0 || progress >= 1) return null;
     if (this.options.reducedMotion) return 1;
-    return animationPhaseAt(progress, warlordAnimationLayout.phaseCount);
+    return animationPhaseAt(progress, directionalClassAnimationLayout.phaseCount);
   }
 
-  private warlordWalkPhase(time: number): number {
+  private directionalClassWalkPhase(time: number): number {
     if (this.options.reducedMotion || !this.playerFrom || !this.playerTo) {
-      return warlordAnimationLayout.idlePhase;
+      return directionalClassAnimationLayout.idlePhase;
     }
     if (this.playerFrom.x === this.playerTo.x && this.playerFrom.y === this.playerTo.y) {
-      return warlordAnimationLayout.idlePhase;
+      return directionalClassAnimationLayout.idlePhase;
     }
 
     const progress = (time - this.movementStartedAt) / PLAYER_MOVE_MS;
-    if (progress < 0 || progress >= 1) return warlordAnimationLayout.idlePhase;
-    return animationPhaseAt(progress, warlordAnimationLayout.phaseCount);
+    if (progress < 0 || progress >= 1) return directionalClassAnimationLayout.idlePhase;
+    return animationPhaseAt(progress, directionalClassAnimationLayout.phaseCount);
   }
 
   private combatFrame(actor: "player" | "enemy", time: number): number {

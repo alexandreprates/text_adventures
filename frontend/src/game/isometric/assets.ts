@@ -6,6 +6,8 @@ export const isometricAssetPaths = {
   adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
   warlordWalk: "/assets/isometric/actors/warlord-walk.png",
   warlordAttack: "/assets/isometric/actors/warlord-attack.png",
+  blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
+  blademasterAttack: "/assets/isometric/actors/blademaster-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -35,13 +37,16 @@ export function adventurerFacingFrame(direction?: string): number {
   return adventurerFacingFrames.right;
 }
 
-export const warlordAnimationLayout = {
+export const directionalClassAnimationLayout = {
   frameWidth: 96,
   frameHeight: 128,
   phaseCount: 3,
   idlePhase: 1,
   baseline: 92,
 } as const;
+
+export const warlordAnimationLayout = directionalClassAnimationLayout;
+export const blademasterAnimationLayout = directionalClassAnimationLayout;
 
 export const warlordFacingFrames = {
   up: 3,
@@ -58,8 +63,38 @@ export function warlordFacingFrame(direction?: string): number {
   return warlordFacingFrames.right;
 }
 
+export const blademasterFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function blademasterFacingFrame(direction?: string): number {
+  if (direction && direction in blademasterFacingFrames) {
+    return blademasterFacingFrames[direction as keyof typeof blademasterFacingFrames];
+  }
+
+  return blademasterFacingFrames.right;
+}
+
+export type AnimatedPlayerClass = "blademaster" | "warlord";
+
+export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass | null {
+  const normalizedClass = playerClass?.trim().toLowerCase();
+  if (normalizedClass === "blademaster" || normalizedClass === "warlord") {
+    return normalizedClass;
+  }
+
+  return null;
+}
+
 export function isWarlordClass(playerClass?: string): boolean {
-  return playerClass?.trim().toLowerCase() === "warlord";
+  return animatedPlayerClass(playerClass) === "warlord";
+}
+
+export function isBlademasterClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "blademaster";
 }
 
 export const torchAnimationLayout = {

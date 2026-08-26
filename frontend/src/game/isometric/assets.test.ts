@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   adventurerFacingFrame,
   adventurerFacingFrames,
+  animatedPlayerClass,
+  blademasterAnimationLayout,
+  blademasterFacingFrame,
+  blademasterFacingFrames,
+  directionalClassAnimationLayout,
+  isBlademasterClass,
   isWarlordClass,
   isometricAssetPaths,
   torchAnimationLayout,
@@ -18,10 +24,45 @@ describe("isometricAssetPaths", () => {
       adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
       warlordWalk: "/assets/isometric/actors/warlord-walk.png",
       warlordAttack: "/assets/isometric/actors/warlord-attack.png",
+      blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
+      blademasterAttack: "/assets/isometric/actors/blademaster-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
     });
+  });
+});
+
+describe("animatedPlayerClass", () => {
+  it("selects the directional animation family for supported classes", () => {
+    expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
+    expect(animatedPlayerClass("Warlord")).toBe("warlord");
+    expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Blademaster animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isBlademasterClass("Blademaster")).toBe(true);
+    expect(isBlademasterClass(" blademaster ")).toBe(true);
+    expect(isBlademasterClass("Warlord")).toBe(false);
+    expect(blademasterAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(blademasterAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Blademaster sheet's projected facings", () => {
+    expect(blademasterFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(blademasterFacingFrame("up")).toBe(0);
+    expect(blademasterFacingFrame("right")).toBe(1);
+    expect(blademasterFacingFrame("down")).toBe(2);
+    expect(blademasterFacingFrame("left")).toBe(3);
+    expect(blademasterFacingFrame("unknown")).toBe(1);
   });
 });
 
