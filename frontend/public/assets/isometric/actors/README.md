@@ -1,5 +1,39 @@
 # Isometric Actor Sprites
 
+## Skirmisher
+
+The Skirmisher is a lean young front-line scout whose low athletic silhouette
+combines unruly dark wine-red hair, a visible focused face, crimson and oxblood
+flexible armor, compact rounded shoulder plates, charcoal leather, and crossed
+back straps. The character carries exactly one compact leaf-bladed short spear
+for reach control and one straight parrying dagger for close pressure. This
+design balances spearmanship and dagger mastery without the Dragoon's heavy
+ceremonial armor or the Nightblade's hooded stealth language.
+
+The Skirmisher animation assets are:
+
+- `skirmisher-walk.png`: light walk phase A, neutral passing pose, and walk
+  phase B with both weapons controlled close to the body.
+- `skirmisher-attack.png`: low guarded preparation, a compact advancing dagger
+  check while the short spear controls reach, and a balanced recovery.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Skirmisher class atlas as the identity reference and the
+existing Nightblade and Dragoon directional actors as style, scale, and weapon
+handling references. Production files were normalized mechanically with
+nearest-neighbor resizing, hard chroma-key removal, fixed per-cell padding,
+row-preserving baseline alignment, binary alpha, and non-dithered palette
+quantization.
+
 ## Warden
 
 The Warden is a stocky petrified-forest knight whose defensive silhouette is

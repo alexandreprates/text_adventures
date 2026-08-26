@@ -22,6 +22,7 @@ import {
   isDragoonClass,
   isDuelistClass,
   isNightbladeClass,
+  isSkirmisherClass,
   isSpellbladeClass,
   isWardenClass,
   isWarlordClass,
@@ -29,6 +30,9 @@ import {
   nightbladeAnimationLayout,
   nightbladeFacingFrame,
   nightbladeFacingFrames,
+  skirmisherAnimationLayout,
+  skirmisherFacingFrame,
+  skirmisherFacingFrames,
   spellbladeAnimationLayout,
   spellbladeFacingFrame,
   spellbladeFacingFrames,
@@ -62,6 +66,8 @@ describe("isometricAssetPaths", () => {
       spellbladeAttack: "/assets/isometric/actors/spellblade-attack.png",
       wardenWalk: "/assets/isometric/actors/warden-walk.png",
       wardenAttack: "/assets/isometric/actors/warden-attack.png",
+      skirmisherWalk: "/assets/isometric/actors/skirmisher-walk.png",
+      skirmisherAttack: "/assets/isometric/actors/skirmisher-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -76,10 +82,36 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
+    expect(animatedPlayerClass("Skirmisher")).toBe("skirmisher");
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Skirmisher animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isSkirmisherClass("Skirmisher")).toBe(true);
+    expect(isSkirmisherClass(" skirmisher ")).toBe(true);
+    expect(isSkirmisherClass("Nightblade")).toBe(false);
+    expect(skirmisherAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(skirmisherAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Skirmisher sheet's projected facings", () => {
+    expect(skirmisherFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(skirmisherFacingFrame("up")).toBe(0);
+    expect(skirmisherFacingFrame("right")).toBe(1);
+    expect(skirmisherFacingFrame("down")).toBe(2);
+    expect(skirmisherFacingFrame("left")).toBe(3);
+    expect(skirmisherFacingFrame("unknown")).toBe(1);
   });
 });
 
