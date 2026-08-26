@@ -1,5 +1,40 @@
 # Isometric Actor Sprites
 
+## Sentinel
+
+The Sentinel is a stocky spear-and-nature guardian whose defensive silhouette
+is defined by a closed indigo helmet with a narrow antique-gold visor, a dark
+blue plume, royal-indigo and violet full plate, plum shadows, thick gold-orange
+edging, and a short navy cape bearing a solar-leaf emblem. The character
+carries exactly one red-gold medium spear with a pale-lilac triangular point
+and one compact indigo kite shield marked by a gold solar-beast crest.
+Restrained amber leaf and sap light expresses nature magic without weakening
+the disciplined shield wall inherited from the legacy atlas.
+
+The Sentinel animation assets are:
+
+- `sentinel-walk.png`: planted armored walk phase A, neutral passing pose, and
+  walk phase B with the shield guarding the torso and spear held close.
+- `sentinel-attack.png`: braced preparation, a compact shielded spear thrust
+  with attached amber nature light, and guarded recovery with fading leaves.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Sentinel class atlas as the identity reference and the
+existing Warden and Dragoon directional actors as shield, layout, and polearm
+handling references. Production files were normalized mechanically with
+nearest-neighbor resizing, hard chroma-key removal, sheet-level empty-margin
+cropping, fixed per-cell padding, row-preserving baseline alignment, binary
+alpha, and non-dithered palette quantization.
+
 ## Battlemage
 
 The Battlemage is a young arcane lancer whose compact martial silhouette pairs

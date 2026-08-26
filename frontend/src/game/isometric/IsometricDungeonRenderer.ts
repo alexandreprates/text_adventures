@@ -17,6 +17,7 @@ import {
   duelistFacingFrame,
   loadIsometricAssets,
   nightbladeFacingFrame,
+  sentinelFacingFrame,
   skirmisherFacingFrame,
   spellbladeFacingFrame,
   torchAnimationLayout,
@@ -571,6 +572,8 @@ export class IsometricDungeonRenderer {
         return attacking ? this.assets!.nightbladeAttack : this.assets!.nightbladeWalk;
       case "skirmisher":
         return attacking ? this.assets!.skirmisherAttack : this.assets!.skirmisherWalk;
+      case "sentinel":
+        return attacking ? this.assets!.sentinelAttack : this.assets!.sentinelWalk;
       default:
         return attacking ? this.assets!.blademasterAttack : this.assets!.blademasterWalk;
     }
@@ -596,6 +599,8 @@ export class IsometricDungeonRenderer {
         return nightbladeFacingFrame(this.options.playerDirection);
       case "skirmisher":
         return skirmisherFacingFrame(this.options.playerDirection);
+      case "sentinel":
+        return sentinelFacingFrame(this.options.playerDirection);
       default:
         return blademasterFacingFrame(this.options.playerDirection);
     }

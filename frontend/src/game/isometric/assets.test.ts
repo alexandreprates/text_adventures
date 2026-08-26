@@ -26,6 +26,7 @@ import {
   isDragoonClass,
   isDuelistClass,
   isNightbladeClass,
+  isSentinelClass,
   isSkirmisherClass,
   isSpellbladeClass,
   isWardenClass,
@@ -34,6 +35,9 @@ import {
   nightbladeAnimationLayout,
   nightbladeFacingFrame,
   nightbladeFacingFrames,
+  sentinelAnimationLayout,
+  sentinelFacingFrame,
+  sentinelFacingFrames,
   skirmisherAnimationLayout,
   skirmisherFacingFrame,
   skirmisherFacingFrames,
@@ -74,6 +78,8 @@ describe("isometricAssetPaths", () => {
       skirmisherAttack: "/assets/isometric/actors/skirmisher-attack.png",
       battlemageWalk: "/assets/isometric/actors/battlemage-walk.png",
       battlemageAttack: "/assets/isometric/actors/battlemage-attack.png",
+      sentinelWalk: "/assets/isometric/actors/sentinel-walk.png",
+      sentinelAttack: "/assets/isometric/actors/sentinel-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -89,11 +95,37 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
+    expect(animatedPlayerClass("Sentinel")).toBe("sentinel");
     expect(animatedPlayerClass("Skirmisher")).toBe("skirmisher");
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Sentinel animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isSentinelClass("Sentinel")).toBe(true);
+    expect(isSentinelClass(" sentinel ")).toBe(true);
+    expect(isSentinelClass("Warden")).toBe(false);
+    expect(sentinelAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(sentinelAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Sentinel sheet's projected facings", () => {
+    expect(sentinelFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(sentinelFacingFrame("up")).toBe(0);
+    expect(sentinelFacingFrame("right")).toBe(1);
+    expect(sentinelFacingFrame("down")).toBe(2);
+    expect(sentinelFacingFrame("left")).toBe(3);
+    expect(sentinelFacingFrame("unknown")).toBe(1);
   });
 });
 
