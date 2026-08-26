@@ -267,3 +267,33 @@ Frame inspection found that the entire torch assembly drifted horizontally acros
 - `bundle exec rspec`: 470 examples, 0 failures.
 
 Implementation commit: `47c321a` (`Fix torch animation anchor`).
+
+## Directional Adventurer facings — completed 2026-08-26
+
+The frontend already tracked `up`, `right`, `down`, and `left`, but the Canvas renderer ignored `playerDirection` and always sampled the front-facing idle frame from the action sheet.
+
+### Delivered
+
+- Added `adventurer-facings.png`, a four-frame 384x128 sheet ordered by projected dungeon movement: up/northeast, right/southeast, down/southwest, and left/northwest.
+- Preserved the separate action sheet for attack, hurt, and defeat states.
+- Added a typed direction-to-frame contract and made the renderer select the matching facing during idle and interpolated movement.
+- Changed the initial isometric facing to right/southeast, matching the established front-facing composition.
+- Added unit coverage for asset loading, all four direction mappings, and the safe default.
+
+### Asset contract
+
+- Four 96x128 RGBA frames, 24 opaque colors, binary alpha, no clipping.
+- All frames share the foot baseline at y=92 with zero bottom spread.
+- Built-in image generation created the directional draft from the existing Adventurer identity/style reference. Mechanical chroma extraction, nearest-neighbor normalization, palette reduction without dithering, scale normalization, anchor alignment, and frame reordering produced the final sheet.
+
+### Validation evidence
+
+- Runtime Canvas sampling confirmed source x positions 0, 96, 192, and 288 for up, right, down, and left.
+- Production-browser inspection confirmed the sprite turns with projected movement, the new asset returns HTTP 200, and the console has no warnings or errors.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 19 tests passed.
+- Compose production build: passed.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and Pixel 5.
+- `bundle exec rspec`: 470 examples, 0 failures.
+
+Implementation commit: `e78251f` (`Add directional Adventurer facings`).
