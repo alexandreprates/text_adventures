@@ -297,3 +297,37 @@ The frontend already tracked `up`, `right`, `down`, and `left`, but the Canvas r
 - `bundle exec rspec`: 470 examples, 0 failures.
 
 Implementation commit: `e78251f` (`Add directional Adventurer facings`).
+
+## Directional Warlord animation pack — completed 2026-08-26
+
+The Warlord class previously reused the Adventurer presentation because the renderer received `playerClass` but did not select class-specific assets.
+
+### Delivered
+
+- Added `warlord-walk.png` and `warlord-attack.png`, each a 384x384 sheet with four direction columns and three phase rows.
+- Direction order matches dungeon movement: up/northeast, right/southeast, down/southwest, and left/northwest.
+- Walk phases are contact A, passing/neutral, and contact B. Attack phases are wind-up, impact, and recovery.
+- Integrated automatic Warlord selection from `playerClass`, movement-synchronized walk phases, structured player-combat attack phases, and reduced-motion-safe static phases.
+- Generalized Canvas sheet sampling to support explicit rows and columns while preserving existing Adventurer and enemy behavior.
+- Added unit coverage for class selection, the sheet contract, and normalized animation phase mapping.
+
+### Asset contract
+
+- Each frame cell is 96x128 RGBA with binary alpha and a maximum of 28 opaque colors.
+- Walk frames share foot baseline y=92 with zero bottom spread. Attack wind-up and recovery share y=92; authored impact arcs may extend to y=98.
+- Built-in image generation used the existing Warlord atlas for armor, plume, cape, and axe identity and the approved Adventurer facings for projection, scale, and pixel language.
+- Mechanical post-processing applied chroma removal, nearest-neighbor normalization, palette reduction without dithering, uniform scale, frame layout, and anchor alignment.
+
+### Validation evidence
+
+- Runtime Canvas sampling confirmed direction source x positions 0, 96, 192, and 288 for up, right, down, and left.
+- Every walk and attack direction sampled all three phase rows at source y positions 0, 128, and 256.
+- Both production assets returned HTTP 200; browser console had no warnings or errors.
+- Pixel-art validation confirmed 384x384 RGBA sheets, 12 frames per sheet, binary alpha, 28 colors, and no clipping.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 21 tests passed.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and Pixel 5.
+- `bundle exec rspec`: 470 examples, 0 failures.
+- Compose production build and manual browser inspection passed.
+
+Implementation commit: `3b340a3` (`Add Warlord directional animations`).
