@@ -1,5 +1,38 @@
 # Isometric Actor Sprites
 
+## Warden
+
+The Warden is a stocky petrified-forest knight whose defensive silhouette is
+defined by a closed helmet with a short crest, heavy purple-black full plate,
+magenta-plum shadows, antique-gold edging, and a dark cape. The character
+carries exactly one short silver-lilac sword and one rectangular shield marked
+by an amber tree rune. Restrained moss-green pinpoints and sap-colored light
+connect the design to nature magic without weakening the disciplined armored
+identity inherited from the legacy atlas.
+
+The Warden animation assets are:
+
+- `warden-walk.png`: heavy walk phase A, neutral passing pose, and walk phase B
+  with the sword carried close and the shield guarding the torso.
+- `warden-attack.png`: rooted defensive preparation, compact enchanted
+  short-sword contact, and recovery behind the shield with fading amber motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Warden class atlas as the identity reference and the
+existing directional armored actors as style and layout references. Production
+files were normalized mechanically with nearest-neighbor resizing, hard
+chroma-key removal, row-preserving baseline alignment, binary alpha, and
+non-dithered palette quantization.
+
 ## Spellblade
 
 The Spellblade is a lean young arcane swordsman whose compact silhouette pairs

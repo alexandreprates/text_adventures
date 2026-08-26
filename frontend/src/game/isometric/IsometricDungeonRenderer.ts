@@ -21,6 +21,7 @@ import {
   type AnimatedPlayerClass,
   type IsometricAssets,
   warlordFacingFrame,
+  wardenFacingFrame,
 } from "./assets";
 import {
   dungeonLightingLayout,
@@ -554,6 +555,8 @@ export class IsometricDungeonRenderer {
         return attacking ? this.assets!.arcanistAttack : this.assets!.arcanistWalk;
       case "spellblade":
         return attacking ? this.assets!.spellbladeAttack : this.assets!.spellbladeWalk;
+      case "warden":
+        return attacking ? this.assets!.wardenAttack : this.assets!.wardenWalk;
       case "warlord":
         return attacking ? this.assets!.warlordAttack : this.assets!.warlordWalk;
       case "duelist":
@@ -573,6 +576,8 @@ export class IsometricDungeonRenderer {
         return arcanistFacingFrame(this.options.playerDirection);
       case "spellblade":
         return spellbladeFacingFrame(this.options.playerDirection);
+      case "warden":
+        return wardenFacingFrame(this.options.playerDirection);
       case "warlord":
         return warlordFacingFrame(this.options.playerDirection);
       case "duelist":

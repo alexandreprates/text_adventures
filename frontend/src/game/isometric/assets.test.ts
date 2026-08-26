@@ -23,6 +23,7 @@ import {
   isDuelistClass,
   isNightbladeClass,
   isSpellbladeClass,
+  isWardenClass,
   isWarlordClass,
   isometricAssetPaths,
   nightbladeAnimationLayout,
@@ -32,6 +33,9 @@ import {
   spellbladeFacingFrame,
   spellbladeFacingFrames,
   torchAnimationLayout,
+  wardenAnimationLayout,
+  wardenFacingFrame,
+  wardenFacingFrames,
   warlordAnimationLayout,
   warlordFacingFrame,
   warlordFacingFrames,
@@ -56,6 +60,8 @@ describe("isometricAssetPaths", () => {
       arcanistAttack: "/assets/isometric/actors/arcanist-attack.png",
       spellbladeWalk: "/assets/isometric/actors/spellblade-walk.png",
       spellbladeAttack: "/assets/isometric/actors/spellblade-attack.png",
+      wardenWalk: "/assets/isometric/actors/warden-walk.png",
+      wardenAttack: "/assets/isometric/actors/warden-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -71,8 +77,34 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
+    expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Warden animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isWardenClass("Warden")).toBe(true);
+    expect(isWardenClass(" warden ")).toBe(true);
+    expect(isWardenClass("Spellblade")).toBe(false);
+    expect(wardenAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(wardenAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Warden sheet's projected facings", () => {
+    expect(wardenFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(wardenFacingFrame("up")).toBe(0);
+    expect(wardenFacingFrame("right")).toBe(1);
+    expect(wardenFacingFrame("down")).toBe(2);
+    expect(wardenFacingFrame("left")).toBe(3);
+    expect(wardenFacingFrame("unknown")).toBe(1);
   });
 });
 
