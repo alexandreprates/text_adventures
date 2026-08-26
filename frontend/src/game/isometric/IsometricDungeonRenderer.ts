@@ -6,7 +6,7 @@ import type {
   ViewportEntity,
 } from "../../lib/types";
 import { latestCombatCue, type CombatAnimationCue } from "./animation";
-import { loadIsometricAssets, type IsometricAssets } from "./assets";
+import { loadIsometricAssets, torchAnimationLayout, type IsometricAssets } from "./assets";
 import {
   depthFor,
   easeOutCubic,
@@ -245,19 +245,23 @@ export class IsometricDungeonRenderer {
 
   private decorationNode(decoration: DungeonDecoration, position: Position, time: number): DepthNode {
     if (decoration.kind === "torch") {
-      const frame = this.options.reducedMotion ? 0 : Math.floor(time / 150) % 4;
+      const frame = this.options.reducedMotion
+        ? 0
+        : Math.floor(time / 150) % torchAnimationLayout.frameCount;
+      const scaleX = torchAnimationLayout.drawWidth / torchAnimationLayout.frameWidth;
+      const scaleY = torchAnimationLayout.drawHeight / torchAnimationLayout.frameHeight;
       return {
         position,
         layer: 35,
         draw: (screen) => this.drawSheetFrame(
           this.assets!.torch,
           frame,
-          64,
-          96,
-          screen.x - 24,
-          screen.y - 39,
-          48,
-          72,
+          torchAnimationLayout.frameWidth,
+          torchAnimationLayout.frameHeight,
+          screen.x - torchAnimationLayout.anchor.x * scaleX,
+          screen.y + TILE_HEIGHT - 1 - torchAnimationLayout.anchor.y * scaleY,
+          torchAnimationLayout.drawWidth,
+          torchAnimationLayout.drawHeight,
         ),
       };
     }

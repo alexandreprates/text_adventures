@@ -17,6 +17,15 @@ export const isometricAssetPaths = {
   magic: "/assets/isometric/effects/magic.png",
 } as const;
 
+export const torchAnimationLayout = {
+  frameWidth: 64,
+  frameHeight: 96,
+  frameCount: 4,
+  drawWidth: 48,
+  drawHeight: 72,
+  anchor: { x: 32, y: 72 },
+} as const;
+
 export type IsometricAssetName = keyof typeof isometricAssetPaths;
 export type IsometricAssets = Record<IsometricAssetName, HTMLImageElement>;
 
