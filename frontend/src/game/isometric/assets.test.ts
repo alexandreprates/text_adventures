@@ -7,6 +7,8 @@ import {
   isometricAssetPaths,
   torchAnimationLayout,
   warlordAnimationLayout,
+  warlordFacingFrame,
+  warlordFacingFrames,
 } from "./assets";
 
 describe("isometricAssetPaths", () => {
@@ -35,6 +37,15 @@ describe("Warlord animation assets", () => {
       idlePhase: 1,
       baseline: 92,
     });
+  });
+
+  it("maps dungeon movement to the Warlord sheet's projected facings", () => {
+    expect(warlordFacingFrames).toEqual({ up: 3, right: 2, down: 1, left: 0 });
+    expect(warlordFacingFrame("up")).toBe(3);
+    expect(warlordFacingFrame("right")).toBe(2);
+    expect(warlordFacingFrame("down")).toBe(1);
+    expect(warlordFacingFrame("left")).toBe(0);
+    expect(warlordFacingFrame("unknown")).toBe(2);
   });
 });
 

@@ -43,6 +43,21 @@ export const warlordAnimationLayout = {
   baseline: 92,
 } as const;
 
+export const warlordFacingFrames = {
+  up: 3,
+  right: 2,
+  down: 1,
+  left: 0,
+} as const;
+
+export function warlordFacingFrame(direction?: string): number {
+  if (direction && direction in warlordFacingFrames) {
+    return warlordFacingFrames[direction as keyof typeof warlordFacingFrames];
+  }
+
+  return warlordFacingFrames.right;
+}
+
 export function isWarlordClass(playerClass?: string): boolean {
   return playerClass?.trim().toLowerCase() === "warlord";
 }

@@ -13,6 +13,7 @@ import {
   torchAnimationLayout,
   type IsometricAssets,
   warlordAnimationLayout,
+  warlordFacingFrame,
 } from "./assets";
 import {
   depthFor,
@@ -343,7 +344,7 @@ export class IsometricDungeonRenderer {
     const attackPhase = this.warlordAttackPhase(time);
     const phase = attackPhase ?? this.warlordWalkPhase(time);
     const sheet = attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack;
-    const direction = adventurerFacingFrame(this.options.playerDirection);
+    const direction = warlordFacingFrame(this.options.playerDirection);
 
     return {
       position,
