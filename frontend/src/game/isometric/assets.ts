@@ -10,6 +10,8 @@ export const isometricAssetPaths = {
   blademasterAttack: "/assets/isometric/actors/blademaster-attack.png",
   duelistWalk: "/assets/isometric/actors/duelist-walk.png",
   duelistAttack: "/assets/isometric/actors/duelist-attack.png",
+  dragoonWalk: "/assets/isometric/actors/dragoon-walk.png",
+  dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -50,6 +52,7 @@ export const directionalClassAnimationLayout = {
 export const warlordAnimationLayout = directionalClassAnimationLayout;
 export const blademasterAnimationLayout = directionalClassAnimationLayout;
 export const duelistAnimationLayout = directionalClassAnimationLayout;
+export const dragoonAnimationLayout = directionalClassAnimationLayout;
 
 export const warlordFacingFrames = {
   up: 3,
@@ -96,12 +99,28 @@ export function duelistFacingFrame(direction?: string): number {
   return duelistFacingFrames.right;
 }
 
-export type AnimatedPlayerClass = "blademaster" | "duelist" | "warlord";
+export const dragoonFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function dragoonFacingFrame(direction?: string): number {
+  if (direction && direction in dragoonFacingFrames) {
+    return dragoonFacingFrames[direction as keyof typeof dragoonFacingFrames];
+  }
+
+  return dragoonFacingFrames.right;
+}
+
+export type AnimatedPlayerClass = "blademaster" | "dragoon" | "duelist" | "warlord";
 
 export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass | null {
   const normalizedClass = playerClass?.trim().toLowerCase();
   if (
     normalizedClass === "blademaster"
+    || normalizedClass === "dragoon"
     || normalizedClass === "duelist"
     || normalizedClass === "warlord"
   ) {
@@ -121,6 +140,10 @@ export function isBlademasterClass(playerClass?: string): boolean {
 
 export function isDuelistClass(playerClass?: string): boolean {
   return animatedPlayerClass(playerClass) === "duelist";
+}
+
+export function isDragoonClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "dragoon";
 }
 
 export const torchAnimationLayout = {

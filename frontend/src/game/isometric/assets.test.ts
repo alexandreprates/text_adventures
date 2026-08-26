@@ -8,10 +8,14 @@ import {
   blademasterFacingFrame,
   blademasterFacingFrames,
   directionalClassAnimationLayout,
+  dragoonAnimationLayout,
+  dragoonFacingFrame,
+  dragoonFacingFrames,
   duelistAnimationLayout,
   duelistFacingFrame,
   duelistFacingFrames,
   isBlademasterClass,
+  isDragoonClass,
   isDuelistClass,
   isWarlordClass,
   isometricAssetPaths,
@@ -32,6 +36,8 @@ describe("isometricAssetPaths", () => {
       blademasterAttack: "/assets/isometric/actors/blademaster-attack.png",
       duelistWalk: "/assets/isometric/actors/duelist-walk.png",
       duelistAttack: "/assets/isometric/actors/duelist-attack.png",
+      dragoonWalk: "/assets/isometric/actors/dragoon-walk.png",
+      dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -42,9 +48,35 @@ describe("isometricAssetPaths", () => {
 describe("animatedPlayerClass", () => {
   it("selects the directional animation family for supported classes", () => {
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
+    expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Dragoon animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isDragoonClass("Dragoon")).toBe(true);
+    expect(isDragoonClass(" dragoon ")).toBe(true);
+    expect(isDragoonClass("Duelist")).toBe(false);
+    expect(dragoonAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(dragoonAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Dragoon sheet's projected facings", () => {
+    expect(dragoonFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(dragoonFacingFrame("up")).toBe(0);
+    expect(dragoonFacingFrame("right")).toBe(1);
+    expect(dragoonFacingFrame("down")).toBe(2);
+    expect(dragoonFacingFrame("left")).toBe(3);
+    expect(dragoonFacingFrame("unknown")).toBe(1);
   });
 });
 
