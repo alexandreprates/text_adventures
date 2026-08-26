@@ -213,3 +213,32 @@ The approved vertical slice and live integration are complete.
 - Additional wall topology, doors, barrels, rubble, banners, spell families, and more animation facings remain content-production work rather than renderer blockers.
 
 Implementation commit: `7423c49` (`Add isometric dungeon presentation`).
+
+## Art-direction review and composition pass — completed 2026-08-26
+
+A second rendered comparison against `mockup.mp4` identified the dominant remaining composition gap: the live dungeon read as a solid raised platform because corridors exposed only one walkable row and every perimeter cell used the same tall wall. Actor and prop baselines were also oversized and visually floated above the floor.
+
+### Delivered
+
+- Expanded all nine 6x5 dungeon blocks into connected chamber interiors with at least twelve open interior cells while preserving declared exits and collision semantics.
+- Added authored barrel, rubble, banner, and low foreground-wall PNGs. The new assets use 64x64 or 64x96 logical canvases, limited palettes, RGBA, and binary alpha.
+- Added deterministic YAML decoration layouts for every block and extended the domain decoration contract.
+- Added topology-aware wall cutaways: rear and side architecture stays tall; foreground/lower walls use a low parapet, preserving interior readability and depth occlusion.
+- Corrected player, animated enemy, torch, barrel, chest, banner, and fallback-enemy scale/baselines against the tile foot anchor.
+- Added unit coverage for the prop manifest, wall topology, environment decoration validation, and chamber-space invariants.
+- Updated text-map and deterministic e2e expectations for the roomier collision layouts.
+
+### Validation evidence
+
+- All 16 isometric PNGs passed RGBA, binary-alpha, palette, and frame-contract inspection.
+- Browser inspection at desktop 1440x900 and mobile 393x851 confirmed open interiors, low foreground walls, readable props, combat staging, and no clipping.
+- All 16 isometric image requests returned HTTP 200; browser console had no warnings or errors.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 17 tests passed.
+- `pnpm build`: passed.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and Pixel 5.
+- `pnpm build-storybook`: passed with the existing chunk-size warning.
+- `bundle exec rspec`: 470 examples, 0 failures.
+- Deterministic seed-0 binary smoke returned the four authored decoration kinds, 270 terrain cells, and structured movement from/to/facing.
+
+Implementation commit: `875ed78` (`Improve isometric dungeon composition`).
