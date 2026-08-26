@@ -1,5 +1,37 @@
 # Isometric Actor Sprites
 
+## Arcanist
+
+The Arcanist is a poised scholarly battle mage whose silhouette combines long
+coral-pink hair, a layered royal-indigo and midnight-violet robe, compact
+violet shoulder armor, restrained antique-gold filigree, and one short ornate
+staff crowned by a faceted cyan-blue crystal. Her upright stance and controlled
+gestures emphasize disciplined arcane study and precise spellcraft rather than
+melee strength or uncontrolled magical spectacle.
+
+The Arcanist animation assets are:
+
+- `arcanist-walk.png`: measured walk phase A, neutral passing pose, and walk
+  phase B with the staff held steady beside the body.
+- `arcanist-attack.png`: guarded preparation, compact free-hand spell release,
+  and controlled recovery with the staff kept upright.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Arcanist class atlas as the identity reference and the
+existing directional actors as style and layout references. Production files
+were normalized mechanically with nearest-neighbor resizing, hard chroma-key
+removal, row-preserving baseline alignment, binary alpha, and non-dithered
+palette quantization.
+
 ## Nightblade
 
 The Nightblade is a lean ambidextrous assassin whose low silhouette is defined

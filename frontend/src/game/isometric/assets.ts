@@ -14,6 +14,8 @@ export const isometricAssetPaths = {
   dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
   nightbladeWalk: "/assets/isometric/actors/nightblade-walk.png",
   nightbladeAttack: "/assets/isometric/actors/nightblade-attack.png",
+  arcanistWalk: "/assets/isometric/actors/arcanist-walk.png",
+  arcanistAttack: "/assets/isometric/actors/arcanist-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -56,6 +58,7 @@ export const blademasterAnimationLayout = directionalClassAnimationLayout;
 export const duelistAnimationLayout = directionalClassAnimationLayout;
 export const dragoonAnimationLayout = directionalClassAnimationLayout;
 export const nightbladeAnimationLayout = directionalClassAnimationLayout;
+export const arcanistAnimationLayout = directionalClassAnimationLayout;
 
 export const warlordFacingFrames = {
   up: 3,
@@ -132,7 +135,23 @@ export function nightbladeFacingFrame(direction?: string): number {
   return nightbladeFacingFrames.right;
 }
 
+export const arcanistFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function arcanistFacingFrame(direction?: string): number {
+  if (direction && direction in arcanistFacingFrames) {
+    return arcanistFacingFrames[direction as keyof typeof arcanistFacingFrames];
+  }
+
+  return arcanistFacingFrames.right;
+}
+
 export type AnimatedPlayerClass =
+  | "arcanist"
   | "blademaster"
   | "dragoon"
   | "duelist"
@@ -142,7 +161,8 @@ export type AnimatedPlayerClass =
 export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass | null {
   const normalizedClass = playerClass?.trim().toLowerCase();
   if (
-    normalizedClass === "blademaster"
+    normalizedClass === "arcanist"
+    || normalizedClass === "blademaster"
     || normalizedClass === "dragoon"
     || normalizedClass === "duelist"
     || normalizedClass === "nightblade"
@@ -172,6 +192,10 @@ export function isDragoonClass(playerClass?: string): boolean {
 
 export function isNightbladeClass(playerClass?: string): boolean {
   return animatedPlayerClass(playerClass) === "nightblade";
+}
+
+export function isArcanistClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "arcanist";
 }
 
 export const torchAnimationLayout = {

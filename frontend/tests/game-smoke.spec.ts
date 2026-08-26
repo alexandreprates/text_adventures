@@ -178,6 +178,17 @@ const nightbladeRuinsPayload: MockGamePayload = {
   },
 };
 
+const arcanistRuinsPayload: MockGamePayload = {
+  ...isometricRuinsPayload,
+  state: {
+    ...isometricRuinsPayload.state,
+    player: {
+      ...(isometricRuinsPayload.state.player as Record<string, unknown>),
+      current_class: "Arcanist",
+    },
+  },
+};
+
 const combatPayload: MockGamePayload = {
   ...isometricRuinsPayload,
   events: [
@@ -251,6 +262,17 @@ const nightbladeCombatPayload: MockGamePayload = {
     player: {
       ...(combatPayload.state.player as Record<string, unknown>),
       current_class: "Nightblade",
+    },
+  },
+};
+
+const arcanistCombatPayload: MockGamePayload = {
+  ...combatPayload,
+  state: {
+    ...combatPayload.state,
+    player: {
+      ...(combatPayload.state.player as Record<string, unknown>),
+      current_class: "Arcanist",
     },
   },
 };
@@ -1175,6 +1197,27 @@ test("renders the Nightblade directional player assets", async ({ page }) => {
     .toBe(1);
 });
 
+test("renders the Arcanist directional player assets", async ({ page }) => {
+  await mockGame(page, arcanistRuinsPayload);
+  await page.goto("/");
+
+  const canvas = page.getByLabel("Dungeon map");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(canvas).toBeVisible();
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const canvasElement = element as HTMLCanvasElement;
+        const context = canvasElement.getContext("2d");
+        if (!context) return 0;
+        const pixels = context.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
+        return pixels.some((value, index) => index % 4 === 3 && value > 0) ? 1 : 0;
+      }),
+    )
+    .toBe(1);
+});
+
 test("renders the Duelist attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockGame(page, duelistCombatPayload);
@@ -1202,6 +1245,18 @@ test("renders the Dragoon attack assets during player combat", async ({ page }) 
 test("renders the Nightblade attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockGame(page, nightbladeCombatPayload);
+  await page.goto("/");
+
+  const canvas = page.getByLabel("Dungeon map");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(canvas).toBeVisible();
+  await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
+});
+
+test("renders the Arcanist attack assets during player combat", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, arcanistCombatPayload);
   await page.goto("/");
 
   const canvas = page.getByLabel("Dungeon map");

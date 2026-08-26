@@ -9,6 +9,7 @@ import { animationPhaseAt, latestCombatCue, type CombatAnimationCue } from "./an
 import {
   adventurerFacingFrame,
   animatedPlayerClass,
+  arcanistFacingFrame,
   blademasterFacingFrame,
   directionalClassAnimationLayout,
   dragoonFacingFrame,
@@ -548,6 +549,8 @@ export class IsometricDungeonRenderer {
     attacking: boolean,
   ): HTMLImageElement {
     switch (playerClass) {
+      case "arcanist":
+        return attacking ? this.assets!.arcanistAttack : this.assets!.arcanistWalk;
       case "warlord":
         return attacking ? this.assets!.warlordAttack : this.assets!.warlordWalk;
       case "duelist":
@@ -563,6 +566,8 @@ export class IsometricDungeonRenderer {
 
   private directionalClassFacing(playerClass: AnimatedPlayerClass): number {
     switch (playerClass) {
+      case "arcanist":
+        return arcanistFacingFrame(this.options.playerDirection);
       case "warlord":
         return warlordFacingFrame(this.options.playerDirection);
       case "duelist":

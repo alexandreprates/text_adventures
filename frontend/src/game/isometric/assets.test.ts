@@ -4,6 +4,9 @@ import {
   adventurerFacingFrame,
   adventurerFacingFrames,
   animatedPlayerClass,
+  arcanistAnimationLayout,
+  arcanistFacingFrame,
+  arcanistFacingFrames,
   blademasterAnimationLayout,
   blademasterFacingFrame,
   blademasterFacingFrames,
@@ -14,6 +17,7 @@ import {
   duelistAnimationLayout,
   duelistFacingFrame,
   duelistFacingFrames,
+  isArcanistClass,
   isBlademasterClass,
   isDragoonClass,
   isDuelistClass,
@@ -44,6 +48,8 @@ describe("isometricAssetPaths", () => {
       dragoonAttack: "/assets/isometric/actors/dragoon-attack.png",
       nightbladeWalk: "/assets/isometric/actors/nightblade-walk.png",
       nightbladeAttack: "/assets/isometric/actors/nightblade-attack.png",
+      arcanistWalk: "/assets/isometric/actors/arcanist-walk.png",
+      arcanistAttack: "/assets/isometric/actors/arcanist-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -53,12 +59,38 @@ describe("isometricAssetPaths", () => {
 
 describe("animatedPlayerClass", () => {
   it("selects the directional animation family for supported classes", () => {
+    expect(animatedPlayerClass("Arcanist")).toBe("arcanist");
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Arcanist animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isArcanistClass("Arcanist")).toBe(true);
+    expect(isArcanistClass(" arcanist ")).toBe(true);
+    expect(isArcanistClass("Nightblade")).toBe(false);
+    expect(arcanistAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(arcanistAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Arcanist sheet's projected facings", () => {
+    expect(arcanistFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(arcanistFacingFrame("up")).toBe(0);
+    expect(arcanistFacingFrame("right")).toBe(1);
+    expect(arcanistFacingFrame("down")).toBe(2);
+    expect(arcanistFacingFrame("left")).toBe(3);
+    expect(arcanistFacingFrame("unknown")).toBe(1);
   });
 });
 
