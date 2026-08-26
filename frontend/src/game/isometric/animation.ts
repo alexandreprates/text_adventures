@@ -25,3 +25,8 @@ export function latestCombatCue(events: GameEvent[]): CombatAnimationCue | null 
 
   return null;
 }
+
+export function animationPhaseAt(progress: number, phaseCount: number): number {
+  const lastPhase = Math.max(0, phaseCount - 1);
+  return Math.max(0, Math.min(lastPhase, Math.floor(progress * phaseCount)));
+}

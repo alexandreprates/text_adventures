@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combatCueForEvent, latestCombatCue } from "./animation";
+import { animationPhaseAt, combatCueForEvent, latestCombatCue } from "./animation";
 
 describe("isometric event animation", () => {
   it("maps structured combat events without parsing prose", () => {
@@ -30,5 +30,12 @@ describe("isometric event animation", () => {
       effect: "slash",
       durationMs: 520,
     });
+  });
+
+  it("maps normalized progress across a three-phase animation", () => {
+    expect(animationPhaseAt(0, 3)).toBe(0);
+    expect(animationPhaseAt(0.34, 3)).toBe(1);
+    expect(animationPhaseAt(0.67, 3)).toBe(2);
+    expect(animationPhaseAt(1, 3)).toBe(2);
   });
 });

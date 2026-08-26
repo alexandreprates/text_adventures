@@ -4,6 +4,8 @@ export const isometricAssetPaths = {
   wallFront: "/assets/isometric/tiles/wall-front.png",
   adventurer: "/assets/isometric/actors/adventurer-actions.png",
   adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
+  warlordWalk: "/assets/isometric/actors/warlord-walk.png",
+  warlordAttack: "/assets/isometric/actors/warlord-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -31,6 +33,18 @@ export function adventurerFacingFrame(direction?: string): number {
   }
 
   return adventurerFacingFrames.right;
+}
+
+export const warlordAnimationLayout = {
+  frameWidth: 96,
+  frameHeight: 128,
+  phaseCount: 3,
+  idlePhase: 1,
+  baseline: 92,
+} as const;
+
+export function isWarlordClass(playerClass?: string): boolean {
+  return playerClass?.trim().toLowerCase() === "warlord";
 }
 
 export const torchAnimationLayout = {

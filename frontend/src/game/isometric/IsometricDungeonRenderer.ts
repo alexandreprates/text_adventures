@@ -5,12 +5,14 @@ import type {
   Position,
   ViewportEntity,
 } from "../../lib/types";
-import { latestCombatCue, type CombatAnimationCue } from "./animation";
+import { animationPhaseAt, latestCombatCue, type CombatAnimationCue } from "./animation";
 import {
   adventurerFacingFrame,
+  isWarlordClass,
   loadIsometricAssets,
   torchAnimationLayout,
   type IsometricAssets,
+  warlordAnimationLayout,
 } from "./assets";
 import {
   depthFor,
@@ -316,6 +318,10 @@ export class IsometricDungeonRenderer {
 
   private entityNode(entity: PositionedEntity, position: Position, time: number): DepthNode {
     if (entity.type === "player") {
+      if (!this.options.playerDead && isWarlordClass(this.options.playerClass)) {
+        return this.warlordNode(position, time);
+      }
+
       const frame = this.options.playerDead ? 3 : this.combatFrame("player", time);
       return this.actorNode(entity, position, frame);
     }
@@ -330,6 +336,32 @@ export class IsometricDungeonRenderer {
       position,
       layer: 6,
       draw: (screen) => this.drawMarker(entity.type, screen),
+    };
+  }
+
+  private warlordNode(position: Position, time: number): DepthNode {
+    const attackPhase = this.warlordAttackPhase(time);
+    const phase = attackPhase ?? this.warlordWalkPhase(time);
+    const sheet = attackPhase === null ? this.assets!.warlordWalk : this.assets!.warlordAttack;
+    const direction = adventurerFacingFrame(this.options.playerDirection);
+
+    return {
+      position,
+      layer: 20,
+      draw: (screen) => {
+        const foot = screen.y + TILE_HEIGHT;
+        this.drawSheetCell(
+          sheet,
+          direction,
+          phase,
+          warlordAnimationLayout.frameWidth,
+          warlordAnimationLayout.frameHeight,
+          screen.x - ACTOR_DRAW_WIDTH / 2,
+          foot - warlordAnimationLayout.baseline * ACTOR_SCALE,
+          ACTOR_DRAW_WIDTH,
+          ACTOR_DRAW_HEIGHT,
+        );
+      },
     };
   }
 
@@ -457,10 +489,39 @@ export class IsometricDungeonRenderer {
     drawWidth = frameWidth,
     drawHeight = frameHeight,
   ): void {
+    this.drawSheetCell(
+      sheet,
+      frame,
+      0,
+      frameWidth,
+      frameHeight,
+      x,
+      y,
+      drawWidth,
+      drawHeight,
+    );
+  }
+
+  private drawSheetCell(
+    sheet: HTMLImageElement,
+    column: number,
+    row: number,
+    frameWidth: number,
+    frameHeight: number,
+    x: number,
+    y: number,
+    drawWidth = frameWidth,
+    drawHeight = frameHeight,
+  ): void {
+    const columns = Math.max(1, Math.floor(sheet.naturalWidth / frameWidth));
+    const rows = Math.max(1, Math.floor(sheet.naturalHeight / frameHeight));
+    const sourceColumn = Math.max(0, Math.min(columns - 1, column));
+    const sourceRow = Math.max(0, Math.min(rows - 1, row));
+
     this.context.drawImage(
       sheet,
-      Math.max(0, Math.min(3, frame)) * frameWidth,
-      0,
+      sourceColumn * frameWidth,
+      sourceRow * frameHeight,
       frameWidth,
       frameHeight,
       Math.round(x),
@@ -468,6 +529,27 @@ export class IsometricDungeonRenderer {
       drawWidth,
       drawHeight,
     );
+  }
+
+  private warlordAttackPhase(time: number): number | null {
+    if (!this.combat || this.combat.actor !== "player") return null;
+    const progress = (time - this.combat.startedAt) / this.combat.durationMs;
+    if (progress < 0 || progress >= 1) return null;
+    if (this.options.reducedMotion) return 1;
+    return animationPhaseAt(progress, warlordAnimationLayout.phaseCount);
+  }
+
+  private warlordWalkPhase(time: number): number {
+    if (this.options.reducedMotion || !this.playerFrom || !this.playerTo) {
+      return warlordAnimationLayout.idlePhase;
+    }
+    if (this.playerFrom.x === this.playerTo.x && this.playerFrom.y === this.playerTo.y) {
+      return warlordAnimationLayout.idlePhase;
+    }
+
+    const progress = (time - this.movementStartedAt) / PLAYER_MOVE_MS;
+    if (progress < 0 || progress >= 1) return warlordAnimationLayout.idlePhase;
+    return animationPhaseAt(progress, warlordAnimationLayout.phaseCount);
   }
 
   private combatFrame(actor: "player" | "enemy", time: number): number {

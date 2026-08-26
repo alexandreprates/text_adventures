@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   adventurerFacingFrame,
   adventurerFacingFrames,
+  isWarlordClass,
   isometricAssetPaths,
   torchAnimationLayout,
+  warlordAnimationLayout,
 } from "./assets";
 
 describe("isometricAssetPaths", () => {
@@ -12,9 +14,26 @@ describe("isometricAssetPaths", () => {
     expect(isometricAssetPaths).toMatchObject({
       wallFront: "/assets/isometric/tiles/wall-front.png",
       adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
+      warlordWalk: "/assets/isometric/actors/warlord-walk.png",
+      warlordAttack: "/assets/isometric/actors/warlord-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
+    });
+  });
+});
+
+describe("Warlord animation assets", () => {
+  it("selects the class family and exposes the shared animation contract", () => {
+    expect(isWarlordClass("Warlord")).toBe(true);
+    expect(isWarlordClass(" warlord ")).toBe(true);
+    expect(isWarlordClass("Adventurer")).toBe(false);
+    expect(warlordAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
     });
   });
 });
