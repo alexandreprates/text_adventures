@@ -242,3 +242,28 @@ A second rendered comparison against `mockup.mp4` identified the dominant remain
 - Deterministic seed-0 binary smoke returned the four authored decoration kinds, 270 terrain cells, and structured movement from/to/facing.
 
 Implementation commit: `875ed78` (`Improve isometric dungeon composition`).
+
+## Torch animation anchor correction — completed 2026-08-26
+
+Frame inspection found that the entire torch assembly drifted horizontally across the four-frame loop. The bottom metal spike anchors were at x positions 39, 35, 31, and 28 instead of a stable shared origin.
+
+### Delivered
+
+- Mechanically translated the four existing 64x96 frames by -7, -3, +1, and +4 pixels without redrawing creative pixels.
+- Normalized the named bottom-spike anchor to `(32,72)` in every frame.
+- Added a typed `torchAnimationLayout` contract and made the renderer derive placement from its frame size, draw size, and anchor instead of magic offsets.
+- Added unit coverage for the animation layout contract.
+
+### Validation evidence
+
+- Pixel-art validator: 256x96 RGBA sheet, four 64x96 frames, 14 opaque colors, binary alpha, no clipping, bottom spread 0, center-x spread 0.5.
+- Explicit pixel inspection confirmed anchor `(32,72)` in all four frames.
+- Contact-sheet and production-browser inspection confirmed the support stays fixed while the flame animates.
+- Torch asset returned HTTP 200 and the browser console had no warnings or errors.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 18 tests passed.
+- `pnpm build`: passed through the Compose production build.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and Pixel 5.
+- `bundle exec rspec`: 470 examples, 0 failures.
+
+Implementation commit: `47c321a` (`Fix torch animation anchor`).
