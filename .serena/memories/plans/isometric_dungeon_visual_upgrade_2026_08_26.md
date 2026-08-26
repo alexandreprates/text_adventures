@@ -353,3 +353,50 @@ Runtime review found that the Warlord sheets use projected facing columns in NW/
 - Compose production build: passed and services remained healthy.
 
 Implementation commit: `8f4a21c` (`Fix Warlord movement facings`).
+
+## Directional Blademaster animation pack — completed 2026-08-26
+
+The Blademaster now has a production walk/attack presentation derived from the established class atlas instead of falling back to the Adventurer.
+
+### Consolidated character direction
+
+- Elite young duelist built around disciplined speed and precision rather than the Warlord's brute force.
+- Lean, forward-ready silhouette; spiky silver-white hair; exposed, focused face.
+- Articulated violet-black armor with restrained magenta edging, compact pauldrons, a high collar, and a split coat with two long tails.
+- Exactly one narrow pale longsword; no shield, second weapon, or visible magic.
+- Economical gait with a low sword carry. Attacks use a fast single cut with readable wind-up, impact, and recovery.
+
+### Delivered
+
+- Added `blademaster-walk.png` and `blademaster-attack.png`, each a 384x384 RGBA sheet with four facing columns and three phase rows.
+- Added Blademaster-specific facing order: up/NE -> 0, right/SE -> 1, down/SW -> 2, left/NW -> 3.
+- Generalized the class animation renderer so Warlord and Blademaster share frame timing and anchor contracts while retaining independent facing mappings and assets.
+- Preserved the Adventurer fallback and existing Warlord behavior.
+- Added unit coverage for asset paths, class selection, shared layout, all Blademaster directions, and safe defaults.
+
+### Asset contract and generation
+
+- Cells are 96x128; columns are up/NE, right/SE, down/SW, and left/NW.
+- Walk rows are contact A, neutral, and contact B. Attack rows are wind-up, impact, and recovery.
+- Every frame shares foot anchor `(48,92)` with zero bottom spread.
+- Walk uses 28 opaque colors; attack uses 25 opaque colors. Both use binary alpha, nearest-neighbor normalization, and no dithering.
+- Built-in ImageGen used the Blademaster class atlas as the strict identity reference. The approved Warlord sheets supplied only layout, scale, action timing, and pixel-language guidance; Adventurer facings supplied projected direction logic.
+- Walk prompt summary: one consistent Blademaster, strict 4x3 sheet, four projected facings, three walk phases, fixed foot anchor, limited palette, exact chroma background, and no extra weapons/effects.
+- Attack prompt summary: the same identity and direction order, wind-up/precise-cut/recovery phases, a compact pale blade streak only at impact, fixed anchor/palette, and no identity drift, shield, second weapon, or magic.
+- Mechanical post-processing performed chroma removal, row/cell extraction, nearest-neighbor resizing, palette reduction, binary-alpha cleanup, frame translations, and anchor normalization without adding creative pixels.
+
+### Validation evidence
+
+- Runtime Canvas sampling confirmed source x positions 0, 96, 192, and 288 for up, right, down, and left.
+- Every walk and attack direction sampled source y positions 0, 128, and 256.
+- Both PNGs returned HTTP 200 in Compose; the browser console had no warnings or errors.
+- Manual browser inspection approved idle and impact frames in the production dungeon composition.
+- `pnpm lint`: passed.
+- `pnpm test`: 8 files, 25 tests passed.
+- Compose production TypeScript/Vite build: passed.
+- `pnpm playwright test`: 34 tests passed across desktop Chromium and mobile.
+- `bundle exec rspec`: 470 examples, 0 failures.
+- Compose server remained healthy and web remained available at localhost:3000.
+- Serena diagnostics were unavailable because the repository Ruby LSP failed to initialize; TypeScript lint and production build supplied diagnostics for the touched frontend files.
+
+Implementation commit: `d49d1a3` (`Add Blademaster directional animations`).
