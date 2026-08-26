@@ -22,11 +22,15 @@ import {
   isDragoonClass,
   isDuelistClass,
   isNightbladeClass,
+  isSpellbladeClass,
   isWarlordClass,
   isometricAssetPaths,
   nightbladeAnimationLayout,
   nightbladeFacingFrame,
   nightbladeFacingFrames,
+  spellbladeAnimationLayout,
+  spellbladeFacingFrame,
+  spellbladeFacingFrames,
   torchAnimationLayout,
   warlordAnimationLayout,
   warlordFacingFrame,
@@ -50,6 +54,8 @@ describe("isometricAssetPaths", () => {
       nightbladeAttack: "/assets/isometric/actors/nightblade-attack.png",
       arcanistWalk: "/assets/isometric/actors/arcanist-walk.png",
       arcanistAttack: "/assets/isometric/actors/arcanist-attack.png",
+      spellbladeWalk: "/assets/isometric/actors/spellblade-walk.png",
+      spellbladeAttack: "/assets/isometric/actors/spellblade-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -64,8 +70,34 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
+    expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Spellblade animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isSpellbladeClass("Spellblade")).toBe(true);
+    expect(isSpellbladeClass(" spellblade ")).toBe(true);
+    expect(isSpellbladeClass("Arcanist")).toBe(false);
+    expect(spellbladeAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(spellbladeAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Spellblade sheet's projected facings", () => {
+    expect(spellbladeFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(spellbladeFacingFrame("up")).toBe(0);
+    expect(spellbladeFacingFrame("right")).toBe(1);
+    expect(spellbladeFacingFrame("down")).toBe(2);
+    expect(spellbladeFacingFrame("left")).toBe(3);
+    expect(spellbladeFacingFrame("unknown")).toBe(1);
   });
 });
 

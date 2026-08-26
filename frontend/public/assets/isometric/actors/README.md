@@ -1,5 +1,38 @@
 # Isometric Actor Sprites
 
+## Spellblade
+
+The Spellblade is a lean young arcane swordsman whose compact silhouette pairs
+short windswept white-lilac hair with fitted black and midnight-purple coat
+armor, dark-plum plates, restrained magenta-red trim, and a split navy cape
+marked by subtle cyan runes. He carries exactly one straight silver-cyan sword
+and sustains a small spellflame in his free hand. The design balances agile
+swordsmanship with disciplined combat magic rather than heavy armor or
+long-range spellcasting.
+
+The Spellblade animation assets are:
+
+- `spellblade-walk.png`: measured walk phase A, neutral passing pose, and walk
+  phase B with the sword carried low and the off-hand spellflame contained.
+- `spellblade-attack.png`: close guarded preparation, compact enchanted
+  diagonal cut, and controlled recovery with fading cyan motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Spellblade class atlas as the identity reference and the
+Blademaster and Arcanist directional sheets as style and layout references.
+Production files were normalized mechanically with nearest-neighbor resizing,
+hard chroma-key removal, row-preserving baseline alignment, binary alpha, and
+non-dithered palette quantization.
+
 ## Arcanist
 
 The Arcanist is a poised scholarly battle mage whose silhouette combines long
