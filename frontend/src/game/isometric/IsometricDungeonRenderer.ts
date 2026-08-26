@@ -16,6 +16,7 @@ import {
   TILE_WIDTH,
   type ProjectedPoint,
 } from "./projection";
+import { isForegroundWall } from "./wallTopology";
 
 const LOGICAL_WIDTH = 752;
 const LOGICAL_HEIGHT = 416;
@@ -24,6 +25,11 @@ const CAMERA_MOVE_MS = 440;
 const TRANSIENT_MS = 1_400;
 const DESKTOP_FRAME_INTERVAL_MS = 1_000 / 60;
 const MOBILE_FRAME_INTERVAL_MS = 1_000 / 30;
+const ACTOR_SOURCE_WIDTH = 96;
+const ACTOR_SOURCE_HEIGHT = 128;
+const ACTOR_DRAW_WIDTH = 72;
+const ACTOR_DRAW_HEIGHT = 96;
+const ACTOR_SCALE = ACTOR_DRAW_HEIGHT / ACTOR_SOURCE_HEIGHT;
 
 type RendererOptions = {
   playerClass?: string;
@@ -192,12 +198,24 @@ export class IsometricDungeonRenderer {
       for (let x = 0; x < this.viewport.width; x += 1) {
         if (terrainAt(this.viewport, x, y) !== "#") continue;
         const position = globalPosition(this.viewport, { x, y });
+        const foreground = isForegroundWall(
+          this.viewport.terrain,
+          this.viewport.width,
+          this.viewport.height,
+          x,
+          y,
+        );
         nodes.push({
           position,
           layer: 0,
           draw: (screen) => {
             const foot = screen.y + TILE_HEIGHT;
-            this.context.drawImage(this.assets!.wall, screen.x - 32, foot - 112);
+            const wall = foreground ? this.assets!.wallFront : this.assets!.wall;
+            this.context.drawImage(
+              wall,
+              Math.round(screen.x - 32),
+              Math.round(foot - wall.height),
+            );
           },
         });
       }
@@ -214,7 +232,7 @@ export class IsometricDungeonRenderer {
     });
 
     this.vanishedEnemies.forEach((entity) => {
-      nodes.push(this.actorNode(entity, entity, 3, 16));
+      nodes.push(this.actorNode(entity, entity, 3));
     });
     this.openedLoot.forEach((entity) => {
       nodes.push(this.chestNode(entity, 3));
@@ -231,7 +249,56 @@ export class IsometricDungeonRenderer {
       return {
         position,
         layer: 35,
-        draw: (screen) => this.drawSheetFrame(this.assets!.torch, frame, 64, 96, screen.x - 32, screen.y - 84),
+        draw: (screen) => this.drawSheetFrame(
+          this.assets!.torch,
+          frame,
+          64,
+          96,
+          screen.x - 24,
+          screen.y - 39,
+          48,
+          72,
+        ),
+      };
+    }
+
+    if (decoration.kind === "barrel") {
+      return {
+        position,
+        layer: 14,
+        draw: (screen) => this.context.drawImage(
+          this.assets!.barrel,
+          Math.round(screen.x - 24),
+          Math.round(screen.y - 27),
+          48,
+          48,
+        ),
+      };
+    }
+
+    if (decoration.kind === "rubble") {
+      return {
+        position,
+        layer: 8,
+        draw: (screen) => this.context.drawImage(
+          this.assets!.rubble,
+          Math.round(screen.x - 32),
+          Math.round(screen.y - 34),
+        ),
+      };
+    }
+
+    if (decoration.kind === "banner") {
+      return {
+        position,
+        layer: 36,
+        draw: (screen) => this.context.drawImage(
+          this.assets!.banner,
+          Math.round(screen.x - 24),
+          Math.round(screen.y - 60),
+          48,
+          72,
+        ),
       };
     }
 
@@ -241,11 +308,11 @@ export class IsometricDungeonRenderer {
   private entityNode(entity: PositionedEntity, position: Position, time: number): DepthNode {
     if (entity.type === "player") {
       const frame = this.options.playerDead ? 3 : this.combatFrame("player", time);
-      return this.actorNode(entity, position, frame, 17);
+      return this.actorNode(entity, position, frame);
     }
 
     if (entity.type === "enemy") {
-      return this.actorNode(entity, position, this.combatFrame("enemy", time), 16);
+      return this.actorNode(entity, position, this.combatFrame("enemy", time));
     }
 
     if (entity.type === "loot") return this.chestNode(position, 2);
@@ -261,7 +328,6 @@ export class IsometricDungeonRenderer {
     entity: PositionedEntity,
     position: Position,
     frame: number,
-    baselinePadding: number,
   ): DepthNode {
     return {
       position,
@@ -270,7 +336,18 @@ export class IsometricDungeonRenderer {
         const sheet = entity.type === "player" ? this.assets!.adventurer : this.enemySheet(entity);
         const bob = frame === 0 && !this.options.reducedMotion ? Math.round(Math.sin(this.lastFrameTime / 280)) : 0;
         if (sheet) {
-          this.drawSheetFrame(sheet, frame, 96, 128, screen.x - 48, screen.y - 128 + baselinePadding + bob);
+          const foot = screen.y + TILE_HEIGHT;
+          const baseline = this.actorBaseline(entity);
+          this.drawSheetFrame(
+            sheet,
+            frame,
+            ACTOR_SOURCE_WIDTH,
+            ACTOR_SOURCE_HEIGHT,
+            screen.x - ACTOR_DRAW_WIDTH / 2,
+            foot - baseline * ACTOR_SCALE + bob,
+            ACTOR_DRAW_WIDTH,
+            ACTOR_DRAW_HEIGHT,
+          );
           return;
         }
 
@@ -283,8 +360,16 @@ export class IsometricDungeonRenderer {
     return {
       position,
       layer: 12,
-      draw: (screen) => this.drawSheetFrame(this.assets!.chest, frame, 64, 64, screen.x - 32, screen.y - 61),
+      draw: (screen) => this.drawSheetFrame(this.assets!.chest, frame, 64, 64, screen.x - 32, screen.y - 44),
     };
+  }
+
+  private actorBaseline(entity: PositionedEntity): number {
+    if (entity.type === "player") return 92;
+    const creatureId = entity.creature_id ?? "";
+    if (creatureId.includes("skeleton")) return 107;
+    if (creatureId.includes("goblin")) return 101;
+    return 96;
   }
 
   private enemySheet(entity: PositionedEntity): HTMLImageElement | null {
@@ -308,7 +393,7 @@ export class IsometricDungeonRenderer {
     }
     if (!image.complete || image.naturalWidth === 0) return;
 
-    this.context.drawImage(image, screen.x - 40, screen.y - 74, 80, 80);
+    this.context.drawImage(image, screen.x - 32, screen.y - 48, 64, 64);
   }
 
   private drawMarker(type: string, screen: ProjectedPoint): void {
@@ -352,6 +437,8 @@ export class IsometricDungeonRenderer {
     frameHeight: number,
     x: number,
     y: number,
+    drawWidth = frameWidth,
+    drawHeight = frameHeight,
   ): void {
     this.context.drawImage(
       sheet,
@@ -361,8 +448,8 @@ export class IsometricDungeonRenderer {
       frameHeight,
       Math.round(x),
       Math.round(y),
-      frameWidth,
-      frameHeight,
+      drawWidth,
+      drawHeight,
     );
   }
 

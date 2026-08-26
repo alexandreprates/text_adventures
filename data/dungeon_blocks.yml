@@ -7,13 +7,22 @@ dungeon_blocks:
         - kind: torch
           x: 3
           y: 1
+        - kind: barrel
+          x: 4
+          y: 1
+        - kind: rubble
+          x: 1
+          y: 3
+        - kind: banner
+          x: 3
+          y: 0
     exits:
       - right
     tiles:
       - "######"
-      - "######"
-      - "##    "
-      - "######"
+      - "#    #"
+      - "#     "
+      - "#    #"
       - "######"
   left_exit:
     name: Corridor Left Exit
@@ -23,13 +32,22 @@ dungeon_blocks:
         - kind: torch
           x: 2
           y: 1
+        - kind: barrel
+          x: 1
+          y: 1
+        - kind: rubble
+          x: 4
+          y: 3
+        - kind: banner
+          x: 2
+          y: 0
     exits:
       - left
     tiles:
       - "######"
-      - "######"
-      - "    ##"
-      - "######"
+      - "#    #"
+      - "     #"
+      - "#    #"
       - "######"
   down_exit:
     name: Corridor Down Exit
@@ -39,13 +57,22 @@ dungeon_blocks:
         - kind: torch
           x: 1
           y: 2
+        - kind: barrel
+          x: 4
+          y: 1
+        - kind: rubble
+          x: 1
+          y: 3
+        - kind: banner
+          x: 0
+          y: 2
     exits:
       - down
     tiles:
       - "######"
-      - "######"
-      - "##  ##"
-      - "##  ##"
+      - "#    #"
+      - "#    #"
+      - "#    #"
       - "##  ##"
   up_exit:
     name: Corridor Up Exit
@@ -55,13 +82,22 @@ dungeon_blocks:
         - kind: torch
           x: 4
           y: 2
+        - kind: barrel
+          x: 1
+          y: 3
+        - kind: rubble
+          x: 4
+          y: 1
+        - kind: banner
+          x: 5
+          y: 2
     exits:
       - up
     tiles:
       - "##  ##"
-      - "##  ##"
-      - "##  ##"
-      - "######"
+      - "#    #"
+      - "#    #"
+      - "#    #"
       - "######"
   four_exits:
     name: Corridor Four Exits
@@ -74,6 +110,15 @@ dungeon_blocks:
         - kind: torch
           x: 4
           y: 3
+        - kind: barrel
+          x: 4
+          y: 1
+        - kind: rubble
+          x: 1
+          y: 3
+        - kind: banner
+          x: 4
+          y: 0
     exits:
       - up
       - right
@@ -81,9 +126,9 @@ dungeon_blocks:
       - left
     tiles:
       - "##  ##"
-      - "##  ##"
+      - "#    #"
       - "      "
-      - "##  ##"
+      - "#    #"
       - "##  ##"
   corner_down_left:
     name: Corridor Corner Down Left
@@ -93,14 +138,23 @@ dungeon_blocks:
         - kind: torch
           x: 4
           y: 1
+        - kind: barrel
+          x: 1
+          y: 1
+        - kind: rubble
+          x: 4
+          y: 3
+        - kind: banner
+          x: 5
+          y: 2
     exits:
       - down
       - left
     tiles:
       - "######"
-      - "######"
-      - "    ##"
-      - "##  ##"
+      - "#    #"
+      - "     #"
+      - "#    #"
       - "##  ##"
   corner_down_right:
     name: Corridor Corner Down Right
@@ -110,14 +164,23 @@ dungeon_blocks:
         - kind: torch
           x: 1
           y: 1
+        - kind: barrel
+          x: 4
+          y: 1
+        - kind: rubble
+          x: 1
+          y: 3
+        - kind: banner
+          x: 0
+          y: 2
     exits:
       - down
       - right
     tiles:
       - "######"
-      - "######"
-      - "##    "
-      - "##  ##"
+      - "#    #"
+      - "#     "
+      - "#    #"
       - "##  ##"
   corner_up_left:
     name: Corridor Corner Up Left
@@ -127,14 +190,23 @@ dungeon_blocks:
         - kind: torch
           x: 4
           y: 3
+        - kind: barrel
+          x: 1
+          y: 3
+        - kind: rubble
+          x: 4
+          y: 1
+        - kind: banner
+          x: 5
+          y: 2
     exits:
       - up
       - left
     tiles:
       - "##  ##"
-      - "##  ##"
-      - "    ##"
-      - "######"
+      - "#    #"
+      - "     #"
+      - "#    #"
       - "######"
   corner_up_right:
     name: Corridor Corner Up Right
@@ -144,12 +216,21 @@ dungeon_blocks:
         - kind: torch
           x: 1
           y: 3
+        - kind: barrel
+          x: 4
+          y: 3
+        - kind: rubble
+          x: 1
+          y: 1
+        - kind: banner
+          x: 0
+          y: 2
     exits:
       - up
       - right
     tiles:
       - "##  ##"
-      - "##  ##"
-      - "##    "
-      - "######"
+      - "#    #"
+      - "#     "
+      - "#    #"
       - "######"

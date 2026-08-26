@@ -157,7 +157,12 @@ RSpec.describe TextAdventures::ContentCatalog do
         height: 5,
         exits: ["right"],
         theme: "stone_ruins",
-        decorations: [{ kind: "torch", x: 3, y: 1 }]
+        decorations: [
+          { kind: "torch", x: 3, y: 1 },
+          { kind: "barrel", x: 4, y: 1 },
+          { kind: "rubble", x: 1, y: 3 },
+          { kind: "banner", x: 3, y: 0 }
+        ]
       )
       expect(block).to be_exit("right")
       expect(block).to be_open(5, 2)

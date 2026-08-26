@@ -5,7 +5,7 @@ module TextAdventures
     WIDTH = 6
     HEIGHT = 5
     VALID_EXITS = %w[up right down left].freeze
-    VALID_DECORATION_KINDS = %w[torch chest].freeze
+    VALID_DECORATION_KINDS = %w[torch chest barrel rubble banner].freeze
 
     attr_reader :id, :name, :tiles, :exits, :theme, :decorations
 

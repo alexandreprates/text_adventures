@@ -74,6 +74,26 @@ RSpec.describe TextAdventures::DungeonBlock do
       )
     end
 
+    it "accepts environment decorations" do
+      decorated_block = described_class.new(
+        id: "decorated",
+        name: "Decorated room",
+        tiles: tiles,
+        exits: [],
+        visuals: {
+          decorations: [
+            { kind: "barrel", x: 1, y: 1 },
+            { kind: "rubble", x: 2, y: 1 },
+            { kind: "banner", x: 3, y: 1 }
+          ]
+        }
+      )
+
+      expect(decorated_block.decorations.map { |decoration| decoration.fetch(:kind) }).to eq(
+        %w[barrel rubble banner]
+      )
+    end
+
     it "rejects unknown or out-of-bounds decorations" do
       expect do
         described_class.new(
@@ -81,9 +101,9 @@ RSpec.describe TextAdventures::DungeonBlock do
           name: "Unknown decor",
           tiles: tiles,
           exits: [],
-          visuals: { decorations: [{ kind: "banner", x: 1, y: 1 }] }
+          visuals: { decorations: [{ kind: "statue", x: 1, y: 1 }] }
         )
-      end.to raise_error(ArgumentError, "unknown dungeon decoration: banner")
+      end.to raise_error(ArgumentError, "unknown dungeon decoration: statue")
 
       expect do
         described_class.new(

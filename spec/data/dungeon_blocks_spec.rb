@@ -73,6 +73,16 @@ RSpec.describe "dungeon block catalog" do
     end
   end
 
+  it "keeps a spacious chamber interior in every visual block" do
+    blocks.each do |id, block|
+      interior_open_tiles = block.fetch("tiles")[1..3].sum { |row| row.count(" ") }
+      decoration_kinds = block.dig("visuals", "decorations").map { |decoration| decoration.fetch("kind") }
+
+      expect(interior_open_tiles).to be >= 12, "#{id} has a narrow visual interior"
+      expect(decoration_kinds).to include("torch", "barrel", "rubble", "banner")
+    end
+  end
+
   def reachable_open_positions(tiles, start)
     queue = [start]
     seen = { start => true }

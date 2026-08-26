@@ -90,7 +90,7 @@ export type ViewportEntity = {
 };
 
 export type DungeonDecoration = Position & {
-  kind: "torch" | "chest" | string;
+  kind: "torch" | "chest" | "barrel" | "rubble" | "banner" | string;
   variant?: string;
 };
 
