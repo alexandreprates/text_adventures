@@ -233,6 +233,22 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("satyr_duelist")).toBe(enemyAnimationRegistry.satyr_duelist);
   });
 
+  it("registers dedicated Dryad Thornweaver attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dryad_thornweaver).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dryad_thornweaver-attack.png",
+        baselines: [114, 114, 100, 101],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dryad_thornweaver-death.png",
+        baselines: [109, 110, 97, 103],
+      },
+    });
+    expect(enemyAnimationFor("DRYAD_THORNWEAVER")).toBe(
+      enemyAnimationRegistry.dryad_thornweaver,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

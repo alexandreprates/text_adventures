@@ -187,7 +187,12 @@
   "dryad_thornweaver": {
     "name": "Dryad Thornweaver",
     "sprite": "/assets/enemies/sprites/dryad_thornweaver.png",
-    "source": "/assets/enemies/sources/dryad_thornweaver.png"
+    "source": "/assets/enemies/sources/dryad_thornweaver.png",
+    "description": "A lithe female tree spirit with copper-brown bark anatomy, luminous yellow-green eyes, pointed ears, a crown of bare branching antlers, tangled olive foliage, small white flowers, a layered leaf skirt, rooted claw-like feet, an elongated branch-claw, and a living thorn whip coiled in her right hand.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/dryad_thornweaver-attack.png",
+      "death": "/assets/isometric/enemies/dryad_thornweaver-death.png"
+    }
   },
   "fae_blade_dancer": {
     "name": "Fae Blade Dancer",

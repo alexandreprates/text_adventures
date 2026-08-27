@@ -411,6 +411,30 @@ and phase-specific ground-anchor checks after their first production
 normalization. The long rapier and trailing sash remain fully contained in
 every cell.
 
+### Dryad Thornweaver
+
+The Dryad Thornweaver is a lithe female tree spirit whose copper-brown bark
+forms a humanoid body beneath luminous yellow-green eyes, pointed ears, and a
+crown of bare branching antlers. Tangled olive foliage, small white flowers,
+and a layered leaf skirt soften the silhouette around rooted claw-like feet,
+an elongated branch-claw, and a living thorn whip coiled in her right hand.
+The Thorn Lash sequence settles into a guarded crouch, winds the whip through a
+compact overhead loop, snaps it horizontally toward screen-left, and recovers
+to the shared footing. The non-gory death sequence weakens her stance, drops
+her onto both knees, carries her sideways with settling branches, and ends in a
+low motionless silhouette with darkened eyes.
+
+The production sheets are:
+
+- `dryad_thornweaver-attack.png`;
+- `dryad_thornweaver-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. Several drafts were rejected for clipped vines, inter-cell bleed, and
+undersized silhouettes. The accepted sheets preserve native-size readability,
+safe transparent padding, binary alpha, a 32-color RGBA palette, stable phase
+anchors, and fully contained crowns, leaves, claws, and whip arcs.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

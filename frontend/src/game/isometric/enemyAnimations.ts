@@ -168,6 +168,16 @@ export const enemyAnimationRegistry = {
       baselines: [123, 123, 101, 106],
     },
   },
+  dryad_thornweaver: {
+    attack: {
+      path: "/assets/isometric/enemies/dryad_thornweaver-attack.png",
+      baselines: [114, 114, 100, 101],
+    },
+    death: {
+      path: "/assets/isometric/enemies/dryad_thornweaver-death.png",
+      baselines: [109, 110, 97, 103],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
