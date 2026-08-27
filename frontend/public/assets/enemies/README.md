@@ -593,6 +593,38 @@ tail, one continuous labyrinth axe, binary alpha, 31/30 opaque colors, at least
 the same conservative nearest-neighbor scale to 116x116 inside fixed 128x128
 cells so attack and death retain a shared runtime scale.
 
+### Ogre Marauder
+
+The Ogre Marauder is an enormous hunched brute with pale olive-beige warty
+skin, massively muscled long arms, oversized hands, broad bare five-toed feet,
+a mostly bald knobbled scalp beneath a swept-back dark-brown crest, pointed
+ears, amber eyes, a flattened nose, two long lower ivory tusks, and uneven
+smaller teeth. A ragged brown leather-and-fur tunic, torn rust-red loincloth,
+diagonal spiked leather harness, heavy bracers, belt pouches, bone charms, and
+a skull pendant reinforce the marauder identity. One two-handed maul combines
+a leather-wrapped wooden shaft with a single irregular gray boulder locked
+inside a riveted, spiked dark-iron cage. The Maul Swing sequence moves from a
+low guard through a two-handed overhead wind-up, a compressed down-left ground
+impact, and a low recovery. The non-gory death sequence staggers while losing
+the weapon, buckles onto one knee, collapses onto one side beside the released
+maul, and settles into a compact motionless rest.
+
+The production sheets are:
+
+- `ogre_marauder-attack.png`;
+- `ogre_marauder-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because the recovery maul crossed
+the vertical cell boundary. Death drafts were rejected for multiple cell
+boundary crossings, an over-shrunk global repair that broke attack/death scale,
+and remaining top-right and bottom-left composition overflows. The accepted
+sheets preserve two-arm/two-leg anatomy, two lower tusks, one continuous
+boulder-maul, binary alpha, 30 opaque colors plus transparency, at least 6
+pixels of production-cell padding, and phase-specific baselines. Both sheets
+received the same conservative nearest-neighbor scale to 116x116 inside fixed
+128x128 cells so attack and death retain a shared runtime scale.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

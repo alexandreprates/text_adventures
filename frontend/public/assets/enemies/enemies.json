@@ -257,7 +257,12 @@
   "ogre_marauder": {
     "name": "Ogre Marauder",
     "sprite": "/assets/enemies/sprites/ogre_marauder.png",
-    "source": "/assets/enemies/sources/ogre_marauder.png"
+    "source": "/assets/enemies/sources/ogre_marauder.png",
+    "description": "An enormous hunched ogre with pale olive-beige warty skin, massively muscled long arms, oversized hands, broad bare five-toed feet, a mostly bald knobbled scalp beneath a swept-back dark-brown crest, pointed ears, amber eyes, a flattened nose, two long lower ivory tusks, and uneven smaller teeth. A ragged brown leather-and-fur tunic, torn rust-red loincloth, diagonal spiked leather harness, heavy bracers, belt pouches, bone charms, and a skull pendant mark him as a brutal marauder, while one two-handed maul combines a leather-wrapped wooden shaft with a single irregular gray boulder locked inside a riveted, spiked dark-iron cage.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/ogre_marauder-attack.png",
+      "death": "/assets/isometric/enemies/ogre_marauder-death.png"
+    }
   },
   "lizardfolk_scout": {
     "name": "Lizardfolk Scout",

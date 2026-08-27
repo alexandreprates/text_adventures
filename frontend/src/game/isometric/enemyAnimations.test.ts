@@ -339,6 +339,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Ogre Marauder attack and death sheets", () => {
+    expect(enemyAnimationRegistry.ogre_marauder).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/ogre_marauder-attack.png",
+        baselines: [112, 111, 104, 102],
+      },
+      death: {
+        path: "/assets/isometric/enemies/ogre_marauder-death.png",
+        baselines: [113, 118, 107, 101],
+      },
+    });
+    expect(enemyAnimationFor(" OGRE_MARAUDER ")).toBe(
+      enemyAnimationRegistry.ogre_marauder,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

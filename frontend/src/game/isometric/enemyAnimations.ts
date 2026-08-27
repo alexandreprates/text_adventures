@@ -238,6 +238,16 @@ export const enemyAnimationRegistry = {
       baselines: [119, 121, 107, 107],
     },
   },
+  ogre_marauder: {
+    attack: {
+      path: "/assets/isometric/enemies/ogre_marauder-attack.png",
+      baselines: [112, 111, 104, 102],
+    },
+    death: {
+      path: "/assets/isometric/enemies/ogre_marauder-death.png",
+      baselines: [113, 118, 107, 101],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
