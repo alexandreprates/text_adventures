@@ -108,6 +108,16 @@ export const enemyAnimationRegistry = {
       baselines: [124, 121, 101, 107],
     },
   },
+  shadow_imp: {
+    attack: {
+      path: "/assets/isometric/enemies/shadow_imp-attack.png",
+      baselines: [118, 124, 108, 115],
+    },
+    death: {
+      path: "/assets/isometric/enemies/shadow_imp-death.png",
+      baselines: [113, 113, 84, 83],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

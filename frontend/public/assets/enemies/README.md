@@ -280,6 +280,28 @@ phase-specific ground-anchor checks after their first production normalization.
 The conservative scale keeps every fist, foot, chain, and cloth strip inside its
 animation cell.
 
+### Shadow Imp
+
+The Shadow Imp is a small, wiry fiend with near-black violet reptilian skin, two
+tall ridged horns, long pointed ears, luminous magenta eyes, and a grin of thin
+sharp teeth. Elongated clawed hands and feet, one prominent ragged bat wing, a
+curled tail, torn brown loincloth, and metal wrist and ankle bands create its
+agile silhouette. Purple shadow flame clings to the horns, limbs, wing, and tail
+without obscuring those features. The Shadow Claw sequence coils the body,
+concentrates an attached flame around one hand, rakes forward, and settles back
+into a crouch. The non-gory death sequence dims the flame, droops the wing,
+folds the limbs, and leaves a compact grounded body with one fading tail ember.
+
+The production sheets are:
+
+- `shadow_imp-attack.png`;
+- `shadow_imp-death.png`.
+
+Both sheets passed the shared transparency, limited-palette, frame-boundary,
+and phase-specific ground-anchor checks after their first production
+normalization. The attached flame remains inside each cell and never becomes a
+detached generic combat effect.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

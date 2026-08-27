@@ -127,7 +127,12 @@
   "shadow_imp": {
     "name": "Shadow Imp",
     "sprite": "/assets/enemies/sprites/shadow_imp.png",
-    "source": "/assets/enemies/sources/shadow_imp.png"
+    "source": "/assets/enemies/sources/shadow_imp.png",
+    "description": "A small wiry fiend with near-black violet reptilian skin, tall ridged horns, long pointed ears, glowing magenta eyes, thin sharp teeth, elongated claws, a ragged bat wing, a curled tail, a torn brown loincloth, metal bands, and luminous purple shadow flame clinging to its body.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/shadow_imp-attack.png",
+      "death": "/assets/isometric/enemies/shadow_imp-death.png"
+    }
   },
   "brimstone_imp": {
     "name": "Brimstone Imp",

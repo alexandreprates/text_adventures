@@ -149,6 +149,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("zombie_brute")).toBe(enemyAnimationRegistry.zombie_brute);
   });
 
+  it("registers dedicated Shadow Imp attack and death sheets", () => {
+    expect(enemyAnimationRegistry.shadow_imp).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/shadow_imp-attack.png",
+        baselines: [118, 124, 108, 115],
+      },
+      death: {
+        path: "/assets/isometric/enemies/shadow_imp-death.png",
+        baselines: [113, 113, 84, 83],
+      },
+    });
+    expect(enemyAnimationFor("shadow_imp")).toBe(enemyAnimationRegistry.shadow_imp);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
