@@ -177,7 +177,12 @@
   "satyr_duelist": {
     "name": "Satyr Duelist",
     "sprite": "/assets/enemies/sprites/satyr_duelist.png",
-    "source": "/assets/enemies/sources/satyr_duelist.png"
+    "source": "/assets/enemies/sources/satyr_duelist.png",
+    "description": "A lean athletic satyr with warm tan skin, swept dark-brown hair, matching sideburns and goatee, pointed ears, amber eyes, curling segmented ram horns, an ornate brown-and-gold leather vest and bracers, rolled pale sleeves, layered belts, a long gold-trimmed purple sash, shaggy goat legs, cloven hooves, and a slim silver rapier.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/satyr_duelist-attack.png",
+      "death": "/assets/isometric/enemies/satyr_duelist-death.png"
+    }
   },
   "dryad_thornweaver": {
     "name": "Dryad Thornweaver",

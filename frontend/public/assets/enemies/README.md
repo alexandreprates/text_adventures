@@ -389,6 +389,28 @@ edge, and the second introduced visible grid separators. The accepted source is
 separator-free, restores safe padding, and passes the shared alpha, palette,
 boundary, and phase-specific ground-anchor checks.
 
+### Satyr Duelist
+
+The Satyr Duelist is a lean athletic fae with warm tan skin, swept dark-brown
+hair, matching sideburns and goatee, pointed ears, amber eyes, and two large
+segmented ram horns. An ornate brown leather vest and bracers carry gold
+scrollwork above rolled pale sleeves, layered belts, and a long gold-trimmed
+purple sash. Shaggy goat legs, cloven hooves, and a slim silver rapier with an
+engraved round guard finish the confident silhouette. The Rapier Flourish
+sequence circles into a compact high guard, extends through a straight lunge,
+and returns to balance. The non-gory death sequence lowers the blade, buckles
+the goat legs, drops onto one hip, and rests beside the grounded rapier.
+
+The production sheets are:
+
+- `satyr_duelist-attack.png`;
+- `satyr_duelist-death.png`.
+
+Both sheets passed the shared transparency, limited-palette, frame-boundary,
+and phase-specific ground-anchor checks after their first production
+normalization. The long rapier and trailing sash remain fully contained in
+every cell.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

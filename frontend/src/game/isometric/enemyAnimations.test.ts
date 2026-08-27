@@ -219,6 +219,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("pixie_trickster")).toBe(enemyAnimationRegistry.pixie_trickster);
   });
 
+  it("registers dedicated Satyr Duelist attack and death sheets", () => {
+    expect(enemyAnimationRegistry.satyr_duelist).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/satyr_duelist-attack.png",
+        baselines: [116, 114, 100, 105],
+      },
+      death: {
+        path: "/assets/isometric/enemies/satyr_duelist-death.png",
+        baselines: [123, 123, 101, 106],
+      },
+    });
+    expect(enemyAnimationFor("satyr_duelist")).toBe(enemyAnimationRegistry.satyr_duelist);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

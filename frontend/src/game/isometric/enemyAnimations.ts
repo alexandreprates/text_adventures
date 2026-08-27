@@ -158,6 +158,16 @@ export const enemyAnimationRegistry = {
       baselines: [109, 114, 91, 93],
     },
   },
+  satyr_duelist: {
+    attack: {
+      path: "/assets/isometric/enemies/satyr_duelist-attack.png",
+      baselines: [116, 114, 100, 105],
+    },
+    death: {
+      path: "/assets/isometric/enemies/satyr_duelist-death.png",
+      baselines: [123, 123, 101, 106],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
