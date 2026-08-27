@@ -227,7 +227,12 @@
   "cave_troll": {
     "name": "Cave Troll",
     "sprite": "/assets/enemies/sprites/cave_troll.png",
-    "source": "/assets/enemies/sources/cave_troll.png"
+    "source": "/assets/enemies/sources/cave_troll.png",
+    "description": "An enormous hunched cave troll with gray stone-like skin armored in irregular boulder scales, knobs, and small dorsal spikes, a coarse black-brown mane, narrowed amber eyes, pointed ears, a broad flattened nose, two long ivory lower tusks, massive shoulders, elongated clawed arms, thick bent legs, wide three-toed feet, ragged hide and rope wrappings, a bone-and-skull necklace, and a heavy knotted wooden club with a bulbous spiked head.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/cave_troll-attack.png",
+      "death": "/assets/isometric/enemies/cave_troll-death.png"
+    }
   },
   "hill_giant_youth": {
     "name": "Hill Giant Youth",

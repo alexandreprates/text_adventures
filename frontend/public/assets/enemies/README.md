@@ -508,6 +508,33 @@ sheets preserve four visibly distinct connected paws in every frame, feather
 and facial identity, binary alpha, 32-color RGBA palettes, at least 10 pixels
 of cell padding, fixed-cell containment, and phase-specific baselines.
 
+### Cave Troll
+
+The Cave Troll is an enormous hunched brute whose gray stone-like skin forms
+irregular boulder scales, knobs, and small dorsal spikes around a coarse
+black-brown mane. Narrow amber eyes, pointed ears, a broad flattened nose, two
+long ivory lower tusks, massive shoulders, elongated clawed arms, thick bent
+legs, and wide three-toed feet reinforce the low heavy silhouette. Ragged hide
+and rope wrappings, a bone-and-skull necklace, and a knotted wooden club with a
+bulbous spiked head complete the cavern scavenger. The Club Smash sequence
+holds a low diagonal guard, raises the club overhead in both hands, drives it
+down toward screen-left, and recovers into the original crouch. The non-gory
+death sequence staggers while gripping the club, buckles and releases it,
+collapses onto one side, and rests motionless beside the grounded weapon.
+
+The production sheets are:
+
+- `cave_troll-attack.png`;
+- `cave_troll-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft and first two death normalizations were rejected
+for border contact, inconsistent scale, and an unintended mouth color. The
+accepted sheets preserve two-arm/two-leg anatomy, one continuous spiked club,
+binary alpha, 30/31-color RGBA palettes, at least 6 pixels of cell padding, and
+phase-specific baselines. The death cells received one shared conservative
+nearest-neighbor scale and fixed padding pass after visual approval.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

@@ -208,6 +208,16 @@ export const enemyAnimationRegistry = {
       baselines: [109, 109, 81, 81],
     },
   },
+  cave_troll: {
+    attack: {
+      path: "/assets/isometric/enemies/cave_troll-attack.png",
+      baselines: [110, 110, 88, 84],
+    },
+    death: {
+      path: "/assets/isometric/enemies/cave_troll-death.png",
+      baselines: [106, 109, 82, 89],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

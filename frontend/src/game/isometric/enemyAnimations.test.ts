@@ -293,6 +293,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor(" OWLBEAR_CUB ")).toBe(enemyAnimationRegistry.owlbear_cub);
   });
 
+  it("registers dedicated Cave Troll attack and death sheets", () => {
+    expect(enemyAnimationRegistry.cave_troll).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/cave_troll-attack.png",
+        baselines: [110, 110, 88, 84],
+      },
+      death: {
+        path: "/assets/isometric/enemies/cave_troll-death.png",
+        baselines: [106, 109, 82, 89],
+      },
+    });
+    expect(enemyAnimationFor("CAVE_TROLL")).toBe(enemyAnimationRegistry.cave_troll);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
