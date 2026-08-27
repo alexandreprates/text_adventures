@@ -133,7 +133,7 @@ module TextAdventures
             {
               level: level,
               xp: player.progression.skill_xp(skill),
-              next_level_xp: player.progression.xp_required_for(level)
+              next_level_xp: player.progression.xp_required_for(level + 1)
             }
           ]
         end

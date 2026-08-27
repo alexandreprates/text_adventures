@@ -53,7 +53,7 @@ module TextAdventures
     end
 
     def skill_level(skill)
-      level_for(skill_xp(skill))
+      skill_level_for(skill_xp(skill))
     end
 
     def skill_levels
@@ -69,7 +69,7 @@ module TextAdventures
     end
 
     def overall_level
-      level_for(overall_experience)
+      overall_level_for(overall_experience)
     end
 
     def current_class
@@ -102,7 +102,13 @@ module TextAdventures
       value.to_s.downcase.strip.tr(" ", "_").to_sym
     end
 
-    def level_for(experience)
+    def skill_level_for(experience)
+      level = 0
+      level += 1 while experience >= xp_required_for(level + 1)
+      level
+    end
+
+    def overall_level_for(experience)
       level = 1
       level += 1 while experience >= xp_required_for(level)
       level

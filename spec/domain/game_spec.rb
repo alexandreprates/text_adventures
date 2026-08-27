@@ -198,7 +198,7 @@ RSpec.describe TextAdventures::Game do
         Adventurer level 2
         [250/1000 XP]
       TEXT
-      expect(game.handle("skills")).to include "Dagger Mastery: level 2 (250/1000 XP)"
+      expect(game.handle("skills")).to include "Dagger Mastery: level 1 (250/1000 XP)"
       expect(scene.handled_command).to be_nil
     end
 

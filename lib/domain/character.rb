@@ -127,13 +127,12 @@ module TextAdventures
     end
 
     def self.max_health_for(progression)
-      gained_class_levels = [progression.total_class_level - CharacterProgression::SKILL_TRACKS.length, 0].max
-      DEFAULT_HEALTH + (gained_class_levels * HEALTH_PER_CLASS_LEVEL)
+      DEFAULT_HEALTH + (progression.total_class_level * HEALTH_PER_CLASS_LEVEL)
     end
 
     def self.max_mana_for(progression)
-      combat_levels = [progression.skill_level(:combat_magic) - 1, 0].max
-      nature_levels = [progression.skill_level(:nature_magic) - 1, 0].max
+      combat_levels = progression.skill_level(:combat_magic)
+      nature_levels = progression.skill_level(:nature_magic)
       DEFAULT_MANA + ((combat_levels + nature_levels) * MANA_PER_MAGIC_LEVEL) + (progression.overall_level / 2)
     end
 
@@ -355,7 +354,8 @@ module TextAdventures
     def skills_report
       lines = ["Skills:"]
       CharacterProgression::SKILL_TRACKS.each do |skill|
-        lines << " #{skill_label(skill)}: level #{progression.skill_level(skill)} (#{progression.skill_xp(skill)}/#{progression.xp_required_for(progression.skill_level(skill))} XP)"
+        level = progression.skill_level(skill)
+        lines << " #{skill_label(skill)}: level #{level} (#{progression.skill_xp(skill)}/#{progression.xp_required_for(level + 1)} XP)"
       end
       lines.join("\n")
     end
@@ -406,7 +406,7 @@ module TextAdventures
     end
 
     def skill_bonus(skill)
-      [progression.skill_level(skill) - 1, 0].max
+      progression.skill_level(skill)
     end
 
     def equipped_weapon_class

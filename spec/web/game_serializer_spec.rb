@@ -45,7 +45,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       defense: 12
     )
     expect(state.dig(:player, :skills, "swordsmanship")).to eq(
-      level: 1,
+      level: 0,
       xp: 0,
       next_level_xp: 250
     )

@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe TextAdventures::CharacterProgression do
   subject(:progression) { described_class.new }
 
-  it "starts every skill track at zero XP and level one" do
+  it "starts every skill track at zero XP and level zero" do
     expect(progression.skill_experience).to eq(
       swordsmanship: 0,
       spearmanship: 0,
@@ -11,8 +11,8 @@ RSpec.describe TextAdventures::CharacterProgression do
       combat_magic: 0,
       nature_magic: 0
     )
-    expect(progression.skill_levels.values).to all(eq 1)
-    expect(progression.total_class_level).to eq 5
+    expect(progression.skill_levels.values).to all(eq 0)
+    expect(progression.total_class_level).to eq 0
     expect(progression.overall_experience).to eq 0
     expect(progression.overall_level).to eq 1
     expect(progression.current_class).to eq "Adventurer"
@@ -35,8 +35,8 @@ RSpec.describe TextAdventures::CharacterProgression do
     progression.add_skill_xp("dagger mastery", 255)
 
     expect(progression.skill_xp(:dagger_mastery)).to eq 255
-    expect(progression.skill_level(:dagger_mastery)).to eq 2
-    expect(progression.total_class_level).to eq 6
+    expect(progression.skill_level(:dagger_mastery)).to eq 1
+    expect(progression.total_class_level).to eq 1
     expect(progression.overall_experience).to eq 255
     expect(progression.overall_level).to eq 2
   end
@@ -70,12 +70,12 @@ RSpec.describe TextAdventures::CharacterProgression do
 
     progression.add_skill_xp(:combat_magic, 999)
 
-    expect(progression.skill_level(:combat_magic)).to eq 2
+    expect(progression.skill_level(:combat_magic)).to eq 1
     expect(progression.overall_level).to eq 2
 
     progression.add_skill_xp(:combat_magic, 1)
 
-    expect(progression.skill_level(:combat_magic)).to eq 3
+    expect(progression.skill_level(:combat_magic)).to eq 2
     expect(progression.overall_level).to eq 3
   end
 

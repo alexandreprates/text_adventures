@@ -37,7 +37,7 @@ const townPayload: MockGamePayload = {
       inventory: [{ name: "potion of heal", display_name: "Potion of Heal", type: "potion", quantity: 5 }],
       spells: [],
       skills: {
-        swordsmanship: { level: 1, xp: 0, next_level_xp: 250 },
+        swordsmanship: { level: 0, xp: 0, next_level_xp: 250 },
       },
     },
     dungeon: null,
@@ -634,7 +634,7 @@ const resupplyPlayer = {
   ],
   spells: [],
   skills: {
-    swordsmanship: { level: 1, xp: 0, next_level_xp: 250 },
+    swordsmanship: { level: 0, xp: 0, next_level_xp: 250 },
   },
 };
 

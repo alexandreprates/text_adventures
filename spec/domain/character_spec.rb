@@ -72,7 +72,7 @@ RSpec.describe TextAdventures::Character do
       expect(character.progression).to be_a TextAdventures::CharacterProgression
       expect(character.overall_experience).to eq 0
       expect(character.overall_level).to eq 1
-      expect(character.skill_levels.values).to all(eq 1)
+      expect(character.skill_levels.values).to all(eq 0)
     end
 
     context "with custom attributes" do
@@ -161,7 +161,7 @@ RSpec.describe TextAdventures::Character do
         .to change { character.skill_experience[:spearmanship] }
         .from(0).to(250)
 
-      expect(character.skill_levels[:spearmanship]).to eq 2
+      expect(character.skill_levels[:spearmanship]).to eq 1
       expect(character.overall_experience).to eq 250
       expect(character.overall_level).to eq 2
     end
@@ -197,34 +197,34 @@ RSpec.describe TextAdventures::Character do
 
       character.gain_skill_xp(:swordsmanship, 249)
       expect(character.current_class).to eq "Warlord"
-      expect(character.progression.total_class_level).to eq 5
+      expect(character.progression.total_class_level).to eq 0
       expect(character.health).to have_attributes(current: 18, max: 30)
 
       character.gain_skill_xp(:swordsmanship, 1)
       expect(character.current_class).to eq "Warlord"
-      expect(character.skill_levels[:swordsmanship]).to eq 2
-      expect(character.progression.total_class_level).to eq 6
+      expect(character.skill_levels[:swordsmanship]).to eq 1
+      expect(character.progression.total_class_level).to eq 1
       expect(character.health).to have_attributes(current: 35, max: 35)
 
       character.take_damage(7)
       character.gain_skill_xp(:combat_magic, 250)
       expect(character.current_class).to eq "Spellblade"
-      expect(character.skill_levels.values_at(:swordsmanship, :combat_magic)).to eq [2, 2]
-      expect(character.progression.total_class_level).to eq 7
+      expect(character.skill_levels.values_at(:swordsmanship, :combat_magic)).to eq [1, 1]
+      expect(character.progression.total_class_level).to eq 2
       expect(character.health).to have_attributes(current: 40, max: 40)
 
       character.take_damage(15)
       character.gain_skill_xp(:dagger_mastery, 1_000)
       expect(character.current_class).to eq "Duelist"
-      expect(character.skill_levels[:dagger_mastery]).to eq 3
-      expect(character.progression.total_class_level).to eq 9
+      expect(character.skill_levels[:dagger_mastery]).to eq 2
+      expect(character.progression.total_class_level).to eq 4
       expect(character.health).to have_attributes(current: 50, max: 50)
 
       character.take_damage(20)
       character.gain_skill_xp(:dagger_mastery, 1_250)
       expect(character.current_class).to eq "Nightblade"
-      expect(character.skill_levels[:dagger_mastery]).to eq 4
-      expect(character.progression.total_class_level).to eq 10
+      expect(character.skill_levels[:dagger_mastery]).to eq 3
+      expect(character.progression.total_class_level).to eq 5
       expect(character.health).to have_attributes(current: 55, max: 55)
     end
   end
@@ -562,11 +562,11 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.skills_report).to eq <<~TEXT.chomp
         Skills:
-         Swordsmanship: level 2 (260/1000 XP)
-         Spearmanship: level 1 (0/250 XP)
-         Dagger Mastery: level 1 (0/250 XP)
-         Combat Magic: level 1 (20/250 XP)
-         Nature Magic: level 1 (0/250 XP)
+         Swordsmanship: level 1 (260/1000 XP)
+         Spearmanship: level 0 (0/250 XP)
+         Dagger Mastery: level 0 (0/250 XP)
+         Combat Magic: level 0 (20/250 XP)
+         Nature Magic: level 0 (0/250 XP)
       TEXT
     end
   end
