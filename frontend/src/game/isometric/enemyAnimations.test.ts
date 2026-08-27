@@ -371,6 +371,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Naga Apprentice attack and death sheets", () => {
+    expect(enemyAnimationRegistry.naga_apprentice).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/naga_apprentice-attack.png",
+        baselines: [115, 114, 104, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/naga_apprentice-death.png",
+        baselines: [116, 111, 93, 95],
+      },
+    });
+    expect(enemyAnimationFor(" NAGA_APPRENTICE ")).toBe(
+      enemyAnimationRegistry.naga_apprentice,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

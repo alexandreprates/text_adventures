@@ -258,6 +258,16 @@ export const enemyAnimationRegistry = {
       baselines: [116, 116, 95, 100],
     },
   },
+  naga_apprentice: {
+    attack: {
+      path: "/assets/isometric/enemies/naga_apprentice-attack.png",
+      baselines: [115, 114, 104, 106],
+    },
+    death: {
+      path: "/assets/isometric/enemies/naga_apprentice-death.png",
+      baselines: [116, 111, 93, 95],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

@@ -277,7 +277,12 @@
   "naga_apprentice": {
     "name": "Naga Apprentice",
     "sprite": "/assets/enemies/sprites/naga_apprentice.png",
-    "source": "/assets/enemies/sources/naga_apprentice.png"
+    "source": "/assets/enemies/sources/naga_apprentice.png",
+    "description": "A feminine naga apprentice with a scaled humanoid upper torso, exactly two clawed arms, and no legs above one long dark bronze-olive serpent body looped into a broad ground coil, with pale segmented belly plates and one curling tail tip. Her refined dragonlike face has amber eyes, a swept crown of hornlike gold-brown head fins, a blue diamond forehead gem, and dark indigo-black back fins or hair bound with gold beads and torn purple ribbons. Layered violet robes with narrow gold trim form a crossed bodice, tattered sleeve scarves, and ragged skirt panels around gold armbands, bracers, an ornate belt and collar set with blue gems, and several potion vials, while cyan-white arcane flame gathers over one open palm.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/naga_apprentice-attack.png",
+      "death": "/assets/isometric/enemies/naga_apprentice-death.png"
+    }
   },
   "yuan_ti_cutthroat": {
     "name": "Yuan-ti Cutthroat",

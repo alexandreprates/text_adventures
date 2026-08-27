@@ -658,6 +658,39 @@ phase-specific baselines. Both sheets received the same conservative
 nearest-neighbor scale to 120x120 inside fixed 128x128 cells so attack and death
 retain a shared runtime scale.
 
+### Naga Apprentice
+
+The Naga Apprentice has a feminine scaled humanoid upper torso, exactly two
+clawed arms, and no legs above one long dark bronze-olive serpent body looped
+into a broad ground coil, with pale segmented belly plates and one curling tail
+tip. Her refined dragonlike face has amber eyes, a swept crown of hornlike
+gold-brown head fins, a blue diamond forehead gem, and dark indigo-black back
+fins or hair bound with gold beads and torn purple ribbons. Layered violet
+robes with narrow gold trim form a crossed bodice, tattered sleeve scarves, and
+ragged skirt panels around gold armbands, bracers, an ornate blue-gem belt and
+collar, and several potion vials. Cyan-white arcane flame gathers above one
+open palm. The Arcane Fang sequence moves from a guarded flame through a
+two-handed concentration, launches one spectral serpent-fang bolt down-left,
+and returns to a controlled magical guard. The non-gory death sequence recoils
+as the flame gutters, slumps over the planted coil, collapses onto one side as
+the coil loosens, and rests motionless with the torso folded across the tail.
+
+The production sheets are:
+
+- `naga_apprentice-attack.png`;
+- `naga_apprentice-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first generated drafts passed the visual topology gate: every frame
+preserves exactly two connected arms, zero legs, one natural torso-to-tail
+junction, one continuous coil, one tail tip, stable gems and clothing, and
+magic that remains distinct from anatomy. The shared conservative
+nearest-neighbor scale to 116x116 inside fixed 128x128 cells raised the attack
+impact's two-source-pixel margin to 6 production pixels without changing
+content or relative scale. The accepted sheets use binary alpha, 31 opaque
+colors, at least 6/9 pixels of attack/death padding, and exact phase-specific
+baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
