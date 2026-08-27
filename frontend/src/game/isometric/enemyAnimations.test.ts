@@ -387,6 +387,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Yuan-ti Cutthroat attack and death sheets", () => {
+    expect(enemyAnimationRegistry.yuan_ti_cutthroat).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/yuan_ti_cutthroat-attack.png",
+        baselines: [112, 112, 102, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/yuan_ti_cutthroat-death.png",
+        baselines: [113, 114, 95, 97],
+      },
+    });
+    expect(enemyAnimationFor("YUAN_TI_CUTTHROAT")).toBe(
+      enemyAnimationRegistry.yuan_ti_cutthroat,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

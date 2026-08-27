@@ -691,6 +691,38 @@ content or relative scale. The accepted sheets use binary alpha, 31 opaque
 colors, at least 6/9 pixels of attack/death padding, and exact phase-specific
 baselines.
 
+### Yuan-ti Cutthroat
+
+The Yuan-ti Cutthroat is a hooded serpent assassin with an olive-bronze scaled
+humanoid torso, exactly two clawed arms, and no legs above one heavy snake body
+coiled on the ground, its pale tan belly plates ending in a single curled tail
+tip. A long narrow reptilian face peers from a charcoal-black hood with one
+visible amber slit-pupil eye and a short purple forked tongue. A torn
+gold-trimmed cowl and layered split tunic sit beneath brown leather straps,
+buckles, belts, and bracers. An angular gold belt emblem, one attached green
+poison vial, and one brown pouch accompany exactly one broad curved silver
+knife with a wavy engraved groove, ornate gold guard, and ring pommel. The
+Venom Knife sequence moves from a low guard through an overhead wind-up, a
+short low cut toward down-left, and a controlled recovery. The non-gory death
+sequence staggers with the knife lowering, slumps over the coil as the weapon
+slips free, collapses onto one side, and rests motionless beside the intact
+released knife.
+
+The production sheets are:
+
+- `yuan_ti_cutthroat-attack.png`;
+- `yuan_ti_cutthroat-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because detached green venom
+streaks obscured the otherwise clean knife impact. The accepted attack and
+first death draft preserve exactly two connected arms, zero legs, one natural
+torso-to-tail junction, one continuous coil, one tail tip, one curved knife,
+and stable poison vial and pouch details. Both sheets received the same
+conservative nearest-neighbor scale to 116x116 inside fixed 128x128 cells. The
+production results use binary alpha, 31 opaque colors, at least 9/7 pixels of
+attack/death padding, shared runtime scale, and exact phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

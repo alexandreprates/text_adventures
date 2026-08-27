@@ -287,7 +287,12 @@
   "yuan_ti_cutthroat": {
     "name": "Yuan-ti Cutthroat",
     "sprite": "/assets/enemies/sprites/yuan_ti_cutthroat.png",
-    "source": "/assets/enemies/sources/yuan_ti_cutthroat.png"
+    "source": "/assets/enemies/sources/yuan_ti_cutthroat.png",
+    "description": "A hooded serpent assassin with an olive-bronze scaled humanoid torso, exactly two clawed arms, and no legs above one heavy snake body coiled on the ground, its pale tan belly plates ending in a single curled tail tip. A long narrow reptilian face peers from a charcoal-black hood with one visible amber slit-pupil eye and a short purple forked tongue, while a torn gold-trimmed cowl and layered split tunic sit beneath brown leather straps, buckles, belts, and bracers. An angular gold belt emblem, one attached green poison vial, and one brown pouch accompany exactly one broad curved silver knife with a wavy engraved groove, ornate gold guard, and ring pommel.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/yuan_ti_cutthroat-attack.png",
+      "death": "/assets/isometric/enemies/yuan_ti_cutthroat-death.png"
+    }
   },
   "basilisk_hatchling": {
     "name": "Basilisk Hatchling",

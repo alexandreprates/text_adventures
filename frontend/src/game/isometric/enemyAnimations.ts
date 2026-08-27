@@ -268,6 +268,16 @@ export const enemyAnimationRegistry = {
       baselines: [116, 111, 93, 95],
     },
   },
+  yuan_ti_cutthroat: {
+    attack: {
+      path: "/assets/isometric/enemies/yuan_ti_cutthroat-attack.png",
+      baselines: [112, 112, 102, 106],
+    },
+    death: {
+      path: "/assets/isometric/enemies/yuan_ti_cutthroat-death.png",
+      baselines: [113, 114, 95, 97],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
