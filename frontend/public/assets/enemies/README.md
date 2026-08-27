@@ -754,6 +754,39 @@ stable stone scales and dorsal spikes, and a shared nearest-neighbor scale of
 31/29 opaque colors, at least 11/9 pixels of attack/death padding, shared
 runtime scale, and exact phase-specific baselines.
 
+### Harpy Screecher
+
+The Harpy Screecher is a lean female avian humanoid with exactly two clawed
+arms, two enormous feathered wings rising separately from her upper back, two
+digitigrade bird legs ending in broad hooked talons, and no tail. Her gaunt tan
+face has long pointed ears, fierce amber eyes, a hooked gray beaklike nose, and
+a snarling tooth-lined mouth beneath a wild windswept mane of dark brown hair.
+Layered umber, brown, charcoal, and gray feathers cover the wings, shoulders,
+hips, and lower legs, while ragged olive-green cloth wraps her chest and waist
+beneath amber bead necklaces and belts, with a single pale feather charm at
+her hip. The Talon Rake sequence moves from a low wing-spread guard through a
+coiled one-legged anticipation, drives one broad taloned foot down-left in a
+short raking lunge, and returns to a balanced crouch. The non-gory death
+sequence recoils with wings flared, buckles toward one knee, collapses onto one
+side as both wings fold, and rests motionless with the legs naturally stacked.
+
+The production sheets are:
+
+- `harpy_screecher-attack.png`;
+- `harpy_screecher-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because both lower poses touched
+their shared vertical boundary. The first death draft was rejected because
+the upper-left foot and lower-left wing met across the horizontal boundary and
+the far legs were too heavily occluded in the final poses. Focused ImageGen
+edits restored safe separation and readable stacked anatomy without changing
+the approved actions. The accepted sheets preserve exactly two arms, two back
+wings, two bird legs, one head, and no tail. Both use the same conservative
+nearest-neighbor scale of 116x116 inside fixed 128x128 cells. The production
+results use binary alpha, 30 opaque colors per sheet, at least 6/7 pixels of
+attack/death padding, shared runtime scale, and exact phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

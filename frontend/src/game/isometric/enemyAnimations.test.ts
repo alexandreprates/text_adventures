@@ -419,6 +419,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Harpy Screecher attack and death sheets", () => {
+    expect(enemyAnimationRegistry.harpy_screecher).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/harpy_screecher-attack.png",
+        baselines: [119, 121, 105, 108],
+      },
+      death: {
+        path: "/assets/isometric/enemies/harpy_screecher-death.png",
+        baselines: [110, 115, 96, 98],
+      },
+    });
+    expect(enemyAnimationFor("HARPY_SCREECHER")).toBe(
+      enemyAnimationRegistry.harpy_screecher,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

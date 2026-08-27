@@ -307,7 +307,12 @@
   "harpy_screecher": {
     "name": "Harpy Screecher",
     "sprite": "/assets/enemies/sprites/harpy_screecher.png",
-    "source": "/assets/enemies/sources/harpy_screecher.png"
+    "source": "/assets/enemies/sources/harpy_screecher.png",
+    "description": "A lean female avian humanoid with exactly two clawed arms, two enormous feathered wings rising separately from her upper back, two digitigrade bird legs ending in broad hooked talons, and no tail. Her gaunt tan face has long pointed ears, fierce amber eyes, a hooked gray beaklike nose, and a snarling tooth-lined mouth beneath a wild windswept mane of dark brown hair. Layered umber, brown, charcoal, and gray feathers cover the wings, shoulders, hips, and lower legs, while ragged olive-green cloth wraps her chest and waist beneath amber bead necklaces and belts, with a single pale feather charm at her hip.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/harpy_screecher-attack.png",
+      "death": "/assets/isometric/enemies/harpy_screecher-death.png"
+    }
   },
   "griffin_fledgling": {
     "name": "Griffin Fledgling",

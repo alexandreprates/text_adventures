@@ -288,6 +288,16 @@ export const enemyAnimationRegistry = {
       baselines: [112, 114, 87, 88],
     },
   },
+  harpy_screecher: {
+    attack: {
+      path: "/assets/isometric/enemies/harpy_screecher-attack.png",
+      baselines: [119, 121, 105, 108],
+    },
+    death: {
+      path: "/assets/isometric/enemies/harpy_screecher-death.png",
+      baselines: [110, 115, 96, 98],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
