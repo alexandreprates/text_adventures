@@ -29,6 +29,7 @@ import {
   isDragoonClass,
   isDuelistClass,
   isHexbladeClass,
+  isMysticClass,
   isNightbladeClass,
   isRangerClass,
   isSentinelClass,
@@ -40,6 +41,9 @@ import {
   nightbladeAnimationLayout,
   nightbladeFacingFrame,
   nightbladeFacingFrames,
+  mysticAnimationLayout,
+  mysticFacingFrame,
+  mysticFacingFrames,
   rangerAnimationLayout,
   rangerFacingFrame,
   rangerFacingFrames,
@@ -92,6 +96,8 @@ describe("isometricAssetPaths", () => {
       hexbladeAttack: "/assets/isometric/actors/hexblade-attack.png",
       rangerWalk: "/assets/isometric/actors/ranger-walk.png",
       rangerAttack: "/assets/isometric/actors/ranger-attack.png",
+      mysticWalk: "/assets/isometric/actors/mystic-walk.png",
+      mysticAttack: "/assets/isometric/actors/mystic-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -108,6 +114,7 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Hexblade")).toBe("hexblade");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
+    expect(animatedPlayerClass("Mystic")).toBe("mystic");
     expect(animatedPlayerClass("Ranger")).toBe("ranger");
     expect(animatedPlayerClass("Sentinel")).toBe("sentinel");
     expect(animatedPlayerClass("Skirmisher")).toBe("skirmisher");
@@ -115,6 +122,31 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Mystic animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isMysticClass("Mystic")).toBe(true);
+    expect(isMysticClass(" mystic ")).toBe(true);
+    expect(isMysticClass("Arcanist")).toBe(false);
+    expect(mysticAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(mysticAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Mystic sheet's projected facings", () => {
+    expect(mysticFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(mysticFacingFrame("up")).toBe(0);
+    expect(mysticFacingFrame("right")).toBe(1);
+    expect(mysticFacingFrame("down")).toBe(2);
+    expect(mysticFacingFrame("left")).toBe(3);
+    expect(mysticFacingFrame("unknown")).toBe(1);
   });
 });
 

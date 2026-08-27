@@ -1,5 +1,41 @@
 # Isometric Actor Sprites
 
+## Mystic
+
+The Mystic is a young astral oracle whose pale face and magenta eyes remain
+visible beneath very long white-to-lavender hair. Her flowing ivory, lilac,
+and violet ceremonial dress combines a deep-violet bodice with restrained
+gold and coral-pink filigree in star and flower motifs. She carries exactly
+one short ornate scepter whose rose-coral faceted orb rests in a gold-violet
+cradle. Small cyan-violet moon and petal motes express her combined combat and
+nature magic without repeating the Arcanist's long staff or the Ranger's bow.
+
+The Mystic animation assets are:
+
+- `mystic-walk.png`: walk phase A, neutral passing pose, and walk phase B with
+  the short scepter present in every frame and only tightly contained motes.
+- `mystic-attack.png`: preparation, a compact lunar-flower sigil attached to
+  the scepter, and recovery as the sigil contracts into nearby motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Mystic class atlas as the strict identity reference. The
+existing Arcanist and Ranger directional actors were used only for layout,
+scale, caster timing, outline, and restrained nature-light guidance. Walk and
+attack were generated in separate passes, with dedicated revisions to preserve
+the scepter across the walk cycle and keep attack effects inside their cells.
+Production files were normalized mechanically with nearest-neighbor resizing,
+hard chroma-key removal, fixed per-cell padding, row-preserving baseline
+alignment, binary alpha, and non-dithered palette quantization.
+
 ## Ranger
 
 The Ranger is a lean young dark-woodland hunter whose visible pale face and

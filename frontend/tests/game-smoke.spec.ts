@@ -266,6 +266,17 @@ const rangerRuinsPayload: MockGamePayload = {
   },
 };
 
+const mysticRuinsPayload: MockGamePayload = {
+  ...wideRuinsPayload,
+  state: {
+    ...wideRuinsPayload.state,
+    player: {
+      ...(wideRuinsPayload.state.player as Record<string, unknown>),
+      current_class: "Mystic",
+    },
+  },
+};
+
 const combatPayload: MockGamePayload = {
   ...isometricRuinsPayload,
   events: [
@@ -441,6 +452,17 @@ const rangerCombatPayload: MockGamePayload = {
     player: {
       ...(wardenCombatPayload.state.player as Record<string, unknown>),
       current_class: "Ranger",
+    },
+  },
+};
+
+const mysticCombatPayload: MockGamePayload = {
+  ...wardenCombatPayload,
+  state: {
+    ...wardenCombatPayload.state,
+    player: {
+      ...(wardenCombatPayload.state.player as Record<string, unknown>),
+      current_class: "Mystic",
     },
   },
 };
@@ -1533,6 +1555,27 @@ test("renders the Ranger directional player assets", async ({ page }) => {
     .toBe(1);
 });
 
+test("renders the Mystic directional player assets", async ({ page }) => {
+  await mockGame(page, mysticRuinsPayload);
+  await page.goto("/");
+
+  const canvas = page.getByLabel("Dungeon map");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(canvas).toBeVisible();
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const canvasElement = element as HTMLCanvasElement;
+        const context = canvasElement.getContext("2d");
+        if (!context) return 0;
+        const pixels = context.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
+        return pixels.some((value, index) => index % 4 === 3 && value > 0) ? 1 : 0;
+      }),
+    )
+    .toBe(1);
+});
+
 test("renders the Duelist attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockGame(page, duelistCombatPayload);
@@ -1656,6 +1699,18 @@ test("renders the Hexblade attack assets during player combat", async ({ page })
 test("renders the Ranger attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await mockGame(page, rangerCombatPayload);
+  await page.goto("/");
+
+  const canvas = page.getByLabel("Dungeon map");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(canvas).toBeVisible();
+  await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
+});
+
+test("renders the Mystic attack assets during player combat", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, mysticCombatPayload);
   await page.goto("/");
 
   const canvas = page.getByLabel("Dungeon map");
