@@ -79,6 +79,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("kobold_sparkmage")).toBe(enemyAnimationRegistry.kobold_sparkmage);
   });
 
+  it("registers dedicated Gnoll Hunter attack and death sheets", () => {
+    expect(enemyAnimationRegistry.gnoll_hunter).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/gnoll_hunter-attack.png",
+        baselines: [109, 107, 97, 99],
+      },
+      death: {
+        path: "/assets/isometric/enemies/gnoll_hunter-death.png",
+        baselines: [113, 113, 105, 105],
+      },
+    });
+    expect(enemyAnimationFor("gnoll_hunter")).toBe(enemyAnimationRegistry.gnoll_hunter);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

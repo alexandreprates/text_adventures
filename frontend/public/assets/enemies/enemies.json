@@ -67,7 +67,12 @@
   "gnoll_hunter": {
     "name": "Gnoll Hunter",
     "sprite": "/assets/enemies/sprites/gnoll_hunter.png",
-    "source": "/assets/enemies/sources/gnoll_hunter.png"
+    "source": "/assets/enemies/sources/gnoll_hunter.png",
+    "description": "A tall lean hyena humanoid with mottled ochre-brown fur, a dark bristled mane, pointed ears, an amber eye, a long fanged muzzle, crude rawhide and bone gear, a scratched round wooden shield, a dark-tipped hunting spear, and digitigrade clawed feet.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/gnoll_hunter-attack.png",
+      "death": "/assets/isometric/enemies/gnoll_hunter-death.png"
+    }
   },
   "gnoll_bonecaller": {
     "name": "Gnoll Bonecaller",

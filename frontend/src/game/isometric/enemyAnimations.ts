@@ -58,6 +58,16 @@ export const enemyAnimationRegistry = {
       baselines: [120, 120, 88, 92],
     },
   },
+  gnoll_hunter: {
+    attack: {
+      path: "/assets/isometric/enemies/gnoll_hunter-attack.png",
+      baselines: [109, 107, 97, 99],
+    },
+    death: {
+      path: "/assets/isometric/enemies/gnoll_hunter-death.png",
+      baselines: [113, 113, 105, 105],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

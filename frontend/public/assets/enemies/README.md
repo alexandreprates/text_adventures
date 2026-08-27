@@ -174,6 +174,25 @@ The production sheets are:
 The sheets passed the shared transparency, limited-palette, cell-boundary, and
 ground-anchor checks while keeping every electrical accent inside its frame.
 
+### Gnoll Hunter
+
+The Gnoll Hunter is a tall, lean hyena humanoid with mottled ochre-brown fur, a
+dark bristled mane, pointed ears, an amber eye, and a long fanged muzzle. Crude
+rawhide and bone gear carries a scratched round wooden shield and a long hunting
+spear with a dark leaf-shaped point. Digitigrade clawed feet and a low hunched
+posture keep the silhouette predatory. The Hunting Spear sequence loads behind
+the shield, reaches into a long protected thrust, and withdraws into guard. The
+non-gory death sequence drops both tools as the legs buckle and ends with the
+lean body, spear, and shield grounded together.
+
+The production sheets are:
+
+- `gnoll_hunter-attack.png`;
+- `gnoll_hunter-death.png`.
+
+The full spear remained inside the attack cells, and both sheets passed the
+shared transparency, palette, boundary, and phase-specific ground-anchor checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
