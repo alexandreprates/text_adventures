@@ -483,6 +483,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Dragon Wyrmling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dragon_wyrmling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dragon_wyrmling-attack.png",
+        baselines: [97, 97, 78, 78],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dragon_wyrmling-death.png",
+        baselines: [95, 97, 66, 66],
+      },
+    });
+    expect(enemyAnimationFor("DRAGON_WYRMLING")).toBe(
+      enemyAnimationRegistry.dragon_wyrmling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

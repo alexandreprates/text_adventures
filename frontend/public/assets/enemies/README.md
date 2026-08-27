@@ -886,6 +886,44 @@ production results use binary alpha, 31/31 opaque colors, at least 14/12
 pixels of attack/death padding, shared runtime scale, and exact phase-specific
 baselines.
 
+### Dragon Wyrmling
+
+The Dragon Wyrmling is a compact juvenile red dragon with a low four-legged
+stance, exactly two broad leathery wings, and one thick tapering tail curled
+beside its haunches. Two long swept ivory-gold horns crown its wedge-shaped
+head above smaller brow and cheek spikes, a fierce amber slit-pupil eye, and a
+tooth-lined jaw glowing with stray embers. Dense crimson and dark ruby scales
+armor the neck, shoulders, limbs, and tail, while bronze-gold segments protect
+the throat and belly. Jagged red-gold spines run from the crown along the back,
+and deep red-brown wing membranes stretch between crimson fingers above four
+heavy black-clawed feet. The Ember Breath sequence crouches to inhale, charges
+the glowing chest and throat, releases one short connected cone of flame to
+the left, and recovers into a grounded guard. The non-gory death sequence
+staggers, buckles through the forelegs, settles onto one side, and rests fully
+motionless with folded wings and a relaxed tail.
+
+The production sheets are:
+
+- `dragon_wyrmling-attack.png`;
+- `dragon_wyrmling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because its impact tail touched
+the internal divider. A focused ImageGen edit restored safe spacing, and a
+second focused edit removed detached ember pixels from the flame cone. The
+first death draft was rejected because its settled tail crossed into the final
+cell; the accepted edit reduced the shared scale and retained readable folded
+wing layers. Independent review then rejected the alternating horizontal
+origin between cell columns. Two ImageGen edits reduced that drift, followed
+by a conservative fixed-cell translation of the intact right-column frames
+that aligned the shared pelvis origin without changing their pixels or scale.
+The accepted sheets preserve exactly two wings, four legs, two long crown
+horns, one head, and one continuous tail without a stinger. Both use the same
+conservative nearest-neighbor scale of 120x120 inside fixed 128x128 cells. The
+production results use binary alpha, 30/30 opaque colors, at least 18/14
+pixels of attack/death padding, shared runtime scale, and exact phase-specific
+baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

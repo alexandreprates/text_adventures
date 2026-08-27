@@ -347,7 +347,12 @@
   "dragon_wyrmling": {
     "name": "Dragon Wyrmling",
     "sprite": "/assets/enemies/sprites/dragon_wyrmling.png",
-    "source": "/assets/enemies/sources/dragon_wyrmling.png"
+    "source": "/assets/enemies/sources/dragon_wyrmling.png",
+    "description": "A compact juvenile red dragon with a low four-legged stance, two broad leathery wings, and one thick tapering tail curled beside its haunches. Two long swept ivory-gold horns crown its wedge-shaped head above smaller brow and cheek spikes, a fierce amber slit-pupil eye, and a tooth-lined jaw glowing with stray embers. Dense overlapping crimson and dark ruby scales armor the neck, shoulders, limbs, and tail, while pale bronze-gold segments protect the throat and belly. Jagged red-gold spines run from the crown along the back, and deep red-brown wing membranes stretch between bright crimson fingers above four heavy black-clawed feet.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/dragon_wyrmling-attack.png",
+      "death": "/assets/isometric/enemies/dragon_wyrmling-death.png"
+    }
   },
   "elemental_spark": {
     "name": "Elemental Spark",

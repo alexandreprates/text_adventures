@@ -328,6 +328,16 @@ export const enemyAnimationRegistry = {
       baselines: [100, 102, 72, 72],
     },
   },
+  dragon_wyrmling: {
+    attack: {
+      path: "/assets/isometric/enemies/dragon_wyrmling-attack.png",
+      baselines: [97, 97, 78, 78],
+    },
+    death: {
+      path: "/assets/isometric/enemies/dragon_wyrmling-death.png",
+      baselines: [95, 97, 66, 66],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
