@@ -193,6 +193,26 @@ The production sheets are:
 The full spear remained inside the attack cells, and both sheets passed the
 shared transparency, palette, boundary, and phase-specific ground-anchor checks.
 
+### Gnoll Bonecaller
+
+The Gnoll Bonecaller is a hunched ochre-brown hyena shaman with a dark bristled
+mane, long fanged muzzle, worn hide garments, and tooth-and-bone amulets. A
+twisted skull focus and sickly emerald spirit flame distinguish both hands. The
+Bone Shards sequence raises the focus, forms pale splinters inside the green
+energy, casts a short attached fan, and returns to a faint ritual flicker. The
+non-gory death sequence suffers magical backlash, sinks to one knee, loses the
+focus, and ends with the body and extinguished fetish grounded together.
+
+The production sheets are:
+
+- `gnoll_bonecaller-attack.png`;
+- `gnoll_bonecaller-death.png`.
+
+The death sheet was regenerated twice: the first draft touched a cell edge and
+the second introduced horizontal anchor drift. The accepted draft preserves
+safe padding and a stable torso axis while passing the shared alpha, palette,
+boundary, and ground-anchor checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

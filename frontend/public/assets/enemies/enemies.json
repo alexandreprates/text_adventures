@@ -77,7 +77,12 @@
   "gnoll_bonecaller": {
     "name": "Gnoll Bonecaller",
     "sprite": "/assets/enemies/sprites/gnoll_bonecaller.png",
-    "source": "/assets/enemies/sources/gnoll_bonecaller.png"
+    "source": "/assets/enemies/sources/gnoll_bonecaller.png",
+    "description": "A hunched ochre-brown hyena shaman with a dark bristled mane, long fanged muzzle, worn hide garments, tooth and bone amulets, digitigrade claws, a twisted skull-and-bone ritual focus, and sickly emerald spirit flame around both the focus and free hand.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/gnoll_bonecaller-attack.png",
+      "death": "/assets/isometric/enemies/gnoll_bonecaller-death.png"
+    }
   },
   "skeleton_guard": {
     "name": "Skeleton Guard",

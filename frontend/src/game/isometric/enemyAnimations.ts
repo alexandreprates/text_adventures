@@ -68,6 +68,16 @@ export const enemyAnimationRegistry = {
       baselines: [113, 113, 105, 105],
     },
   },
+  gnoll_bonecaller: {
+    attack: {
+      path: "/assets/isometric/enemies/gnoll_bonecaller-attack.png",
+      baselines: [119, 119, 106, 111],
+    },
+    death: {
+      path: "/assets/isometric/enemies/gnoll_bonecaller-death.png",
+      baselines: [116, 115, 79, 80],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

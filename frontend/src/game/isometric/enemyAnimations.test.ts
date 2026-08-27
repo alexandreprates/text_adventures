@@ -93,6 +93,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("gnoll_hunter")).toBe(enemyAnimationRegistry.gnoll_hunter);
   });
 
+  it("registers dedicated Gnoll Bonecaller attack and death sheets", () => {
+    expect(enemyAnimationRegistry.gnoll_bonecaller).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/gnoll_bonecaller-attack.png",
+        baselines: [119, 119, 106, 111],
+      },
+      death: {
+        path: "/assets/isometric/enemies/gnoll_bonecaller-death.png",
+        baselines: [116, 115, 79, 80],
+      },
+    });
+    expect(enemyAnimationFor("gnoll_bonecaller")).toBe(enemyAnimationRegistry.gnoll_bonecaller);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
