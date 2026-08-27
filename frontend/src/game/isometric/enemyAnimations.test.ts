@@ -403,6 +403,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Basilisk Hatchling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.basilisk_hatchling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/basilisk_hatchling-attack.png",
+        baselines: [110, 110, 90, 91],
+      },
+      death: {
+        path: "/assets/isometric/enemies/basilisk_hatchling-death.png",
+        baselines: [112, 114, 87, 88],
+      },
+    });
+    expect(enemyAnimationFor(" BASILISK_HATCHLING ")).toBe(
+      enemyAnimationRegistry.basilisk_hatchling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

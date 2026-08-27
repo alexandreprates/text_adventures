@@ -395,6 +395,7 @@ const animatedEnemyFixtures = [
   { creatureId: "lizardfolk_scout", displayName: "Lizardfolk Scout", maxHealth: 38 },
   { creatureId: "naga_apprentice", displayName: "Naga Apprentice", maxHealth: 52 },
   { creatureId: "yuan_ti_cutthroat", displayName: "Yuan-ti Cutthroat", maxHealth: 48 },
+  { creatureId: "basilisk_hatchling", displayName: "Basilisk Hatchling", maxHealth: 65 },
 ] as const;
 
 function animatedEnemyCombatPayload(

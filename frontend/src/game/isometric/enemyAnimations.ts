@@ -278,6 +278,16 @@ export const enemyAnimationRegistry = {
       baselines: [113, 114, 95, 97],
     },
   },
+  basilisk_hatchling: {
+    attack: {
+      path: "/assets/isometric/enemies/basilisk_hatchling-attack.png",
+      baselines: [110, 110, 90, 91],
+    },
+    death: {
+      path: "/assets/isometric/enemies/basilisk_hatchling-death.png",
+      baselines: [112, 114, 87, 88],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

@@ -723,6 +723,37 @@ conservative nearest-neighbor scale to 116x116 inside fixed 128x128 cells. The
 production results use binary alpha, 31 opaque colors, at least 9/7 pixels of
 attack/death padding, shared runtime scale, and exact phase-specific baselines.
 
+### Basilisk Hatchling
+
+The Basilisk Hatchling is a squat six-legged reptile with three pairs of broad
+clawed feet, a low armored body, and one thick muscular tail curled upward into
+a tight loop. Overlapping dark olive-gray scales cover its back and limbs like
+weathered stone plates, while pale bronze-tan segments protect the throat and
+underside. Its wedge-shaped head ends in a hooked stone-hard beak above a
+tooth-lined jaw and dark tongue, with one visible amber slit-pupil eye beneath
+a heavy brow. Uneven hornlike brown spikes frame the forehead and cheeks, rise
+into a tall jagged dorsal ridge, and taper along the back and tail. The Stone
+Beak sequence moves from a low stalking guard through a raised-head recoil, a
+short snapping strike toward down-left, and a braced recovery. The non-gory
+death sequence staggers, buckles as all three leg pairs give way, collapses
+onto one side, and rests motionless with the armored head and curled tail
+settled on the ground.
+
+The production sheets are:
+
+- `basilisk_hatchling-attack.png`;
+- `basilisk_hatchling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft passed visual review. The first death draft was
+rejected because the second pose touched its cell boundary; a focused image
+edit restored generous separation without changing the approved sequence.
+The accepted sheets preserve exactly six legs, one head, one continuous tail,
+stable stone scales and dorsal spikes, and a shared nearest-neighbor scale of
+116x116 inside fixed 128x128 cells. The production results use binary alpha,
+31/29 opaque colors, at least 11/9 pixels of attack/death padding, shared
+runtime scale, and exact phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

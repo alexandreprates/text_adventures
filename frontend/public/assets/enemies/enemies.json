@@ -297,7 +297,12 @@
   "basilisk_hatchling": {
     "name": "Basilisk Hatchling",
     "sprite": "/assets/enemies/sprites/basilisk_hatchling.png",
-    "source": "/assets/enemies/sources/basilisk_hatchling.png"
+    "source": "/assets/enemies/sources/basilisk_hatchling.png",
+    "description": "A squat six-legged basilisk hatchling with three pairs of broad clawed feet, a low armored body, and one thick muscular tail curled upward into a tight loop. Overlapping dark olive-gray scales cover its back and limbs like weathered stone plates, while pale bronze-tan segments protect the throat and underside. Its wedge-shaped head ends in a hooked stone-hard beak above a tooth-lined jaw and dark tongue, with one visible amber slit-pupil eye beneath a heavy brow. Uneven hornlike brown spikes frame the forehead and cheeks, rise into a tall jagged dorsal ridge, and taper along the back and tail.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/basilisk_hatchling-attack.png",
+      "death": "/assets/isometric/enemies/basilisk_hatchling-death.png"
+    }
   },
   "harpy_screecher": {
     "name": "Harpy Screecher",
