@@ -157,7 +157,12 @@
   "forest_sprite": {
     "name": "Forest Sprite",
     "sprite": "/assets/enemies/sprites/forest_sprite.png",
-    "source": "/assets/enemies/sources/forest_sprite.png"
+    "source": "/assets/enemies/sources/forest_sprite.png",
+    "description": "A tiny wiry forest fae with warm bark-like skin, amber eyes, a mischievous smile, enormous pointed ears, olive leaf hair crowned by twig antlers, four translucent gold-veined wings, layered leaf garments, vine wraps, twig-like clawed feet, and a short thorny branch focus.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/forest_sprite-attack.png",
+      "death": "/assets/isometric/enemies/forest_sprite-death.png"
+    }
   },
   "pixie_trickster": {
     "name": "Pixie Trickster",

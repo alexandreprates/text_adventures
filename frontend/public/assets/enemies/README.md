@@ -346,6 +346,27 @@ phase-specific ground-anchor checks after their first production normalization.
 The conservative pose scale keeps the large horns, wing, claws, and bladed tail
 inside every cell.
 
+### Forest Sprite
+
+The Forest Sprite is a tiny, wiry fae with warm bark-like skin, amber eyes, a
+mischievous smile, enormous pointed ears, and olive leaf hair crowned by twig
+antlers. Four translucent pale-gold wings carry leaf-like veins, while layered
+foliage, vine cords, wraps, twig-shaped feet, and a short thorny branch focus
+complete its woodland silhouette. The Thorn Dart sequence grows a dark thorn at
+the focus, snaps forward to release one contained dart, and rebalances in the
+air. The non-gory death sequence dims the eyes and wings, descends, folds the
+foliage inward, and rests the sprite beside its branch on the floor.
+
+The production sheets are:
+
+- `forest_sprite-attack.png`;
+- `forest_sprite-death.png`.
+
+The death sheet was regenerated once because a foot touched the lower edge of
+the second cell. The accepted sheet restores safe vertical padding while both
+animations pass the shared alpha, palette, boundary, and phase-specific
+ground-anchor checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

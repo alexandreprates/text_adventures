@@ -191,6 +191,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("lesser_demon")).toBe(enemyAnimationRegistry.lesser_demon);
   });
 
+  it("registers dedicated Forest Sprite attack and death sheets", () => {
+    expect(enemyAnimationRegistry.forest_sprite).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/forest_sprite-attack.png",
+        baselines: [118, 119, 104, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/forest_sprite-death.png",
+        baselines: [113, 117, 94, 95],
+      },
+    });
+    expect(enemyAnimationFor("forest_sprite")).toBe(enemyAnimationRegistry.forest_sprite);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
