@@ -235,6 +235,29 @@ and phase-specific ground-anchor checks after their first production
 normalization. Runtime inspection confirmed that the long blade remains inside
 the combat cells and that the final armor heap stays fixed to the dungeon floor.
 
+### Ghoul Stalker
+
+The Ghoul Stalker is a feral, deeply hunched undead predator with taut ash-gray
+cadaver skin stretched over knotted muscles. A scarred bald skull, sparse
+stringy black hair, pointed ears, glowing amber eyes, and a broad mouth of
+irregular fangs form its corpse-like face. Disproportionately long arms end in
+oversized black claws, while bent legs and clawed feet support an almost
+quadrupedal stance beneath ragged brown burial wraps and a decayed hide shroud.
+The Rending Claws sequence coils the shoulders, drives a short two-claw lunge,
+and withdraws into a low stalking guard. The non-gory death sequence dims the
+eyes, buckles the limbs, rolls the body onto one hip, and ends as a compact
+curled corpse.
+
+The production sheets are:
+
+- `ghoul_stalker-attack.png`;
+- `ghoul_stalker-death.png`.
+
+The death sheet was regenerated once because a claw in the second phase touched
+its cell boundary. The accepted sheet restores an internal inset while both
+animations pass the shared alpha, palette, boundary, and phase-specific
+ground-anchor checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

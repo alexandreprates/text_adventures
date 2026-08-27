@@ -121,6 +121,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("wight_knight")).toBe(enemyAnimationRegistry.wight_knight);
   });
 
+  it("registers dedicated Ghoul Stalker attack and death sheets", () => {
+    expect(enemyAnimationRegistry.ghoul_stalker).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/ghoul_stalker-attack.png",
+        baselines: [125, 121, 108, 103],
+      },
+      death: {
+        path: "/assets/isometric/enemies/ghoul_stalker-death.png",
+        baselines: [125, 122, 88, 89],
+      },
+    });
+    expect(enemyAnimationFor("ghoul_stalker")).toBe(enemyAnimationRegistry.ghoul_stalker);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

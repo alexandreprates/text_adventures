@@ -107,7 +107,12 @@
   "ghoul_stalker": {
     "name": "Ghoul Stalker",
     "sprite": "/assets/enemies/sprites/ghoul_stalker.png",
-    "source": "/assets/enemies/sources/ghoul_stalker.png"
+    "source": "/assets/enemies/sources/ghoul_stalker.png",
+    "description": "A feral hunched undead predator with taut ash-gray cadaver skin, a scarred bald skull, sparse stringy black hair, pointed ears, glowing amber eyes, a broad fanged mouth, extremely long arms, oversized clawed hands and feet, bent legs, ragged brown burial wraps, and a decayed hide shroud.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/ghoul_stalker-attack.png",
+      "death": "/assets/isometric/enemies/ghoul_stalker-death.png"
+    }
   },
   "zombie_brute": {
     "name": "Zombie Brute",
