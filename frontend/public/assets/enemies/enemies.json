@@ -237,7 +237,12 @@
   "hill_giant_youth": {
     "name": "Hill Giant Youth",
     "sprite": "/assets/enemies/sprites/hill_giant_youth.png",
-    "source": "/assets/enemies/sources/hill_giant_youth.png"
+    "source": "/assets/enemies/sources/hill_giant_youth.png",
+    "description": "A towering young hill giant with a broad, heavily muscled frame, weathered tan-ochre skin, a stern square face beneath a heavy brow, pointed ears, a shaggy dark-brown mane with two beaded front braids, a stitched and ragged brown hide tunic with a rough shoulder pelt, rope belt and limb wraps, a leather pouch, a tooth necklace, oversized bare five-toed feet, and one immense two-handed maul made from a wooden trunk capped by a single irregular gray boulder lashed in thick rope.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/hill_giant_youth-attack.png",
+      "death": "/assets/isometric/enemies/hill_giant_youth-death.png"
+    }
   },
   "minotaur_guardian": {
     "name": "Minotaur Guardian",

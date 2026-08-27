@@ -307,6 +307,22 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("CAVE_TROLL")).toBe(enemyAnimationRegistry.cave_troll);
   });
 
+  it("registers dedicated Hill Giant Youth attack and death sheets", () => {
+    expect(enemyAnimationRegistry.hill_giant_youth).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/hill_giant_youth-attack.png",
+        baselines: [115, 112, 103, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/hill_giant_youth-death.png",
+        baselines: [111, 112, 95, 99],
+      },
+    });
+    expect(enemyAnimationFor(" HILL_GIANT_YOUTH ")).toBe(
+      enemyAnimationRegistry.hill_giant_youth,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

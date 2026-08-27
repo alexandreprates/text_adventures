@@ -218,6 +218,16 @@ export const enemyAnimationRegistry = {
       baselines: [106, 109, 82, 89],
     },
   },
+  hill_giant_youth: {
+    attack: {
+      path: "/assets/isometric/enemies/hill_giant_youth-attack.png",
+      baselines: [115, 112, 103, 104],
+    },
+    death: {
+      path: "/assets/isometric/enemies/hill_giant_youth-death.png",
+      baselines: [111, 112, 95, 99],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

@@ -535,6 +535,34 @@ binary alpha, 30/31-color RGBA palettes, at least 6 pixels of cell padding, and
 phase-specific baselines. The death cells received one shared conservative
 nearest-neighbor scale and fixed padding pass after visual approval.
 
+### Hill Giant Youth
+
+The Hill Giant Youth is a towering young humanoid with a broad, heavily muscled
+frame, weathered tan-ochre skin, a stern square face beneath a heavy brow,
+pointed ears, and a shaggy dark-brown mane with two beaded front braids. A
+stitched ragged hide tunic and rough shoulder pelt cover the torso, while rope
+belts and wraps, a leather pouch, a tooth necklace, and oversized bare
+five-toed feet reinforce the primitive hill-raider identity. The giant carries
+one immense two-handed maul made from a wooden trunk capped by a single
+irregular gray boulder lashed in thick rope. The Boulder Swing sequence moves
+from a low diagonal guard through a high two-handed wind-up, a compressed
+down-left ground impact, and a low recovery. The non-gory death sequence
+staggers with the weapon dropping, buckles onto one knee, collapses onto one
+side beside the released maul, and settles into a compact motionless rest.
+
+The production sheets are:
+
+- `hill_giant_youth-attack.png`;
+- `hill_giant_youth-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft was rejected because its boulder crossed the
+vertical cell boundary. The accepted sheets preserve two-arm/two-leg anatomy,
+one continuous boulder-maul, binary alpha, 30 opaque colors plus transparency,
+and phase-specific baselines. A shared conservative nearest-neighbor scale to
+120x120 inside each fixed 128x128 cell raised the minimum padding to 6 pixels
+without changing frame content or relative attack/death scale.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
