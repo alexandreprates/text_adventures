@@ -78,6 +78,16 @@ export const enemyAnimationRegistry = {
       baselines: [116, 115, 79, 80],
     },
   },
+  wight_knight: {
+    attack: {
+      path: "/assets/isometric/enemies/wight_knight-attack.png",
+      baselines: [120, 120, 107, 106],
+    },
+    death: {
+      path: "/assets/isometric/enemies/wight_knight-death.png",
+      baselines: [118, 116, 96, 104],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

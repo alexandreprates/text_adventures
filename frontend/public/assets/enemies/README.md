@@ -213,6 +213,28 @@ the second introduced horizontal anchor drift. The accepted draft preserves
 safe padding and a stable torso axis while passing the shared alpha, palette,
 boundary, and ground-anchor checks.
 
+### Wight Knight
+
+The Wight Knight is a tall, rigid undead warrior enclosed in blackened
+blue-steel plate armor. A pointed closed helm exposes only a narrow violet eye
+slit, while a layered gorget, heavy pauldrons, clawed gauntlet, and shredded
+near-black purple cloak give the silhouette a funereal weight. Its broad
+spectral Graveblade burns with an icy cyan core and magenta-violet edges. The
+attack sequence lifts the blade into a deliberate high guard, drives a heavy
+diagonal slash, and ends in a low recovery. The non-gory death sequence drains
+the spectral light, buckles the knight to one knee, and collapses the empty
+armor and cloak beside the extinguished sword.
+
+The production sheets are:
+
+- `wight_knight-attack.png`;
+- `wight_knight-death.png`.
+
+Both sheets passed the shared transparency, limited-palette, frame-boundary,
+and phase-specific ground-anchor checks after their first production
+normalization. Runtime inspection confirmed that the long blade remains inside
+the combat cells and that the final armor heap stays fixed to the dungeon floor.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

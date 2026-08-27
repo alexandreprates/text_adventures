@@ -107,6 +107,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("gnoll_bonecaller")).toBe(enemyAnimationRegistry.gnoll_bonecaller);
   });
 
+  it("registers dedicated Wight Knight attack and death sheets", () => {
+    expect(enemyAnimationRegistry.wight_knight).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/wight_knight-attack.png",
+        baselines: [120, 120, 107, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/wight_knight-death.png",
+        baselines: [118, 116, 96, 104],
+      },
+    });
+    expect(enemyAnimationFor("wight_knight")).toBe(enemyAnimationRegistry.wight_knight);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

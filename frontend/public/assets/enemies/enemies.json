@@ -97,7 +97,12 @@
   "wight_knight": {
     "name": "Wight Knight",
     "sprite": "/assets/enemies/sprites/wight_knight.png",
-    "source": "/assets/enemies/sources/wight_knight.png"
+    "source": "/assets/enemies/sources/wight_knight.png",
+    "description": "A tall rigid undead knight enclosed in blackened blue-steel plate armor, with a pointed closed helm and violet eye slit, layered gorget and pauldrons, a clawed gauntlet, a shredded near-black purple cloak, and a broad spectral Graveblade with an icy cyan core and magenta-violet edges.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/wight_knight-attack.png",
+      "death": "/assets/isometric/enemies/wight_knight-death.png"
+    }
   },
   "ghoul_stalker": {
     "name": "Ghoul Stalker",
