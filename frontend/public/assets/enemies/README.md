@@ -62,6 +62,38 @@ Sprites are created one creature at a time following the order from `data/creatu
 - `yuan_ti_cutthroat`: Yuan-ti Cutthroat
 - `zombie_brute`: Zombie Brute
 
+## Animated Sprites
+
+Enemy action sheets use a shared production contract:
+
+- separate attack and death RGBA PNGs;
+- `256x256` sheets arranged as a `2x2` grid;
+- four phases read left-to-right, then top-to-bottom;
+- `128x128` frames with binary alpha and at most 32 opaque colors;
+- per-phase ground baselines recorded by the renderer.
+
+### Giant Spider
+
+The Giant Spider is a massive cave arachnid with a low, forward-facing
+silhouette. Its oval abdomen is segmented into dark-brown armor plates above
+an almost black cephalothorax. Eight angular legs carry copper-brown joint
+highlights, while ivory chelicerae frame a dense cluster of threatening
+ruby-red eyes. The attack animation raises the forelegs, coils the body into a
+short bite lunge, reaches decisive contact, and returns to a planted stance.
+The non-gory death animation contracts the legs, lowers the body, rolls the
+weight sideways, and finishes as a readable curled corpse.
+
+The production sheets are:
+
+- `giant_spider-attack.png`;
+- `giant_spider-death.png`.
+
+The original static sprite was the strict identity reference. The sheets were
+created with the built-in image-generation workflow, regenerated to correct
+cell clipping and anchor drift, then normalized mechanically with hard chroma
+removal, nearest-neighbor resizing, binary alpha, and non-dithered palette
+quantization.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

@@ -18,6 +18,9 @@ RSpec.describe "Enemy sprites" do
       expect(entry.fetch("name")).to eq(creatures.fetch(creature_id).fetch("name"))
       expect(File).to exist(File.join(public_root, entry.fetch("sprite").delete_prefix("/")))
       expect(File).to exist(File.join(public_root, entry.fetch("source").delete_prefix("/")))
+      entry.fetch("animations", {}).each_value do |animation_path|
+        expect(File).to exist(File.join(public_root, animation_path.delete_prefix("/")))
+      end
     end
   end
 end

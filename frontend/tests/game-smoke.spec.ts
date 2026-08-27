@@ -367,6 +367,66 @@ const combatPayload: MockGamePayload = {
   },
 };
 
+const giantSpiderCombatPayload: MockGamePayload = {
+  ...combatPayload,
+  events: [
+    {
+      type: "combat.damage",
+      text: "Giant Spider attacks you with Bite causing 3 of damage.",
+      actor: "enemy",
+      target: "player",
+      action: "attack",
+      effect: "slash",
+      duration_ms: 1_200,
+    },
+  ],
+  state: {
+    ...combatPayload.state,
+    dungeon: {
+      ...(combatPayload.state.dungeon as Record<string, unknown>),
+      viewport: {
+        ...(
+          (combatPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+        ),
+        entities: [
+          { type: "portal", x: 1, y: 2 },
+          { type: "player", x: 2, y: 2 },
+          { type: "enemy", x: 3, y: 2, creature_id: "giant_spider" },
+          { type: "loot", x: 2, y: 3 },
+          { type: "descent", x: 3, y: 3 },
+        ],
+      },
+    },
+    battle: {
+      active: true,
+      enemy: {
+        name: "giant spider",
+        display_name: "Giant Spider",
+        health: { current: 3, max: 35 },
+        statuses: [],
+      },
+    },
+  },
+};
+
+const giantSpiderDefeatedPatch = {
+  dungeon: {
+    ...(giantSpiderCombatPayload.state.dungeon as Record<string, unknown>),
+    viewport: {
+      ...(
+        (giantSpiderCombatPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+      ),
+      entities: [
+        { type: "portal", x: 1, y: 2 },
+        { type: "player", x: 2, y: 2 },
+        { type: "loot", x: 2, y: 3 },
+        { type: "descent", x: 3, y: 3 },
+      ],
+    },
+  },
+  battle: { active: false, enemy: null },
+};
+
 const duelistCombatPayload: MockGamePayload = {
   ...combatPayload,
   state: {
@@ -808,6 +868,8 @@ async function mockGame(
     heartbeatIntervalMs?: number;
     reconnectDelayMs?: number;
     replayEventsOnAction?: boolean;
+    actionEvents?: MockGamePayload["events"];
+    actionPatch?: Record<string, unknown>;
   } = {},
 ) {
   await page.addInitScript(({
@@ -816,6 +878,8 @@ async function mockGame(
     heartbeatIntervalMs,
     reconnectDelayMs,
     replayEventsOnAction,
+    actionEvents,
+    actionPatch,
   }) => {
     const testWindow = window as unknown as {
       __sentSocketMessages: Array<Record<string, unknown>>;
@@ -912,10 +976,12 @@ async function mockGame(
               data: JSON.stringify({
                 type: "events",
                 game_id: payload.game_id,
-                events: replayEventsOnAction
-                  ? payload.events
-                  : [{ type: "message", text: "Action accepted" }],
-                patch: {},
+                events: actionEvents || (
+                  replayEventsOnAction
+                    ? payload.events
+                    : [{ type: "message", text: "Action accepted" }]
+                ),
+                patch: actionPatch || {},
               }),
             }),
           );
@@ -935,6 +1001,8 @@ async function mockGame(
     heartbeatIntervalMs: options.heartbeatIntervalMs ?? null,
     reconnectDelayMs: options.reconnectDelayMs ?? null,
     replayEventsOnAction: options.replayEventsOnAction ?? false,
+    actionEvents: options.actionEvents ?? null,
+    actionPatch: options.actionPatch ?? null,
   });
 
   await page.route("**/api/games", async (route) => {
@@ -993,6 +1061,32 @@ async function expectFontSize(locator: Locator, fontSize: number) {
   );
 
   expect(computedFontSize).toBeCloseTo(fontSize, 1);
+}
+
+async function trackDrawnImageSources(page: Page) {
+  await page.evaluate(() => {
+    const drawnImageSources: string[] = [];
+    const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+    const trackedDrawImage = function (
+      this: CanvasRenderingContext2D,
+      ...args: unknown[]
+    ) {
+      const source = args[0];
+      if (source instanceof HTMLImageElement) {
+        drawnImageSources.push(source.currentSrc || source.src);
+      }
+      return Reflect.apply(originalDrawImage, this, args);
+    };
+
+    CanvasRenderingContext2D.prototype.drawImage = trackedDrawImage as typeof originalDrawImage;
+    (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources = drawnImageSources;
+  });
+}
+
+async function drawnImageSources(page: Page): Promise<string[]> {
+  return page.evaluate(
+    () => (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources,
+  );
 }
 
 async function mockAutoResupplyGame(page: Page) {
@@ -1740,31 +1834,62 @@ test("renders the Adventurer attack assets during player combat", async ({ page 
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   await expect(canvas).toBeVisible();
   await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
-  await page.evaluate(() => {
-    const drawnImageSources: string[] = [];
-    const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
-    const trackedDrawImage = function (
-      this: CanvasRenderingContext2D,
-      ...args: unknown[]
-    ) {
-      const source = args[0];
-      if (source instanceof HTMLImageElement) {
-        drawnImageSources.push(source.currentSrc || source.src);
-      }
-      return Reflect.apply(originalDrawImage, this, args);
-    };
-
-    CanvasRenderingContext2D.prototype.drawImage = trackedDrawImage as typeof originalDrawImage;
-    (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources = drawnImageSources;
-  });
+  await trackDrawnImageSources(page);
   await page.getByRole("button", { name: /attack/i }).click();
   await page.waitForTimeout(100);
 
-  const drawnImageSources = await page.evaluate(
-    () => (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources,
-  );
-  expect(drawnImageSources.some((source) => source.endsWith("/actors/adventurer-attack.png"))).toBe(true);
-  expect(drawnImageSources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
+  const sources = await drawnImageSources(page);
+  expect(sources.some((source) => source.endsWith("/actors/adventurer-attack.png"))).toBe(true);
+  expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
+});
+
+test("renders the Giant Spider attack sheet without the generic slash", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, giantSpiderCombatPayload, { replayEventsOnAction: true });
+  await page.goto("/");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(page.getByLabel("Enemy status")).toContainText("Giant Spider");
+  await trackDrawnImageSources(page);
+  await page.getByRole("button", { name: /attack/i }).click();
+
+  await expect.poll(async () => {
+    const sources = await drawnImageSources(page);
+    return sources.some((source) => source.endsWith("/enemies/giant_spider-attack.png"));
+  }).toBe(true);
+
+  const sources = await drawnImageSources(page);
+  expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
+});
+
+test("renders the Giant Spider death sheet when the mob is defeated", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, giantSpiderCombatPayload, {
+    actionEvents: [
+      {
+        type: "combat.damage",
+        text: "You attack a Giant Spider causing 3 of damage.",
+        actor: "player",
+        target: "enemy",
+        action: "attack",
+        effect: "slash",
+        duration_ms: 520,
+      },
+    ],
+    actionPatch: giantSpiderDefeatedPatch,
+  });
+  await page.goto("/");
+
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(page.getByLabel("Enemy status")).toContainText("Giant Spider");
+  await page.waitForTimeout(100);
+  await trackDrawnImageSources(page);
+  await page.getByRole("button", { name: /attack/i }).click();
+
+  await expect.poll(async () => {
+    const sources = await drawnImageSources(page);
+    return sources.some((source) => source.endsWith("/enemies/giant_spider-death.png"));
+  }).toBe(true);
 });
 
 test("renders the Druid attack assets during player combat", async ({ page }) => {

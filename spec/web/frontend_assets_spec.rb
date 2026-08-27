@@ -110,6 +110,19 @@ RSpec.describe "Frontend assets" do
     end
   end
 
+  it "checks in normalized enemy attack and death animation sheets" do
+    %w[
+      giant_spider-attack.png
+      giant_spider-death.png
+    ].each do |filename|
+      sheet = File.binread(File.join(public_root, "assets/isometric/enemies", filename), 33)
+
+      expect(sheet.byteslice(0, 8)).to eq("\x89PNG\r\n\x1A\n".b)
+      expect(sheet.byteslice(16, 8).unpack("NN")).to eq([256, 256])
+      expect(sheet.byteslice(24, 2).unpack("CC")).to eq([8, 6])
+    end
+  end
+
   it "wires the React frontend to game API, WebSocket, and modular panels" do
     html = File.read(File.join(frontend_root, "index.html"))
     app = File.read(File.join(source_root, "App.tsx"))

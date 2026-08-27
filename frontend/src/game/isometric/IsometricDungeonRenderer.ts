@@ -36,6 +36,12 @@ import {
   torchPulseAt,
 } from "./lighting";
 import {
+  enemyAnimationCell,
+  enemyAnimationFor,
+  enemyAnimationLayout,
+  type EnemyAnimationAction,
+} from "./enemyAnimations";
+import {
   depthFor,
   easeOutCubic,
   interpolatePosition,
@@ -117,6 +123,7 @@ export class IsometricDungeonRenderer {
   private vanishedEnemies: TransientEntity[] = [];
   private openedLoot: TransientEntity[] = [];
   private readonly fallbackEnemies = new Map<string, HTMLImageElement>();
+  private readonly enemyActionSheets = new Map<string, HTMLImageElement>();
 
   constructor(canvas: HTMLCanvasElement) {
     const context = canvas.getContext("2d");
@@ -419,7 +426,7 @@ export class IsometricDungeonRenderer {
     });
 
     this.vanishedEnemies.forEach((entity) => {
-      nodes.push(this.actorNode(entity, entity, 3));
+      nodes.push(this.vanishedEnemyNode(entity, time));
     });
     this.openedLoot.forEach((entity) => {
       nodes.push(this.chestNode(entity, 3));
@@ -529,6 +536,13 @@ export class IsometricDungeonRenderer {
     }
 
     if (entity.type === "enemy") {
+      this.preloadEnemyAnimation(entity);
+      const attackPhase = this.enemyAttackPhase(time);
+      if (attackPhase !== null) {
+        const animated = this.animatedEnemyNode(entity, position, "attack", attackPhase);
+        if (animated) return animated;
+      }
+
       return this.actorNode(entity, position, this.combatFrame("enemy", time));
     }
 
@@ -688,6 +702,74 @@ export class IsometricDungeonRenderer {
     };
   }
 
+  private animatedEnemyNode(
+    entity: PositionedEntity,
+    position: Position,
+    action: EnemyAnimationAction,
+    phase: number,
+  ): DepthNode | null {
+    const animation = enemyAnimationFor(entity.creature_id);
+    if (!animation) return null;
+
+    const sheet = this.enemyActionSheet(entity.creature_id!, action, animation[action].path);
+    if (!sheet) return null;
+
+    const cell = enemyAnimationCell(phase);
+    const baseline = animation[action].baselines[phase];
+    const scale = enemyAnimationLayout.drawSize / enemyAnimationLayout.frameHeight;
+
+    return {
+      position,
+      layer: 20,
+      draw: (screen) => {
+        const foot = screen.y + TILE_HEIGHT;
+        this.drawSheetCell(
+          sheet,
+          cell.column,
+          cell.row,
+          enemyAnimationLayout.frameWidth,
+          enemyAnimationLayout.frameHeight,
+          screen.x - enemyAnimationLayout.drawSize / 2,
+          foot - baseline * scale,
+          enemyAnimationLayout.drawSize,
+          enemyAnimationLayout.drawSize,
+        );
+      },
+    };
+  }
+
+  private vanishedEnemyNode(entity: TransientEntity, time: number): DepthNode {
+    const phase = this.enemyDeathPhase(entity, time);
+    const animated = this.animatedEnemyNode(entity, entity, "death", phase);
+    return animated ?? this.actorNode(entity, entity, 3);
+  }
+
+  private preloadEnemyAnimation(entity: PositionedEntity): void {
+    const animation = enemyAnimationFor(entity.creature_id);
+    if (!animation || !entity.creature_id) return;
+
+    this.enemyActionSheet(entity.creature_id, "attack", animation.attack.path);
+    this.enemyActionSheet(entity.creature_id, "death", animation.death.path);
+  }
+
+  private enemyActionSheet(
+    creatureId: string,
+    action: EnemyAnimationAction,
+    path: string,
+  ): HTMLImageElement | null {
+    const key = `${creatureId}:${action}`;
+    let image = this.enemyActionSheets.get(key);
+    if (!image) {
+      image = new Image();
+      image.decoding = "async";
+      image.addEventListener("load", () => this.requestFrame(), { once: true });
+      image.src = path;
+      this.enemyActionSheets.set(key, image);
+    }
+
+    return image.complete && image.naturalWidth > 0 ? image : null;
+  }
+
   private chestNode(position: Position, frame: number): DepthNode {
     return {
       position,
@@ -748,6 +830,7 @@ export class IsometricDungeonRenderer {
     const player = playerPosition(this.viewport);
     const enemy = positionedEntities(this.viewport).find((entity) => entity.type === "enemy");
     if (!player || !enemy) return;
+    if (this.combat.actor === "enemy" && enemyAnimationFor(enemy.creature_id)) return;
 
     const playerScreen = this.screenPosition(this.animatedPlayerPosition(time) ?? player, camera);
     const enemyScreen = this.screenPosition(enemy, camera);
@@ -822,6 +905,22 @@ export class IsometricDungeonRenderer {
     if (progress < 0 || progress >= 1) return null;
     if (this.options.reducedMotion) return 1;
     return animationPhaseAt(progress, directionalClassAnimationLayout.phaseCount);
+  }
+
+  private enemyAttackPhase(time: number): number | null {
+    if (!this.combat || this.combat.actor !== "enemy") return null;
+    const progress = (time - this.combat.startedAt) / this.combat.durationMs;
+    if (progress < 0 || progress >= 1) return null;
+    if (this.options.reducedMotion) return 2;
+    return animationPhaseAt(progress, enemyAnimationLayout.phaseCount);
+  }
+
+  private enemyDeathPhase(entity: TransientEntity, time: number): number {
+    if (this.options.reducedMotion) return enemyAnimationLayout.phaseCount - 1;
+
+    const startedAt = entity.expiresAt - TRANSIENT_MS;
+    const progress = (time - startedAt) / TRANSIENT_MS;
+    return animationPhaseAt(progress, enemyAnimationLayout.phaseCount);
   }
 
   private directionalClassWalkPhase(time: number): number {

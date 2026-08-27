@@ -2,7 +2,12 @@
   "giant_spider": {
     "name": "Giant Spider",
     "sprite": "/assets/enemies/sprites/giant_spider.png",
-    "source": "/assets/enemies/sources/giant_spider.png"
+    "source": "/assets/enemies/sources/giant_spider.png",
+    "description": "A massive cave spider with a low, forward-facing silhouette, a plated dark-brown abdomen, an almost black cephalothorax, copper-jointed angular legs, ivory chelicerae, and a threatening cluster of ruby-red eyes.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/giant_spider-attack.png",
+      "death": "/assets/isometric/enemies/giant_spider-death.png"
+    }
   },
   "goblin_skirmisher": {
     "name": "Goblin Skirmisher",
