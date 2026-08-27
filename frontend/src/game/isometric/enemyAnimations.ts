@@ -228,6 +228,16 @@ export const enemyAnimationRegistry = {
       baselines: [111, 112, 95, 99],
     },
   },
+  minotaur_guardian: {
+    attack: {
+      path: "/assets/isometric/enemies/minotaur_guardian-attack.png",
+      baselines: [116, 114, 103, 104],
+    },
+    death: {
+      path: "/assets/isometric/enemies/minotaur_guardian-death.png",
+      baselines: [119, 121, 107, 107],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

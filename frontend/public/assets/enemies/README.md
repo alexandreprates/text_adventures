@@ -563,6 +563,36 @@ and phase-specific baselines. A shared conservative nearest-neighbor scale to
 120x120 inside each fixed 128x128 cell raised the minimum padding to 6 pixels
 without changing frame content or relative attack/death scale.
 
+### Minotaur Guardian
+
+The Minotaur Guardian is a massive bull-headed sentinel covered in dense
+dark-brown fur with a thick black-brown mane and beard, fierce amber eyes, a
+broad bovine muzzle pierced by a gold nose ring, two long symmetrical
+ivory-brown horns, pointed bull ears, cloven hooves, and one visible tufted
+tail. Heavy aged-bronze armor engraved with angular labyrinth motifs protects
+the chest, asymmetric right shoulder, forearms, belt, and lower legs above a
+layered leather war skirt. One ceremonial long-shafted labyrinth axe carries
+an elaborate double-bladed steel head with bronze geometric fittings. The Horn
+Gore sequence moves from an axe-forward guard through a compressed head-lowering
+anticipation, a short down-left horn charge with the axe drawn behind the
+shoulder, and a braking recovery. The non-gory death sequence staggers with the
+axe dropping, buckles onto one knee, collapses onto one armored side, and rests
+motionless beside the released weapon.
+
+The production sheets are:
+
+- `minotaur_guardian-attack.png`;
+- `minotaur_guardian-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. Attack drafts were rejected for detached impact debris, hoof pixels
+crossing the horizontal cell boundary, and global scale drift during a repair.
+The accepted sheets preserve two horns, two-arm/two-leg anatomy, one connected
+tail, one continuous labyrinth axe, binary alpha, 31/30 opaque colors, at least
+6 pixels of cell padding, and phase-specific baselines. Both sheets received
+the same conservative nearest-neighbor scale to 116x116 inside fixed 128x128
+cells so attack and death retain a shared runtime scale.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

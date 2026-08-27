@@ -247,7 +247,12 @@
   "minotaur_guardian": {
     "name": "Minotaur Guardian",
     "sprite": "/assets/enemies/sprites/minotaur_guardian.png",
-    "source": "/assets/enemies/sources/minotaur_guardian.png"
+    "source": "/assets/enemies/sources/minotaur_guardian.png",
+    "description": "A massive bull-headed guardian with dense dark-brown fur, a thick black-brown mane and beard, fierce amber eyes, a broad bovine muzzle pierced by a gold nose ring, two long symmetrical ivory-brown horns curling upward and outward, pointed bull ears, cloven hooves, and a visible tufted tail. Ornate aged-bronze armor engraved with angular labyrinth motifs covers the chest, asymmetric right shoulder, forearms, belt, and lower legs above a layered leather war skirt, while one ceremonial long-shafted labyrinth axe carries an elaborate double-bladed steel head with bronze geometric fittings.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/minotaur_guardian-attack.png",
+      "death": "/assets/isometric/enemies/minotaur_guardian-death.png"
+    }
   },
   "ogre_marauder": {
     "name": "Ogre Marauder",

@@ -323,6 +323,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Minotaur Guardian attack and death sheets", () => {
+    expect(enemyAnimationRegistry.minotaur_guardian).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/minotaur_guardian-attack.png",
+        baselines: [116, 114, 103, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/minotaur_guardian-death.png",
+        baselines: [119, 121, 107, 107],
+      },
+    });
+    expect(enemyAnimationFor("MINOTAUR_GUARDIAN")).toBe(
+      enemyAnimationRegistry.minotaur_guardian,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
