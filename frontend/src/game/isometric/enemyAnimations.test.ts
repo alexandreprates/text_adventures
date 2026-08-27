@@ -23,6 +23,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("unknown")).toBeNull();
   });
 
+  it("registers dedicated Orc Raider attack and death sheets", () => {
+    expect(enemyAnimationRegistry.orc_raider).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/orc_raider-attack.png",
+        baselines: [121, 119, 117, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/orc_raider-death.png",
+        baselines: [119, 116, 103, 106],
+      },
+    });
+    expect(enemyAnimationFor("ORC_RAIDER")).toBe(enemyAnimationRegistry.orc_raider);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

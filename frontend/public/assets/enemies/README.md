@@ -94,6 +94,27 @@ cell clipping and anchor drift, then normalized mechanically with hard chroma
 removal, nearest-neighbor resizing, binary alpha, and non-dithered palette
 quantization.
 
+### Orc Raider
+
+The Orc Raider is a stocky, heavily muscled marauder with moss-green skin,
+yellow eyes, prominent ivory tusks, and a short dark crest. Worn asymmetrical
+leather and iron armor protects the torso, a single spiked pauldron reinforces
+the weapon shoulder, and bone trophies hang from the belt. His broad, notched
+crescent axe has a wrapped wooden haft and carries most of the silhouette's
+weight. The attack sequence plants the stance, lifts the axe overhead, delivers
+a decisive diagonal chop, and settles into a low recovery. The non-gory death
+sequence loses the axe, buckles at the knees, collapses sideways, and finishes
+with the body and weapon grounded together.
+
+The production sheets are:
+
+- `orc_raider-attack.png`;
+- `orc_raider-death.png`.
+
+The static sprite remained the strict identity reference. Both generated sheets
+passed the shared transparency, palette, frame-boundary, and runtime anchor
+checks without requiring a corrective regeneration.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

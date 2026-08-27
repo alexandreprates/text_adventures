@@ -367,65 +367,76 @@ const combatPayload: MockGamePayload = {
   },
 };
 
-const giantSpiderCombatPayload: MockGamePayload = {
-  ...combatPayload,
-  events: [
-    {
-      type: "combat.damage",
-      text: "Giant Spider attacks you with Bite causing 3 of damage.",
-      actor: "enemy",
-      target: "player",
-      action: "attack",
-      effect: "slash",
-      duration_ms: 1_200,
+const animatedEnemyFixtures = [
+  { creatureId: "giant_spider", displayName: "Giant Spider", maxHealth: 35 },
+  { creatureId: "orc_raider", displayName: "Orc Raider", maxHealth: 42 },
+] as const;
+
+function animatedEnemyCombatPayload(
+  creatureId: string,
+  displayName: string,
+  maxHealth: number,
+): MockGamePayload {
+  return {
+    ...combatPayload,
+    events: [
+      {
+        type: "combat.damage",
+        text: `${displayName} attacks you causing 3 of damage.`,
+        actor: "enemy",
+        target: "player",
+        action: "attack",
+        effect: "slash",
+        duration_ms: 1_200,
+      },
+    ],
+    state: {
+      ...combatPayload.state,
+      dungeon: {
+        ...(combatPayload.state.dungeon as Record<string, unknown>),
+        viewport: {
+          ...(
+            (combatPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+          ),
+          entities: [
+            { type: "portal", x: 1, y: 2 },
+            { type: "player", x: 2, y: 2 },
+            { type: "enemy", x: 3, y: 2, creature_id: creatureId },
+            { type: "loot", x: 2, y: 3 },
+            { type: "descent", x: 3, y: 3 },
+          ],
+        },
+      },
+      battle: {
+        active: true,
+        enemy: {
+          name: displayName.toLowerCase(),
+          display_name: displayName,
+          health: { current: 3, max: maxHealth },
+          statuses: [],
+        },
+      },
     },
-  ],
-  state: {
-    ...combatPayload.state,
+  };
+}
+
+function animatedEnemyDefeatedPatch(payload: MockGamePayload) {
+  return {
     dungeon: {
-      ...(combatPayload.state.dungeon as Record<string, unknown>),
+      ...(payload.state.dungeon as Record<string, unknown>),
       viewport: {
-        ...(
-          (combatPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
-        ),
+        ...((payload.state.dungeon as { viewport: Record<string, unknown> }).viewport),
         entities: [
           { type: "portal", x: 1, y: 2 },
           { type: "player", x: 2, y: 2 },
-          { type: "enemy", x: 3, y: 2, creature_id: "giant_spider" },
           { type: "loot", x: 2, y: 3 },
           { type: "descent", x: 3, y: 3 },
         ],
       },
     },
-    battle: {
-      active: true,
-      enemy: {
-        name: "giant spider",
-        display_name: "Giant Spider",
-        health: { current: 3, max: 35 },
-        statuses: [],
-      },
-    },
-  },
-};
-
-const giantSpiderDefeatedPatch = {
-  dungeon: {
-    ...(giantSpiderCombatPayload.state.dungeon as Record<string, unknown>),
-    viewport: {
-      ...(
-        (giantSpiderCombatPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
-      ),
-      entities: [
-        { type: "portal", x: 1, y: 2 },
-        { type: "player", x: 2, y: 2 },
-        { type: "loot", x: 2, y: 3 },
-        { type: "descent", x: 3, y: 3 },
-      ],
-    },
-  },
-  battle: { active: false, enemy: null },
-};
+    battle: { active: false, enemy: null },
+  };
+}
 
 const duelistCombatPayload: MockGamePayload = {
   ...combatPayload,
@@ -1843,54 +1854,58 @@ test("renders the Adventurer attack assets during player combat", async ({ page 
   expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
 });
 
-test("renders the Giant Spider attack sheet without the generic slash", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockGame(page, giantSpiderCombatPayload, { replayEventsOnAction: true });
-  await page.goto("/");
+for (const { creatureId, displayName, maxHealth } of animatedEnemyFixtures) {
+  const payload = animatedEnemyCombatPayload(creatureId, displayName, maxHealth);
 
-  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
-  await expect(page.getByLabel("Enemy status")).toContainText("Giant Spider");
-  await trackDrawnImageSources(page);
-  await page.getByRole("button", { name: /attack/i }).click();
+  test(`renders the ${displayName} attack sheet without the generic slash`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockGame(page, payload, { replayEventsOnAction: true });
+    await page.goto("/");
 
-  await expect.poll(async () => {
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    await expect(page.getByLabel("Enemy status")).toContainText(displayName);
+    await trackDrawnImageSources(page);
+    await page.getByRole("button", { name: /attack/i }).click();
+
+    await expect.poll(async () => {
+      const sources = await drawnImageSources(page);
+      return sources.some((source) => source.endsWith(`/enemies/${creatureId}-attack.png`));
+    }).toBe(true);
+
     const sources = await drawnImageSources(page);
-    return sources.some((source) => source.endsWith("/enemies/giant_spider-attack.png"));
-  }).toBe(true);
-
-  const sources = await drawnImageSources(page);
-  expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
-});
-
-test("renders the Giant Spider death sheet when the mob is defeated", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await mockGame(page, giantSpiderCombatPayload, {
-    actionEvents: [
-      {
-        type: "combat.damage",
-        text: "You attack a Giant Spider causing 3 of damage.",
-        actor: "player",
-        target: "enemy",
-        action: "attack",
-        effect: "slash",
-        duration_ms: 520,
-      },
-    ],
-    actionPatch: giantSpiderDefeatedPatch,
+    expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
   });
-  await page.goto("/");
 
-  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
-  await expect(page.getByLabel("Enemy status")).toContainText("Giant Spider");
-  await page.waitForTimeout(100);
-  await trackDrawnImageSources(page);
-  await page.getByRole("button", { name: /attack/i }).click();
+  test(`renders the ${displayName} death sheet when the mob is defeated`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockGame(page, payload, {
+      actionEvents: [
+        {
+          type: "combat.damage",
+          text: `You attack a ${displayName} causing 3 of damage.`,
+          actor: "player",
+          target: "enemy",
+          action: "attack",
+          effect: "slash",
+          duration_ms: 520,
+        },
+      ],
+      actionPatch: animatedEnemyDefeatedPatch(payload),
+    });
+    await page.goto("/");
 
-  await expect.poll(async () => {
-    const sources = await drawnImageSources(page);
-    return sources.some((source) => source.endsWith("/enemies/giant_spider-death.png"));
-  }).toBe(true);
-});
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    await expect(page.getByLabel("Enemy status")).toContainText(displayName);
+    await page.waitForTimeout(100);
+    await trackDrawnImageSources(page);
+    await page.getByRole("button", { name: /attack/i }).click();
+
+    await expect.poll(async () => {
+      const sources = await drawnImageSources(page);
+      return sources.some((source) => source.endsWith(`/enemies/${creatureId}-death.png`));
+    }).toBe(true);
+  });
+}
 
 test("renders the Druid attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });

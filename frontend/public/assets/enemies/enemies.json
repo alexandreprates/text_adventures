@@ -27,7 +27,12 @@
   "orc_raider": {
     "name": "Orc Raider",
     "sprite": "/assets/enemies/sprites/orc_raider.png",
-    "source": "/assets/enemies/sources/orc_raider.png"
+    "source": "/assets/enemies/sources/orc_raider.png",
+    "description": "A stocky moss-green raider with yellow eyes, ivory tusks, a short dark crest, worn asymmetrical leather and iron armor, a single spiked pauldron, bone trophies at the belt, and a broad notched crescent axe.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/orc_raider-attack.png",
+      "death": "/assets/isometric/enemies/orc_raider-death.png"
+    }
   },
   "orc_berserker": {
     "name": "Orc Berserker",
