@@ -155,6 +155,25 @@ Both sheets retained the trapper equipment and passed the shared transparency,
 palette, frame-boundary, and phase-specific ground-anchor checks after the first
 production normalization.
 
+### Kobold Sparkmage
+
+The Kobold Sparkmage is a small rust-red reptilian caster with a long toothy
+snout, backward head spines, cyan-glowing eyes, ragged leather mage robes, and
+small copper charms. Blue-white electricity crawls across both bare claws and
+provides a tightly controlled cool accent against the earthy palette. Its Spark
+Bolt sequence cups a compact charge between the hands, snaps one claw forward
+with an attached lightning flare, and recovers as residual arcs fade. The
+non-gory death sequence begins with magical backlash, drains the current while
+the kobold falls, and ends in a compact curled pose with no remaining charge.
+
+The production sheets are:
+
+- `kobold_sparkmage-attack.png`;
+- `kobold_sparkmage-death.png`.
+
+The sheets passed the shared transparency, limited-palette, cell-boundary, and
+ground-anchor checks while keeping every electrical accent inside its frame.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

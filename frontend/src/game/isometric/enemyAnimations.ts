@@ -48,6 +48,16 @@ export const enemyAnimationRegistry = {
       baselines: [114, 112, 88, 90],
     },
   },
+  kobold_sparkmage: {
+    attack: {
+      path: "/assets/isometric/enemies/kobold_sparkmage-attack.png",
+      baselines: [116, 114, 105, 105],
+    },
+    death: {
+      path: "/assets/isometric/enemies/kobold_sparkmage-death.png",
+      baselines: [120, 120, 88, 92],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

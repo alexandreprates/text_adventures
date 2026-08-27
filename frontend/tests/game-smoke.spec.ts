@@ -372,6 +372,7 @@ const animatedEnemyFixtures = [
   { creatureId: "orc_raider", displayName: "Orc Raider", maxHealth: 42 },
   { creatureId: "orc_berserker", displayName: "Orc Berserker", maxHealth: 55 },
   { creatureId: "kobold_trapper", displayName: "Kobold Trapper", maxHealth: 20 },
+  { creatureId: "kobold_sparkmage", displayName: "Kobold Sparkmage", maxHealth: 24 },
 ] as const;
 
 function animatedEnemyCombatPayload(

@@ -65,6 +65,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("kobold_trapper")).toBe(enemyAnimationRegistry.kobold_trapper);
   });
 
+  it("registers dedicated Kobold Sparkmage attack and death sheets", () => {
+    expect(enemyAnimationRegistry.kobold_sparkmage).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/kobold_sparkmage-attack.png",
+        baselines: [116, 114, 105, 105],
+      },
+      death: {
+        path: "/assets/isometric/enemies/kobold_sparkmage-death.png",
+        baselines: [120, 120, 88, 92],
+      },
+    });
+    expect(enemyAnimationFor("kobold_sparkmage")).toBe(enemyAnimationRegistry.kobold_sparkmage);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

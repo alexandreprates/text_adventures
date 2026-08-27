@@ -57,7 +57,12 @@
   "kobold_sparkmage": {
     "name": "Kobold Sparkmage",
     "sprite": "/assets/enemies/sprites/kobold_sparkmage.png",
-    "source": "/assets/enemies/sources/kobold_sparkmage.png"
+    "source": "/assets/enemies/sources/kobold_sparkmage.png",
+    "description": "A small rust-red reptilian caster with a long toothy snout, backward head spines, cyan-glowing eyes, ragged brown leather mage robes, copper charms, clawed feet, a long tail, and blue-white electrical arcs crawling over both bare hands.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/kobold_sparkmage-attack.png",
+      "death": "/assets/isometric/enemies/kobold_sparkmage-death.png"
+    }
   },
   "gnoll_hunter": {
     "name": "Gnoll Hunter",
