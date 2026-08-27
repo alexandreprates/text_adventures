@@ -435,6 +435,30 @@ undersized silhouettes. The accepted sheets preserve native-size readability,
 safe transparent padding, binary alpha, a 32-color RGBA palette, stable phase
 anchors, and fully contained crowns, leaves, claws, and whip arcs.
 
+### Fae Blade Dancer
+
+The Fae Blade Dancer is an athletic female fae with warm tan skin, bright blue
+eyes, very long pointed ears, and voluminous violet hair. Four translucent
+blue-lilac insect wings rise behind ornate deep-blue and silver leaf-filigree
+armor, while purple-gold ribbon streamers trail around bark-brown armored legs.
+Two matching silver crescent blades with blue gems complete the fast, balanced
+silhouette. The Spiral Slash sequence establishes a dual-blade guard, winds the
+torso and ribbons into a compact turn, releases a broad moonlit spinning cut,
+and brakes through the wings into recovery. The non-gory death sequence loses
+lift, drops onto one knee as a blade slips free, falls sideways with folding
+wings, and rests with both weapons grounded and the eyes dark.
+
+The production sheets are:
+
+- `fae_blade_dancer-attack.png`;
+- `fae_blade_dancer-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft was rejected because the final blade left only a
+single transparent pixel at the cell edge. The accepted revision restores safe
+padding while preserving all four wing identities, both crescent blades,
+binary alpha, a 32-color RGBA palette, and phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

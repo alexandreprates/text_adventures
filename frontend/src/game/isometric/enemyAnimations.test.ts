@@ -249,6 +249,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Fae Blade Dancer attack and death sheets", () => {
+    expect(enemyAnimationRegistry.fae_blade_dancer).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/fae_blade_dancer-attack.png",
+        baselines: [119, 118, 103, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/fae_blade_dancer-death.png",
+        baselines: [116, 118, 95, 100],
+      },
+    });
+    expect(enemyAnimationFor(" FAE_BLADE_DANCER ")).toBe(
+      enemyAnimationRegistry.fae_blade_dancer,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

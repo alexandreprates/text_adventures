@@ -385,6 +385,7 @@ const animatedEnemyFixtures = [
   { creatureId: "pixie_trickster", displayName: "Pixie Trickster", maxHealth: 20 },
   { creatureId: "satyr_duelist", displayName: "Satyr Duelist", maxHealth: 40 },
   { creatureId: "dryad_thornweaver", displayName: "Dryad Thornweaver", maxHealth: 44 },
+  { creatureId: "fae_blade_dancer", displayName: "Fae Blade Dancer", maxHealth: 46 },
 ] as const;
 
 function animatedEnemyCombatPayload(

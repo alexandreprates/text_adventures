@@ -197,7 +197,12 @@
   "fae_blade_dancer": {
     "name": "Fae Blade Dancer",
     "sprite": "/assets/enemies/sprites/fae_blade_dancer.png",
-    "source": "/assets/enemies/sources/fae_blade_dancer.png"
+    "source": "/assets/enemies/sources/fae_blade_dancer.png",
+    "description": "An athletic female fae with warm tan skin, bright blue eyes, very long pointed ears, voluminous violet hair, four translucent blue-lilac veined wings, ornate deep-blue and silver leaf-filigree armor, purple-gold ribbon streamers, armored bark-brown lower legs, and two matching silver crescent blades set with blue gems.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/fae_blade_dancer-attack.png",
+      "death": "/assets/isometric/enemies/fae_blade_dancer-death.png"
+    }
   },
   "dire_wolf": {
     "name": "Dire Wolf",
