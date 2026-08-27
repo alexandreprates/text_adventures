@@ -72,6 +72,8 @@ RSpec.describe "Frontend assets" do
 
   it "checks in normalized directional class animation sheets" do
     %w[
+      adventurer-walk.png
+      adventurer-attack.png
       duelist-walk.png
       duelist-attack.png
       dragoon-walk.png

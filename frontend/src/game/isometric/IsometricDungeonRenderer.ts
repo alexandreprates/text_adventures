@@ -557,6 +557,8 @@ export class IsometricDungeonRenderer {
     attacking: boolean,
   ): HTMLImageElement {
     switch (playerClass) {
+      case "adventurer":
+        return attacking ? this.assets!.adventurerAttack : this.assets!.adventurerWalk;
       case "arcanist":
         return attacking ? this.assets!.arcanistAttack : this.assets!.arcanistWalk;
       case "battlemage":
@@ -590,6 +592,8 @@ export class IsometricDungeonRenderer {
 
   private directionalClassFacing(playerClass: AnimatedPlayerClass): number {
     switch (playerClass) {
+      case "adventurer":
+        return adventurerFacingFrame(this.options.playerDirection);
       case "arcanist":
         return arcanistFacingFrame(this.options.playerDirection);
       case "battlemage":

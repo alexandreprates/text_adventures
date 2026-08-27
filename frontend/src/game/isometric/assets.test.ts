@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adventurerAnimationLayout,
   adventurerFacingFrame,
   adventurerFacingFrames,
   animatedPlayerClass,
@@ -24,6 +25,7 @@ import {
   hexbladeFacingFrame,
   hexbladeFacingFrames,
   isArcanistClass,
+  isAdventurerClass,
   isBattlemageClass,
   isBlademasterClass,
   isDragoonClass,
@@ -70,6 +72,8 @@ describe("isometricAssetPaths", () => {
     expect(isometricAssetPaths).toMatchObject({
       wallFront: "/assets/isometric/tiles/wall-front.png",
       adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
+      adventurerWalk: "/assets/isometric/actors/adventurer-walk.png",
+      adventurerAttack: "/assets/isometric/actors/adventurer-attack.png",
       warlordWalk: "/assets/isometric/actors/warlord-walk.png",
       warlordAttack: "/assets/isometric/actors/warlord-attack.png",
       blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
@@ -107,6 +111,7 @@ describe("isometricAssetPaths", () => {
 
 describe("animatedPlayerClass", () => {
   it("selects the directional animation family for supported classes", () => {
+    expect(animatedPlayerClass("Adventurer")).toBe("adventurer");
     expect(animatedPlayerClass("Arcanist")).toBe("arcanist");
     expect(animatedPlayerClass("Battlemage")).toBe("battlemage");
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
@@ -121,7 +126,7 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
-    expect(animatedPlayerClass("Adventurer")).toBeNull();
+    expect(animatedPlayerClass("Druid")).toBeNull();
   });
 });
 
@@ -474,7 +479,21 @@ describe("Warlord animation assets", () => {
   });
 });
 
-describe("adventurerFacingFrame", () => {
+describe("Adventurer animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isAdventurerClass("Adventurer")).toBe(true);
+    expect(isAdventurerClass(" adventurer ")).toBe(true);
+    expect(isAdventurerClass("Druid")).toBe(false);
+    expect(adventurerAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(adventurerAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
   it("maps dungeon directions to the matching isometric facing", () => {
     expect(adventurerFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
     expect(adventurerFacingFrame("up")).toBe(0);

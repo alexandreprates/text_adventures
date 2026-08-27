@@ -4,6 +4,8 @@ export const isometricAssetPaths = {
   wallFront: "/assets/isometric/tiles/wall-front.png",
   adventurer: "/assets/isometric/actors/adventurer-actions.png",
   adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
+  adventurerWalk: "/assets/isometric/actors/adventurer-walk.png",
+  adventurerAttack: "/assets/isometric/actors/adventurer-attack.png",
   warlordWalk: "/assets/isometric/actors/warlord-walk.png",
   warlordAttack: "/assets/isometric/actors/warlord-attack.png",
   blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
@@ -69,6 +71,7 @@ export const directionalClassAnimationLayout = {
   baseline: 92,
 } as const;
 
+export const adventurerAnimationLayout = directionalClassAnimationLayout;
 export const warlordAnimationLayout = directionalClassAnimationLayout;
 export const blademasterAnimationLayout = directionalClassAnimationLayout;
 export const duelistAnimationLayout = directionalClassAnimationLayout;
@@ -295,6 +298,7 @@ export function mysticFacingFrame(direction?: string): number {
 }
 
 export type AnimatedPlayerClass =
+  | "adventurer"
   | "arcanist"
   | "battlemage"
   | "blademaster"
@@ -313,7 +317,8 @@ export type AnimatedPlayerClass =
 export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass | null {
   const normalizedClass = playerClass?.trim().toLowerCase();
   if (
-    normalizedClass === "arcanist"
+    normalizedClass === "adventurer"
+    || normalizedClass === "arcanist"
     || normalizedClass === "battlemage"
     || normalizedClass === "blademaster"
     || normalizedClass === "dragoon"
@@ -332,6 +337,10 @@ export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass |
   }
 
   return null;
+}
+
+export function isAdventurerClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "adventurer";
 }
 
 export function isWarlordClass(playerClass?: string): boolean {

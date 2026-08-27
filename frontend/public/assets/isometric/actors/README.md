@@ -1,5 +1,43 @@
 # Isometric Actor Sprites
 
+## Adventurer
+
+The Adventurer is a young independent dungeon explorer whose determined pale
+face remains visible beneath short, unruly wine-red hair. Layered charcoal,
+blackened-leather, plum, and burgundy light armor, rounded shoulder plates,
+utility belts, bracers, and a short split wine-red mantle establish a practical
+and versatile silhouette. He carries exactly two compact curved
+falchion-daggers with pale lilac-silver steel, dark grips, and restrained
+antique-gold fittings. Tiny amber sparks accent decisive strikes without
+turning the base-class delver into a spellcaster or repeating the hooded
+Nightblade and rapier-focused Duelist.
+
+The Adventurer animation assets are:
+
+- `adventurer-walk.png`: walk phase A, neutral passing pose, and walk phase B
+  with both curved blades carried low and the split mantle following the gait.
+- `adventurer-attack.png`: grounded preparation, a compact opposing
+  twin-blade cut with attached pale arcs and amber sparks, and balanced
+  recovery toward the low guard.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Adventurer class atlas as the strict identity and action
+reference. Existing Nightblade and Duelist directional actors were used only
+for layout, scale, twin-blade readability, outline, and phase timing. Walk and
+attack were generated in separate passes. Production files were normalized
+mechanically with nearest-neighbor resizing, hard chroma-key removal,
+sheet-level row separation, fixed per-cell padding, row-preserving baseline
+alignment, binary alpha, and non-dithered palette quantization.
+
 ## Mystic
 
 The Mystic is a young astral oracle whose pale face and magenta eyes remain
