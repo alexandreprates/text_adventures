@@ -135,6 +135,26 @@ The generated sheets preserved the static sprite's feral identity and passed
 the shared transparency, palette, frame-boundary, and ground-anchor checks on
 their first production normalization.
 
+### Kobold Trapper
+
+The Kobold Trapper is a small, wiry reptilian hunter with rust-red scales, a
+long toothy snout, one sharp amber eye, and backward-swept dark head spines. A
+ragged hide hood, leather straps, pouches, and a coiled snare rope identify its
+profession, while a barbed silver dagger, clawed feet, and long counterbalancing
+tail define its quick silhouette. The attack coils low, darts into a fast dagger
+thrust, and skids into a guarded recovery. The non-gory death sequence loses the
+dagger, folds to the floor, curls the tail inward, and leaves the compact body,
+rope, and weapon readable as one grounded composition.
+
+The production sheets are:
+
+- `kobold_trapper-attack.png`;
+- `kobold_trapper-death.png`.
+
+Both sheets retained the trapper equipment and passed the shared transparency,
+palette, frame-boundary, and phase-specific ground-anchor checks after the first
+production normalization.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

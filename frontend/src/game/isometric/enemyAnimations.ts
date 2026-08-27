@@ -38,6 +38,16 @@ export const enemyAnimationRegistry = {
       baselines: [118, 125, 108, 108],
     },
   },
+  kobold_trapper: {
+    attack: {
+      path: "/assets/isometric/enemies/kobold_trapper-attack.png",
+      baselines: [116, 115, 86, 88],
+    },
+    death: {
+      path: "/assets/isometric/enemies/kobold_trapper-death.png",
+      baselines: [114, 112, 88, 90],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

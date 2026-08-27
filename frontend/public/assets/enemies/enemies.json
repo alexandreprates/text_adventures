@@ -47,7 +47,12 @@
   "kobold_trapper": {
     "name": "Kobold Trapper",
     "sprite": "/assets/enemies/sprites/kobold_trapper.png",
-    "source": "/assets/enemies/sources/kobold_trapper.png"
+    "source": "/assets/enemies/sources/kobold_trapper.png",
+    "description": "A small wiry rust-red reptilian trapper with a long toothy snout, amber eye, backward dark head spines, a ragged hide hood, leather straps and pouches, a barbed dagger, a coiled snare rope, clawed feet, and a long counterbalancing tail.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/kobold_trapper-attack.png",
+      "death": "/assets/isometric/enemies/kobold_trapper-death.png"
+    }
   },
   "kobold_sparkmage": {
     "name": "Kobold Sparkmage",
