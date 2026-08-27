@@ -1,5 +1,42 @@
 # Isometric Actor Sprites
 
+## Ranger
+
+The Ranger is a lean young dark-woodland hunter whose visible pale face and
+auburn strands sit beneath a pointed wine-red hood. Layered burgundy and
+charcoal leather armor, compact bracers and boots, a short ragged cloak, and a
+small back quiver define a light, mobile silhouette. She carries exactly one
+dark-wood recurved shortbow with crimson bindings. Restrained amber and
+leaf-green light binds nature magic to the bowstring and arrowhead instead of
+forming a broad spell effect. This design preserves the legacy atlas while
+remaining distinct from the Nightblade's paired daggers and the Warden's heavy
+sword-and-shield defense.
+
+The Ranger animation assets are:
+
+- `ranger-walk.png`: light walk phase A, neutral passing pose, and walk phase B
+  with the shortbow carried low and the quiver fixed to the back.
+- `ranger-attack.png`: arrow preparation, a fully drawn nature-charged release,
+  and recovery with tiny fading amber and leaf-green motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Ranger class atlas as the strict identity and bow-action
+reference. Existing Nightblade and Warden directional actors were used only
+for layout, scale, outline, and restrained nature-light guidance. Walk and
+attack were generated in separate passes. Production files were normalized
+mechanically with nearest-neighbor resizing, hard chroma-key removal,
+sheet-level empty-margin cropping, fixed per-cell padding, row-preserving
+baseline alignment, binary alpha, and non-dithered palette quantization.
+
 ## Hexblade
 
 The Hexblade is a lean young curse assassin whose visible pale face, glowing

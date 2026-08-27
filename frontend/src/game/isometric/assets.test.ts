@@ -30,6 +30,7 @@ import {
   isDuelistClass,
   isHexbladeClass,
   isNightbladeClass,
+  isRangerClass,
   isSentinelClass,
   isSkirmisherClass,
   isSpellbladeClass,
@@ -39,6 +40,9 @@ import {
   nightbladeAnimationLayout,
   nightbladeFacingFrame,
   nightbladeFacingFrames,
+  rangerAnimationLayout,
+  rangerFacingFrame,
+  rangerFacingFrames,
   sentinelAnimationLayout,
   sentinelFacingFrame,
   sentinelFacingFrames,
@@ -86,6 +90,8 @@ describe("isometricAssetPaths", () => {
       sentinelAttack: "/assets/isometric/actors/sentinel-attack.png",
       hexbladeWalk: "/assets/isometric/actors/hexblade-walk.png",
       hexbladeAttack: "/assets/isometric/actors/hexblade-attack.png",
+      rangerWalk: "/assets/isometric/actors/ranger-walk.png",
+      rangerAttack: "/assets/isometric/actors/ranger-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -102,12 +108,38 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Hexblade")).toBe("hexblade");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
+    expect(animatedPlayerClass("Ranger")).toBe("ranger");
     expect(animatedPlayerClass("Sentinel")).toBe("sentinel");
     expect(animatedPlayerClass("Skirmisher")).toBe("skirmisher");
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Ranger animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isRangerClass("Ranger")).toBe(true);
+    expect(isRangerClass(" ranger ")).toBe(true);
+    expect(isRangerClass("Nightblade")).toBe(false);
+    expect(rangerAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(rangerAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Ranger sheet's projected facings", () => {
+    expect(rangerFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(rangerFacingFrame("up")).toBe(0);
+    expect(rangerFacingFrame("right")).toBe(1);
+    expect(rangerFacingFrame("down")).toBe(2);
+    expect(rangerFacingFrame("left")).toBe(3);
+    expect(rangerFacingFrame("unknown")).toBe(1);
   });
 });
 

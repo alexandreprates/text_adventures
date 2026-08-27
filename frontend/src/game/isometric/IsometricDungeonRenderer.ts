@@ -18,6 +18,7 @@ import {
   hexbladeFacingFrame,
   loadIsometricAssets,
   nightbladeFacingFrame,
+  rangerFacingFrame,
   sentinelFacingFrame,
   skirmisherFacingFrame,
   spellbladeFacingFrame,
@@ -577,6 +578,8 @@ export class IsometricDungeonRenderer {
         return attacking ? this.assets!.sentinelAttack : this.assets!.sentinelWalk;
       case "hexblade":
         return attacking ? this.assets!.hexbladeAttack : this.assets!.hexbladeWalk;
+      case "ranger":
+        return attacking ? this.assets!.rangerAttack : this.assets!.rangerWalk;
       default:
         return attacking ? this.assets!.blademasterAttack : this.assets!.blademasterWalk;
     }
@@ -606,6 +609,8 @@ export class IsometricDungeonRenderer {
         return sentinelFacingFrame(this.options.playerDirection);
       case "hexblade":
         return hexbladeFacingFrame(this.options.playerDirection);
+      case "ranger":
+        return rangerFacingFrame(this.options.playerDirection);
       default:
         return blademasterFacingFrame(this.options.playerDirection);
     }
