@@ -90,6 +90,8 @@ RSpec.describe "Frontend assets" do
       battlemage-attack.png
       sentinel-walk.png
       sentinel-attack.png
+      hexblade-walk.png
+      hexblade-attack.png
     ].each do |filename|
       sheet = File.binread(File.join(public_root, "assets/isometric/actors", filename), 33)
 

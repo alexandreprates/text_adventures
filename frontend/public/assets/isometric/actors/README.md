@@ -1,5 +1,41 @@
 # Isometric Actor Sprites
 
+## Hexblade
+
+The Hexblade is a lean young curse assassin whose visible pale face, glowing
+violet eyes, and spiky black hair with magenta tips remain readable beneath a
+thorned high collar. Fitted black and deep-violet light armor, jagged shoulder
+plates, and short ragged coat tails establish an agile silhouette. The
+character carries exactly one compact obsidian long dagger with a violet
+cursed edge, while the empty free hand contains a small violet-and-cyan curse
+wisp. This design combines dagger mastery and combat magic without repeating
+the hooded dual-weapon Nightblade or the pale-haired straight-sword Spellblade.
+
+The Hexblade animation assets are:
+
+- `hexblade-walk.png`: agile walk phase A, neutral passing pose, and walk phase
+  B with the blade held low and the palm curse tightly contained.
+- `hexblade-attack.png`: coiled preparation, a compact diagonal cursed cut with
+  an attached violet arc, and balanced recovery with nearby fading fragments.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline at `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow,
+using the checked-in Hexblade class atlas as the strict identity reference and
+the existing Nightblade and Spellblade directional actors only as compact
+motion, layout, and restrained-magic references. Walk and attack were generated
+in separate passes. Production files were normalized mechanically with
+nearest-neighbor resizing, hard chroma-key removal, sheet-level empty-margin
+cropping, fixed per-cell padding, row-preserving baseline alignment, binary
+alpha, and non-dithered palette quantization.
+
 ## Sentinel
 
 The Sentinel is a stocky spear-and-nature guardian whose defensive silhouette

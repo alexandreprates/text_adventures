@@ -20,11 +20,15 @@ import {
   duelistAnimationLayout,
   duelistFacingFrame,
   duelistFacingFrames,
+  hexbladeAnimationLayout,
+  hexbladeFacingFrame,
+  hexbladeFacingFrames,
   isArcanistClass,
   isBattlemageClass,
   isBlademasterClass,
   isDragoonClass,
   isDuelistClass,
+  isHexbladeClass,
   isNightbladeClass,
   isSentinelClass,
   isSkirmisherClass,
@@ -80,6 +84,8 @@ describe("isometricAssetPaths", () => {
       battlemageAttack: "/assets/isometric/actors/battlemage-attack.png",
       sentinelWalk: "/assets/isometric/actors/sentinel-walk.png",
       sentinelAttack: "/assets/isometric/actors/sentinel-attack.png",
+      hexbladeWalk: "/assets/isometric/actors/hexblade-walk.png",
+      hexbladeAttack: "/assets/isometric/actors/hexblade-attack.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -94,6 +100,7 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
+    expect(animatedPlayerClass("Hexblade")).toBe("hexblade");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
     expect(animatedPlayerClass("Sentinel")).toBe("sentinel");
     expect(animatedPlayerClass("Skirmisher")).toBe("skirmisher");
@@ -101,6 +108,31 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
     expect(animatedPlayerClass("Adventurer")).toBeNull();
+  });
+});
+
+describe("Hexblade animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isHexbladeClass("Hexblade")).toBe(true);
+    expect(isHexbladeClass(" hexblade ")).toBe(true);
+    expect(isHexbladeClass("Nightblade")).toBe(false);
+    expect(hexbladeAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(hexbladeAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon movement to the Hexblade sheet's projected facings", () => {
+    expect(hexbladeFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(hexbladeFacingFrame("up")).toBe(0);
+    expect(hexbladeFacingFrame("right")).toBe(1);
+    expect(hexbladeFacingFrame("down")).toBe(2);
+    expect(hexbladeFacingFrame("left")).toBe(3);
+    expect(hexbladeFacingFrame("unknown")).toBe(1);
   });
 });
 

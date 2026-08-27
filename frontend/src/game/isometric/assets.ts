@@ -26,6 +26,8 @@ export const isometricAssetPaths = {
   battlemageAttack: "/assets/isometric/actors/battlemage-attack.png",
   sentinelWalk: "/assets/isometric/actors/sentinel-walk.png",
   sentinelAttack: "/assets/isometric/actors/sentinel-attack.png",
+  hexbladeWalk: "/assets/isometric/actors/hexblade-walk.png",
+  hexbladeAttack: "/assets/isometric/actors/hexblade-attack.png",
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
@@ -74,6 +76,7 @@ export const wardenAnimationLayout = directionalClassAnimationLayout;
 export const skirmisherAnimationLayout = directionalClassAnimationLayout;
 export const battlemageAnimationLayout = directionalClassAnimationLayout;
 export const sentinelAnimationLayout = directionalClassAnimationLayout;
+export const hexbladeAnimationLayout = directionalClassAnimationLayout;
 
 export const warlordFacingFrames = {
   up: 3,
@@ -240,12 +243,28 @@ export function sentinelFacingFrame(direction?: string): number {
   return sentinelFacingFrames.right;
 }
 
+export const hexbladeFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function hexbladeFacingFrame(direction?: string): number {
+  if (direction && direction in hexbladeFacingFrames) {
+    return hexbladeFacingFrames[direction as keyof typeof hexbladeFacingFrames];
+  }
+
+  return hexbladeFacingFrames.right;
+}
+
 export type AnimatedPlayerClass =
   | "arcanist"
   | "battlemage"
   | "blademaster"
   | "dragoon"
   | "duelist"
+  | "hexblade"
   | "nightblade"
   | "sentinel"
   | "skirmisher"
@@ -261,6 +280,7 @@ export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass |
     || normalizedClass === "blademaster"
     || normalizedClass === "dragoon"
     || normalizedClass === "duelist"
+    || normalizedClass === "hexblade"
     || normalizedClass === "nightblade"
     || normalizedClass === "sentinel"
     || normalizedClass === "skirmisher"
@@ -316,6 +336,10 @@ export function isBattlemageClass(playerClass?: string): boolean {
 
 export function isSentinelClass(playerClass?: string): boolean {
   return animatedPlayerClass(playerClass) === "sentinel";
+}
+
+export function isHexbladeClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "hexblade";
 }
 
 export const torchAnimationLayout = {
