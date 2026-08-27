@@ -265,6 +265,20 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Dire Wolf attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dire_wolf).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dire_wolf-attack.png",
+        baselines: [109, 109, 90, 95],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dire_wolf-death.png",
+        baselines: [116, 121, 82, 85],
+      },
+    });
+    expect(enemyAnimationFor("DIRE_WOLF")).toBe(enemyAnimationRegistry.dire_wolf);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

@@ -207,7 +207,12 @@
   "dire_wolf": {
     "name": "Dire Wolf",
     "sprite": "/assets/enemies/sprites/dire_wolf.png",
-    "source": "/assets/enemies/sources/dire_wolf.png"
+    "source": "/assets/enemies/sources/dire_wolf.png",
+    "description": "An enormous low-slung wolf with charcoal-gray and deep-brown fur, a heavy black-brown spiked mane over its head and spine, fierce amber eyes, pale gray-beige muzzle and brow markings, a broad black nose, ivory teeth, lighter muscular forelegs, oversized splayed paws with long black claws, dark hindquarters, and a thick heavy tail.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/dire_wolf-attack.png",
+      "death": "/assets/isometric/enemies/dire_wolf-death.png"
+    }
   },
   "owlbear_cub": {
     "name": "Owlbear Cub",

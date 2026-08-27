@@ -459,6 +459,30 @@ single transparent pixel at the cell edge. The accepted revision restores safe
 padding while preserving all four wing identities, both crescent blades,
 binary alpha, a 32-color RGBA palette, and phase-specific baselines.
 
+### Dire Wolf
+
+The Dire Wolf is an enormous low-slung predator with charcoal-gray and
+deep-brown fur, a heavy black-brown spiked mane running over its head,
+shoulders, and spine, fierce amber eyes, and pale gray-beige markings over the
+brows, muzzle, and powerful forelegs. A broad black nose, ivory teeth,
+oversized splayed paws, long black claws, dark hindquarters, and a thick heavy
+tail reinforce the threatening quadruped silhouette. The Pounce sequence sinks
+into a stalking crouch, compresses the hind legs, launches screen-left with
+jaws and forepaws extended, and lands in a braced recovery. The non-gory death
+sequence staggers, lowers the chest as the forelegs buckle, curls onto one side,
+and settles fully grounded with eyes closed and the tail relaxed.
+
+The production sheets are:
+
+- `dire_wolf-attack.png`;
+- `dire_wolf-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft was rejected because the third-frame tail crossed
+the vertical cell boundary. The accepted revision curls that tail against the
+hindquarters and passes the shared binary-alpha, limited-palette, safe-padding,
+quadruped-topology, and phase-specific baseline checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
