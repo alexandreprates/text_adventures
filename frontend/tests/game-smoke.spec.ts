@@ -398,6 +398,7 @@ const animatedEnemyFixtures = [
   { creatureId: "basilisk_hatchling", displayName: "Basilisk Hatchling", maxHealth: 65 },
   { creatureId: "harpy_screecher", displayName: "Harpy Screecher", maxHealth: 36 },
   { creatureId: "griffin_fledgling", displayName: "Griffin Fledgling", maxHealth: 74 },
+  { creatureId: "manticore_whelp", displayName: "Manticore Whelp", maxHealth: 78 },
 ] as const;
 
 function animatedEnemyCombatPayload(

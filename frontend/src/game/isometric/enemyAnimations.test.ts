@@ -451,6 +451,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Manticore Whelp attack and death sheets", () => {
+    expect(enemyAnimationRegistry.manticore_whelp).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/manticore_whelp-attack.png",
+        baselines: [114, 116, 101, 99],
+      },
+      death: {
+        path: "/assets/isometric/enemies/manticore_whelp-death.png",
+        baselines: [115, 115, 93, 94],
+      },
+    });
+    expect(enemyAnimationFor("MANTICORE_WHELP")).toBe(
+      enemyAnimationRegistry.manticore_whelp,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

@@ -327,7 +327,12 @@
   "manticore_whelp": {
     "name": "Manticore Whelp",
     "sprite": "/assets/enemies/sprites/manticore_whelp.png",
-    "source": "/assets/enemies/sources/manticore_whelp.png"
+    "source": "/assets/enemies/sources/manticore_whelp.png",
+    "description": "A compact juvenile manticore with a low muscular lion body, exactly four broad clawed paws, two small batlike wings, and one heavily armored scorpion tail ending in a single curved stinger. Its angular tawny feline face glares through amber eyes above a broad dark nose and four prominent ivory fangs, framed by pointed ears and a dense swept mane of deep brown hornlike tufts. Irregular dark stripes and spots break the ochre-gold coat, while the wings carry red-black membranes over hooked brown fingers and the tail forms a chain of glossy dark-crimson plates.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/manticore_whelp-attack.png",
+      "death": "/assets/isometric/enemies/manticore_whelp-death.png"
+    }
   },
   "wyvern_juvenile": {
     "name": "Wyvern Juvenile",

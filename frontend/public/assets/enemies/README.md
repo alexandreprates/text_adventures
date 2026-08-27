@@ -820,6 +820,39 @@ of 120x120 inside fixed 128x128 cells. The production results use binary alpha,
 31/30 opaque colors, at least eight pixels of padding, shared runtime scale,
 and exact phase-specific baselines.
 
+### Manticore Whelp
+
+The Manticore Whelp is a compact juvenile manticore with a low muscular lion
+body, exactly four broad clawed paws, two small batlike wings, and one heavily
+armored scorpion tail ending in a single curved stinger. Its angular tawny
+feline face glares through amber eyes above a broad dark nose and four
+prominent ivory fangs, framed by pointed ears and a dense swept mane of deep
+brown hornlike tufts. Irregular dark stripes and spots break the ochre-gold
+coat, while the wings carry red-black membranes over hooked brown fingers and
+the tail forms a chain of glossy dark-crimson plates. The Tail Spike sequence
+moves from a low four-footed guard through a high coiled anticipation, lashes
+the connected tail over the body to drive its single stinger down-left, and
+recoils into a guarded crouch. The non-gory death sequence staggers as the tail
+loses tension, buckles through the forequarters, collapses onto one side with
+the wings folding, and rests motionless beside the inert coiled stinger.
+
+The production sheets are:
+
+- `manticore_whelp-attack.png`;
+- `manticore_whelp-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because its anticipation left only
+one source pixel at the cell divider; a focused ImageGen edit restored safe
+padding and a steadier origin. The first death draft was rejected because the
+third pose's tail crossed into the final cell; a focused edit separated both
+lower poses. The accepted sheets preserve exactly four feline legs, two bat
+wings, one head, one continuous segmented tail, and one stinger. Both use the
+same conservative nearest-neighbor scale of 116x116 inside fixed 128x128
+cells. The production results use binary alpha, 31/30 opaque colors, at least
+8/10 pixels of attack/death padding, shared runtime scale, and exact
+phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

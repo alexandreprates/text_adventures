@@ -308,6 +308,16 @@ export const enemyAnimationRegistry = {
       baselines: [107, 106, 89, 87],
     },
   },
+  manticore_whelp: {
+    attack: {
+      path: "/assets/isometric/enemies/manticore_whelp-attack.png",
+      baselines: [114, 116, 101, 99],
+    },
+    death: {
+      path: "/assets/isometric/enemies/manticore_whelp-death.png",
+      baselines: [115, 115, 93, 94],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
