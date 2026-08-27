@@ -74,6 +74,8 @@ RSpec.describe "Frontend assets" do
     %w[
       adventurer-walk.png
       adventurer-attack.png
+      druid-walk.png
+      druid-attack.png
       duelist-walk.png
       duelist-attack.png
       dragoon-walk.png

@@ -18,6 +18,9 @@ import {
   dragoonAnimationLayout,
   dragoonFacingFrame,
   dragoonFacingFrames,
+  druidAnimationLayout,
+  druidFacingFrame,
+  druidFacingFrames,
   duelistAnimationLayout,
   duelistFacingFrame,
   duelistFacingFrames,
@@ -29,6 +32,7 @@ import {
   isBattlemageClass,
   isBlademasterClass,
   isDragoonClass,
+  isDruidClass,
   isDuelistClass,
   isHexbladeClass,
   isMysticClass,
@@ -74,6 +78,8 @@ describe("isometricAssetPaths", () => {
       adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
       adventurerWalk: "/assets/isometric/actors/adventurer-walk.png",
       adventurerAttack: "/assets/isometric/actors/adventurer-attack.png",
+      druidWalk: "/assets/isometric/actors/druid-walk.png",
+      druidAttack: "/assets/isometric/actors/druid-attack.png",
       warlordWalk: "/assets/isometric/actors/warlord-walk.png",
       warlordAttack: "/assets/isometric/actors/warlord-attack.png",
       blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
@@ -116,6 +122,7 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Battlemage")).toBe("battlemage");
     expect(animatedPlayerClass(" Blademaster ")).toBe("blademaster");
     expect(animatedPlayerClass("Dragoon")).toBe("dragoon");
+    expect(animatedPlayerClass("Druid")).toBe("druid");
     expect(animatedPlayerClass("Duelist")).toBe("duelist");
     expect(animatedPlayerClass("Hexblade")).toBe("hexblade");
     expect(animatedPlayerClass("Nightblade")).toBe("nightblade");
@@ -126,7 +133,7 @@ describe("animatedPlayerClass", () => {
     expect(animatedPlayerClass("Spellblade")).toBe("spellblade");
     expect(animatedPlayerClass("Warden")).toBe("warden");
     expect(animatedPlayerClass("Warlord")).toBe("warlord");
-    expect(animatedPlayerClass("Druid")).toBeNull();
+    expect(animatedPlayerClass("Unknown")).toBeNull();
   });
 });
 
@@ -501,6 +508,31 @@ describe("Adventurer animation assets", () => {
     expect(adventurerFacingFrame("down")).toBe(2);
     expect(adventurerFacingFrame("left")).toBe(3);
     expect(adventurerFacingFrame("unknown")).toBe(1);
+  });
+});
+
+describe("Druid animation assets", () => {
+  it("selects the class family and shares the directional animation contract", () => {
+    expect(isDruidClass("Druid")).toBe(true);
+    expect(isDruidClass(" druid ")).toBe(true);
+    expect(isDruidClass("Ranger")).toBe(false);
+    expect(druidAnimationLayout).toBe(directionalClassAnimationLayout);
+    expect(druidAnimationLayout).toEqual({
+      frameWidth: 96,
+      frameHeight: 128,
+      phaseCount: 3,
+      idlePhase: 1,
+      baseline: 92,
+    });
+  });
+
+  it("maps dungeon directions to the matching isometric facing", () => {
+    expect(druidFacingFrames).toEqual({ up: 0, right: 1, down: 2, left: 3 });
+    expect(druidFacingFrame("up")).toBe(0);
+    expect(druidFacingFrame("right")).toBe(1);
+    expect(druidFacingFrame("down")).toBe(2);
+    expect(druidFacingFrame("left")).toBe(3);
+    expect(druidFacingFrame("unknown")).toBe(1);
   });
 });
 

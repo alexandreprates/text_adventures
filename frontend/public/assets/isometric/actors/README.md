@@ -1,5 +1,45 @@
 # Isometric Actor Sprites
 
+## Druid
+
+The Druid is an adult wildwood guardian whose warm umber-brown face remains
+visible beneath thick copper-auburn hair gathered into one practical braid
+with small leaf ties. Layered moss-green and deep forest-teal robes, russet
+leather, deep-plum shadows, aged-gold fasteners, compact bracers and boots, an
+asymmetric leaf mantle, and short split robe tails define a grounded forest
+caster. She carries exactly one dark crooked branch staff capped by a faceted
+amber seed held between two green leaves. Small amber-green sprouts and leaf
+motes express controlled nature magic without repeating the Ranger's hood and
+bow, the Mystic's lunar scepter, or the Arcanist's crystalline staff.
+
+The Druid animation assets are:
+
+- `druid-walk.png`: walk phase A, neutral passing pose, and walk phase B with
+  the staff held close and the braid and robe tails following the gait.
+- `druid-attack.png`: planted preparation, a compact staff-led seed and leaf
+  strike, and recovery with at most a few nearby fading leaf motes.
+
+Both files use the shared directional actor contract:
+
+- `384x384` RGBA PNG;
+- `4` columns ordered up, right, down, left;
+- `3` animation rows;
+- `96x128` frames;
+- local foot baseline near `y=92`;
+- binary alpha and a 32-color opaque palette.
+
+The original artwork was created with the built-in image generation workflow.
+The Druid had no dedicated legacy class atlas and previously used the generic
+Adventurer fallback, so her identity was consolidated from the pure
+nature-magic class role. Existing Arcanist, Ranger, and Mystic directional
+actors were used only for style, layout, scale, staff handling, and restrained
+nature-magic guidance. Walk and attack were generated in separate passes, and
+the approved walk sheet became the strict identity reference for attack.
+Production files were normalized mechanically with nearest-neighbor resizing,
+conservative chroma-key removal, sheet-level empty-margin cropping, fixed
+per-cell padding, row-preserving baseline alignment, binary alpha, and
+non-dithered palette quantization.
+
 ## Adventurer
 
 The Adventurer is a young independent dungeon explorer whose determined pale

@@ -6,6 +6,8 @@ export const isometricAssetPaths = {
   adventurerFacings: "/assets/isometric/actors/adventurer-facings.png",
   adventurerWalk: "/assets/isometric/actors/adventurer-walk.png",
   adventurerAttack: "/assets/isometric/actors/adventurer-attack.png",
+  druidWalk: "/assets/isometric/actors/druid-walk.png",
+  druidAttack: "/assets/isometric/actors/druid-attack.png",
   warlordWalk: "/assets/isometric/actors/warlord-walk.png",
   warlordAttack: "/assets/isometric/actors/warlord-attack.png",
   blademasterWalk: "/assets/isometric/actors/blademaster-walk.png",
@@ -63,6 +65,21 @@ export function adventurerFacingFrame(direction?: string): number {
   return adventurerFacingFrames.right;
 }
 
+export const druidFacingFrames = {
+  up: 0,
+  right: 1,
+  down: 2,
+  left: 3,
+} as const;
+
+export function druidFacingFrame(direction?: string): number {
+  if (direction && direction in druidFacingFrames) {
+    return druidFacingFrames[direction as keyof typeof druidFacingFrames];
+  }
+
+  return druidFacingFrames.right;
+}
+
 export const directionalClassAnimationLayout = {
   frameWidth: 96,
   frameHeight: 128,
@@ -72,6 +89,7 @@ export const directionalClassAnimationLayout = {
 } as const;
 
 export const adventurerAnimationLayout = directionalClassAnimationLayout;
+export const druidAnimationLayout = directionalClassAnimationLayout;
 export const warlordAnimationLayout = directionalClassAnimationLayout;
 export const blademasterAnimationLayout = directionalClassAnimationLayout;
 export const duelistAnimationLayout = directionalClassAnimationLayout;
@@ -303,6 +321,7 @@ export type AnimatedPlayerClass =
   | "battlemage"
   | "blademaster"
   | "dragoon"
+  | "druid"
   | "duelist"
   | "hexblade"
   | "nightblade"
@@ -322,6 +341,7 @@ export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass |
     || normalizedClass === "battlemage"
     || normalizedClass === "blademaster"
     || normalizedClass === "dragoon"
+    || normalizedClass === "druid"
     || normalizedClass === "duelist"
     || normalizedClass === "hexblade"
     || normalizedClass === "nightblade"
@@ -341,6 +361,10 @@ export function animatedPlayerClass(playerClass?: string): AnimatedPlayerClass |
 
 export function isAdventurerClass(playerClass?: string): boolean {
   return animatedPlayerClass(playerClass) === "adventurer";
+}
+
+export function isDruidClass(playerClass?: string): boolean {
+  return animatedPlayerClass(playerClass) === "druid";
 }
 
 export function isWarlordClass(playerClass?: string): boolean {
