@@ -41,9 +41,21 @@ RSpec.describe TextAdventures::CharacterProgression do
     expect(progression.overall_level).to eq 2
   end
 
+  it "keeps the base class until a skill track reaches level two" do
+    progression.add_skill_xp(:dagger_mastery, 999)
+
+    expect(progression.skill_level(:dagger_mastery)).to eq 1
+    expect(progression.current_class).to eq "Adventurer"
+
+    progression.add_skill_xp(:dagger_mastery, 1)
+
+    expect(progression.skill_level(:dagger_mastery)).to eq 2
+    expect(progression.current_class).to eq "Nightblade"
+  end
+
   it "uses the two strongest nearby skill tracks to name the current class" do
-    progression.add_skill_xp(:swordsmanship, 255)
-    progression.add_skill_xp(:combat_magic, 250)
+    progression.add_skill_xp(:swordsmanship, 1_005)
+    progression.add_skill_xp(:combat_magic, 1_000)
 
     expect(progression.current_class).to eq "Spellblade"
   end
@@ -56,9 +68,9 @@ RSpec.describe TextAdventures::CharacterProgression do
   end
 
   it "uses XP and track order to break current class ties deterministically" do
-    progression.add_skill_xp(:spearmanship, 275)
-    progression.add_skill_xp(:combat_magic, 275)
-    progression.add_skill_xp(:nature_magic, 280)
+    progression.add_skill_xp(:spearmanship, 1_025)
+    progression.add_skill_xp(:combat_magic, 1_025)
+    progression.add_skill_xp(:nature_magic, 1_030)
 
     expect(progression.current_class).to eq "Sentinel"
   end

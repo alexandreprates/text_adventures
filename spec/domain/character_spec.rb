@@ -196,19 +196,19 @@ RSpec.describe TextAdventures::Character do
       character.take_damage(12)
 
       character.gain_skill_xp(:swordsmanship, 249)
-      expect(character.current_class).to eq "Warlord"
+      expect(character.current_class).to eq "Adventurer"
       expect(character.progression.total_class_level).to eq 0
       expect(character.health).to have_attributes(current: 18, max: 30)
 
       character.gain_skill_xp(:swordsmanship, 1)
-      expect(character.current_class).to eq "Warlord"
+      expect(character.current_class).to eq "Adventurer"
       expect(character.skill_levels[:swordsmanship]).to eq 1
       expect(character.progression.total_class_level).to eq 1
       expect(character.health).to have_attributes(current: 35, max: 35)
 
       character.take_damage(7)
       character.gain_skill_xp(:combat_magic, 250)
-      expect(character.current_class).to eq "Spellblade"
+      expect(character.current_class).to eq "Adventurer"
       expect(character.skill_levels.values_at(:swordsmanship, :combat_magic)).to eq [1, 1]
       expect(character.progression.total_class_level).to eq 2
       expect(character.health).to have_attributes(current: 40, max: 40)

@@ -27,6 +27,7 @@ module TextAdventures
       %i[dagger_mastery nature_magic] => "Ranger",
       %i[combat_magic nature_magic] => "Mystic"
     }.freeze
+    MINIMUM_CLASS_LEVEL = 2
     PURE_CLASS_LEVEL_LEAD = 2
 
     attr_reader :skill_experience
@@ -73,9 +74,9 @@ module TextAdventures
     end
 
     def current_class
-      return BASE_CLASS_NAME if overall_experience.zero?
-
       primary, secondary = ranked_skills.first(2)
+      return BASE_CLASS_NAME if primary.fetch(:level) < MINIMUM_CLASS_LEVEL
+
       level_lead = primary.fetch(:level) - secondary.fetch(:level)
       return PURE_CLASS_NAMES.fetch(primary.fetch(:skill)) if level_lead >= PURE_CLASS_LEVEL_LEAD
 
