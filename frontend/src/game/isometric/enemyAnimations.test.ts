@@ -279,6 +279,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("DIRE_WOLF")).toBe(enemyAnimationRegistry.dire_wolf);
   });
 
+  it("registers dedicated Owlbear Cub attack and death sheets", () => {
+    expect(enemyAnimationRegistry.owlbear_cub).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/owlbear_cub-attack.png",
+        baselines: [115, 115, 96, 98],
+      },
+      death: {
+        path: "/assets/isometric/enemies/owlbear_cub-death.png",
+        baselines: [109, 109, 81, 81],
+      },
+    });
+    expect(enemyAnimationFor(" OWLBEAR_CUB ")).toBe(enemyAnimationRegistry.owlbear_cub);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

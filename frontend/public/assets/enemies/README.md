@@ -483,6 +483,31 @@ the vertical cell boundary. The accepted revision curls that tail against the
 hindquarters and passes the shared binary-alpha, limited-palette, safe-padding,
 quadruped-topology, and phase-specific baseline checks.
 
+### Owlbear Cub
+
+The Owlbear Cub is a compact juvenile predator with a hulking russet-brown
+bear body beneath a dense mantle of layered tawny owl feathers. A round
+cream-and-cinnamon facial disk frames fierce amber eyes, pointed ear tufts, and
+a glossy black hooked beak, while thick muscular legs end in broad splayed paws
+and oversized black claws. The Beak Snap sequence crouches into anticipation,
+opens the beak as the shoulders compress, lunges through a forceful snapping
+impact, and recoils into its shared stance. The non-gory death sequence flinches
+on all four legs, buckles through the forequarters, rolls onto one side, and
+settles into a compact motionless rest with closed eyes.
+
+The production sheets are:
+
+- `owlbear_cub-attack.png`;
+- `owlbear_cub-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. Multiple attack drafts were rejected for unsafe padding, an ambiguous
+far hind leg, and an open beak at the intended snap impact; two death drafts
+were rejected for merged limbs and insufficient edge clearance. The accepted
+sheets preserve four visibly distinct connected paws in every frame, feather
+and facial identity, binary alpha, 32-color RGBA palettes, at least 10 pixels
+of cell padding, fixed-cell containment, and phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

@@ -198,6 +198,16 @@ export const enemyAnimationRegistry = {
       baselines: [116, 121, 82, 85],
     },
   },
+  owlbear_cub: {
+    attack: {
+      path: "/assets/isometric/enemies/owlbear_cub-attack.png",
+      baselines: [115, 115, 96, 98],
+    },
+    death: {
+      path: "/assets/isometric/enemies/owlbear_cub-death.png",
+      baselines: [109, 109, 81, 81],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

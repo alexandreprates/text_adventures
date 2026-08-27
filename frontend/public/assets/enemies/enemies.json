@@ -217,7 +217,12 @@
   "owlbear_cub": {
     "name": "Owlbear Cub",
     "sprite": "/assets/enemies/sprites/owlbear_cub.png",
-    "source": "/assets/enemies/sources/owlbear_cub.png"
+    "source": "/assets/enemies/sources/owlbear_cub.png",
+    "description": "A compact juvenile owlbear with a hulking russet-brown bear body, a dense mantle of layered tawny feathers over its head, shoulders, and spine, a round cream-and-cinnamon owl facial disk, fierce amber eyes, pointed ear tufts, a glossy black hooked beak, thick muscular legs, broad splayed paws, and oversized black claws.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/owlbear_cub-attack.png",
+      "death": "/assets/isometric/enemies/owlbear_cub-death.png"
+    }
   },
   "cave_troll": {
     "name": "Cave Troll",
