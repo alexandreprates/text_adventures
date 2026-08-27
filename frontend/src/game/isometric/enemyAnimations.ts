@@ -148,6 +148,16 @@ export const enemyAnimationRegistry = {
       baselines: [113, 117, 94, 95],
     },
   },
+  pixie_trickster: {
+    attack: {
+      path: "/assets/isometric/enemies/pixie_trickster-attack.png",
+      baselines: [119, 106, 95, 104],
+    },
+    death: {
+      path: "/assets/isometric/enemies/pixie_trickster-death.png",
+      baselines: [109, 114, 91, 93],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

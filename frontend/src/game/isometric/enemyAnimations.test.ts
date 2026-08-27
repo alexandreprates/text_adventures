@@ -205,6 +205,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("forest_sprite")).toBe(enemyAnimationRegistry.forest_sprite);
   });
 
+  it("registers dedicated Pixie Trickster attack and death sheets", () => {
+    expect(enemyAnimationRegistry.pixie_trickster).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/pixie_trickster-attack.png",
+        baselines: [119, 106, 95, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/pixie_trickster-death.png",
+        baselines: [109, 114, 91, 93],
+      },
+    });
+    expect(enemyAnimationFor("pixie_trickster")).toBe(enemyAnimationRegistry.pixie_trickster);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

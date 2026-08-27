@@ -167,7 +167,12 @@
   "pixie_trickster": {
     "name": "Pixie Trickster",
     "sprite": "/assets/enemies/sprites/pixie_trickster.png",
-    "source": "/assets/enemies/sources/pixie_trickster.png"
+    "source": "/assets/enemies/sources/pixie_trickster.png",
+    "description": "A tiny feminine fae duelist with warm skin, long pointed ears, violet eyes, a sly smile, short swept purple hair, curled blue antennae with gold fittings, four translucent blue-lilac wings, a blue feather collar, a purple petal outfit, curled boots, gold bells and gems, and a slim silver needle dagger.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/pixie_trickster-attack.png",
+      "death": "/assets/isometric/enemies/pixie_trickster-death.png"
+    }
   },
   "satyr_duelist": {
     "name": "Satyr Duelist",

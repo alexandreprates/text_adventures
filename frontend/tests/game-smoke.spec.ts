@@ -382,6 +382,7 @@ const animatedEnemyFixtures = [
   { creatureId: "brimstone_imp", displayName: "Brimstone Imp", maxHealth: 30 },
   { creatureId: "lesser_demon", displayName: "Lesser Demon", maxHealth: 70 },
   { creatureId: "forest_sprite", displayName: "Forest Sprite", maxHealth: 18 },
+  { creatureId: "pixie_trickster", displayName: "Pixie Trickster", maxHealth: 20 },
 ] as const;
 
 function animatedEnemyCombatPayload(

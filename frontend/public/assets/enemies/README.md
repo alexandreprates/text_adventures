@@ -367,6 +367,28 @@ the second cell. The accepted sheet restores safe vertical padding while both
 animations pass the shared alpha, palette, boundary, and phase-specific
 ground-anchor checks.
 
+### Pixie Trickster
+
+The Pixie Trickster is a tiny feminine fae duelist with warm skin, long pointed
+ears, violet eyes, and a sly smile. Short swept purple hair surrounds two curled
+blue antennae decorated with gold fittings and blue gems. Four translucent
+blue-lilac wings, a blue feather collar, purple petal garments, violet leggings,
+curled boots, bells, bangles, and gems create her theatrical silhouette. A slim
+silver needle dagger completes the disguise. The Needle Prick sequence coils in
+midair, dashes through one fully extended thrust, and recovers into guard. The
+non-gory death sequence dims the wings, releases the dagger, descends to both
+knees, and settles on one side beside the weapon.
+
+The production sheets are:
+
+- `pixie_trickster-attack.png`;
+- `pixie_trickster-death.png`.
+
+The death sheet was regenerated twice: the first draft touched a lower-cell
+edge, and the second introduced visible grid separators. The accepted source is
+separator-free, restores safe padding, and passes the shared alpha, palette,
+boundary, and phase-specific ground-anchor checks.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
