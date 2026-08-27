@@ -39,7 +39,7 @@ export const isometricAssetPaths = {
   goblin: "/assets/isometric/enemies/goblin-actions.png",
   skeleton: "/assets/isometric/enemies/skeleton-actions.png",
   chest: "/assets/isometric/props/chest-actions.png",
-  torch: "/assets/isometric/props/torch-loop.png",
+  torch: "/assets/isometric/props/torch-loop-right.png",
   barrel: "/assets/isometric/props/barrel.png",
   rubble: "/assets/isometric/props/rubble.png",
   banner: "/assets/isometric/props/banner.png",
@@ -429,7 +429,9 @@ export const torchAnimationLayout = {
   frameCount: 4,
   drawWidth: 48,
   drawHeight: 72,
-  anchor: { x: 32, y: 72 },
+  wallMount: { x: 45, y: 66 },
+  wallTargetOffset: { x: -16, y: 15 },
+  flame: { x: 31, y: 22 },
 } as const;
 
 export type IsometricAssetName = keyof typeof isometricAssetPaths;

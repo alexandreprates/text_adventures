@@ -108,6 +108,7 @@ describe("isometricAssetPaths", () => {
       rangerAttack: "/assets/isometric/actors/ranger-attack.png",
       mysticWalk: "/assets/isometric/actors/mystic-walk.png",
       mysticAttack: "/assets/isometric/actors/mystic-attack.png",
+      torch: "/assets/isometric/props/torch-loop-right.png",
       barrel: "/assets/isometric/props/barrel.png",
       rubble: "/assets/isometric/props/rubble.png",
       banner: "/assets/isometric/props/banner.png",
@@ -537,14 +538,16 @@ describe("Druid animation assets", () => {
 });
 
 describe("torchAnimationLayout", () => {
-  it("pins every frame to the bottom spike anchor", () => {
+  it("pins the right-facing sconce to its rear wall plate", () => {
     expect(torchAnimationLayout).toEqual({
       frameWidth: 64,
       frameHeight: 96,
       frameCount: 4,
       drawWidth: 48,
       drawHeight: 72,
-      anchor: { x: 32, y: 72 },
+      wallMount: { x: 45, y: 66 },
+      wallTargetOffset: { x: -16, y: 15 },
+      flame: { x: 31, y: 22 },
     });
   });
 });

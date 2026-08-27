@@ -289,7 +289,7 @@ RSpec.describe TextAdventures::Dungeon do
         decorations: [
           { kind: "banner", x: 9, y: 5 },
           { kind: "torch", x: 10, y: 5 },
-          { kind: "barrel", x: 10, y: 6 },
+          { kind: "barrel", x: 7, y: 6 },
           { kind: "rubble", x: 7, y: 8 }
         ]
       )

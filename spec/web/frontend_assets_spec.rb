@@ -30,6 +30,7 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(public_root, "assets/isometric/enemies/skeleton-actions.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/props/chest-actions.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/props/torch-loop.png"))
+    expect(File).to exist(File.join(public_root, "assets/isometric/props/torch-loop-right.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/props/portal.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/props/stairs-down.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/effects/slash.png"))

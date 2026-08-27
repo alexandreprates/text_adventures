@@ -44,6 +44,7 @@ import {
   TILE_WIDTH,
   type ProjectedPoint,
 } from "./projection";
+import { torchDrawPosition, torchFlamePosition } from "./torchPlacement";
 import { isForegroundWall, isRightWallTorchAnchor } from "./wallTopology";
 
 const LOGICAL_WIDTH = 752;
@@ -304,7 +305,7 @@ export class IsometricDungeonRenderer {
     this.torchDecorations().forEach((decoration) => {
       const position = globalPosition(this.viewport!, decoration);
       const projectedTorch = this.screenPosition(position, camera);
-      const flame = { x: projectedTorch.x, y: projectedTorch.y - 7 };
+      const flame = torchFlamePosition(projectedTorch);
 
       this.drawEllipticalGlow(
         { x: flame.x, y: flame.y + 19 },
@@ -434,21 +435,22 @@ export class IsometricDungeonRenderer {
       const frame = this.options.reducedMotion
         ? 0
         : Math.floor(time / 150) % torchAnimationLayout.frameCount;
-      const scaleX = torchAnimationLayout.drawWidth / torchAnimationLayout.frameWidth;
-      const scaleY = torchAnimationLayout.drawHeight / torchAnimationLayout.frameHeight;
       return {
         position,
         layer: 35,
-        draw: (screen) => this.drawSheetFrame(
-          this.assets!.torch,
-          frame,
-          torchAnimationLayout.frameWidth,
-          torchAnimationLayout.frameHeight,
-          screen.x - torchAnimationLayout.anchor.x * scaleX,
-          screen.y + TILE_HEIGHT - 1 - torchAnimationLayout.anchor.y * scaleY,
-          torchAnimationLayout.drawWidth,
-          torchAnimationLayout.drawHeight,
-        ),
+        draw: (screen) => {
+          const draw = torchDrawPosition(screen);
+          this.drawSheetFrame(
+            this.assets!.torch,
+            frame,
+            torchAnimationLayout.frameWidth,
+            torchAnimationLayout.frameHeight,
+            draw.x,
+            draw.y,
+            torchAnimationLayout.drawWidth,
+            torchAnimationLayout.drawHeight,
+          );
+        },
       };
     }
 

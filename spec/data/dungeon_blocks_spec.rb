@@ -100,6 +100,24 @@ RSpec.describe "dungeon block catalog" do
     end
   end
 
+  it "keeps the floor directly in front of every torch clear" do
+    blocks.each do |id, block|
+      decorations = block.dig("visuals", "decorations")
+      occupied_floor = decorations
+        .reject { |decoration| decoration.fetch("kind") == "torch" }
+        .map { |decoration| [decoration.fetch("x"), decoration.fetch("y")] }
+
+      decorations
+        .select { |decoration| decoration.fetch("kind") == "torch" }
+        .each do |torch|
+          position_in_front = [torch.fetch("x"), torch.fetch("y") + 1]
+
+          expect(occupied_floor).not_to include(position_in_front),
+            "#{id} has a decoration obscuring its wall-mounted torch"
+        end
+    end
+  end
+
   def reachable_open_positions(tiles, start)
     queue = [start]
     seen = { start => true }

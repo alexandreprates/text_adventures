@@ -1413,6 +1413,7 @@ test("never renders torches away from the right-side wall", async ({ page }) => 
   const floatingCanvas = page.getByLabel("Dungeon map");
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   await expect(floatingCanvas).toBeVisible();
+  await page.waitForTimeout(250);
   const floatingFrame = await floatingCanvas.evaluate((element) => (
     (element as HTMLCanvasElement).toDataURL()
   ));
@@ -1425,6 +1426,7 @@ test("never renders torches away from the right-side wall", async ({ page }) => 
   const referenceCanvas = referencePage.getByLabel("Dungeon map");
   await expect(referencePage.getByText("Loading isometric dungeon…")).toBeHidden();
   await expect(referenceCanvas).toBeVisible();
+  await referencePage.waitForTimeout(250);
   const referenceFrame = await referenceCanvas.evaluate((element) => (
     (element as HTMLCanvasElement).toDataURL()
   ));
