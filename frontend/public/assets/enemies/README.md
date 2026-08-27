@@ -302,6 +302,28 @@ and phase-specific ground-anchor checks after their first production
 normalization. The attached flame remains inside each cell and never becomes a
 detached generic combat effect.
 
+### Brimstone Imp
+
+The Brimstone Imp is a small muscular fiend covered in rust-red scales cracked
+with ember-orange light. A crown of ridged horns and head spikes frames long
+pointed ears, glowing amber eyes, and serrated teeth. Black-tipped claws, one
+ragged red bat wing, a burning spined tail, brown wraps, and a skull-charmed
+loincloth reinforce its volcanic identity. The Ember Spit sequence draws a
+breath, builds a glow behind the teeth, releases a short mouth-attached flame
+cone, and recovers with a fading lip wisp. The non-gory death sequence gutters
+the hand and tail flames, drops the wing and knees, and finishes as a curled,
+fully extinguished body.
+
+The production sheets are:
+
+- `brimstone_imp-attack.png`;
+- `brimstone_imp-death.png`.
+
+Both first drafts were regenerated because horns and wing tips reached the top
+edge of lower cells. The accepted sheets use a more conservative scale and pass
+the shared alpha, palette, boundary, and phase-specific ground-anchor checks
+with every flame fully contained.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

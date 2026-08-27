@@ -137,7 +137,12 @@
   "brimstone_imp": {
     "name": "Brimstone Imp",
     "sprite": "/assets/enemies/sprites/brimstone_imp.png",
-    "source": "/assets/enemies/sources/brimstone_imp.png"
+    "source": "/assets/enemies/sources/brimstone_imp.png",
+    "description": "A small muscular fiend covered in rust-red scales cracked with ember-orange light, with a crown of ridged horns and spikes, long pointed ears, glowing amber eyes, serrated teeth, black-tipped claws, one ragged red bat wing, a burning spined tail, brown wraps, and a skull-charmed loincloth.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/brimstone_imp-attack.png",
+      "death": "/assets/isometric/enemies/brimstone_imp-death.png"
+    }
   },
   "lesser_demon": {
     "name": "Lesser Demon",

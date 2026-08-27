@@ -163,6 +163,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("shadow_imp")).toBe(enemyAnimationRegistry.shadow_imp);
   });
 
+  it("registers dedicated Brimstone Imp attack and death sheets", () => {
+    expect(enemyAnimationRegistry.brimstone_imp).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/brimstone_imp-attack.png",
+        baselines: [112, 114, 98, 99],
+      },
+      death: {
+        path: "/assets/isometric/enemies/brimstone_imp-death.png",
+        baselines: [124, 120, 94, 95],
+      },
+    });
+    expect(enemyAnimationFor("brimstone_imp")).toBe(enemyAnimationRegistry.brimstone_imp);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

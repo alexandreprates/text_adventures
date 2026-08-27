@@ -118,6 +118,16 @@ export const enemyAnimationRegistry = {
       baselines: [113, 113, 84, 83],
     },
   },
+  brimstone_imp: {
+    attack: {
+      path: "/assets/isometric/enemies/brimstone_imp-attack.png",
+      baselines: [112, 114, 98, 99],
+    },
+    death: {
+      path: "/assets/isometric/enemies/brimstone_imp-death.png",
+      baselines: [124, 120, 94, 95],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
