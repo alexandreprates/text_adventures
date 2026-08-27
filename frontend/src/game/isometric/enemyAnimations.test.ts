@@ -355,6 +355,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Lizardfolk Scout attack and death sheets", () => {
+    expect(enemyAnimationRegistry.lizardfolk_scout).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/lizardfolk_scout-attack.png",
+        baselines: [110, 105, 91, 101],
+      },
+      death: {
+        path: "/assets/isometric/enemies/lizardfolk_scout-death.png",
+        baselines: [116, 116, 95, 100],
+      },
+    });
+    expect(enemyAnimationFor("LIZARDFOLK_SCOUT")).toBe(
+      enemyAnimationRegistry.lizardfolk_scout,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

@@ -625,6 +625,39 @@ pixels of production-cell padding, and phase-specific baselines. Both sheets
 received the same conservative nearest-neighbor scale to 116x116 inside fixed
 128x128 cells so attack and death retain a shared runtime scale.
 
+### Lizardfolk Scout
+
+The Lizardfolk Scout is an athletic upright reptile with olive-ochre scales
+broken by dark slate plate markings, a broad low snout, one visible amber
+slit-pupil eye beneath a ridged brow, and a swept line of brown-gold hornlike
+spines running from the skull down the back and long muscular tail. Digitigrade
+legs end in broad clawed feet, while weathered brown leather armor combines a
+heavy right pauldron, diagonal buckled chest harness, bracers, ragged waist
+panels, and wrapped lower legs. One long wooden javelin carries a lashed angular
+gray spearhead and fiber ties. One round wooden shield has a rope-bound rim,
+pale chevron-and-diamond pattern, and central iron boss. The Javelin Thrust
+sequence moves from a low shield-forward guard through a braced draw-back, a
+forceful low lunge toward down-left, and a controlled recovery. The non-gory
+death sequence staggers with the guard failing, buckles onto one knee as the
+equipment slips free, collapses onto one side, and rests motionless beside the
+intact released javelin and shield.
+
+The production sheets are:
+
+- `lizardfolk_scout-attack.png`;
+- `lizardfolk_scout-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. Attack drafts were rejected for a tail crossing the vertical cell
+boundary and ambiguous or detached spear-arm anatomy. The first death draft
+was rejected because the opening javelin disappeared and the final released
+spear crossed into the neighboring cell. The accepted sheets preserve two-arm/
+two-leg anatomy, one connected tail, one continuous javelin, one round shield,
+binary alpha, 31/30 opaque colors, at least 7 pixels of cell padding, and exact
+phase-specific baselines. Both sheets received the same conservative
+nearest-neighbor scale to 120x120 inside fixed 128x128 cells so attack and death
+retain a shared runtime scale.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

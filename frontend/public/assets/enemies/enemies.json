@@ -267,7 +267,12 @@
   "lizardfolk_scout": {
     "name": "Lizardfolk Scout",
     "sprite": "/assets/enemies/sprites/lizardfolk_scout.png",
-    "source": "/assets/enemies/sources/lizardfolk_scout.png"
+    "source": "/assets/enemies/sources/lizardfolk_scout.png",
+    "description": "An athletic upright reptilian scout with olive-ochre scales broken by dark slate plate markings, a broad low snout, one visible amber slit-pupil eye beneath a ridged brow, a swept line of brown-gold hornlike spines running from the skull down the back and long muscular tail, digitigrade legs, and broad clawed hands and feet. Weathered brown leather armor combines a heavy right pauldron, diagonal buckled chest harness, bracers, ragged waist panels, and wrapped lower legs, while exactly one long wooden javelin carries a lashed angular gray spearhead and fiber ties, and one round wooden shield bears a rope-bound rim, pale chevron-and-diamond pattern, and central iron boss.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/lizardfolk_scout-attack.png",
+      "death": "/assets/isometric/enemies/lizardfolk_scout-death.png"
+    }
   },
   "naga_apprentice": {
     "name": "Naga Apprentice",

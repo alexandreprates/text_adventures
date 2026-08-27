@@ -392,6 +392,7 @@ const animatedEnemyFixtures = [
   { creatureId: "hill_giant_youth", displayName: "Hill Giant Youth", maxHealth: 110 },
   { creatureId: "minotaur_guardian", displayName: "Minotaur Guardian", maxHealth: 95 },
   { creatureId: "ogre_marauder", displayName: "Ogre Marauder", maxHealth: 85 },
+  { creatureId: "lizardfolk_scout", displayName: "Lizardfolk Scout", maxHealth: 38 },
 ] as const;
 
 function animatedEnemyCombatPayload(

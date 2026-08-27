@@ -248,6 +248,16 @@ export const enemyAnimationRegistry = {
       baselines: [113, 118, 107, 101],
     },
   },
+  lizardfolk_scout: {
+    attack: {
+      path: "/assets/isometric/enemies/lizardfolk_scout-attack.png",
+      baselines: [110, 105, 91, 101],
+    },
+    death: {
+      path: "/assets/isometric/enemies/lizardfolk_scout-death.png",
+      baselines: [116, 116, 95, 100],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
