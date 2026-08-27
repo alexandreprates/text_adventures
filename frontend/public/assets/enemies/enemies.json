@@ -117,7 +117,12 @@
   "zombie_brute": {
     "name": "Zombie Brute",
     "sprite": "/assets/enemies/sprites/zombie_brute.png",
-    "source": "/assets/enemies/sources/zombie_brute.png"
+    "source": "/assets/enemies/sources/zombie_brute.png",
+    "description": "A colossal asymmetrical undead brute with leathery gray-brown cadaver skin, a scarred bald head, sparse dark hair, milky eyes, broken yellow teeth, swollen shoulders, enormous arms and fists, a ragged slate-blue tabard, torn brown trousers and wraps, a heavy belt, broken wrist chains, and massive bare feet.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/zombie_brute-attack.png",
+      "death": "/assets/isometric/enemies/zombie_brute-death.png"
+    }
   },
   "shadow_imp": {
     "name": "Shadow Imp",

@@ -258,6 +258,28 @@ its cell boundary. The accepted sheet restores an internal inset while both
 animations pass the shared alpha, palette, boundary, and phase-specific
 ground-anchor checks.
 
+### Zombie Brute
+
+The Zombie Brute is a colossal, asymmetrical corpse with leathery gray-brown
+skin, a scarred bald head, sparse dark hair, milky eyes, and a broad mouth of
+broken yellow teeth. Swollen shoulders feed enormous arms and blocky fists,
+while massive bare feet carry its top-heavy frame. A ragged slate-blue tabard,
+torn brown trousers and wraps, a heavy belt, and broken iron chains around both
+wrists preserve the prison-break silhouette of the original sprite. The Heavy
+Slam sequence bends the knees, lifts both fists, drives them down together, and
+returns through a weighted recovery. The non-gory death sequence sags, buckles,
+topples onto one hip, and settles as a broad lateral corpse with slack chains.
+
+The production sheets are:
+
+- `zombie_brute-attack.png`;
+- `zombie_brute-death.png`.
+
+Both sheets passed the shared transparency, limited-palette, cell-boundary, and
+phase-specific ground-anchor checks after their first production normalization.
+The conservative scale keeps every fist, foot, chain, and cloth strip inside its
+animation cell.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

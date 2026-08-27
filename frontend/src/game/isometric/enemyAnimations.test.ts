@@ -135,6 +135,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("ghoul_stalker")).toBe(enemyAnimationRegistry.ghoul_stalker);
   });
 
+  it("registers dedicated Zombie Brute attack and death sheets", () => {
+    expect(enemyAnimationRegistry.zombie_brute).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/zombie_brute-attack.png",
+        baselines: [124, 123, 108, 114],
+      },
+      death: {
+        path: "/assets/isometric/enemies/zombie_brute-death.png",
+        baselines: [124, 121, 101, 107],
+      },
+    });
+    expect(enemyAnimationFor("zombie_brute")).toBe(enemyAnimationRegistry.zombie_brute);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
