@@ -195,7 +195,7 @@ export class IsometricDungeonRenderer {
     this.drawTerrain(camera);
     this.drawLightPools(camera, time);
     this.drawDepthLayer(camera, time);
-    this.drawCombatEffect(camera, time);
+    this.drawFallbackCombatEffect(camera, time);
     this.drawDungeonLighting(camera, time);
 
     this.vanishedEnemies = this.vanishedEnemies.filter((entity) => entity.expiresAt > time);
@@ -738,8 +738,10 @@ export class IsometricDungeonRenderer {
     }
   }
 
-  private drawCombatEffect(camera: Position, time: number): void {
+  private drawFallbackCombatEffect(camera: Position, time: number): void {
     if (!this.assets || !this.viewport || !this.combat) return;
+    if (this.combat.actor === "player" && animatedPlayerClass(this.options.playerClass)) return;
+
     const progress = (time - this.combat.startedAt) / this.combat.durationMs;
     if (progress < 0 || progress >= 1) return;
 

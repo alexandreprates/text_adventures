@@ -1740,8 +1740,31 @@ test("renders the Adventurer attack assets during player combat", async ({ page 
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   await expect(canvas).toBeVisible();
   await expect(page.getByLabel("Enemy status")).toContainText("Skeleton Guard");
+  await page.evaluate(() => {
+    const drawnImageSources: string[] = [];
+    const originalDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+    const trackedDrawImage = function (
+      this: CanvasRenderingContext2D,
+      ...args: unknown[]
+    ) {
+      const source = args[0];
+      if (source instanceof HTMLImageElement) {
+        drawnImageSources.push(source.currentSrc || source.src);
+      }
+      return Reflect.apply(originalDrawImage, this, args);
+    };
+
+    CanvasRenderingContext2D.prototype.drawImage = trackedDrawImage as typeof originalDrawImage;
+    (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources = drawnImageSources;
+  });
   await page.getByRole("button", { name: /attack/i }).click();
   await page.waitForTimeout(100);
+
+  const drawnImageSources = await page.evaluate(
+    () => (window as unknown as { __drawnImageSources: string[] }).__drawnImageSources,
+  );
+  expect(drawnImageSources.some((source) => source.endsWith("/actors/adventurer-attack.png"))).toBe(true);
+  expect(drawnImageSources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
 });
 
 test("renders the Druid attack assets during player combat", async ({ page }) => {
