@@ -94,6 +94,18 @@ RSpec.describe TextAdventures::DungeonBlock do
       )
     end
 
+    it "rejects torches that are not fixed to a right-side wall" do
+      expect do
+        described_class.new(
+          id: "floating_torch",
+          name: "Floating torch",
+          tiles: tiles,
+          exits: ["right"],
+          visuals: { decorations: [{ kind: "torch", x: 3, y: 2 }] }
+        )
+      end.to raise_error(ArgumentError, "torch decoration must be fixed to a right-side wall")
+    end
+
     it "rejects unknown or out-of-bounds decorations" do
       expect do
         described_class.new(

@@ -158,7 +158,7 @@ RSpec.describe TextAdventures::ContentCatalog do
         exits: ["right"],
         theme: "stone_ruins",
         decorations: [
-          { kind: "torch", x: 3, y: 1 },
+          { kind: "torch", x: 4, y: 0 },
           { kind: "barrel", x: 4, y: 1 },
           { kind: "rubble", x: 1, y: 3 },
           { kind: "banner", x: 3, y: 0 }

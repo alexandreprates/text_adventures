@@ -107,6 +107,41 @@ const isometricRuinsPayload: MockGamePayload = {
   },
 };
 
+const noTorchRuinsPayload: MockGamePayload = {
+  ...isometricRuinsPayload,
+  state: {
+    ...isometricRuinsPayload.state,
+    dungeon: {
+      ...(isometricRuinsPayload.state.dungeon as Record<string, unknown>),
+      viewport: {
+        ...(
+          (isometricRuinsPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+        ),
+        decorations: [{ kind: "chest", x: 2, y: 3 }],
+      },
+    },
+  },
+};
+
+const floatingTorchRuinsPayload: MockGamePayload = {
+  ...noTorchRuinsPayload,
+  state: {
+    ...noTorchRuinsPayload.state,
+    dungeon: {
+      ...(noTorchRuinsPayload.state.dungeon as Record<string, unknown>),
+      viewport: {
+        ...(
+          (noTorchRuinsPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport
+        ),
+        decorations: [
+          { kind: "torch", x: 2, y: 2 },
+          { kind: "chest", x: 2, y: 3 },
+        ],
+      },
+    },
+  },
+};
+
 const wideRuinsPayload: MockGamePayload = {
   ...isometricRuinsPayload,
   state: {
@@ -1368,6 +1403,34 @@ test("limits dungeon visibility around the player", async ({ page }) => {
       }),
     )
     .toBeGreaterThan(5);
+});
+
+test("never renders torches away from the right-side wall", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(page, floatingTorchRuinsPayload);
+  await page.goto("/");
+
+  const floatingCanvas = page.getByLabel("Dungeon map");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(floatingCanvas).toBeVisible();
+  const floatingFrame = await floatingCanvas.evaluate((element) => (
+    (element as HTMLCanvasElement).toDataURL()
+  ));
+
+  const referencePage = await page.context().newPage();
+  await referencePage.emulateMedia({ reducedMotion: "reduce" });
+  await mockGame(referencePage, noTorchRuinsPayload);
+  await referencePage.goto("/");
+
+  const referenceCanvas = referencePage.getByLabel("Dungeon map");
+  await expect(referencePage.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect(referenceCanvas).toBeVisible();
+  const referenceFrame = await referenceCanvas.evaluate((element) => (
+    (element as HTMLCanvasElement).toDataURL()
+  ));
+
+  expect(floatingFrame).toBe(referenceFrame);
+  await referencePage.close();
 });
 
 test("renders the Adventurer directional player assets", async ({ page }) => {

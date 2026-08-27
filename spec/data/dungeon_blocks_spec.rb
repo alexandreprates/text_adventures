@@ -83,6 +83,23 @@ RSpec.describe "dungeon block catalog" do
     end
   end
 
+  it "mounts every torch on the visible right-side wall" do
+    blocks.each do |id, block|
+      tiles = block.fetch("tiles")
+      torches = block.dig("visuals", "decorations").select do |decoration|
+        decoration.fetch("kind") == "torch"
+      end
+
+      torches.each do |torch|
+        x = torch.fetch("x")
+        y = torch.fetch("y")
+
+        expect(tiles.fetch(y)[x]).to eq("#"), "#{id} has a torch outside a wall"
+        expect(tiles.fetch(y + 1)[x]).to eq(" "), "#{id} has a torch away from the right-side wall face"
+      end
+    end
+  end
+
   def reachable_open_positions(tiles, start)
     queue = [start]
     seen = { start => true }

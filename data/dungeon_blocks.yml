@@ -5,8 +5,8 @@ dungeon_blocks:
       theme: stone_ruins
       decorations:
         - kind: torch
-          x: 3
-          y: 1
+          x: 4
+          y: 0
         - kind: barrel
           x: 4
           y: 1
@@ -30,8 +30,8 @@ dungeon_blocks:
       theme: stone_ruins
       decorations:
         - kind: torch
-          x: 2
-          y: 1
+          x: 4
+          y: 0
         - kind: barrel
           x: 1
           y: 1
@@ -55,8 +55,8 @@ dungeon_blocks:
       theme: stone_ruins
       decorations:
         - kind: torch
-          x: 1
-          y: 2
+          x: 4
+          y: 0
         - kind: barrel
           x: 4
           y: 1
@@ -81,7 +81,7 @@ dungeon_blocks:
       decorations:
         - kind: torch
           x: 4
-          y: 2
+          y: 0
         - kind: barrel
           x: 1
           y: 3
@@ -106,10 +106,10 @@ dungeon_blocks:
       decorations:
         - kind: torch
           x: 1
-          y: 1
+          y: 0
         - kind: torch
           x: 4
-          y: 3
+          y: 0
         - kind: barrel
           x: 4
           y: 1
@@ -117,8 +117,8 @@ dungeon_blocks:
           x: 1
           y: 3
         - kind: banner
-          x: 4
-          y: 0
+          x: 0
+          y: 1
     exits:
       - up
       - right
@@ -137,7 +137,7 @@ dungeon_blocks:
       decorations:
         - kind: torch
           x: 4
-          y: 1
+          y: 0
         - kind: barrel
           x: 1
           y: 1
@@ -162,8 +162,8 @@ dungeon_blocks:
       theme: stone_ruins
       decorations:
         - kind: torch
-          x: 1
-          y: 1
+          x: 4
+          y: 0
         - kind: barrel
           x: 4
           y: 1
@@ -189,7 +189,7 @@ dungeon_blocks:
       decorations:
         - kind: torch
           x: 4
-          y: 3
+          y: 0
         - kind: barrel
           x: 1
           y: 3
@@ -214,8 +214,8 @@ dungeon_blocks:
       theme: stone_ruins
       decorations:
         - kind: torch
-          x: 1
-          y: 3
+          x: 4
+          y: 0
         - kind: barrel
           x: 4
           y: 3

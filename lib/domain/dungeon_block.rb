@@ -77,11 +77,18 @@ module TextAdventures
         y = Integer(decoration.fetch("y"))
         raise ArgumentError, "unknown dungeon decoration: #{kind}" unless VALID_DECORATION_KINDS.include?(kind)
         raise ArgumentError, "dungeon decoration must be inside its block" unless in_bounds?(x, y)
+        if kind == "torch" && !right_side_wall_mount?(x, y)
+          raise ArgumentError, "torch decoration must be fixed to a right-side wall"
+        end
 
         normalized = { kind: kind, x: x, y: y }
         normalized[:variant] = decoration.fetch("variant").to_s if decoration.key?("variant")
         normalized.freeze
       end.freeze
+    end
+
+    def right_side_wall_mount?(x, y)
+      wall?(x, y) && open?(x, y + 1)
     end
   end
 end

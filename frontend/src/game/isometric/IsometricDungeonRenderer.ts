@@ -44,7 +44,7 @@ import {
   TILE_WIDTH,
   type ProjectedPoint,
 } from "./projection";
-import { isForegroundWall } from "./wallTopology";
+import { isForegroundWall, isRightWallTorchAnchor } from "./wallTopology";
 
 const LOGICAL_WIDTH = 752;
 const LOGICAL_HEIGHT = 416;
@@ -228,13 +228,11 @@ export class IsometricDungeonRenderer {
     this.context.save();
     this.context.globalCompositeOperation = "lighter";
     this.context.globalAlpha = pulse;
-    this.viewport.decorations
-      ?.filter((decoration) => decoration.kind === "torch")
-      .forEach((decoration) => {
-        const position = globalPosition(this.viewport!, decoration);
-        const screen = this.screenPosition({ x: position.x, y: position.y + 0.8 }, camera);
-        this.context.drawImage(this.assets!.lightPool, screen.x - 64, screen.y - 22);
-      });
+    this.torchDecorations().forEach((decoration) => {
+      const position = globalPosition(this.viewport!, decoration);
+      const screen = this.screenPosition({ x: position.x, y: position.y + 0.8 }, camera);
+      this.context.drawImage(this.assets!.lightPool, screen.x - 64, screen.y - 22);
+    });
     this.context.restore();
   }
 
@@ -303,26 +301,24 @@ export class IsometricDungeonRenderer {
     if (!this.viewport) return;
     const pulse = torchPulseAt(time, this.options.reducedMotion);
 
-    this.viewport.decorations
-      ?.filter((decoration) => decoration.kind === "torch")
-      .forEach((decoration) => {
-        const position = globalPosition(this.viewport!, decoration);
-        const projectedTorch = this.screenPosition(position, camera);
-        const flame = { x: projectedTorch.x, y: projectedTorch.y - 7 };
+    this.torchDecorations().forEach((decoration) => {
+      const position = globalPosition(this.viewport!, decoration);
+      const projectedTorch = this.screenPosition(position, camera);
+      const flame = { x: projectedTorch.x, y: projectedTorch.y - 7 };
 
-        this.drawEllipticalGlow(
-          { x: flame.x, y: flame.y + 19 },
-          dungeonLightingLayout.torchGlowRadius,
-          dungeonLightingLayout.torchGlowVerticalScale,
-          [
-            [0, this.lightingPalette.torchCore],
-            [0.46, this.lightingPalette.torchSoft],
-            [1, this.lightingPalette.torchEdge],
-          ],
-          pulse,
-        );
-        this.drawTorchBeam(flame, playerCenter, pulse);
-      });
+      this.drawEllipticalGlow(
+        { x: flame.x, y: flame.y + 19 },
+        dungeonLightingLayout.torchGlowRadius,
+        dungeonLightingLayout.torchGlowVerticalScale,
+        [
+          [0, this.lightingPalette.torchCore],
+          [0.46, this.lightingPalette.torchSoft],
+          [1, this.lightingPalette.torchEdge],
+        ],
+        pulse,
+      );
+      this.drawTorchBeam(flame, playerCenter, pulse);
+    });
   }
 
   private drawTorchBeam(
@@ -411,7 +407,7 @@ export class IsometricDungeonRenderer {
       }
     }
 
-    this.viewport.decorations?.forEach((decoration) => {
+    this.renderableDecorations().forEach((decoration) => {
       const position = globalPosition(this.viewport!, decoration);
       nodes.push(this.decorationNode(decoration, position, time));
     });
@@ -497,6 +493,26 @@ export class IsometricDungeonRenderer {
     }
 
     return this.chestNode(position, 0);
+  }
+
+  private renderableDecorations(): DungeonDecoration[] {
+    const viewport = this.viewport;
+    if (!viewport) return [];
+
+    return (viewport.decorations ?? []).filter((decoration) => (
+      decoration.kind !== "torch"
+      || isRightWallTorchAnchor(
+        viewport.terrain,
+        viewport.width,
+        viewport.height,
+        decoration.x,
+        decoration.y,
+      )
+    ));
+  }
+
+  private torchDecorations(): DungeonDecoration[] {
+    return this.renderableDecorations().filter((decoration) => decoration.kind === "torch");
   }
 
   private entityNode(entity: PositionedEntity, position: Position, time: number): DepthNode {
