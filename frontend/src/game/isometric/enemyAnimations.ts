@@ -28,6 +28,16 @@ export const enemyAnimationRegistry = {
       baselines: [119, 116, 103, 106],
     },
   },
+  orc_berserker: {
+    attack: {
+      path: "/assets/isometric/enemies/orc_berserker-attack.png",
+      baselines: [117, 116, 106, 106],
+    },
+    death: {
+      path: "/assets/isometric/enemies/orc_berserker-death.png",
+      baselines: [118, 125, 108, 108],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

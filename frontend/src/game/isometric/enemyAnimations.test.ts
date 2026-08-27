@@ -37,6 +37,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("ORC_RAIDER")).toBe(enemyAnimationRegistry.orc_raider);
   });
 
+  it("registers dedicated Orc Berserker attack and death sheets", () => {
+    expect(enemyAnimationRegistry.orc_berserker).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/orc_berserker-attack.png",
+        baselines: [117, 116, 106, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/orc_berserker-death.png",
+        baselines: [118, 125, 108, 108],
+      },
+    });
+    expect(enemyAnimationFor("orc_berserker")).toBe(enemyAnimationRegistry.orc_berserker);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

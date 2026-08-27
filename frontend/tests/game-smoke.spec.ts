@@ -370,6 +370,7 @@ const combatPayload: MockGamePayload = {
 const animatedEnemyFixtures = [
   { creatureId: "giant_spider", displayName: "Giant Spider", maxHealth: 35 },
   { creatureId: "orc_raider", displayName: "Orc Raider", maxHealth: 42 },
+  { creatureId: "orc_berserker", displayName: "Orc Berserker", maxHealth: 55 },
 ] as const;
 
 function animatedEnemyCombatPayload(

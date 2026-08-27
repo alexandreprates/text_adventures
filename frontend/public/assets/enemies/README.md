@@ -115,6 +115,26 @@ The static sprite remained the strict identity reference. Both generated sheets
 passed the shared transparency, palette, frame-boundary, and runtime anchor
 checks without requiring a corrective regeneration.
 
+### Orc Berserker
+
+The Orc Berserker is a massive, hunched brute with olive-green skin, ember-red
+eyes, large ivory tusks, a scarred roaring face, and a short dark-red crest.
+Patched rust-red leather hangs beneath dark iron plates and spikes, while thick
+wrappings reinforce the forearms and boots. An enormous chipped two-handed axe
+distinguishes him from the lighter Orc Raider. His Frenzied Cleave coils the
+torso, drives the axe through a wide horizontal arc, and ends in a deep,
+over-rotated recovery. The non-gory death sequence breaks the rage, drops him to
+one knee, and topples the heavy body beside the released axe.
+
+The production sheets are:
+
+- `orc_berserker-attack.png`;
+- `orc_berserker-death.png`.
+
+The generated sheets preserved the static sprite's feral identity and passed
+the shared transparency, palette, frame-boundary, and ground-anchor checks on
+their first production normalization.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

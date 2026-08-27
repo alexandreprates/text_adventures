@@ -37,7 +37,12 @@
   "orc_berserker": {
     "name": "Orc Berserker",
     "sprite": "/assets/enemies/sprites/orc_berserker.png",
-    "source": "/assets/enemies/sources/orc_berserker.png"
+    "source": "/assets/enemies/sources/orc_berserker.png",
+    "description": "A massive hunched berserker with olive-green skin, ember-red eyes, ivory tusks, a roaring scarred face, a short dark-red crest, patched rust-red leather, spiked iron plates, heavy wrappings, and an enormous chipped two-handed axe.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/orc_berserker-attack.png",
+      "death": "/assets/isometric/enemies/orc_berserker-death.png"
+    }
   },
   "kobold_trapper": {
     "name": "Kobold Trapper",
