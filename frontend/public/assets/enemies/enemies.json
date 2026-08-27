@@ -337,7 +337,12 @@
   "wyvern_juvenile": {
     "name": "Wyvern Juvenile",
     "sprite": "/assets/enemies/sprites/wyvern_juvenile.png",
-    "source": "/assets/enemies/sources/wyvern_juvenile.png"
+    "source": "/assets/enemies/sources/wyvern_juvenile.png",
+    "description": "A compact juvenile dragon-like wyvern with a low four-legged stance, two broad leathery wings, and one long muscular tail ending in a single hooked stinger. Its narrow horned skull carries an amber slit-pupil eye, a hooked beaklike snout, and a tooth-lined jaw beneath layered dark brow plates. Overlapping moss-olive and weathered bronze scales armor the limbs and torso, while pale tan segments protect the long curved throat and belly. Jagged near-black spines sweep from the crown down the neck and back, and warm brown wing membranes stretch between bronze-scaled fingers above four heavy clawed feet.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/wyvern_juvenile-attack.png",
+      "death": "/assets/isometric/enemies/wyvern_juvenile-death.png"
+    }
   },
   "dragon_wyrmling": {
     "name": "Dragon Wyrmling",

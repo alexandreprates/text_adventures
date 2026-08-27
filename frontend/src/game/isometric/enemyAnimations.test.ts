@@ -467,6 +467,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Wyvern Juvenile attack and death sheets", () => {
+    expect(enemyAnimationRegistry.wyvern_juvenile).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/wyvern_juvenile-attack.png",
+        baselines: [100, 101, 91, 92],
+      },
+      death: {
+        path: "/assets/isometric/enemies/wyvern_juvenile-death.png",
+        baselines: [100, 102, 72, 72],
+      },
+    });
+    expect(enemyAnimationFor(" WYVERN_JUVENILE ")).toBe(
+      enemyAnimationRegistry.wyvern_juvenile,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

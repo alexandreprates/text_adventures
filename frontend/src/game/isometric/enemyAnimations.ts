@@ -318,6 +318,16 @@ export const enemyAnimationRegistry = {
       baselines: [115, 115, 93, 94],
     },
   },
+  wyvern_juvenile: {
+    attack: {
+      path: "/assets/isometric/enemies/wyvern_juvenile-attack.png",
+      baselines: [100, 101, 91, 92],
+    },
+    death: {
+      path: "/assets/isometric/enemies/wyvern_juvenile-death.png",
+      baselines: [100, 102, 72, 72],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

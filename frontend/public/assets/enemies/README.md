@@ -853,6 +853,39 @@ cells. The production results use binary alpha, 31/30 opaque colors, at least
 8/10 pixels of attack/death padding, shared runtime scale, and exact
 phase-specific baselines.
 
+### Wyvern Juvenile
+
+The Wyvern Juvenile is a compact juvenile dragon-like creature with a low
+four-legged stance, exactly two broad leathery wings, and one long muscular
+tail ending in a single hooked stinger. Its narrow horned skull has an amber
+slit-pupil eye, a hooked beaklike snout, and a tooth-lined jaw beneath layered
+dark brow plates. Moss-olive and weathered bronze scales armor the limbs and
+torso, pale tan segments protect the long curved throat and belly, and jagged
+near-black spines sweep from the crown down the neck and back. Warm brown wing
+membranes stretch between bronze-scaled fingers above four heavy clawed feet.
+The Stinger Jab sequence moves from a low guard through a raised tail coil,
+whips the connected tail forward-left in a clear striking arc, and recovers
+into a grounded crouch. The non-gory death sequence staggers with the wings
+losing tension, buckles through all four legs, settles onto one side, and ends
+fully motionless with the wings folded and the stinger tail resting behind.
+
+The production sheets are:
+
+- `wyvern_juvenile-attack.png`;
+- `wyvern_juvenile-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because its tail touched the
+internal divider. A focused ImageGen edit restored safe padding, and two
+additional baseline-directed edits were evaluated before the final grounded
+composition was accepted. The first death draft passed visual, topology, and
+boundary review. The accepted sheets preserve exactly two wings, four legs,
+one head, one continuous tail, and one hooked stinger. Both use the same
+conservative nearest-neighbor scale of 116x116 inside fixed 128x128 cells. The
+production results use binary alpha, 31/31 opaque colors, at least 14/12
+pixels of attack/death padding, shared runtime scale, and exact phase-specific
+baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
