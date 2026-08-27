@@ -147,7 +147,12 @@
   "lesser_demon": {
     "name": "Lesser Demon",
     "sprite": "/assets/enemies/sprites/lesser_demon.png",
-    "source": "/assets/enemies/sources/lesser_demon.png"
+    "source": "/assets/enemies/sources/lesser_demon.png",
+    "description": "A tall muscular fiend with dark rust-red scales cracked by molten orange veins, massive curved black horns, facial spikes, glowing orange eyes, a broad fanged maw, one enormous ragged wing, long black claws, cloven hooves, a bladed spined tail, iron bracers, chains, skull trophies, and a torn black loincloth.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/lesser_demon-attack.png",
+      "death": "/assets/isometric/enemies/lesser_demon-death.png"
+    }
   },
   "forest_sprite": {
     "name": "Forest Sprite",

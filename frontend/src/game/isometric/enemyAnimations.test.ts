@@ -177,6 +177,20 @@ describe("enemy animations", () => {
     expect(enemyAnimationFor("brimstone_imp")).toBe(enemyAnimationRegistry.brimstone_imp);
   });
 
+  it("registers dedicated Lesser Demon attack and death sheets", () => {
+    expect(enemyAnimationRegistry.lesser_demon).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/lesser_demon-attack.png",
+        baselines: [120, 120, 109, 107],
+      },
+      death: {
+        path: "/assets/isometric/enemies/lesser_demon-death.png",
+        baselines: [126, 117, 94, 94],
+      },
+    });
+    expect(enemyAnimationFor("lesser_demon")).toBe(enemyAnimationRegistry.lesser_demon);
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

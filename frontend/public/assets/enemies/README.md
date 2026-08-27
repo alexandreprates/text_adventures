@@ -324,6 +324,28 @@ edge of lower cells. The accepted sheets use a more conservative scale and pass
 the shared alpha, palette, boundary, and phase-specific ground-anchor checks
 with every flame fully contained.
 
+### Lesser Demon
+
+The Lesser Demon is a tall muscular fiend with dark rust-red scales split by
+molten orange veins. Two massive ridged black horns, smaller facial spikes,
+glowing orange eyes, and a broad fanged maw dominate its head. One enormous
+ragged wing, long black-tipped claws, cloven hooves, a bladed spined tail, iron
+bracers, chains, skull trophies, and a torn black loincloth distinguish it from
+the smaller imps. The Hellish Claw sequence twists through a heavy anticipation,
+lunges into a diagonal body-driven rake, and ends in a low recovery. The
+non-gory death sequence dims the molten cracks, drops the wing and knees,
+topples the torso, and leaves the horned body grounded beneath the folded wing.
+
+The production sheets are:
+
+- `lesser_demon-attack.png`;
+- `lesser_demon-death.png`.
+
+Both sheets passed the shared transparency, limited-palette, cell-boundary, and
+phase-specific ground-anchor checks after their first production normalization.
+The conservative pose scale keeps the large horns, wing, claws, and bladed tail
+inside every cell.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

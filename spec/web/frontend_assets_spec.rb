@@ -136,6 +136,8 @@ RSpec.describe "Frontend assets" do
       shadow_imp-death.png
       brimstone_imp-attack.png
       brimstone_imp-death.png
+      lesser_demon-attack.png
+      lesser_demon-death.png
     ].each do |filename|
       sheet = File.binread(File.join(public_root, "assets/isometric/enemies", filename), 33)
 
