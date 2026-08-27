@@ -435,6 +435,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Griffin Fledgling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.griffin_fledgling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/griffin_fledgling-attack.png",
+        baselines: [112, 110, 98, 99],
+      },
+      death: {
+        path: "/assets/isometric/enemies/griffin_fledgling-death.png",
+        baselines: [107, 106, 89, 87],
+      },
+    });
+    expect(enemyAnimationFor(" GRIFFIN_FLEDGLING ")).toBe(
+      enemyAnimationRegistry.griffin_fledgling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

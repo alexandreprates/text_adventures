@@ -298,6 +298,16 @@ export const enemyAnimationRegistry = {
       baselines: [110, 115, 96, 98],
     },
   },
+  griffin_fledgling: {
+    attack: {
+      path: "/assets/isometric/enemies/griffin_fledgling-attack.png",
+      baselines: [112, 110, 98, 99],
+    },
+    death: {
+      path: "/assets/isometric/enemies/griffin_fledgling-death.png",
+      baselines: [107, 106, 89, 87],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

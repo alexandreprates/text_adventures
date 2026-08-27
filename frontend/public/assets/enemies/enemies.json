@@ -317,7 +317,12 @@
   "griffin_fledgling": {
     "name": "Griffin Fledgling",
     "sprite": "/assets/enemies/sprites/griffin_fledgling.png",
-    "source": "/assets/enemies/sources/griffin_fledgling.png"
+    "source": "/assets/enemies/sources/griffin_fledgling.png",
+    "description": "A compact young griffin combining an eagle's head and forequarters with a tawny lion's body. A swept crown and deep layered breast ruff shift from bright ivory to warm cream around fierce amber eyes, a golden cere, and a heavy charcoal-black hooked beak. Exactly two powerful eagle forelegs end in oversized black-tipped talons, while two muscular lion hind legs support the golden-ochre haunches. Two enormous back wings layer burnished gold, chestnut, and dark umber flight feathers above one long curling lion tail tipped by a single dark featherlike tuft.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/griffin_fledgling-attack.png",
+      "death": "/assets/isometric/enemies/griffin_fledgling-death.png"
+    }
   },
   "manticore_whelp": {
     "name": "Manticore Whelp",

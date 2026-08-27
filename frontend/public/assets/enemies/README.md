@@ -787,6 +787,39 @@ nearest-neighbor scale of 116x116 inside fixed 128x128 cells. The production
 results use binary alpha, 30 opaque colors per sheet, at least 6/7 pixels of
 attack/death padding, shared runtime scale, and exact phase-specific baselines.
 
+### Griffin Fledgling
+
+The Griffin Fledgling is a compact young griffin combining an eagle's head and
+forequarters with a tawny lion's body. A swept crown and deep layered breast
+ruff shift from bright ivory to warm cream around fierce amber eyes, a golden
+cere, and a heavy charcoal-black hooked beak. Exactly two powerful eagle
+forelegs end in oversized black-tipped talons, while two muscular lion hind
+legs support the golden-ochre haunches. Two enormous back wings layer burnished
+gold, chestnut, and dark umber flight feathers above one long curling lion tail
+tipped by a single dark featherlike tuft. The Eagle Rend sequence moves from a
+low wing-spread guard through a rear-weighted anticipation, drives both eagle
+foretalons down-left in a short controlled leap, and returns to four-footed
+support. The non-gory death sequence staggers with the wings losing lift,
+buckles through the forequarters, collapses onto one flank, and rests
+motionless with the paired legs and folded wings naturally stacked.
+
+The production sheets are:
+
+- `griffin_fledgling-attack.png`;
+- `griffin_fledgling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft passed both visual and boundary review. The
+first death draft was rejected because its two upper poses touched their
+shared vertical boundary and the far foretalon was too hidden in the final
+rest. A focused ImageGen edit restored safe separation and exposed the paired
+foretalons without changing the approved sequence. The accepted sheets
+preserve exactly two wings, two eagle forelegs, two lion hind legs, one eagle
+head, and one continuous tufted tail. Both use a shared nearest-neighbor scale
+of 120x120 inside fixed 128x128 cells. The production results use binary alpha,
+31/30 opaque colors, at least eight pixels of padding, shared runtime scale,
+and exact phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
