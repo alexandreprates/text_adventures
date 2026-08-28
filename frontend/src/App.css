@@ -493,6 +493,23 @@
   text-transform: uppercase;
 }
 
+.collection-passive-description {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
+  font: 12px/1.45 var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.collection-passive-summary {
+  grid-column: 1 / -1;
+}
+
+.collection-passive-summary .collection-action {
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
 .context-commands {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2056,9 +2073,9 @@
 
   .platform-live-collection {
     right: 10px;
-    bottom: 142px;
+    bottom: 166px;
     width: min(260px, calc(100% - 20px));
-    max-height: 128px;
+    max-height: 150px;
   }
 
   .platform-live-playfield.is-ruins .platform-live-collection {

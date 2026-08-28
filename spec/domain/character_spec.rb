@@ -595,6 +595,27 @@ RSpec.describe TextAdventures::Character do
          1x Ice Bolt (level 2, 9 MP) - Causes 8~18 of damage, with 3% chance to freeze your enemy
       TEXT
     end
+
+    it "renders the current class passive without learned spells" do
+      character.gain_skill_xp(:swordsmanship, 1_000)
+
+      expect(character.spellbook).to eq <<~TEXT.chomp
+        Spells and passives:
+         Class Passive: Perfect Edge - +15% sword damage.
+      TEXT
+    end
+
+    it "renders the current class passive alongside learned spells" do
+      character.learn_spell(TextAdventures::Spell.fireball)
+      character.gain_skill_xp(:swordsmanship, 1_000)
+      character.gain_skill_xp(:combat_magic, 1_000)
+
+      expect(character.spellbook).to eq <<~TEXT.chomp
+        Spells and passives:
+         Class Passive: Arcane Edge - +10% sword damage and +10% Combat Magic damage.
+         1x Fireball (level 1, 5 MP) - Causes 12~22 of damage
+      TEXT
+    end
   end
 
   describe "#level_report" do

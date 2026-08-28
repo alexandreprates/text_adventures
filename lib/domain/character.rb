@@ -351,9 +351,11 @@ module TextAdventures
     end
 
     def spellbook
-      return "You cannot cast any spells yet." if spells.empty?
+      passive = class_passive
+      return "You cannot cast any spells yet." if spells.empty? && !passive
 
-      lines = ["You can cast:"]
+      lines = [passive ? "Spells and passives:" : "You can cast:"]
+      lines << " Class Passive: #{passive.name} - #{passive.description}" if passive
       spell_list.each { |spell| lines << " #{spellbook_line(spell)}" }
       lines.join("\n")
     end

@@ -63,6 +63,16 @@ const passiveTownPayload: MockGamePayload = {
           { affinity: "combat_magic", percent: 10 },
         ],
       },
+      spells: [
+        {
+          name: "fireball",
+          display_name: "Fireball",
+          level: 1,
+          kind: "damage",
+          mp_cost: 5,
+          description: "Causes 12~22 of damage",
+        },
+      ],
     },
   },
 };
@@ -1492,6 +1502,29 @@ test("renders the current class passive in the responsive character panel", asyn
   const equipmentDetails = characterPanel.locator(".status-output");
   await equipmentDetails.scrollIntoViewIfNeeded();
   await expect(equipmentDetails).toBeInViewport();
+});
+
+test("lists the current class passive as a non-castable spellbook item", async ({ page }) => {
+  await mockGame(page, passiveTownPayload);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Spellbook" }).click();
+
+  const collection = page.locator(".platform-live-collection");
+  await expect(collection).toBeVisible();
+  await expect(collection.getByText("Arcane Edge")).toBeVisible();
+  await expect(collection.getByText("Passive", { exact: true })).toBeVisible();
+  await expect(
+    collection.getByText("+10% sword damage and +10% Combat Magic damage."),
+  ).toBeVisible();
+  await expect(collection.getByRole("button", { name: /Arcane Edge/ })).toHaveCount(0);
+  const fireballButton = collection.getByRole("button", { name: /Fireball Lv 1.*Cast/ });
+  await fireballButton.scrollIntoViewIfNeeded();
+  await expect(fireballButton).toBeInViewport();
+  await expect(collection.getByText("Buy tomes at the Temple")).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
 });
 
 test("persists the selected interface mode", async ({ page }) => {
