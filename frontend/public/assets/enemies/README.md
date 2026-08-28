@@ -1387,6 +1387,36 @@ for attack and `[111, 111, 99, 100]` for death. Every production frame is one
 connected alpha component. Both sheets use binary alpha, 30 opaque RGB colors,
 and minimum padding of 10/11 pixels.
 
+### Hobgoblin Soldier
+
+The Hobgoblin Soldier is a tall, disciplined infantryman with rust-red skin,
+long pointed ears, amber eyes, two lower tusks, and a stern face behind a
+charcoal iron helmet with a long nasal guard. A brown scarf sits above black
+chainmail, riveted leather skirt panels, layered pauldrons, round knee guards,
+crossed straps, and broad boots. The right hand controls one long wooden spear
+with an angular iron point, while a round plank shield with a riveted iron rim
+and central boss is strapped to the left forearm. The Spear Thrust sequence
+guards, draws back, drives a short connected thrust, and recovers. The non-gory
+death sequence recoils, buckles behind the shield, topples, and settles into an
+inert armored body with the complete spear and shield still touching it.
+
+The production sheets are:
+
+- `hobgoblin_soldier-attack.png`;
+- `hobgoblin_soldier-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing high-resolution source was the strict identity reference,
+and the Lizardfolk Scout attack sheet supplied spear-and-shield composition
+guidance. Both initial ImageGen drafts passed visual and topology review. Hybrid
+chroma normalization pairs despilled soft-matte RGB with hard-key alpha.
+Uniform full-cell nearest-neighbor normalization uses a 116x116 attack scale
+and a 104x104 death scale, producing identical 68x90 opening silhouettes.
+Exact baselines are `[109, 112, 97, 104]` for attack and
+`[111, 110, 95, 94]` for death. Every production frame is one connected alpha
+component. The sheets use binary alpha, 30/29 opaque RGB colors, and minimum
+padding of 12/15 pixels.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

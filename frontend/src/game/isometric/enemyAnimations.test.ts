@@ -723,6 +723,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Hobgoblin Soldier attack and death sheets", () => {
+    expect(enemyAnimationRegistry.hobgoblin_soldier).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/hobgoblin_soldier-attack.png",
+        baselines: [109, 112, 97, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/hobgoblin_soldier-death.png",
+        baselines: [111, 110, 95, 94],
+      },
+    });
+    expect(enemyAnimationFor(" HOBGOBLIN_SOLDIER ")).toBe(
+      enemyAnimationRegistry.hobgoblin_soldier,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

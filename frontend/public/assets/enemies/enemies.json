@@ -32,7 +32,12 @@
   "hobgoblin_soldier": {
     "name": "Hobgoblin Soldier",
     "sprite": "/assets/enemies/sprites/hobgoblin_soldier.png",
-    "source": "/assets/enemies/sources/hobgoblin_soldier.png"
+    "source": "/assets/enemies/sources/hobgoblin_soldier.png",
+    "description": "A tall, disciplined hobgoblin infantryman stands behind a stern rust-red face, long pointed ears, narrow amber eyes, and two lower ivory tusks. A charcoal iron helmet with a raised central ridge, long nasal guard, and cheek plates frames the head above a brown scarf. Black-gray chainmail covers the torso and hangs between riveted leather skirt panels, reinforced by layered iron pauldrons, round knee guards, crossed straps, and broad brown boots. Its right hand controls one long wooden hunting spear with an angular gray iron point, while a round vertical-plank wooden shield with a dark riveted rim and central boss is strapped to the left forearm. Pale upper-left metal highlights sharpen the compact military silhouette against warm leather and oxidized skin.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/hobgoblin_soldier-attack.png",
+      "death": "/assets/isometric/enemies/hobgoblin_soldier-death.png"
+    }
   },
   "orc_raider": {
     "name": "Orc Raider",
