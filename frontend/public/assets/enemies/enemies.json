@@ -357,7 +357,12 @@
   "elemental_spark": {
     "name": "Elemental Spark",
     "sprite": "/assets/enemies/sprites/elemental_spark.png",
-    "source": "/assets/enemies/sources/elemental_spark.png"
+    "source": "/assets/enemies/sources/elemental_spark.png",
+    "description": "A small floating elemental formed entirely from angular blue-white lightning around a sharp masklike face. Two solid white eyes glare from a pale cyan core beneath a crown of tall branching bolts, while deep cobalt edges give each discharge a hard crystalline silhouette. Exactly two long electrical arms branch from the core into three-pronged claw shapes, and a fork of curling energy tendrils replaces legs beneath the face. Sparse bright sparks orbit the crown and shoulders, while near-white channels flare through cyan, royal blue, and navy layers across the otherwise weightless body.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/elemental_spark-attack.png",
+      "death": "/assets/isometric/enemies/elemental_spark-death.png"
+    }
   },
   "fire_elemental_ling": {
     "name": "Fire Elemental Ling",

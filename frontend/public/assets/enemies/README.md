@@ -924,6 +924,45 @@ production results use binary alpha, 30/30 opaque colors, at least 18/14
 pixels of attack/death padding, shared runtime scale, and exact phase-specific
 baselines.
 
+### Elemental Spark
+
+The Elemental Spark is a small floating elemental formed entirely from
+angular blue-white lightning around a sharp masklike face. Two solid white
+eyes glare from a pale cyan core beneath a crown of tall branching bolts,
+while deep cobalt edges give each discharge a hard crystalline silhouette.
+Exactly two long electrical arms branch from the core into three-pronged claw
+shapes, and a fork of curling energy tendrils replaces legs beneath the face.
+Sparse bright sparks orbit the crown and shoulders, while near-white channels
+flare through cyan, royal blue, and navy layers across the weightless body.
+The Arc Flash sequence contracts the core, gathers charge in the left claw,
+fires one short connected bolt toward the left, and recoils to its floating
+guard. The non-gory death sequence flickers, folds both arms around the core,
+contracts into a smaller knot, and extinguishes as one dim inert remnant.
+
+The production sheets are:
+
+- `elemental_spark-attack.png`;
+- `elemental_spark-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected because its opposite arm crossed
+the internal divider during impact. A focused ImageGen edit reduced the shared
+scale, contracted that arm, and restored safe spacing. The first death draft
+passed visual, topology, and boundary review. Conservative fixed-cell
+translations align the intact right-column artwork to the shared eye-center
+origin without changing their pixels or scale. Independent review rejected
+the initially normalized death sheet because its opening guard was 29% larger
+than the attack guard. A uniform nearest-neighbor reduction of every intact
+death frame restored matching 68x70/68x71 opening silhouettes while preserving
+their internal relationships. The accepted attack preserves one face, two
+eyes, exactly two claw-arms, no legs, one crown, one lower tendril fork, and a
+mouthless claw-connected arc. The death deliberately absorbs those structures
+into one inert final core. Attack uses a 120x120 nearest-neighbor normalization;
+death uses the uniform corrected equivalent inside the same fixed 128x128
+cells. The production results use binary alpha, 28/28 opaque colors, at least
+18/23 pixels of attack/death padding, shared runtime scale, and exact
+phase-specific baselines.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

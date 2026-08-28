@@ -499,6 +499,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Elemental Spark attack and death sheets", () => {
+    expect(enemyAnimationRegistry.elemental_spark).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/elemental_spark-attack.png",
+        baselines: [107, 107, 94, 94],
+      },
+      death: {
+        path: "/assets/isometric/enemies/elemental_spark-death.png",
+        baselines: [104, 104, 87, 79],
+      },
+    });
+    expect(enemyAnimationFor(" ELEMENTAL_SPARK ")).toBe(
+      enemyAnimationRegistry.elemental_spark,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

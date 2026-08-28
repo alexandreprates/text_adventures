@@ -338,6 +338,16 @@ export const enemyAnimationRegistry = {
       baselines: [95, 97, 66, 66],
     },
   },
+  elemental_spark: {
+    attack: {
+      path: "/assets/isometric/enemies/elemental_spark-attack.png",
+      baselines: [107, 107, 94, 94],
+    },
+    death: {
+      path: "/assets/isometric/enemies/elemental_spark-death.png",
+      baselines: [104, 104, 87, 79],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
