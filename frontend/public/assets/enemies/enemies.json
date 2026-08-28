@@ -102,7 +102,12 @@
   "skeleton_guard": {
     "name": "Skeleton Guard",
     "sprite": "/assets/enemies/sprites/skeleton_guard.png",
-    "source": "/assets/enemies/sources/skeleton_guard.png"
+    "source": "/assets/enemies/sources/skeleton_guard.png",
+    "description": "A tall undead sentry of aged ivory bones advances beneath a cracked charcoal-and-bronze helmet with a raised ridge, long nasal guard, cheek plates, and a small crown finial. Cold cyan lights burn in its deep eye sockets above a complete hinged jaw. Broken dark plate and mail cover the rib cage, with a jagged spiked right pauldron, bracers, greaves, a skull-shaped belt buckle, and ragged near-black navy cloth strips hanging from the waist. Its right skeletal hand grips a long chipped ancient sword, while the left forearm braces an oversized round blue-black shield with a battered bronze rim, central boss, rivets, cracks, and a faded sunburst motif. Warm upper-left highlights catch the bone and corroded metal against deep cool shadows.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/skeleton_guard-attack.png",
+      "death": "/assets/isometric/enemies/skeleton_guard-death.png"
+    }
   },
   "skeleton_archer": {
     "name": "Skeleton Archer",

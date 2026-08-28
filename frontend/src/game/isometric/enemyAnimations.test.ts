@@ -739,6 +739,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Skeleton Guard attack and death sheets", () => {
+    expect(enemyAnimationRegistry.skeleton_guard).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/skeleton_guard-attack.png",
+        baselines: [112, 112, 103, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/skeleton_guard-death.png",
+        baselines: [119, 119, 93, 94],
+      },
+    });
+    expect(enemyAnimationFor(" SKELETON_GUARD ")).toBe(
+      enemyAnimationRegistry.skeleton_guard,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

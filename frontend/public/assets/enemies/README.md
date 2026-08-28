@@ -1417,6 +1417,39 @@ Exact baselines are `[109, 112, 97, 104]` for attack and
 component. The sheets use binary alpha, 30/29 opaque RGB colors, and minimum
 padding of 12/15 pixels.
 
+### Skeleton Guard
+
+The Skeleton Guard is a tall undead sentry of aged ivory bones beneath a
+cracked charcoal-and-bronze helmet with a raised ridge, nasal guard, cheek
+plates, and a small crown finial. Cyan eye lights burn above a complete jaw.
+Broken dark armor, a jagged spiked pauldron, bracers, greaves, a skull buckle,
+and ragged near-black cloth surround the exposed rib cage. The right hand holds
+a long chipped ancient sword, while the left forearm braces an oversized round
+blue-black shield with a battered bronze rim, boss, rivets, cracks, and a faded
+sunburst. The Ancient Blade sequence guards, raises the sword overhead, drives
+a low shield-covered cut, and recovers. The non-gory death sequence recoils,
+buckles behind the shield, collapses, and settles into an inert heap with the
+complete sword and shield still touching the bones.
+
+The production sheets are:
+
+- `skeleton_guard-attack.png`;
+- `skeleton_guard-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing high-resolution source was the strict identity reference,
+and the Wight Knight attack sheet supplied sword-and-shield style guidance.
+The initial attack draft passed visual review. The first death draft was
+rejected for cell-boundary crossings, and a focused ImageGen edit corrected the
+poses and gutters. Hybrid chroma normalization pairs despilled soft-matte RGB
+with hard-key alpha. Uniform full-cell nearest-neighbor normalization uses a
+108x108 attack scale and a 112x112 death scale. Three tiny chroma fragments on
+the first source row of the lower death cells were removed with an equal fixed
+crop that did not touch the subject. Exact baselines are `[112, 112, 103, 106]`
+for attack and `[119, 119, 93, 94]` for death. Every production frame is one
+connected alpha component. The sheets use binary alpha, 30/29 opaque RGB
+colors, and minimum padding of 15/8 pixels.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
