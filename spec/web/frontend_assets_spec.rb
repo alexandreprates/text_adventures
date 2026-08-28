@@ -15,7 +15,7 @@ RSpec.describe "Frontend assets" do
     expect(File).to exist(File.join(source_root, "App.tsx"))
     expect(File).to exist(File.join(source_root, "App.css"))
     expect(File).to exist(File.join(source_root, "index.css"))
-    expect(File).not_to exist(File.join(public_root, "map_renderer.js"))
+    expect(File).to exist(File.join(public_root, "map_renderer.js"))
     expect(File).to exist(File.join(source_root, "game/isometric/IsometricDungeonRenderer.ts"))
     expect(File).to exist(File.join(public_root, "assets/isometric/tiles/floor.png"))
     expect(File).to exist(File.join(public_root, "assets/isometric/tiles/wall.png"))
