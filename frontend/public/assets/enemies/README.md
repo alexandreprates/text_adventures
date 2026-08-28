@@ -1043,6 +1043,37 @@ absorbs those limbs into one connected shard mound and remnant. Production
 uses binary alpha, 27/29 opaque RGB colors, at least 16/17 pixels of
 attack/death padding, and baseline 106 in every frame.
 
+### Earth Elemental Ling
+
+The Earth Elemental Ling is a short, broad juvenile elemental built from
+interlocking tan and umber boulders. A crown and back ridge of jagged stone
+spires frame two bright amber eyes beneath a heavy mouthless brow. Exactly two
+massive layered fists, two rooted legs, and broad three-toed stone feet define
+its compact silhouette. Twisted woody roots bind the shoulders, torso, limbs,
+and hips, while muted olive moss fills deep crevices between pale sandstone
+facets and dark earthen fissures. The Stone Fist sequence crouches into guard,
+raises one fist through a coiled wind-up, drives it down-left into one connected
+grounded impact, and retracts into a planted recovery. The non-gory death
+sequence staggers, buckles, folds its boulders into one compact heap, and rests
+as an inert mound with the amber eye glow extinguished.
+
+The production sheets are:
+
+- `earth_elemental_ling-attack.png`;
+- `earth_elemental_ling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack draft was rejected for detached impact debris, and a
+focused ImageGen edit replaced it with one continuous grounded silhouette. The
+first death draft touched every horizontal divider and opened larger than the
+attack guard; a uniform reduction edit restored safe source padding. Production
+normalization uses 104x104 attack cells and 128x128 death cells so their
+86x90/85x88 opening silhouettes match in apparent scale. Conservative fixed-cell
+translations align the intact death poses to a shared center and both sequences
+to baseline 112. Every frame is one connected alpha component. Production uses
+binary alpha, 27/27 opaque RGB colors, and at least 15/15 pixels of
+attack/death padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

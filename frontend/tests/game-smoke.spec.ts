@@ -404,6 +404,7 @@ const animatedEnemyFixtures = [
   { creatureId: "elemental_spark", displayName: "Elemental Spark", maxHealth: 28 },
   { creatureId: "fire_elemental_ling", displayName: "Fire Elemental Ling", maxHealth: 50 },
   { creatureId: "ice_elemental_ling", displayName: "Ice Elemental Ling", maxHealth: 50 },
+  { creatureId: "earth_elemental_ling", displayName: "Earth Elemental Ling", maxHealth: 75 },
 ] as const;
 
 function animatedEnemyCombatPayload(
@@ -1938,6 +1939,7 @@ for (const { creatureId, displayName, maxHealth } of animatedEnemyFixtures) {
       const sources = await drawnImageSources(page);
       return sources.some((source) => source.endsWith(`/enemies/${creatureId}-death.png`));
     }).toBe(true);
+
   });
 }
 

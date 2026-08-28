@@ -547,6 +547,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Earth Elemental Ling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.earth_elemental_ling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/earth_elemental_ling-attack.png",
+        baselines: [112, 112, 112, 112],
+      },
+      death: {
+        path: "/assets/isometric/enemies/earth_elemental_ling-death.png",
+        baselines: [112, 112, 112, 112],
+      },
+    });
+    expect(enemyAnimationFor(" EARTH_ELEMENTAL_LING ")).toBe(
+      enemyAnimationRegistry.earth_elemental_ling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

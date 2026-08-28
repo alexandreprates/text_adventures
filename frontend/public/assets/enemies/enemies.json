@@ -387,7 +387,12 @@
   "earth_elemental_ling": {
     "name": "Earth Elemental Ling",
     "sprite": "/assets/enemies/sprites/earth_elemental_ling.png",
-    "source": "/assets/enemies/sources/earth_elemental_ling.png"
+    "source": "/assets/enemies/sources/earth_elemental_ling.png",
+    "description": "A short, broad juvenile earth elemental built from interlocking tan and umber boulders. A crown of jagged stone spires rises from its heavy wedge-shaped brow and continues along its craggy back, framing two bright amber eyes set deep in a mouthless rock face. Exactly two massive layered fists hang from thick articulated arms, while two rooted legs end in broad three-toed stone feet. Twisted woody roots bind the shoulders, torso, forearms, hips, and shins, with muted olive moss packed into the deepest crevices. Pale sandstone facets catch the upper-left light across its crown, knuckles, shoulders, and toes before descending through warm ochre and dark brown to nearly black fissures, giving the unarmed creature a compact, ancient, and immovable silhouette.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/earth_elemental_ling-attack.png",
+      "death": "/assets/isometric/enemies/earth_elemental_ling-death.png"
+    }
   },
   "air_elemental_ling": {
     "name": "Air Elemental Ling",
