@@ -398,6 +398,16 @@ export const enemyAnimationRegistry = {
       baselines: [117, 117, 117, 117],
     },
   },
+  dark_elf_arcanist: {
+    attack: {
+      path: "/assets/isometric/enemies/dark_elf_arcanist-attack.png",
+      baselines: [108, 108, 108, 108],
+    },
+    death: {
+      path: "/assets/isometric/enemies/dark_elf_arcanist-death.png",
+      baselines: [112, 112, 112, 112],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

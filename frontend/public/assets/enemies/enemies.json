@@ -417,7 +417,12 @@
   "dark_elf_arcanist": {
     "name": "Dark Elf Arcanist",
     "sprite": "/assets/enemies/sprites/dark_elf_arcanist.png",
-    "source": "/assets/enemies/sources/dark_elf_arcanist.png"
+    "source": "/assets/enemies/sources/dark_elf_arcanist.png",
+    "description": "A tall, lean dark elf spellcaster with charcoal-gray skin, a severe angular face, long knife-edged ears, and straight silver-white hair swept over blackened shoulder plates. Narrow violet eyes burn beneath a bronze circlet set with a small purple gem. Layered violet-black robes, a torn plum mantle, engraved bronze trim, armored knees, claw-toed boots, crossing belts, dark pouches, short chains, and crystal-stoppered phials form a ragged ceremonial silhouette. The left gloved hand grips one tall twisted blackwood staff crowned by a faceted violet crystal between hooked bronze prongs and two hanging crystal charms. The open right hand shapes a compact black-violet void core ringed with electric lavender flame. Pale hair, crystal facets, and magic catch the upper-left light over muted plum cloth, tarnished bronze, charcoal skin, and near-black folds, making the arcanist readable as a disciplined battlefield caster rather than a robed civilian.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/dark_elf_arcanist-attack.png",
+      "death": "/assets/isometric/enemies/dark_elf_arcanist-death.png"
+    }
   },
   "dwarven_ghost": {
     "name": "Dwarven Ghost",

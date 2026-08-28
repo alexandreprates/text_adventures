@@ -1139,6 +1139,39 @@ component and retains exactly two arms, two legs, and two curved daggers.
 Production uses binary alpha, 30 opaque RGB colors per sheet, and at least 12/10
 pixels of attack/death padding.
 
+### Dark Elf Arcanist
+
+The Dark Elf Arcanist is a tall, lean spellcaster with charcoal-gray skin, a
+severe angular face, long pointed ears, and straight silver-white hair. Narrow
+violet eyes burn beneath a bronze circlet set with one purple gem. Layered
+violet-black robes, a torn plum mantle, engraved blackened-bronze plates,
+armored knees, claw-toed boots, crossing belts, pouches, chains, and crystal
+phials form a ragged ceremonial silhouette. The left glove continuously grips
+one twisted blackwood staff crowned by a faceted violet crystal between hooked
+bronze prongs and two hanging charms. The open right hand shapes black-violet
+void magic. The Void Bolt sequence guards, gathers a palm-connected core,
+thrusts one compact connected bolt, and returns to guard. The non-gory death
+sequence recoils, braces on the staff, topples sideways, and rests inert with
+the intact staff still touching the left glove and all magic extinguished.
+
+The production sheets are:
+
+- `dark_elf_arcanist-attack.png`;
+- `dark_elf_arcanist-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first attack impact crossed its vertical divider, so a focused edit
+shortened the hand-connected bolt. A death edit restored hand-to-staff contact,
+then a uniform reduction restored source spacing. A final focused attack edit
+removed detached magic flecks. Conservative normalization uses 93x93 attack
+cells and 128x128 death cells, yielding comparable 65x84/71x83 opening
+silhouettes. Fixed-cell translations align the intact body centers and the
+attack/death sequences to baselines 108/112. Soft-matte despilled RGB is paired
+with conservative hard-key alpha from the same generated pixels to preserve
+clean edges and connected topology. Every production frame is one connected
+alpha component. Both sheets use binary alpha, 30 opaque RGB colors, and at
+least 19/15 pixels of attack/death padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

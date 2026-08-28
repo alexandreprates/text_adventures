@@ -595,6 +595,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Dark Elf Arcanist attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dark_elf_arcanist).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dark_elf_arcanist-attack.png",
+        baselines: [108, 108, 108, 108],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dark_elf_arcanist-death.png",
+        baselines: [112, 112, 112, 112],
+      },
+    });
+    expect(enemyAnimationFor(" DARK_ELF_ARCANIST ")).toBe(
+      enemyAnimationRegistry.dark_elf_arcanist,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

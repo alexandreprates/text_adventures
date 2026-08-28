@@ -407,6 +407,7 @@ const animatedEnemyFixtures = [
   { creatureId: "earth_elemental_ling", displayName: "Earth Elemental Ling", maxHealth: 75 },
   { creatureId: "air_elemental_ling", displayName: "Air Elemental Ling", maxHealth: 44 },
   { creatureId: "dark_elf_assassin", displayName: "Dark Elf Assassin", maxHealth: 58 },
+  { creatureId: "dark_elf_arcanist", displayName: "Dark Elf Arcanist", maxHealth: 52 },
 ] as const;
 
 function animatedEnemyCombatPayload(
