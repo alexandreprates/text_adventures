@@ -10,6 +10,10 @@ import {
   socketUrl,
 } from "../lib/gameApi";
 import { forgetGameId, gameIdFromUrl, rememberGameId, savedGameId } from "../lib/storage";
+import {
+  defaultSocketReconnectDelayMs,
+  SocketReconnectBackoff,
+} from "../lib/socketReconnect";
 import type {
   ConnectionStatus,
   GameAction,
@@ -32,7 +36,6 @@ declare global {
 }
 
 const defaultSocketHeartbeatIntervalMs = 25_000;
-const defaultSocketReconnectDelayMs = 1_000;
 
 type GameSnapshot = {
   gameId: string | null;
@@ -72,6 +75,10 @@ export function useGameSession(): GameSession {
   );
   const heartbeatIntervalRef = useRef<number | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
+  const reconnectBackoffRef = useRef(new SocketReconnectBackoff());
+  const socketGenerationRef = useRef(0);
+  const sessionOperationRef = useRef(0);
+  const mountedRef = useRef(true);
   const pendingActionRef = useRef<PendingAction | null>(null);
   const manuallyDisconnectedRef = useRef(false);
 
@@ -164,23 +171,35 @@ export function useGameSession(): GameSession {
     (gameId: string) => {
       clearReconnect();
 
-      const delayMs = socketTimingValue(
+      const baseDelayMs = socketTimingValue(
         "__TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS",
         defaultSocketReconnectDelayMs,
       );
+      const delayMs = reconnectBackoffRef.current.nextDelayMs(baseDelayMs);
 
       reconnectTimeoutRef.current = window.setTimeout(() => {
         reconnectTimeoutRef.current = null;
         if (manuallyDisconnectedRef.current || socketRef.current) return;
 
         setStatus("connecting");
-        void openSocketRef
-          .current(gameId)
+        const reconnectPromise = openSocketRef.current(gameId);
+        const socketGeneration = socketGenerationRef.current;
+        void reconnectPromise
           .then(() => {
-            if (!manuallyDisconnectedRef.current) setStatus("online");
+            if (
+              !manuallyDisconnectedRef.current &&
+              socketGenerationRef.current === socketGeneration
+            ) {
+              setStatus("online");
+            }
           })
           .catch(() => {
-            if (!manuallyDisconnectedRef.current) setStatus("offline");
+            if (
+              !manuallyDisconnectedRef.current &&
+              socketGenerationRef.current === socketGeneration
+            ) {
+              setStatus("offline");
+            }
           });
       }, delayMs);
     },
@@ -188,10 +207,14 @@ export function useGameSession(): GameSession {
   );
 
   const disconnectSocket = useCallback((manual = true) => {
+    socketGenerationRef.current += 1;
     manuallyDisconnectedRef.current = manual;
     pendingActionRef.current = null;
     clearHeartbeat();
-    if (manual) clearReconnect();
+    if (manual) {
+      clearReconnect();
+      reconnectBackoffRef.current.reset();
+    }
 
     if (socketRef.current) {
       const socket = socketRef.current;
@@ -207,12 +230,21 @@ export function useGameSession(): GameSession {
       manuallyDisconnectedRef.current = false;
 
       const socket = new WebSocket(socketUrl(gameId));
+      const socketGeneration = socketGenerationRef.current;
       socketRef.current = socket;
+      const isCurrentSocket = () =>
+        socketGenerationRef.current === socketGeneration && socketRef.current === socket;
 
       return new Promise((resolve, reject) => {
         socket.addEventListener(
           "open",
           () => {
+            if (!isCurrentSocket()) {
+              reject(new Error("WebSocket connection was superseded."));
+              return;
+            }
+
+            reconnectBackoffRef.current.reset();
             startHeartbeat(socket);
             resolve();
           },
@@ -228,6 +260,8 @@ export function useGameSession(): GameSession {
         );
 
         socket.addEventListener("message", (event) => {
+          if (!isCurrentSocket()) return;
+
           const message = parseSocketMessage(String(event.data));
 
           if (message.type === "pong") return;
@@ -258,9 +292,12 @@ export function useGameSession(): GameSession {
         });
 
         socket.addEventListener("close", () => {
-          clearHeartbeat();
-          if (socketRef.current !== socket) return;
+          if (!isCurrentSocket()) {
+            reject(new Error("WebSocket connection was superseded."));
+            return;
+          }
 
+          clearHeartbeat();
           socketRef.current = null;
           rejectPendingAction(new Error("Connection lost."));
           if (!manuallyDisconnectedRef.current) {
@@ -330,6 +367,10 @@ export function useGameSession(): GameSession {
   );
 
   const startNewGame = useCallback(async () => {
+    const sessionOperation = sessionOperationRef.current + 1;
+    sessionOperationRef.current = sessionOperation;
+    const isCurrentOperation = () =>
+      mountedRef.current && sessionOperationRef.current === sessionOperation;
     const previousGameId = gameIdRef.current;
 
     setStatus("connecting");
@@ -346,20 +387,30 @@ export function useGameSession(): GameSession {
         // A missing old session should not block creating the next game.
       }
     }
+    if (!isCurrentOperation()) return;
 
     try {
       const payload = await createGame();
+      if (!isCurrentOperation()) return;
+
       applyPayload(payload);
       if (payload.game_id) await openSocket(payload.game_id);
-      setStatus("online");
+      if (isCurrentOperation()) setStatus("online");
     } catch (error) {
-      setStatus("error");
-      appendError(error);
+      if (isCurrentOperation()) {
+        setStatus("error");
+        appendError(error);
+      }
     }
   }, [appendError, applyPayload, disconnectSocket, openSocket]);
 
   useEffect(() => {
+    mountedRef.current = true;
     let cancelled = false;
+    const sessionOperation = sessionOperationRef.current + 1;
+    sessionOperationRef.current = sessionOperation;
+    const isCurrentOperation = () =>
+      !cancelled && mountedRef.current && sessionOperationRef.current === sessionOperation;
 
     async function boot() {
       setStatus("connecting");
@@ -379,7 +430,7 @@ export function useGameSession(): GameSession {
           payload = await createGame();
         }
 
-        if (cancelled) return;
+        if (!isCurrentOperation()) return;
 
         applyPayload(payload);
         let socketConnected = false;
@@ -388,13 +439,15 @@ export function useGameSession(): GameSession {
             await openSocket(payload.game_id);
             socketConnected = true;
           } catch (error) {
-            appendError(error);
+            if (isCurrentOperation()) appendError(error);
           }
         }
 
-        if (!cancelled) setStatus(socketConnected || !payload.game_id ? "online" : "offline");
+        if (isCurrentOperation()) {
+          setStatus(socketConnected || !payload.game_id ? "online" : "offline");
+        }
       } catch (error) {
-        if (!cancelled) {
+        if (isCurrentOperation()) {
           setStatus("error");
           appendError(error);
         }
@@ -405,6 +458,8 @@ export function useGameSession(): GameSession {
 
     return () => {
       cancelled = true;
+      mountedRef.current = false;
+      sessionOperationRef.current += 1;
       disconnectSocket();
     };
   }, [appendError, applyPayload, disconnectSocket, openSocket]);

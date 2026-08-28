@@ -947,7 +947,7 @@ const controlledDescentCompletePayload: MockGamePayload = {
   },
 };
 
-type MockSocketStatus = "offline" | "error" | "close-once";
+type MockSocketStatus = "offline" | "error" | "close-once" | "fail-twice";
 
 async function mockGame(
   page: Page,
@@ -956,6 +956,7 @@ async function mockGame(
     socketStatus?: MockSocketStatus;
     heartbeatIntervalMs?: number;
     reconnectDelayMs?: number;
+    closeEventDelayMs?: number;
     replayEventsOnAction?: boolean;
     actionEvents?: MockGamePayload["events"];
     actionPatch?: Record<string, unknown>;
@@ -966,6 +967,7 @@ async function mockGame(
     socketStatus,
     heartbeatIntervalMs,
     reconnectDelayMs,
+    closeEventDelayMs,
     replayEventsOnAction,
     actionEvents,
     actionPatch,
@@ -1006,6 +1008,13 @@ async function mockGame(
         testWindow.__socketConnectionCount = connectionCount;
 
         window.setTimeout(() => {
+          if (socketStatus === "fail-twice" && connectionCount <= 2) {
+            this.readyState = FakeWebSocket.CLOSED;
+            this.dispatchEvent(new Event("error"));
+            this.dispatchEvent(new CloseEvent("close"));
+            return;
+          }
+
           this.readyState = FakeWebSocket.OPEN;
           this.dispatchEvent(new Event("open"));
           this.dispatchEvent(
@@ -1079,7 +1088,9 @@ async function mockGame(
 
       close() {
         this.readyState = FakeWebSocket.CLOSED;
-        this.dispatchEvent(new CloseEvent("close"));
+        window.setTimeout(() => {
+          this.dispatchEvent(new CloseEvent("close"));
+        }, closeEventDelayMs);
       }
     }
 
@@ -1089,6 +1100,7 @@ async function mockGame(
     socketStatus: options.socketStatus || null,
     heartbeatIntervalMs: options.heartbeatIntervalMs ?? null,
     reconnectDelayMs: options.reconnectDelayMs ?? null,
+    closeEventDelayMs: options.closeEventDelayMs ?? 0,
     replayEventsOnAction: options.replayEventsOnAction ?? false,
     actionEvents: options.actionEvents ?? null,
     actionPatch: options.actionPatch ?? null,
@@ -2265,6 +2277,82 @@ test("reconnects after an unexpected WebSocket close", async ({ page }) => {
       ),
     )
     .toBe(true);
+});
+
+test("keeps retrying until the WebSocket connection recovers", async ({ page }) => {
+  await mockGame(page, ruinsPayload, {
+    socketStatus: "fail-twice",
+    reconnectDelayMs: 20,
+  });
+  await page.goto("/");
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __socketConnectionCount?: number }).__socketConnectionCount ||
+          0,
+      ),
+    )
+    .toBeGreaterThanOrEqual(3);
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Explore" }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          (window as unknown as { __sentSocketMessages?: Array<Record<string, unknown>> })
+            .__sentSocketMessages || []
+        ).some((message) => message.type === "action"),
+      ),
+    )
+    .toBe(true);
+});
+
+test("ignores a delayed close event from a superseded WebSocket", async ({ page }) => {
+  await mockGame(page, ruinsPayload, {
+    heartbeatIntervalMs: 20,
+    closeEventDelayMs: 80,
+  });
+  await page.goto("/");
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.locator("#command-input").fill("new");
+  await page.getByRole("button", { name: "Send" }).click();
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __socketConnectionCount?: number }).__socketConnectionCount ||
+          0,
+      ),
+    )
+    .toBe(2);
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+
+  await page.waitForTimeout(120);
+  const pingCountAfterStaleClose = await page.evaluate(
+    () =>
+      (
+        (window as unknown as { __sentSocketMessages?: Array<Record<string, unknown>> })
+          .__sentSocketMessages || []
+      ).filter((message) => message.type === "ping").length,
+  );
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            (window as unknown as { __sentSocketMessages?: Array<Record<string, unknown>> })
+              .__sentSocketMessages || []
+          ).filter((message) => message.type === "ping").length,
+      ),
+    )
+    .toBeGreaterThan(pingCountAfterStaleClose);
 });
 
 test("shows a mobile command panel warning when the connection is offline", async ({ page }) => {
