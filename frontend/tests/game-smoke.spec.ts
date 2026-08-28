@@ -402,6 +402,7 @@ const animatedEnemyFixtures = [
   { creatureId: "wyvern_juvenile", displayName: "Wyvern Juvenile", maxHealth: 105 },
   { creatureId: "dragon_wyrmling", displayName: "Dragon Wyrmling", maxHealth: 120 },
   { creatureId: "elemental_spark", displayName: "Elemental Spark", maxHealth: 28 },
+  { creatureId: "fire_elemental_ling", displayName: "Fire Elemental Ling", maxHealth: 50 },
 ] as const;
 
 function animatedEnemyCombatPayload(

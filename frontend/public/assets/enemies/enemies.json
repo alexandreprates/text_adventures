@@ -367,7 +367,12 @@
   "fire_elemental_ling": {
     "name": "Fire Elemental Ling",
     "sprite": "/assets/enemies/sprites/fire_elemental_ling.png",
-    "source": "/assets/enemies/sources/fire_elemental_ling.png"
+    "source": "/assets/enemies/sources/fire_elemental_ling.png",
+    "description": "A compact humanoid elemental built from layered ribbons of living fire. A tall swept crown of flame rises from a sharp ember-red face with two solid white-yellow almond eyes, while a narrow white-hot core twists through its chest. Exactly two long flame arms end in three hooked claw tongues, and two bent legs terminate in grounded three-pronged feet without clothing, armor, or a weapon. Pale yellow channels flare through golden-orange limbs and a bright central body, shifting through deep orange and red to dark crimson along the outer and lower edges. Curled flame tips around the shoulders, forearms, hips, and crown give the otherwise lean creature a restless, predatory silhouette.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/fire_elemental_ling-attack.png",
+      "death": "/assets/isometric/enemies/fire_elemental_ling-death.png"
+    }
   },
   "ice_elemental_ling": {
     "name": "Ice Elemental Ling",

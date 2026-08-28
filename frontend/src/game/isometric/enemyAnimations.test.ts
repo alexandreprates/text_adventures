@@ -515,6 +515,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Fire Elemental Ling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.fire_elemental_ling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/fire_elemental_ling-attack.png",
+        baselines: [107, 107, 107, 107],
+      },
+      death: {
+        path: "/assets/isometric/enemies/fire_elemental_ling-death.png",
+        baselines: [107, 107, 107, 107],
+      },
+    });
+    expect(enemyAnimationFor(" FIRE_ELEMENTAL_LING ")).toBe(
+      enemyAnimationRegistry.fire_elemental_ling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

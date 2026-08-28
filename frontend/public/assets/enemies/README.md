@@ -963,6 +963,46 @@ cells. The production results use binary alpha, 28/28 opaque colors, at least
 18/23 pixels of attack/death padding, shared runtime scale, and exact
 phase-specific baselines.
 
+### Fire Elemental Ling
+
+The Fire Elemental Ling is a compact humanoid elemental built from layered
+ribbons of living fire. A tall swept crown rises from a sharp ember-red face
+with two solid white-yellow almond eyes, while a narrow white-hot core twists
+through its chest. Exactly two long flame arms end in three hooked claw
+tongues, and two bent legs terminate in grounded three-pronged feet without
+clothing, armor, or a weapon. Pale yellow channels flare through golden-orange
+limbs and the bright core, shifting through deep orange and red to dark
+crimson along the outer and lower edges. Curled flame tips around the
+shoulders, forearms, hips, and crown complete its restless predatory
+silhouette. The Flame Lash sequence holds guard, contracts in anticipation,
+sweeps one short continuous lash from the leading claw toward the left, and
+recovers with the lash fully reabsorbed. The non-gory death sequence staggers,
+folds both arms into a dimming crouch, collapses into one low flame mound, and
+extinguishes as a small inert ember.
+
+The production sheets are:
+
+- `fire_elemental_ling-attack.png`;
+- `fire_elemental_ling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft was rejected for detached embers. Its focused
+edit removed those particles but was rejected because the buckle pose crossed
+the horizontal divider and the opening guard drifted 10% larger than attack.
+A second focused edit restored safe spacing and one uniform death scale.
+Independent review then rejected two isolated dark one-pixel components as
+visual noise. Final focused source edits removed the detached flecks, and the
+accepted sources were normalized with conservative 100x100 attack and 112x112
+death nearest-neighbor cell scales. The 66x74/64x70 opening silhouettes retain
+matching scale, while every frame now forms one connected alpha component.
+Fixed-cell translations align every intact frame to the shared body center and
+grounded baseline without changing its pixels or scale. The accepted attack
+preserves exactly two connected arms, two connected legs, and one
+claw-connected Flame Lash; death retracts those limbs into one continuous
+flame mound and inert ember. Production uses binary alpha, 25/27 opaque
+colors, at least 16/20 pixels of attack/death padding, and baseline 107 in
+every frame.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
