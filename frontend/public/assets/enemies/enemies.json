@@ -447,7 +447,12 @@
   "enchanted_armor": {
     "name": "Enchanted Armor",
     "sprite": "/assets/enemies/sprites/enchanted_armor.png",
-    "source": "/assets/enemies/sources/enchanted_armor.svg"
+    "source": "/assets/enemies/sources/enchanted_armor.svg",
+    "description": "A tall empty suit of animated plate with no flesh, face, or bones inside. A pointed closed helmet frames one broad cyan visor above layered dark-gunmetal and aged-bronze breastplates, oversized rounded pauldrons, articulated gauntlets, fauld plates, greaves, and heavy sabatons. A narrow navy tabard with a gold vertical device hangs from the waist. Brilliant cyan enchantment shines through the hollow neck and visor, binds the shoulder, elbow, waist, and knee gaps, and gathers into one attached swirling plume between and behind the legs. Warm bronze edges catch the upper-left light against near-black steel while electric blue seams expose the magic holding the otherwise weaponless armor together.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/enchanted_armor-attack.png",
+      "death": "/assets/isometric/enemies/enchanted_armor-death.png"
+    }
   },
   "crystal_golem": {
     "name": "Crystal Golem",

@@ -643,6 +643,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Enchanted Armor attack and death sheets", () => {
+    expect(enemyAnimationRegistry.enchanted_armor).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/enchanted_armor-attack.png",
+        baselines: [115, 115, 102, 104],
+      },
+      death: {
+        path: "/assets/isometric/enemies/enchanted_armor-death.png",
+        baselines: [114, 115, 97, 97],
+      },
+    });
+    expect(enemyAnimationFor(" ENCHANTED_ARMOR ")).toBe(
+      enemyAnimationRegistry.enchanted_armor,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

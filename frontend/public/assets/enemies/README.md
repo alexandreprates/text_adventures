@@ -1236,6 +1236,35 @@ opening silhouettes. Exact baselines are `[120, 115, 107, 103]` for attack and
 component. Both sheets use binary alpha, 30 opaque RGB colors, and at least 12
 pixels of padding.
 
+### Enchanted Armor
+
+The Enchanted Armor is a tall empty suit of animated plate with no flesh,
+face, or bones inside. A pointed closed helmet frames one broad cyan visor
+above layered dark-gunmetal and aged-bronze breastplates, oversized rounded
+pauldrons, articulated gauntlets, fauld plates, greaves, and heavy sabatons. A
+narrow navy tabard with a gold vertical device hangs from the waist. Brilliant
+cyan enchantment binds the hollow neck, shoulder, elbow, waist, and knee gaps
+and gathers into one attached swirling plume between the legs. The Empty
+Gauntlet sequence guards, draws back one hollow fist, lunges into a connected
+iron punch, and recovers. The non-gory death sequence flickers, buckles,
+collapses, and ends as one compact pile of touching inert plates.
+
+The production sheets are:
+
+- `enchanted_armor-attack.png`;
+- `enchanted_armor-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing static sprite was the strict identity reference. Both
+initial ImageGen drafts passed the visual and topology gates. Hybrid chroma
+normalization pairs despilled soft-matte RGB with hard-key alpha from the same
+generated pixels. Full-cell nearest-neighbor normalization uses 116x116 attack
+and 104x104 death scales, yielding comparable 55x95/49x91 opening silhouettes.
+Exact baselines are `[115, 115, 102, 104]` for attack and
+`[114, 115, 97, 97]` for death. Every production frame is one connected alpha
+component. Both sheets use binary alpha, 30 opaque RGB colors, and at least 12
+pixels of padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

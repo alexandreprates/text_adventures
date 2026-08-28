@@ -428,6 +428,16 @@ export const enemyAnimationRegistry = {
       baselines: [112, 115, 99, 100],
     },
   },
+  enchanted_armor: {
+    attack: {
+      path: "/assets/isometric/enemies/enchanted_armor-attack.png",
+      baselines: [115, 115, 102, 104],
+    },
+    death: {
+      path: "/assets/isometric/enemies/enchanted_armor-death.png",
+      baselines: [114, 115, 97, 97],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {
