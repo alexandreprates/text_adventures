@@ -1326,6 +1326,36 @@ nearest-neighbor normalization uses a 118x118 scale, yielding comparable
 production frame is one connected alpha component. Both sheets use binary
 alpha, 30 opaque RGB colors, and at least five pixels of padding.
 
+### Goblin Skirmisher
+
+The Goblin Skirmisher is a short, wiry raider with mottled olive-green skin,
+an oversized bald head, long horizontal ears, narrow red-orange eyes, and two
+lower tusks. A ragged brown leather tunic and loincloth hang beneath a diagonal
+strap with a square iron buckle. A studded shoulder pad, wrist bindings, shin
+wraps, broad bare feet, and one crude notched rusty short sword complete the
+scavenged kit. The Rusty Slash sequence crouches in guard, raises the sword in
+anticipation, drives a connected diagonal cut, and recovers. The non-gory death
+sequence recoils, buckles, falls sideways, and settles into an inert pose with
+the complete sword still touching the right hand and body.
+
+The production sheets are:
+
+- `goblin_skirmisher-attack.png`;
+- `goblin_skirmisher-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing high-resolution source was the strict identity reference,
+and the Kobold Trapper attack sheet supplied style and composition guidance.
+The initial attack draft passed visual review. The first death draft was
+rejected because the final sword crossed into the preceding cell; a focused
+ImageGen edit restored the full blade and safe separation. Hybrid chroma
+normalization combines despilled soft-matte RGB with hard-key alpha. Uniform
+full-cell nearest-neighbor normalization uses a 116x116 attack scale and a
+104x104 death scale, yielding comparable 80x70/76x77 opening silhouettes.
+Exact baselines are `[111, 113, 95, 98]` for attack and `[108, 109, 92, 92]`
+for death. Every production frame is one connected alpha component. The sheets
+use binary alpha, 26/27 opaque RGB colors, and minimum padding of 9/16 pixels.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

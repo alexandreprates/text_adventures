@@ -12,7 +12,12 @@
   "goblin_skirmisher": {
     "name": "Goblin Skirmisher",
     "sprite": "/assets/enemies/sprites/goblin_skirmisher.png",
-    "source": "/assets/enemies/sources/goblin_skirmisher.png"
+    "source": "/assets/enemies/sources/goblin_skirmisher.png",
+    "description": "A short, wiry goblin crouches beneath an oversized bald olive-green head, with long horizontal ears, a heavy brow, narrow red-orange eyes, a broad nose, and two lower ivory tusks framing its snarl. A ragged brown leather tunic and loincloth wrap the compact torso beneath a diagonal strap with a square iron buckle, while a studded right shoulder pad, wrist bindings, and shin wraps provide scavenged protection. Its right hand grips a single crude notched short sword of rusty gray iron and brown leather, while the free four-fingered hand spreads for balance above broad bare green feet. Yellow-green highlights from the upper left sharpen the agile silhouette against deep moss shadows and worn umber leather.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/goblin_skirmisher-attack.png",
+      "death": "/assets/isometric/enemies/goblin_skirmisher-death.png"
+    }
   },
   "goblin_hexer": {
     "name": "Goblin Hexer",

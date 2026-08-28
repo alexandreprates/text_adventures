@@ -691,6 +691,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Goblin Skirmisher attack and death sheets", () => {
+    expect(enemyAnimationRegistry.goblin_skirmisher).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/goblin_skirmisher-attack.png",
+        baselines: [111, 113, 95, 98],
+      },
+      death: {
+        path: "/assets/isometric/enemies/goblin_skirmisher-death.png",
+        baselines: [108, 109, 92, 92],
+      },
+    });
+    expect(enemyAnimationFor(" GOBLIN_SKIRMISHER ")).toBe(
+      enemyAnimationRegistry.goblin_skirmisher,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
