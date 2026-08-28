@@ -659,6 +659,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Crystal Golem attack and death sheets", () => {
+    expect(enemyAnimationRegistry.crystal_golem).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/crystal_golem-attack.png",
+        baselines: [103, 104, 100, 99],
+      },
+      death: {
+        path: "/assets/isometric/enemies/crystal_golem-death.png",
+        baselines: [110, 111, 95, 95],
+      },
+    });
+    expect(enemyAnimationFor(" CRYSTAL_GOLEM ")).toBe(
+      enemyAnimationRegistry.crystal_golem,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

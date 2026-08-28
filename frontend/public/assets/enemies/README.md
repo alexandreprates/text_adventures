@@ -1265,6 +1265,35 @@ Exact baselines are `[115, 115, 102, 104]` for attack and
 component. Both sheets use binary alpha, 30 opaque RGB colors, and at least 12
 pixels of padding.
 
+### Crystal Golem
+
+The Crystal Golem is an enormous broad humanoid construct assembled from dark
+violet-gray stone joints and interlocking blue crystal. One tall faceted
+cyan-blue prism forms its head above a cold narrow eye slit, while a huge
+diamond-shaped crystal core dominates the chest. Violet amethyst and cobalt
+shards rise in layered clusters across the shoulders, back, forearms, knees,
+and calves. Two massive arms terminate in oversized multi-prism fists, and two
+heavy legs end in broad clustered crystal feet. The Crystal Fist sequence
+guards, draws one fist back, drives a crushing connected punch, and recovers.
+The non-gory death sequence jolts, buckles, folds, and settles into one compact
+grounded mound with every crystal touching the inert mass.
+
+The production sheets are:
+
+- `crystal_golem-attack.png`;
+- `crystal_golem-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing static sprite was the strict identity reference. Both
+initial ImageGen drafts passed the visual and topology gates. Hybrid chroma
+normalization pairs despilled soft-matte RGB with hard-key alpha from the same
+generated pixels. Full-cell nearest-neighbor normalization uses 120x120 attack
+and 100x100 death scales, yielding nearly identical 76x87/75x86 opening
+silhouettes. Exact baselines are `[103, 104, 100, 99]` for attack and
+`[110, 111, 95, 95]` for death. Every production frame is one connected alpha
+component. Both sheets use binary alpha, 30 opaque RGB colors, and at least
+14/16 pixels of attack/death padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

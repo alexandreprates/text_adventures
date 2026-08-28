@@ -438,6 +438,16 @@ export const enemyAnimationRegistry = {
       baselines: [114, 115, 97, 97],
     },
   },
+  crystal_golem: {
+    attack: {
+      path: "/assets/isometric/enemies/crystal_golem-attack.png",
+      baselines: [103, 104, 100, 99],
+    },
+    death: {
+      path: "/assets/isometric/enemies/crystal_golem-death.png",
+      baselines: [110, 111, 95, 95],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

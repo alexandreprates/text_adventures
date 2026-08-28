@@ -457,7 +457,12 @@
   "crystal_golem": {
     "name": "Crystal Golem",
     "sprite": "/assets/enemies/sprites/crystal_golem.png",
-    "source": "/assets/enemies/sources/crystal_golem.svg"
+    "source": "/assets/enemies/sources/crystal_golem.svg",
+    "description": "An enormous broad humanoid construct assembled from dark violet-gray stone joints and interlocking blue crystal. One tall faceted cyan-blue prism forms its head above a cold narrow eye slit, while a huge diamond-shaped crystal core dominates the chest. Violet amethyst and cobalt shards rise in layered clusters across the shoulders, back, forearms, knees, and calves. Exactly two massive arms terminate in oversized multi-prism fists, and two heavy legs end in broad clustered crystal feet. Pale blue-white facet highlights catch the upper-left light against deep indigo shadows, making the golem read as a single dense mineral body rather than armor, clothing, or a living giant.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/crystal_golem-attack.png",
+      "death": "/assets/isometric/enemies/crystal_golem-death.png"
+    }
   },
   "lich_acolyte": {
     "name": "Lich Acolyte",
