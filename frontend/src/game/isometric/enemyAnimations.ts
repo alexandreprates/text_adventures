@@ -418,6 +418,16 @@ export const enemyAnimationRegistry = {
       baselines: [115, 109, 94, 96],
     },
   },
+  cursed_paladin: {
+    attack: {
+      path: "/assets/isometric/enemies/cursed_paladin-attack.png",
+      baselines: [120, 115, 107, 103],
+    },
+    death: {
+      path: "/assets/isometric/enemies/cursed_paladin-death.png",
+      baselines: [112, 115, 99, 100],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

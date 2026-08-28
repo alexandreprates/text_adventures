@@ -1205,6 +1205,37 @@ production frame is one connected alpha component. The sheets use binary
 alpha, 30/29 opaque RGB colors, and at least 9/15 pixels of attack/death
 padding.
 
+### Cursed Paladin
+
+The Cursed Paladin is a tall fallen holy warrior sealed inside complete dark
+gunmetal plate with tarnished bronze-gold trim. A closed angular great helm
+rises to a broken spike and hides the face behind one narrow violet visor
+slit. Broad layered pauldrons, a segmented breastplate, armored fauld,
+gauntlets, greaves, and heavy sabatons create a rigid fortress silhouette
+beneath a torn black-violet mantle. The left arm carries a large kite shield
+with a thick bronze rim and prominent bronze cross. The right hand grips one
+long jagged sword edged by continuous purple curse flame. The Fallen Smite
+sequence guards behind the shield, raises the sword, drives a heavy diagonal
+blow, and returns to protection. The non-gory death sequence recoils, buckles,
+topples, and rests with sword and shield touching the inert armored body.
+
+The production sheets are:
+
+- `cursed_paladin-attack.png`;
+- `cursed_paladin-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing static sprite was the strict identity reference. The
+initial attack contained detached curse tongues; two focused ImageGen edits
+removed every disconnected violet accent while preserving the attack poses.
+Hybrid chroma normalization pairs despilled soft-matte RGB with hard-key alpha
+from the same generated pixels. Full-cell nearest-neighbor normalization uses
+116x116 attack and 104x104 death scales, yielding comparable 81x90/82x87
+opening silhouettes. Exact baselines are `[120, 115, 107, 103]` for attack and
+`[112, 115, 99, 100]` for death. Every production frame is one connected alpha
+component. Both sheets use binary alpha, 30 opaque RGB colors, and at least 12
+pixels of padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

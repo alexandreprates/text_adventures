@@ -627,6 +627,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Cursed Paladin attack and death sheets", () => {
+    expect(enemyAnimationRegistry.cursed_paladin).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/cursed_paladin-attack.png",
+        baselines: [120, 115, 107, 103],
+      },
+      death: {
+        path: "/assets/isometric/enemies/cursed_paladin-death.png",
+        baselines: [112, 115, 99, 100],
+      },
+    });
+    expect(enemyAnimationFor(" CURSED_PALADIN ")).toBe(
+      enemyAnimationRegistry.cursed_paladin,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

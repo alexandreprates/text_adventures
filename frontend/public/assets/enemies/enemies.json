@@ -437,7 +437,12 @@
   "cursed_paladin": {
     "name": "Cursed Paladin",
     "sprite": "/assets/enemies/sprites/cursed_paladin.png",
-    "source": "/assets/enemies/sources/cursed_paladin.svg"
+    "source": "/assets/enemies/sources/cursed_paladin.svg",
+    "description": "A tall fallen holy warrior sealed inside complete dark gunmetal plate with tarnished bronze-gold trim. A closed angular great helm rises to a broken spike and hides the face behind one narrow violet visor slit. Broad layered pauldrons, a segmented breastplate, armored fauld, gauntlets, greaves, and heavy sabatons create a rigid fortress silhouette beneath a torn black-violet mantle. The left arm carries a large kite shield with a thick bronze rim and prominent bronze cross, while the right hand grips one long jagged sword whose dark blade is edged by continuous purple curse flame. Muted silver highlights catch the upper-left light across near-black steel and old bronze, while restrained violet seams and attached spectral fire reveal the oath-corruption within the otherwise disciplined paladin armor.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/cursed_paladin-attack.png",
+      "death": "/assets/isometric/enemies/cursed_paladin-death.png"
+    }
   },
   "enchanted_armor": {
     "name": "Enchanted Armor",
