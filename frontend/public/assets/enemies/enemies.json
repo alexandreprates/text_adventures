@@ -397,7 +397,12 @@
   "air_elemental_ling": {
     "name": "Air Elemental Ling",
     "sprite": "/assets/enemies/sprites/air_elemental_ling.png",
-    "source": "/assets/enemies/sources/air_elemental_ling.png"
+    "source": "/assets/enemies/sources/air_elemental_ling.png",
+    "description": "A small hovering elemental woven entirely from layered ribbons of white and icy-blue wind. Its mouthless mask-like face narrows to a sharp chin beneath a tall swept crest of curling air, with two luminous cyan almond eyes cutting through the pale currents. Exactly two long arms spiral outward into broad hands tipped by hooked wind talons, while the creature has no legs or feet; its torso tightens into a tapered tornado tail below the waist. Wide looping streamers circle the shoulders, forearms, waist, and lower vortex as continuous bands, giving the weightless body a restless corkscrew silhouette. Near-white upper-left highlights travel through frost blue and clear cyan into royal-blue folds and deep cobalt edges, making the face, claws, and concentric airflow readable against dark surroundings.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/air_elemental_ling-attack.png",
+      "death": "/assets/isometric/enemies/air_elemental_ling-death.png"
+    }
   },
   "dark_elf_assassin": {
     "name": "Dark Elf Assassin",

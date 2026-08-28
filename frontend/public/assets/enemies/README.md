@@ -1074,6 +1074,37 @@ to baseline 112. Every frame is one connected alpha component. Production uses
 binary alpha, 27/27 opaque RGB colors, and at least 15/15 pixels of
 attack/death padding.
 
+### Air Elemental Ling
+
+The Air Elemental Ling is a small hovering elemental woven entirely from
+layered ribbons of white and icy-blue wind. A mouthless mask face with two
+luminous cyan eyes sits beneath a tall swept crest of curling air. Exactly two
+long arms end in hooked wind talons, while the creature has no legs or feet;
+its torso narrows into a tapered tornado tail. Broad continuous streamers loop
+around the shoulders, forearms, waist, and lower vortex to give the weightless
+body a restless corkscrew silhouette. The Gale Cut sequence guards, compresses
+its spiral, sweeps one broad claw-connected wind crescent down-left, and
+reabsorbs the blade during recovery. The non-gory death sequence wobbles,
+contracts both arms into the torso, collapses into one smaller cyclone knot,
+and rests as an inert curl with its cyan eye glow extinguished.
+
+The production sheets are:
+
+- `air_elemental_ling-attack.png`;
+- `air_elemental_ling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft touched every horizontal divider and opened wider
+than the attack guard; a uniform reduction edit restored safe source spacing.
+Two focused attack edits removed disconnected micro-wisps, while conservative
+nearest-neighbor normalization discarded the remaining sublogical accents
+without changing the main silhouettes. Production uses 104x104 attack cells
+and 128x128 death cells, yielding comparable 66x87/71x85 opening silhouettes.
+Fixed-cell translations align the eye/core axis and lower-vortex tip. Every
+production frame is one connected alpha component. Both sheets use binary
+alpha, 27 opaque RGB colors, at least 17/18 pixels of attack/death padding, and
+baseline 109 in every frame.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

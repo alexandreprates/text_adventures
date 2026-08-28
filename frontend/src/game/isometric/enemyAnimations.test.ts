@@ -563,6 +563,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Air Elemental Ling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.air_elemental_ling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/air_elemental_ling-attack.png",
+        baselines: [109, 109, 109, 109],
+      },
+      death: {
+        path: "/assets/isometric/enemies/air_elemental_ling-death.png",
+        baselines: [109, 109, 109, 109],
+      },
+    });
+    expect(enemyAnimationFor(" AIR_ELEMENTAL_LING ")).toBe(
+      enemyAnimationRegistry.air_elemental_ling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
