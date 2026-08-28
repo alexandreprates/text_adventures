@@ -468,6 +468,16 @@ export const enemyAnimationRegistry = {
       baselines: [108, 109, 92, 92],
     },
   },
+  goblin_hexer: {
+    attack: {
+      path: "/assets/isometric/enemies/goblin_hexer-attack.png",
+      baselines: [115, 115, 102, 102],
+    },
+    death: {
+      path: "/assets/isometric/enemies/goblin_hexer-death.png",
+      baselines: [111, 111, 99, 100],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

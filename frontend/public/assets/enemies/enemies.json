@@ -22,7 +22,12 @@
   "goblin_hexer": {
     "name": "Goblin Hexer",
     "sprite": "/assets/enemies/sprites/goblin_hexer.png",
-    "source": "/assets/enemies/sources/goblin_hexer.png"
+    "source": "/assets/enemies/sources/goblin_hexer.png",
+    "description": "A short, hunched goblin occultist peers from a pointed deep-plum hood, its olive-green face compressed between long ears, glowing red eyes, a wrinkled nose, and two lower ivory tusks. Ragged purple robes form broad torn sleeves and layered tails over brown leather wraps and wide bare feet. Bone teeth hang across the chest, while small skulls mark the shoulder, sternum, and waist like crude talismans. Its left hand grips a crooked wooden staff crowned by a pale skull, bound bones, and attached plum ribbons; the open right palm shapes a compact violet hex flame. Pale lilac magic and upper-left bone highlights stand sharply against the dark plum cloth and moss-green shadows.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/goblin_hexer-attack.png",
+      "death": "/assets/isometric/enemies/goblin_hexer-death.png"
+    }
   },
   "hobgoblin_soldier": {
     "name": "Hobgoblin Soldier",

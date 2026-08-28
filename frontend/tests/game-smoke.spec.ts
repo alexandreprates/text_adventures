@@ -414,6 +414,7 @@ const animatedEnemyFixtures = [
   { creatureId: "crystal_golem", displayName: "Crystal Golem", maxHealth: 100 },
   { creatureId: "lich_acolyte", displayName: "Lich Acolyte", maxHealth: 72 },
   { creatureId: "goblin_skirmisher", displayName: "Goblin Skirmisher", maxHealth: 18 },
+  { creatureId: "goblin_hexer", displayName: "Goblin Hexer", maxHealth: 22 },
 ] as const;
 
 function animatedEnemyCombatPayload(

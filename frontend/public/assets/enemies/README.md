@@ -1356,6 +1356,37 @@ Exact baselines are `[111, 113, 95, 98]` for attack and `[108, 109, 92, 92]`
 for death. Every production frame is one connected alpha component. The sheets
 use binary alpha, 26/27 opaque RGB colors, and minimum padding of 9/16 pixels.
 
+### Goblin Hexer
+
+The Goblin Hexer is a short, hunched occultist with olive-green skin, long
+pointed ears, red eyes, two lower tusks, and a face shadowed by a pointed
+deep-plum hood. Ragged purple robes, brown leather wraps, bone teeth, and small
+skull talismans form a layered ritual costume. The left hand grips one crooked
+wooden staff crowned by a pale skull, bound bones, and attached plum ribbons;
+the open right palm shapes a compact violet curse flame. The Hex Bolt sequence
+guards, gathers a palm-connected core, releases a short connected curse stream,
+and recovers. The non-gory death sequence recoils, buckles against the staff,
+topples, and settles into an inert robed body with the complete staff still
+touching the left hand and corpse.
+
+The production sheets are:
+
+- `goblin_hexer-attack.png`;
+- `goblin_hexer-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing high-resolution source was the strict identity reference,
+and the Dark Elf Arcanist attack sheet supplied style and composition guidance.
+The first drafts were rejected for detached violet particles and a cyan ribbon
+that conflicted with the chroma key. Focused ImageGen edits produced connected
+magic and plum-only staff ribbons. Hybrid chroma normalization pairs despilled
+soft-matte RGB with hard-key alpha. Uniform full-cell nearest-neighbor
+normalization uses a 116x116 scale for both states, yielding comparable
+80x90/79x86 opening silhouettes. Exact baselines are `[115, 115, 102, 102]`
+for attack and `[111, 111, 99, 100]` for death. Every production frame is one
+connected alpha component. Both sheets use binary alpha, 30 opaque RGB colors,
+and minimum padding of 10/11 pixels.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

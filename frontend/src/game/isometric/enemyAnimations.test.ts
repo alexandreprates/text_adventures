@@ -707,6 +707,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Goblin Hexer attack and death sheets", () => {
+    expect(enemyAnimationRegistry.goblin_hexer).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/goblin_hexer-attack.png",
+        baselines: [115, 115, 102, 102],
+      },
+      death: {
+        path: "/assets/isometric/enemies/goblin_hexer-death.png",
+        baselines: [111, 111, 99, 100],
+      },
+    });
+    expect(enemyAnimationFor(" GOBLIN_HEXER ")).toBe(
+      enemyAnimationRegistry.goblin_hexer,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
