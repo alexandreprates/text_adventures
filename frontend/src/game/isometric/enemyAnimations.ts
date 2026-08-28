@@ -448,6 +448,16 @@ export const enemyAnimationRegistry = {
       baselines: [110, 111, 95, 95],
     },
   },
+  lich_acolyte: {
+    attack: {
+      path: "/assets/isometric/enemies/lich_acolyte-attack.png",
+      baselines: [112, 112, 101, 101],
+    },
+    death: {
+      path: "/assets/isometric/enemies/lich_acolyte-death.png",
+      baselines: [116, 116, 95, 100],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

@@ -467,6 +467,11 @@
   "lich_acolyte": {
     "name": "Lich Acolyte",
     "sprite": "/assets/enemies/sprites/lich_acolyte.png",
-    "source": "/assets/enemies/sources/lich_acolyte.svg"
+    "source": "/assets/enemies/sources/lich_acolyte.svg",
+    "description": "A tall, gaunt skeletal occultist stares from the shadow of a pointed charcoal hood, its tan skull and deep sockets lit by cold green-cyan glints. Layered forest-green and near-black robes fall in wide sleeves and a long ragged hem, reinforced by tarnished bronze shoulder plates, clasps, bracers, and a belt of small skull ornaments. Its left hand grips a dark ceremonial staff whose bronze forked cage cradles an attached green-cyan ghostflame, while its open right palm shapes the same necrotic light. Dark boots, short gold-green trim, and pale upper-left highlights keep the narrow undead silhouette readable against the heavy robe mass.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/lich_acolyte-attack.png",
+      "death": "/assets/isometric/enemies/lich_acolyte-death.png"
+    }
   }
 }

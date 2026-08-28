@@ -675,6 +675,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Lich Acolyte attack and death sheets", () => {
+    expect(enemyAnimationRegistry.lich_acolyte).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/lich_acolyte-attack.png",
+        baselines: [112, 112, 101, 101],
+      },
+      death: {
+        path: "/assets/isometric/enemies/lich_acolyte-death.png",
+        baselines: [116, 116, 95, 100],
+      },
+    });
+    expect(enemyAnimationFor(" LICH_ACOLYTE ")).toBe(
+      enemyAnimationRegistry.lich_acolyte,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

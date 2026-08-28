@@ -1294,6 +1294,38 @@ silhouettes. Exact baselines are `[103, 104, 100, 99]` for attack and
 component. Both sheets use binary alpha, 30 opaque RGB colors, and at least
 14/16 pixels of attack/death padding.
 
+### Lich Acolyte
+
+The Lich Acolyte is a tall, gaunt skeletal occultist staring from beneath a
+pointed charcoal hood. Its tan skull and hollow sockets catch cold green-cyan
+light above layered forest-green and near-black robes with wide sleeves and a
+long ragged hem. Tarnished bronze shoulder plates, clasps, bracers, and a belt
+of small skull ornaments frame the narrow undead silhouette. The left hand
+holds a complete dark ceremonial staff whose bronze forked cage contains an
+attached green-cyan ghostflame, while the open right palm shapes matching
+necrotic light. The Necrotic Ray sequence guards, gathers a connected core,
+projects a short palm-bound ray, and recovers. The non-gory death sequence
+recoils, buckles against the staff, topples, and settles into a compact inert
+body with the complete extinguished staff still touching the corpse.
+
+The production sheets are:
+
+- `lich_acolyte-attack.png`;
+- `lich_acolyte-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing static sprite was the identity reference, while the Dark
+Elf Arcanist attack sheet supplied style and composition guidance. Visual
+review rejected drafts with a missing staff, purple magic drift, cell-boundary
+crossing, detached robe fragments, and unsafe impact padding before accepting
+the final artwork. Hybrid chroma normalization pairs despilled soft-matte RGB
+with hard-key alpha from the same generated pixels. Uniform full-cell
+nearest-neighbor normalization uses a 118x118 scale, yielding comparable
+69x93/67x96 opening silhouettes. Exact baselines are
+`[112, 112, 101, 101]` for attack and `[116, 116, 95, 100]` for death. Every
+production frame is one connected alpha component. Both sheets use binary
+alpha, 30 opaque RGB colors, and at least five pixels of padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
