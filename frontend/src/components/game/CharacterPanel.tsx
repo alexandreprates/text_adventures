@@ -45,6 +45,16 @@ export function CharacterPanel({ state }: CharacterPanelProps) {
         {player ? <ClassProgress player={player} /> : null}
       </div>
 
+      {player?.class_passive ? (
+        <>
+          <div className="section-label">-- PASSIVE --</div>
+          <div className="terminal-output passive-output">
+            <strong>{player.class_passive.name}</strong>
+            <span>{player.class_passive.description}</span>
+          </div>
+        </>
+      ) : null}
+
       <div className="section-label">-- EQUIPMENT --</div>
       <pre className="terminal-output status-output" aria-live="polite">
         {player ? equipmentLines(player) : "Gold    --"}

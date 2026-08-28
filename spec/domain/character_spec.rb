@@ -229,6 +229,24 @@ RSpec.describe TextAdventures::Character do
     end
   end
 
+  describe "#class_passive" do
+    it "follows the current class without a separate unlock" do
+      expect(character.class_passive).to be_nil
+
+      character.gain_skill_xp(:swordsmanship, 1_000)
+      expect(character.class_passive).to have_attributes(
+        id: "blademaster",
+        name: "Perfect Edge"
+      )
+
+      character.gain_skill_xp(:combat_magic, 1_000)
+      expect(character.class_passive).to have_attributes(
+        id: "spellblade",
+        name: "Arcane Edge"
+      )
+    end
+  end
+
   describe "#take_damage" do
     it "reduces health" do
       expect { character.take_damage(7) }
@@ -305,6 +323,32 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.attack).to eq 1
     end
+
+    it "applies a pure class passive to a compatible weapon" do
+      character.gain_skill_xp(:swordsmanship, 1_000)
+
+      expect(character.current_class).to eq "Blademaster"
+      expect(character.attack).to eq 17
+    end
+
+    it "applies a hybrid class passive to either compatible weapon affinity" do
+      sword = TextAdventures::Item.weapon("Longsword", price: 75, attack: 8, weapon_class: :sword)
+      character.equip(sword)
+      character.gain_skill_xp(:swordsmanship, 1_000)
+      character.gain_skill_xp(:spearmanship, 1_000)
+
+      expect(character.current_class).to eq "Warlord"
+      expect(character.attack).to eq 14
+    end
+
+    it "does not apply a weapon passive to an incompatible weapon" do
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 10, weapon_class: :dagger)
+      character.equip(dagger)
+      character.gain_skill_xp(:swordsmanship, 1_000)
+
+      expect(character.current_class).to eq "Blademaster"
+      expect(character.attack).to eq 11
+    end
   end
 
   describe "#defense" do
@@ -369,6 +413,15 @@ RSpec.describe TextAdventures::Character do
 
       expect(character.spear_thrust_chance).to eq 20
       expect(character.spear_thrust_damage).to eq 5
+    end
+
+    it "applies the Dragoon passive to spear thrust damage" do
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 15, defense: 3, weapon_class: :spear)
+      character.equip(spear)
+      character.gain_skill_xp(:spearmanship, 1_000)
+
+      expect(character.current_class).to eq "Dragoon"
+      expect(character.spear_thrust_damage).to eq 7
     end
 
     it "adds magic skill bonuses" do
@@ -567,7 +620,16 @@ RSpec.describe TextAdventures::Character do
          Dagger Mastery: level 0 (0/250 XP)
          Combat Magic: level 0 (20/250 XP)
          Nature Magic: level 0 (0/250 XP)
+         Class Passive: None
       TEXT
+    end
+
+    it "renders the current class passive" do
+      character.gain_skill_xp(:swordsmanship, 1_000)
+
+      expect(character.skills_report).to end_with(
+        " Class Passive: Perfect Edge - +15% sword damage."
+      )
     end
   end
 end

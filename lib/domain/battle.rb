@@ -96,7 +96,7 @@ module TextAdventures
 
       player.spend_mana(spell.mp_cost)
       before = player.health.current
-      player.heal(spell.healing_range.begin + player.nature_magic_healing_bonus)
+      player.heal(player.healing_spell_recovery(spell))
       recovered = player.health.current - before
       record_contribution(spell_skill(spell), [recovered, 1].max)
       lines << "You cast #{spell.display_name} and recover #{recovered} health."
@@ -292,7 +292,9 @@ module TextAdventures
     end
 
     def spell_damage(player, spell)
-      [spell.damage_range.begin + spell_damage_bonus(player, spell) - creature.defense, 1].max
+      raw_damage = spell.damage_range.begin + spell_damage_bonus(player, spell)
+      boosted_damage = player.apply_class_passive(raw_damage, affinity: :combat_magic)
+      [boosted_damage - creature.defense, 1].max
     end
 
     def spell_damage_bonus(player, spell)

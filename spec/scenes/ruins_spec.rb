@@ -584,6 +584,18 @@ RSpec.describe TextAdventures::Scenes::Ruins do
     expect(game.player.mana.current).to eq 5
   end
 
+  it "applies the Druid passive to healing spells without an enemy target" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.gain_skill_xp(:nature_magic, 1_000)
+    game.player.take_damage(20)
+
+    expect(game.handle("cast heal")).to eq <<~TEXT.chomp
+      You cast Heal and recover 18 health.
+      [your health is now 38/40]
+    TEXT
+    expect(game.player.health.current).to eq 38
+  end
+
   it "reports when casting Cure without curable statuses outside combat" do
     game.player.learn_spell(TextAdventures::Spell.cure)
 

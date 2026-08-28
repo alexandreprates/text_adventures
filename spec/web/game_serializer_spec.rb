@@ -22,6 +22,7 @@ RSpec.describe TextAdventures::Web::GameSerializer do
       mana: { current: 12, max: 12 },
       gold: 0,
       current_class: "Adventurer",
+      class_passive: nil,
       level: 1,
       xp: 0,
       attack: 11,
@@ -90,6 +91,30 @@ RSpec.describe TextAdventures::Web::GameSerializer do
         mp_cost: 4,
         recovery: 13
       )
+    )
+  end
+
+  it "serializes the current class passive and its affinities" do
+    game.player.gain_skill_xp(:swordsmanship, 1_000)
+    game.player.gain_skill_xp(:combat_magic, 1_000)
+
+    expect(state.dig(:player, :class_passive)).to eq(
+      id: "spellblade",
+      name: "Arcane Edge",
+      description: "+10% sword damage and +10% Combat Magic damage.",
+      effects: [
+        { affinity: "sword", percent: 10 },
+        { affinity: "combat_magic", percent: 10 }
+      ]
+    )
+  end
+
+  it "includes the nature class passive in effective healing recovery" do
+    game.player.learn_spell(TextAdventures::Spell.heal)
+    game.player.gain_skill_xp(:nature_magic, 1_000)
+
+    expect(state.dig(:player, :spells)).to include(
+      hash_including(name: "heal", recovery: 18)
     )
   end
 

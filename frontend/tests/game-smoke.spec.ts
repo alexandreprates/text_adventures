@@ -47,6 +47,26 @@ const townPayload: MockGamePayload = {
   },
 };
 
+const passiveTownPayload: MockGamePayload = {
+  ...townPayload,
+  state: {
+    ...townPayload.state,
+    player: {
+      ...(townPayload.state.player as Record<string, unknown>),
+      current_class: "Spellblade",
+      class_passive: {
+        id: "spellblade",
+        name: "Arcane Edge",
+        description: "+10% sword damage and +10% Combat Magic damage.",
+        effects: [
+          { affinity: "sword", percent: 10 },
+          { affinity: "combat_magic", percent: 10 },
+        ],
+      },
+    },
+  },
+};
+
 const ruinsPayload: MockGamePayload = {
   ...townPayload,
   state: {
@@ -1446,6 +1466,32 @@ test("keeps desktop character panel typography unchanged", async ({ page }) => {
   await expectFontSize(characterPanel.locator(".frame-name"), 16);
   await expectFontSize(characterPanel.locator(".section-label").first(), 12);
   await expectFontSize(characterPanel.locator(".terminal-output").first(), 13);
+});
+
+test("renders the current class passive in the responsive character panel", async ({ page }) => {
+  await mockGame(page, passiveTownPayload);
+  await page.goto("/");
+
+  if ((page.viewportSize()?.width || 0) <= 700) {
+    await page.getByRole("button", { name: "Character" }).click();
+  }
+
+  const characterPanel = page.locator(".platform-live-character .character-panel");
+  await expect(characterPanel).toBeVisible();
+  await expect(characterPanel.getByText("-- PASSIVE --")).toBeVisible();
+  await expect(characterPanel.getByText("Arcane Edge")).toBeVisible();
+  await expect(
+    characterPanel.getByText("+10% sword damage and +10% Combat Magic damage."),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
+  const equipmentLabel = characterPanel.getByText("-- EQUIPMENT --");
+  await equipmentLabel.scrollIntoViewIfNeeded();
+  await expect(equipmentLabel).toBeVisible();
+  const equipmentDetails = characterPanel.locator(".status-output");
+  await equipmentDetails.scrollIntoViewIfNeeded();
+  await expect(equipmentDetails).toBeInViewport();
 });
 
 test("persists the selected interface mode", async ({ page }) => {

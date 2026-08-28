@@ -171,6 +171,14 @@ module TextAdventures
       progression.current_class
     end
 
+    def class_passive
+      ClassPassive.for_class(current_class)
+    end
+
+    def apply_class_passive(amount, affinity:)
+      class_passive&.apply(amount, affinity: affinity) || amount.to_i
+    end
+
     def take_damage(amount)
       self.health = health - amount
       self
@@ -207,7 +215,8 @@ module TextAdventures
     end
 
     def attack
-      base_attack + equipment_value(equipped_weapon, :attack) + weapon_attack_bonus
+      raw_attack = base_attack + equipment_value(equipped_weapon, :attack) + weapon_attack_bonus
+      apply_class_passive(raw_attack, affinity: equipped_weapon_class)
     end
 
     def defense
@@ -241,7 +250,7 @@ module TextAdventures
     def spear_thrust_damage
       return 0 unless equipped_weapon_class == :spear
 
-      4 + skill_bonus(:spearmanship)
+      apply_class_passive(4 + skill_bonus(:spearmanship), affinity: :spear)
     end
 
     def combat_magic_damage_bonus
@@ -250,6 +259,11 @@ module TextAdventures
 
     def nature_magic_healing_bonus
       skill_bonus(:nature_magic) * 3
+    end
+
+    def healing_spell_recovery(spell)
+      raw_healing = spell.healing_range.begin + nature_magic_healing_bonus
+      apply_class_passive(raw_healing, affinity: :nature_magic)
     end
 
     def equip(item)
@@ -357,6 +371,7 @@ module TextAdventures
         level = progression.skill_level(skill)
         lines << " #{skill_label(skill)}: level #{level} (#{progression.skill_xp(skill)}/#{progression.xp_required_for(level + 1)} XP)"
       end
+      lines << class_passive_report
       lines.join("\n")
     end
 
@@ -435,6 +450,13 @@ module TextAdventures
 
     def skill_label(skill)
       skill.to_s.tr("_", " ").split.map(&:capitalize).join(" ")
+    end
+
+    def class_passive_report
+      passive = class_passive
+      return " Class Passive: None" unless passive
+
+      " Class Passive: #{passive.name} - #{passive.description}"
     end
 
     def equipment_line(equipment, attribute)

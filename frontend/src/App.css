@@ -228,6 +228,19 @@
   white-space: pre;
 }
 
+.passive-output {
+  display: grid;
+  gap: 4px;
+}
+
+.passive-output strong {
+  color: var(--gold);
+}
+
+.passive-output span {
+  color: var(--text-dim);
+}
+
 .hidden {
   display: none;
 }
@@ -1468,11 +1481,12 @@
   max-height: min(560px, calc(100% - 150px));
   min-width: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .platform-live-character .character-panel {
-  max-height: inherit;
-  overflow: auto;
+  overflow: visible;
   padding: 12px;
   background: rgba(9, 17, 18, 0.92);
 }

@@ -129,6 +129,51 @@ RSpec.describe TextAdventures::Battle do
       expect(creature.health.current).to eq 17
     end
 
+    it "applies the Nightblade passive to critical and double dagger attacks" do
+      creature = TextAdventures::Creature.new(name: "Training Shade", health: 30)
+      dagger = TextAdventures::Item.weapon("Iron Dagger", price: 18, attack: 8, weapon_class: :dagger)
+      player = TextAdventures::Character.new(equipped_weapon: dagger, equipped_armor: nil)
+      player.gain_skill_xp(:dagger_mastery, 1_000)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([0, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to include(
+        "You attack a Training Shade causing 20 of damage (critical hit).",
+        "You strike again with your dagger causing 10 of damage."
+      )
+      expect(creature).to be_dead
+    end
+
+    it "applies the Dragoon passive to the initial hit and spear thrust" do
+      creature = TextAdventures::Creature.new(name: "Training Brute", health: 20)
+      spear = TextAdventures::Item.weapon("Spear", price: 50, attack: 8, weapon_class: :spear)
+      player = TextAdventures::Character.new(equipped_weapon: spear, equipped_armor: nil)
+      player.gain_skill_xp(:spearmanship, 1_000)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99, 0]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to include(
+        "You attack a Training Brute causing 13 of damage.",
+        "You drive a precise thrust with your spear causing 7 of damage."
+      )
+      expect(creature).to be_dead
+    end
+
+    it "applies the passive bonus before enemy defense" do
+      creature = TextAdventures::Creature.new(name: "Armored Dummy", health: 5, defense: 10)
+      sword = TextAdventures::Item.weapon("Longsword", price: 75, attack: 8, weapon_class: :sword)
+      player = TextAdventures::Character.new(equipped_weapon: sword, equipped_armor: nil)
+      player.gain_skill_xp(:swordsmanship, 1_000)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99]))
+
+      response = battle.attack(player)
+
+      expect(response.to_response.to_text).to include "causing 5 of damage."
+      expect(creature).to be_dead
+    end
+
     it "lets daggers strike twice when the double attack roll succeeds" do
       creature = TextAdventures::Creature.new(
         name: "Training Brute",
@@ -347,6 +392,18 @@ RSpec.describe TextAdventures::Battle do
       TEXT
     end
 
+    it "applies the Arcanist passive after the combat magic flat bonus" do
+      player.gain_skill_xp(:combat_magic, 1_000)
+      battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0, 99, 0])
+      )
+
+      response = battle.cast_spell(player, TextAdventures::Spell.fireball)
+
+      expect(response.to_response.to_text).to start_with "You cast Fireball causing 17 of damage."
+    end
+
     it "casts Heal to restore player health during battle" do
       healing_battle = described_class.new(
         creature: creature,
@@ -379,6 +436,31 @@ RSpec.describe TextAdventures::Battle do
         Giant Spider attacks you with Bite causing 2 of damage.
       TEXT
       expect(player.health.current).to eq 26
+    end
+
+    it "applies the Druid passive after the nature magic flat bonus" do
+      player.gain_skill_xp(:nature_magic, 1_000)
+      healing_battle = described_class.new(
+        creature: creature,
+        random: BattleSequenceRandom.new([0, 99, 0])
+      )
+      player.take_damage(25)
+
+      response = healing_battle.cast_spell(player, TextAdventures::Spell.heal)
+
+      expect(response.to_response.to_text).to start_with "You cast Heal and recover 18 health."
+    end
+
+    it "uses only the matching Mystic affinity instead of stacking both effects" do
+      creature = TextAdventures::Creature.new(name: "Arcane Dummy", health: 10)
+      player.gain_skill_xp(:combat_magic, 1_000)
+      player.gain_skill_xp(:nature_magic, 1_000)
+      battle = described_class.new(creature: creature, random: BattleSequenceRandom.new([99]))
+
+      response = battle.cast_spell(player, TextAdventures::Spell.ice_bolt)
+
+      expect(response.to_response.to_text).to include "You cast Ice Bolt causing 10 of damage."
+      expect(creature).to be_dead
     end
 
     it "casts Cure to remove poison during battle" do

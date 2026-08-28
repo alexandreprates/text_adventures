@@ -11,6 +11,7 @@ module TextAdventures
         spells
         skills
         current_class
+        class_passive
         level
         xp
         attack

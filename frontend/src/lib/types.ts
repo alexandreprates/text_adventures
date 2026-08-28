@@ -62,12 +62,23 @@ export type SkillProgress = {
   next_level_xp: number;
 };
 
+export type ClassPassive = {
+  id: string;
+  name: string;
+  description: string;
+  effects: Array<{
+    affinity: "sword" | "spear" | "dagger" | "combat_magic" | "nature_magic";
+    percent: number;
+  }>;
+};
+
 export type PlayerState = {
   name: string;
   health: Resource;
   mana?: Resource;
   gold: number;
   current_class?: string;
+  class_passive?: ClassPassive | null;
   level: number;
   xp: number;
   attack?: number;

@@ -54,6 +54,7 @@ module TextAdventures
           },
           gold: player.gold,
           current_class: player.current_class,
+          class_passive: class_passive_state(player),
           level: player.overall_level,
           xp: player.overall_experience,
           attack: player.attack,
@@ -122,7 +123,21 @@ module TextAdventures
       def spell_recovery(spell, player)
         return nil unless spell.healing?
 
-        spell.healing_range.begin + player.nature_magic_healing_bonus
+        player.healing_spell_recovery(spell)
+      end
+
+      def class_passive_state(player)
+        passive = player.class_passive
+        return unless passive
+
+        {
+          id: passive.id,
+          name: passive.name,
+          description: passive.description,
+          effects: passive.effects.map do |affinity, percent|
+            { affinity: affinity.to_s, percent: percent }
+          end
+        }
       end
 
       def skills_state(player)

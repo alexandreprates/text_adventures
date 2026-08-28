@@ -214,7 +214,7 @@ module TextAdventures
 
         game.player.spend_mana(spell.mp_cost)
         before = game.player.health.current
-        game.player.heal(spell.healing_range.begin + game.player.nature_magic_healing_bonus)
+        game.player.heal(game.player.healing_spell_recovery(spell))
         recovered = game.player.health.current - before
         game.player.gain_skill_xp(:nature_magic, recovered) if recovered.positive?
         Response.new(

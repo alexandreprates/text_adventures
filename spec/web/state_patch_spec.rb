@@ -18,12 +18,26 @@ RSpec.describe TextAdventures::Web::StatePatch do
       health: { current: 30, max: 30 },
       mana: { current: 12, max: 12 },
       gold: 0,
+      class_passive: nil,
       statuses: []
     )
     expect(patch.fetch(:player)).not_to have_key(:name)
     expect(patch.dig(:dungeon, :viewport, :terrain)).to be_a String
     expect(patch.dig(:dungeon, :viewport, :entities)).to include(
       hash_including(type: "player")
+    )
+  end
+
+  it "includes class passive changes in compact patches" do
+    game = TextAdventures::Game.new(random: Random.new(0))
+    game.player.gain_skill_xp(:dagger_mastery, 1_000)
+    game.player.gain_skill_xp(:nature_magic, 1_000)
+
+    patch = described_class.new(game).to_h
+
+    expect(patch.dig(:player, :class_passive)).to include(
+      id: "ranger",
+      name: "Wild Hunt"
     )
   end
 end
