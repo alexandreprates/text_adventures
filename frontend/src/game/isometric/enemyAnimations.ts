@@ -408,6 +408,16 @@ export const enemyAnimationRegistry = {
       baselines: [112, 112, 112, 112],
     },
   },
+  dwarven_ghost: {
+    attack: {
+      path: "/assets/isometric/enemies/dwarven_ghost-attack.png",
+      baselines: [113, 115, 106, 107],
+    },
+    death: {
+      path: "/assets/isometric/enemies/dwarven_ghost-death.png",
+      baselines: [115, 109, 94, 96],
+    },
+  },
 } as const satisfies Record<string, EnemyAnimation>;
 
 export const enemyAnimationLayout = {

@@ -427,7 +427,12 @@
   "dwarven_ghost": {
     "name": "Dwarven Ghost",
     "sprite": "/assets/enemies/sprites/dwarven_ghost.png",
-    "source": "/assets/enemies/sources/dwarven_ghost.png"
+    "source": "/assets/enemies/sources/dwarven_ghost.png",
+    "description": "A short, broad ancestral dwarf spirit with a stern square face, luminous cyan eyes, swept-back blue-white hair, and an immense forked beard divided into two bound braids around a flowing central mass. A silver runic circlet with a diamond brow stone crowns his head. Dark blue-black dwarven plate covers his compact frame in layered pauldrons, engraved bracers, geometric belt plates, reinforced knees, and heavy boots, while torn spectral cloth and attached cyan wisps trail from the armor and beard. Both gauntleted hands control one massive square double-faced warhammer with spiral runes, beveled steel edges, and a dark wrapped haft. Cold white highlights and an electric cyan rim catch the upper-left light against deep navy metal, preserving the weight of an armored hammer warrior inside an unmistakably spectral silhouette.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/dwarven_ghost-attack.png",
+      "death": "/assets/isometric/enemies/dwarven_ghost-death.png"
+    }
   },
   "cursed_paladin": {
     "name": "Cursed Paladin",

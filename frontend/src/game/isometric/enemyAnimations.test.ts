@@ -611,6 +611,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Dwarven Ghost attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dwarven_ghost).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dwarven_ghost-attack.png",
+        baselines: [113, 115, 106, 107],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dwarven_ghost-death.png",
+        baselines: [115, 109, 94, 96],
+      },
+    });
+    expect(enemyAnimationFor(" DWARVEN_GHOST ")).toBe(
+      enemyAnimationRegistry.dwarven_ghost,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

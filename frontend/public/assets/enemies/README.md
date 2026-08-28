@@ -1172,6 +1172,39 @@ clean edges and connected topology. Every production frame is one connected
 alpha component. Both sheets use binary alpha, 30 opaque RGB colors, and at
 least 19/15 pixels of attack/death padding.
 
+### Dwarven Ghost
+
+The Dwarven Ghost is a short, broad ancestral warrior with a stern square
+face, luminous cyan eyes, swept-back blue-white hair, and an immense forked
+beard divided into two bound braids around a flowing central mass. A silver
+runic circlet with a diamond brow stone crowns his head. Dark blue-black
+dwarven plate covers the compact frame in layered pauldrons, engraved
+bracers, geometric belt plates, reinforced knees, and heavy boots. Torn
+spectral cloth and attached cyan wisps trail from the armor and beard. Both
+gauntleted hands control one massive square double-faced warhammer with spiral
+runes, beveled steel edges, and a dark wrapped haft. The Spectral Hammer
+sequence guards low, raises the weapon, drives a connected descending blow,
+and recovers to the planted stance. The non-gory death sequence recoils,
+buckles onto one knee, topples sideways, and rests with the hammer touching
+the compact grounded body.
+
+The production sheets are:
+
+- `dwarven_ghost-attack.png`;
+- `dwarven_ghost-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The static sprite was the strict identity reference. The accepted
+ImageGen drafts passed without structural regeneration. Chroma normalization
+used a hard alpha key at tolerance 40 and paired it with despilled soft-matte
+RGB from the same generated pixels. Conservative full-cell nearest-neighbor
+normalization uses 116x116 attack and 104x104 death scales, yielding comparable
+94x85/95x87 opening silhouettes. Exact phase baselines are
+`[113, 115, 106, 107]` for attack and `[115, 109, 94, 96]` for death. Every
+production frame is one connected alpha component. The sheets use binary
+alpha, 30/29 opaque RGB colors, and at least 9/15 pixels of attack/death
+padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
