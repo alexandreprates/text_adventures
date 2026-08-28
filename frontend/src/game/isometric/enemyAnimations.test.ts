@@ -755,6 +755,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Skeleton Archer attack and death sheets", () => {
+    expect(enemyAnimationRegistry.skeleton_archer).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/skeleton_archer-attack.png",
+        baselines: [111, 111, 97, 98],
+      },
+      death: {
+        path: "/assets/isometric/enemies/skeleton_archer-death.png",
+        baselines: [117, 110, 81, 85],
+      },
+    });
+    expect(enemyAnimationFor(" SKELETON_ARCHER ")).toBe(
+      enemyAnimationRegistry.skeleton_archer,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

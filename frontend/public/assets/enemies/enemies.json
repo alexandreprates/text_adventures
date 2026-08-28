@@ -112,7 +112,12 @@
   "skeleton_archer": {
     "name": "Skeleton Archer",
     "sprite": "/assets/enemies/sprites/skeleton_archer.png",
-    "source": "/assets/enemies/sources/skeleton_archer.png"
+    "source": "/assets/enemies/sources/skeleton_archer.png",
+    "description": "A tall undead marksman of aged ivory bones grins beneath a pointed charcoal-gray hood sewn with coarse tan stitches, its deep sockets lit by compact cyan flames. A shredded layered mantle frames the exposed rib cage above a ragged near-black skirt, while brown leather bracers, a cross-body strap, utility pouch, skull-shaped belt buckle, wrapped greaves, and broad bony feet complete the grave-worn kit. A strapped quiver holds dark-fletched arrows at the right hip and back. Both skeletal hands control a large recurved brown wooden bow reinforced with leather wraps and pale bone end caps, paired with a long bone arrow and angular ivory head. Warm upper-left highlights separate bone and leather from the cool charcoal cloth.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/skeleton_archer-attack.png",
+      "death": "/assets/isometric/enemies/skeleton_archer-death.png"
+    }
   },
   "wight_knight": {
     "name": "Wight Knight",

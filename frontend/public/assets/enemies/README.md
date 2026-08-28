@@ -1450,6 +1450,40 @@ for attack and `[119, 119, 93, 94]` for death. Every production frame is one
 connected alpha component. The sheets use binary alpha, 30/29 opaque RGB
 colors, and minimum padding of 15/8 pixels.
 
+### Skeleton Archer
+
+The Skeleton Archer is a tall undead marksman of aged ivory bones beneath a
+pointed charcoal hood sewn with coarse tan stitches. Compact cyan lights burn
+in its deep eye sockets above a complete grinning jaw. A shredded layered
+mantle frames the exposed rib cage and ragged near-black skirt, while brown
+leather bracers, a cross-body strap, utility pouch, skull buckle, wrapped
+greaves, and broad bony feet complete the grave-worn kit. A strapped quiver
+holds dark-fletched arrows at the right hip and back. Both hands control a large
+recurved wooden bow reinforced with leather wraps and pale bone end caps. The
+Bone Arrow sequence guards with a nocked arrow, reaches a full draw, releases
+without a detached projectile, and recovers toward the quiver. The non-gory
+death sequence recoils, buckles, falls laterally, and settles into a connected
+inert heap with the complete bow and attached quiver still touching the body.
+
+The production sheets are:
+
+- `skeleton_archer-attack.png`;
+- `skeleton_archer-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The existing high-resolution source was the strict identity reference,
+and the Skeleton Guard sheets supplied sibling-family style and scale guidance.
+Both initial drafts were rejected because upper poses crossed the horizontal
+cell divider. Uniform focused ImageGen layout edits restored broad gutters, and
+final focused edits preserved cyan eye continuity through attack recovery and
+the penultimate death pose. Hybrid chroma normalization pairs despilled
+soft-matte RGB with hard-key alpha. Uniform full-cell nearest-neighbor
+normalization uses a 124x124 attack scale and a 116x116 death scale, producing
+comparable 59x83 and 57x84 opening silhouettes. Exact baselines are
+`[111, 111, 97, 98]` for attack and `[117, 110, 81, 85]` for death. Every
+production frame is one connected alpha component. Both sheets use binary
+alpha, 31 opaque RGB colors, and minimum padding of 16/10 pixels.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.
