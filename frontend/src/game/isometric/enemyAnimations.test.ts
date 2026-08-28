@@ -531,6 +531,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Ice Elemental Ling attack and death sheets", () => {
+    expect(enemyAnimationRegistry.ice_elemental_ling).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/ice_elemental_ling-attack.png",
+        baselines: [106, 106, 106, 106],
+      },
+      death: {
+        path: "/assets/isometric/enemies/ice_elemental_ling-death.png",
+        baselines: [106, 106, 106, 106],
+      },
+    });
+    expect(enemyAnimationFor(" ICE_ELEMENTAL_LING ")).toBe(
+      enemyAnimationRegistry.ice_elemental_ling,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,

@@ -1003,6 +1003,46 @@ flame mound and inert ember. Production uses binary alpha, 25/27 opaque
 colors, at least 16/20 pixels of attack/death padding, and baseline 107 in
 every frame.
 
+### Ice Elemental Ling
+
+The Ice Elemental Ling is a compact humanoid elemental assembled from
+interlocking blades of blue-white ice. A tall asymmetric crown of crystalline
+spires rises above a wedge-shaped face with two luminous pale-cyan almond
+eyes, while a bright diamond-shaped core glows at the center of its chest.
+Exactly two articulated arms taper through layered frost plates into three
+long hooked talons, and two bent legs end in broad three-pronged shard feet.
+White facets and translucent cyan planes catch the light across its crown,
+shoulders, forearms, and shins, stepping through sky blue and royal blue to
+deep cobalt and navy edges. Smaller spikes sweep backward from its cheeks,
+spine, elbows, and heels to complete the unarmed predatory silhouette. The
+Frost Lash sequence guards, coils into anticipation, extends one continuous
+articulated ice chain from the leading claw toward the left, and retracts into
+the normal hand during recovery. The non-gory death sequence staggers, folds
+its arms over connected fracture lines, collapses into one interlocked shard
+mound, and settles as a small inert crystal remnant.
+
+The production sheets are:
+
+- `ice_elemental_ling-attack.png`;
+- `ice_elemental_ling-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. The first death draft was rejected because both upper figures crossed
+the horizontal divider and drifted larger than the attack guard. A focused
+ImageGen edit uniformly reduced and separated all death poses. The initial
+attack and its first focused spacing edit still left impact pixels against the
+vertical divider. A second global edit reduced every attack pose uniformly;
+a conservative fixed-cell translation then moved the intact impact frame left
+inside its source cell, increasing divider padding without altering its pixels
+or scale. Both accepted sheets use the same 116x116 nearest-neighbor
+normalization. Their 71x68/69x76 opening silhouettes have comparable area and
+stable identity. Further fixed-cell translations align the body center and
+ground baseline. Every frame is one connected alpha component: attack keeps
+exactly two arms, two legs, and one hand-connected Frost Lash, while death
+absorbs those limbs into one connected shard mound and remnant. Production
+uses binary alpha, 27/29 opaque RGB colors, at least 16/17 pixels of
+attack/death padding, and baseline 106 in every frame.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

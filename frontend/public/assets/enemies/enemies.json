@@ -377,7 +377,12 @@
   "ice_elemental_ling": {
     "name": "Ice Elemental Ling",
     "sprite": "/assets/enemies/sprites/ice_elemental_ling.png",
-    "source": "/assets/enemies/sources/ice_elemental_ling.png"
+    "source": "/assets/enemies/sources/ice_elemental_ling.png",
+    "description": "A compact humanoid elemental assembled from interlocking blades of blue-white ice. A tall asymmetric crown of crystalline spires rises above a wedge-shaped face with two luminous pale-cyan almond eyes, while a bright diamond-shaped core glows at the center of its chest. Exactly two articulated arms taper through layered frost plates into three long hooked talons, and two bent legs end in broad three-pronged shard feet. White facets and translucent cyan planes catch the light across the crown, shoulders, forearms, and shins, stepping through sky blue and royal blue to deep cobalt and navy edges. Smaller spikes sweep backward from its cheeks, spine, elbows, and heels, giving the unarmed creature a jagged, predatory silhouette.",
+    "animations": {
+      "attack": "/assets/isometric/enemies/ice_elemental_ling-attack.png",
+      "death": "/assets/isometric/enemies/ice_elemental_ling-death.png"
+    }
   },
   "earth_elemental_ling": {
     "name": "Earth Elemental Ling",
