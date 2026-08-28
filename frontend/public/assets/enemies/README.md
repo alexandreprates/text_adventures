@@ -1105,6 +1105,40 @@ production frame is one connected alpha component. Both sheets use binary
 alpha, 27 opaque RGB colors, at least 17/18 pixels of attack/death padding, and
 baseline 109 in every frame.
 
+### Dark Elf Assassin
+
+The Dark Elf Assassin is a lean, low-crouched killer with charcoal-gray skin,
+long pointed ears, and silver-white hair spilling from a deep plum hood. Narrow
+magenta eyes glare above a black cloth mask. Violet-black leather and blackened
+bronze plates reinforce the torso, one prominent engraved pauldron, segmented
+forearm guards, legs, and claw-toed boots. A ragged asymmetric cloak and split
+coat tails trail behind belts carrying pouches, a short chain, and one red
+jewel. Exactly two gloved hands hold matching curved assassin daggers with
+cold-silver hooked blades and ornate bronze guards. The Assassin Blade sequence
+guards low, coils both weapons, lunges into a connected crossing double cut,
+and withdraws to its opening stance without a generic slash effect. The
+non-gory death sequence recoils, drops to one knee, topples onto one hip, and
+rests on its side while retaining both daggers in its hands.
+
+The production sheets are:
+
+- `dark_elf_assassin-attack.png`;
+- `dark_elf_assassin-death.png`.
+
+Both sheets use four 128x128 frames in a 2x2, left-to-right then top-to-bottom
+layout. Both first drafts touched internal dividers, and uniform reduction edits
+restored source spacing while preserving the poses and weapon grips. A focused
+death edit removed detached chain and cloak micro-flecks, while a final
+brightness and contrast pass made the silver hair, blades, plum cloth, and
+bronze armor readable against the dark dungeon floor. Hard chroma-key removal
+and conservative nearest-neighbor normalization use 124x124 attack cells and
+114x114 death cells, yielding comparable 83x86/83x88 opening silhouettes.
+Fixed-cell translations align the intact body centers and the attack/death
+sequences to baselines 115/117. Every production frame is one connected alpha
+component and retains exactly two arms, two legs, and two curved daggers.
+Production uses binary alpha, 30 opaque RGB colors per sheet, and at least 12/10
+pixels of attack/death padding.
+
 ## Workflow
 
 1. Load the next creature from `data/creatures.yml`.

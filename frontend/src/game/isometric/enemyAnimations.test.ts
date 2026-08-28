@@ -579,6 +579,22 @@ describe("enemy animations", () => {
     );
   });
 
+  it("registers dedicated Dark Elf Assassin attack and death sheets", () => {
+    expect(enemyAnimationRegistry.dark_elf_assassin).toEqual({
+      attack: {
+        path: "/assets/isometric/enemies/dark_elf_assassin-attack.png",
+        baselines: [115, 115, 115, 115],
+      },
+      death: {
+        path: "/assets/isometric/enemies/dark_elf_assassin-death.png",
+        baselines: [117, 117, 117, 117],
+      },
+    });
+    expect(enemyAnimationFor(" DARK_ELF_ASSASSIN ")).toBe(
+      enemyAnimationRegistry.dark_elf_assassin,
+    );
+  });
+
   it("maps four phases across the shared two-by-two sheet", () => {
     expect(enemyAnimationLayout).toMatchObject({
       frameWidth: 128,
