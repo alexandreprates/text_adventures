@@ -2211,8 +2211,9 @@
 
   .platform-live-playfield .mobile-command-feed {
     display: grid;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 3px;
-    max-height: 54px;
+    height: 48px;
     overflow: hidden;
     padding: 7px 8px;
     border: 1px solid var(--platform-line-soft);
@@ -2229,9 +2230,18 @@
     white-space: nowrap;
   }
 
-  .combat-summary {
+  .mobile-command-feed:empty {
+    visibility: hidden;
+  }
+
+  .platform-live-playfield .combat-summary {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    right: 72px;
     grid-template-columns: 1fr;
     gap: 7px;
+    background: var(--panel-bg);
   }
 
   .combat-summary-meter {
@@ -2328,6 +2338,10 @@
 }
 
 @media (min-width: 701px) and (max-width: 980px) and (max-height: 500px) {
+  .platform-live-playfield .combat-summary {
+    right: 0;
+  }
+
   .platform-top-hud {
     grid-template-columns: auto minmax(0, 1fr) auto auto;
   }
@@ -2353,7 +2367,7 @@
     left: auto;
     width: min(42%, 320px);
     max-height: calc(100% - 16px);
-    overflow: auto;
+    overflow: visible;
   }
 
   .map-stage.has-canvas-map .map-canvas {

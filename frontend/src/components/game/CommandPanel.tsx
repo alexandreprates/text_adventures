@@ -179,8 +179,8 @@ function CombatSummary({ state }: { state: GameState | null }) {
 
 function MobileCommandFeed({ lines }: { lines: string[] }) {
   const visibleLines = lines.map((line) => line.trim()).filter(Boolean);
-  if (!visibleLines.length) return null;
 
+  // Reserve the mobile message area even before the first event to keep the map stable.
   return (
     <aside className="mobile-command-feed" aria-label="Recent messages" aria-live="polite">
       {visibleLines.map((line, index) => (

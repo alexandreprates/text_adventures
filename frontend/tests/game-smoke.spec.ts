@@ -980,6 +980,7 @@ async function mockGame(
     const testWindow = window as unknown as {
       __sentSocketMessages: Array<Record<string, unknown>>;
       __socketConnectionCount: number;
+      __pushGamePatch?: (patch: Record<string, unknown>, events: MockGamePayload["events"]) => void;
       __TEXT_ADVENTURES_SOCKET_HEARTBEAT_INTERVAL_MS?: number;
       __TEXT_ADVENTURES_SOCKET_RECONNECT_DELAY_MS?: number;
     };
@@ -1009,6 +1010,11 @@ async function mockGame(
 
       constructor() {
         super();
+        testWindow.__pushGamePatch = (patch, events) => {
+          this.dispatchEvent(new MessageEvent("message", {
+            data: JSON.stringify({ type: "events", game_id: payload.game_id, patch, events }),
+          }));
+        };
         connectionCount += 1;
         testWindow.__socketConnectionCount = connectionCount;
 
@@ -1942,6 +1948,57 @@ test("keeps the centered player above combat controls on mobile screens", async 
     }).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
+});
+
+test("keeps the mobile map stationary when entering and leaving combat", async ({ page }) => {
+  const idleBattle = { active: false, enemy: null };
+  await mockGame(page, {
+    ...adventurerCombatPayload,
+    events: [],
+    state: { ...adventurerCombatPayload.state, battle: idleBattle },
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  const canvas = page.getByLabel("Dungeon map", { exact: true });
+  await expect(canvas).toBeVisible();
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-area-top", "24px");
+    document.documentElement.style.setProperty("--safe-area-bottom", "34px");
+  });
+  const pushBattle = async (battle: unknown, text: string) => {
+    await page.evaluate(({ battle, text }) => {
+      const testWindow = window as Window & {
+        __pushGamePatch?: (patch: Record<string, unknown>, events: MockGamePayload["events"]) => void;
+      };
+      testWindow.__pushGamePatch!({ battle }, [{ type: "message", text }]);
+    }, { battle, text });
+  };
+  for (const [width, height] of [[320, 568], [360, 740], [390, 844], [430, 932], [844, 390]]) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    await expect(page.getByRole("button", { name: /^Explore/ })).toBeVisible();
+    const before = await canvas.boundingBox();
+    await pushBattle(adventurerCombatPayload.state.battle, "[Skeleton Guard HP: 28/28]");
+    await expect(page.getByRole("button", { name: /^Attack/ })).toBeVisible();
+    await expect(page.getByLabel("Enemy status")).toBeVisible();
+    const enemy = await page.getByLabel("Enemy status").boundingBox();
+    const controls = await page.locator(".commands-panel").boundingBox();
+    const loadout = await page.getByLabel("Loadout", { exact: true }).boundingBox();
+    expect(enemy!.y).toBeGreaterThanOrEqual(24);
+    expect(enemy!.y + enemy!.height).toBeLessThan(controls!.y);
+    expect(enemy!.x + enemy!.width).toBeLessThan(loadout!.x);
+    await expect(page.getByLabel("Recent messages")).toContainText("Skeleton Guard");
+    expect(await canvas.boundingBox()).toEqual(before);
+    await pushBattle(idleBattle, "The enemy was defeated.");
+    await expect(page.getByRole("button", { name: /^Explore/ })).toBeVisible();
+    expect(await canvas.boundingBox()).toEqual(before);
+  }
+  await pushBattle(adventurerCombatPayload.state.battle, "A Skeleton Guard approaches.");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.getByLabel("Enemy status")).toBeVisible();
 });
 
 test("renders auto-explore controls in ruins", async ({ page }) => {
