@@ -15,8 +15,8 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Light Armor:
-        1x Padded Armor (Light, Def: 8) - 120g
-        1x Leather Armor (Light, Def: 12) - 200g
+        1x Padded Armor (Light, Def: 8) - 12g
+        1x Leather Armor (Light, Def: 12) - 20g
     TEXT
   end
 
@@ -26,30 +26,30 @@ RSpec.describe TextAdventures::Scenes::Armorsmith do
     expect(game.handle("show")).to eq <<~TEXT.chomp
       Here, take a look at these goods!
        Light Armor:
-        1x Padded Armor (Light, Def: 8) - 120g
-        1x Leather Armor (Light, Def: 12) - 200g
-        1x Studded Leather (Light, Def: 16) - 350g
-        1x Scout Mail (Light, Def: 20) - 550g
-        1x Silken Guard (Light, Def: 24) - 950g
+        1x Padded Armor (Light, Def: 8) - 12g
+        1x Leather Armor (Light, Def: 12) - 20g
+        1x Studded Leather (Light, Def: 16) - 35g
+        1x Scout Mail (Light, Def: 20) - 55g
+        1x Silken Guard (Light, Def: 24) - 95g
        Medium Armor:
-        1x Chain Shirt (Medium, Def: 18) - 450g
-        1x Scale Mail (Medium, Def: 23) - 700g
-        1x Breastplate (Medium, Def: 28) - 1100g
-        1x Brigandine (Medium, Def: 34) - 1500g
-        1x Half Plate (Medium, Def: 40) - 2100g
+        1x Chain Shirt (Medium, Def: 18) - 45g
+        1x Scale Mail (Medium, Def: 23) - 70g
+        1x Breastplate (Medium, Def: 28) - 110g
+        1x Brigandine (Medium, Def: 34) - 150g
+        1x Half Plate (Medium, Def: 40) - 210g
        Heavy Armor:
-        1x Ring Mail (Heavy, Def: 26) - 900g
-        1x Chain Mail (Heavy, Def: 33) - 1350g
-        1x Splint Armor (Heavy, Def: 41) - 1900g
-        1x Plate Armor (Heavy, Def: 50) - 2800g
-        1x Dragon Plate (Heavy, Def: 60) - 5000g
+        1x Ring Mail (Heavy, Def: 26) - 90g
+        1x Chain Mail (Heavy, Def: 33) - 135g
+        1x Splint Armor (Heavy, Def: 41) - 190g
+        1x Plate Armor (Heavy, Def: 50) - 280g
+        1x Dragon Plate (Heavy, Def: 60) - 500g
     TEXT
   end
 
   it "buys armor and lets the player equip it" do
-    game.player.gold = 250
+    game.player.gold = 70
 
-    expect(game.handle("buy leather armor")).to include "Excellent choice. It is yours for 200g."
+    expect(game.handle("buy leather armor")).to include "Excellent choice. It is yours for 20g."
 
     response = game.handle("agree")
     armor = game.player.inventory.find("leather armor")

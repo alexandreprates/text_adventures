@@ -21,10 +21,10 @@ RSpec.describe TextAdventures::Scenes::Priest do
   it "shows tome stock" do
     response = game.handle("show")
 
-    expect(response).to include "1x Tome of Heal - 250g"
-    expect(response).to include "1x Tome of Cure - 250g"
-    expect(response).to include "1x Tome of Fireball - 300g"
-    expect(response).to include "1x Tome of Ice Bolt - 300g"
+    expect(response).to include "1x Tome of Heal - 25g"
+    expect(response).to include "1x Tome of Cure - 25g"
+    expect(response).to include "1x Tome of Fireball - 30g"
+    expect(response).to include "1x Tome of Ice Bolt - 30g"
   end
 
   it "heals the player without exceeding max health" do

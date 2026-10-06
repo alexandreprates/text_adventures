@@ -213,7 +213,7 @@ RSpec.describe TextAdventures::Battle do
       expect(strong_player.health.current).to eq 30
     end
 
-    it "raises junk loot drops to at least a forty-eight percent chance" do
+    it "honors the configured junk drop chance without a hidden minimum" do
       fang = TextAdventures::Item.junk("Cracked Fang", price: 2)
       creature = TextAdventures::Creature.new(
         name: "Spent Husk",
@@ -231,10 +231,10 @@ RSpec.describe TextAdventures::Battle do
 
       response = battle.attack(player)
 
-      expect(response.loot.items).to eq [fang]
+      expect(response.loot.items).to be_empty
     end
 
-    it "does not apply the junk loot minimum to non-junk drops" do
+    it "honors the configured non-junk drop chance" do
       tome = TextAdventures::Item.tome("Tome of Sparks", price: 25, spell: "Fireball")
       creature = TextAdventures::Creature.new(
         name: "Spent Acolyte",

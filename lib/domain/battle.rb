@@ -7,8 +7,6 @@ module TextAdventures
     end
 
     CRITICAL_CHANCE = 10
-    JUNK_DROP_CHANCE_MULTIPLIER = 1.56
-    JUNK_DROP_MINIMUM_CHANCE = 48
     attr_reader :creature, :random, :contributions, :spear_thrust_used
 
     def self.enemy_damage_after_defense(raw_damage, defense)
@@ -164,13 +162,7 @@ module TextAdventures
     end
 
     def roll_loot_items?(chance, items)
-      items.any? && roll_chance?(adjusted_loot_chance(chance, items))
-    end
-
-    def adjusted_loot_chance(chance, items)
-      return chance unless items.all?(&:junk?)
-
-      [[chance.to_f * JUNK_DROP_CHANCE_MULTIPLIER, JUNK_DROP_MINIMUM_CHANCE].max, 100].min
+      items.any? && roll_chance?(chance)
     end
 
     def roll_chance?(chance)

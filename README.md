@@ -372,6 +372,35 @@ placed at the enemy's map position as `@`. The player can collect loot by
 stepping onto it automatically or by using `loot` while standing on or next to
 it.
 
+### Loot And Economy
+
+Every defeated creature drops gold. Rewards follow the creature's dungeon pool
+band, so farming an easier creature does not increase its payout:
+
+| Creature pool | Gold per victory | Common item chance | Rare item chance |
+| --- | --- | --- | --- |
+| Levels 1–2 | 1 | 25% | 2% |
+| Levels 3–5 | 1–2 | 25% | 2% |
+| Levels 6–8 | 2–3 | 25% | 2% |
+| Levels 9+ | 3–4 | 25% | 2% |
+
+Gold, common items, and rare items roll independently. The YAML chances are used
+directly, without hidden type-specific multipliers. Rewards must still be
+collected from the map.
+
+Healing potions cost 1 gold and restore 20 HP; antidotes cost 2 gold. Characters
+start with five healing potions and no gold. Tavern rest and priest services
+remain free, providing a recovery option after returning to town without cash.
+
+Shop purchase prices come directly from `data/items.yml`. Resale pays 10% of the
+base price, rounded to the nearest whole gold with a minimum of 1. Equipment is
+still gated by character level. With half a healing potion reserved per victory,
+the first sword upgrade targets roughly 30–50 early victories; rare drops can
+shorten that wait. Expensive equipment remains a longer-term purchase.
+
+Run `bundle exec rspec spec/domain/loot_economy_spec.rb` to check reward budgets,
+actual randomized drops, supply replenishment, recovery, and resale limits.
+
 ## Combat And Spells
 
 Combat is turn-based. The player can attack with an equipped weapon or cast a

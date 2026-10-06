@@ -138,7 +138,7 @@ module TextAdventures
 
     def self.starter_inventory
       Inventory.new.tap do |inventory|
-        inventory.add(Item.potion("Potion of Heal", price: 10, recovery: 20), quantity: STARTER_POTION_QUANTITY)
+        inventory.add(ContentCatalog.item("potion_of_heal"), quantity: STARTER_POTION_QUANTITY)
       end
     end
 

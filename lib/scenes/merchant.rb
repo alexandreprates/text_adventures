@@ -3,8 +3,6 @@ module TextAdventures
     class Merchant
       Confirmation = Struct.new(:merchant, :action, :item, :price, keyword_init: true)
       SELL_PRICE_RATE = 0.10
-      BUY_PRICE_MULTIPLIER = 10
-      MULTIPLIED_BUY_PRICE_TYPES = %i[weapon armor tome].freeze
 
       attr_reader :name, :display_name, :stock, :accepted_types
 
@@ -61,8 +59,6 @@ module TextAdventures
       end
 
       def buy_price(item)
-        return item.price * BUY_PRICE_MULTIPLIER if MULTIPLIED_BUY_PRICE_TYPES.include?(item.type)
-
         item.price
       end
 

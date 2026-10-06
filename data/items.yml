@@ -223,7 +223,7 @@ items:
   antidote:
     type: potion
     name: Antidote
-    price: 8
+    price: 2
     recovery: 0
     cures:
       - poison
