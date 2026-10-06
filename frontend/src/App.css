@@ -713,6 +713,78 @@
   font-weight: 800;
 }
 
+.install-app-dialog {
+  position: fixed;
+  inset: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+  width: min(380px, calc(100vw - 32px - var(--safe-area-left) - var(--safe-area-right)));
+  max-height: calc(100dvh - 32px - var(--safe-area-top) - var(--safe-area-bottom));
+  margin: auto;
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+.install-app-dialog::backdrop {
+  background: var(--dungeon-light-vision-mid);
+}
+
+.install-app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.install-app-header img { border-radius: 12px; }
+
+.install-app-eyebrow {
+  flex: 1;
+  color: var(--gold);
+  font: 700 11px/1.5 var(--mono);
+  letter-spacing: 0.08em;
+}
+
+.install-app-close {
+  flex: 0 0 44px;
+  min-height: 44px;
+  font-size: 24px;
+}
+
+.install-app-dialog h2 {
+  margin: 24px 0 8px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.install-app-dialog p { margin: 0; color: var(--text-muted); }
+
+.install-app-steps {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+  padding-left: 24px;
+  font-size: 14px;
+}
+
+.install-app-steps li { padding-left: 4px; }
+.install-app-steps li::marker { color: var(--gold); font-weight: 700; }
+.install-app-dialog .install-app-note { margin-top: 16px; font-size: 12px; }
+.install-app-dialog .install-app-error { margin-top: 16px; color: var(--danger); font-size: 14px; }
+
+.install-app-actions { display: grid; gap: 8px; margin-top: 24px; }
+.install-app-actions button { min-height: 44px; padding: 8px 16px; }
+.install-app-actions .install-app-primary {
+  color: var(--page-bg);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+.install-app-primary:hover,
+.install-app-primary:focus-visible { background: var(--accent-strong); }
+
 .shop-overlay {
   position: fixed;
   inset: 0;

@@ -309,6 +309,12 @@ installation and service-worker features.
 - iPhone/iPad: open the game in Safari, choose **Share → Add to Home Screen**, and
   enable **Open as Web App** when offered.
 
+Mobile browser visitors see an installation guide once the game loads. Supported
+browsers offer **Install app** through their native installation prompt; other
+Android browsers and iOS show manual steps. Closing the guide hides it for seven
+days. The guide is hidden on desktop, in standalone mode, and on insecure origins.
+Installation still requires the player's confirmation in the browser.
+
 The home-screen icon opens the game in standalone mode. The launch URL is `/`;
 the existing browser game ID restores the session when available. Storage sharing
 between a browser tab and an installed app varies by platform, so open an existing

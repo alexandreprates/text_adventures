@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { GameShell } from "./components/game/GameShell";
+import { InstallAppPrompt } from "./components/game/InstallAppPrompt";
 import { PlatformerFrontendMockup } from "./components/game/PlatformerFrontendMockup";
 import { useAutoExplore } from "./hooks/useAutoExplore";
 import {
@@ -114,25 +115,28 @@ function PlayableGame() {
   );
 
   return (
-    <GameShell
-      state={session.state}
-      status={session.status}
-      events={session.lastEvents}
-      logLines={session.logLines}
-      activeTab={activeTab}
-      commandValue={commandValue}
-      shopOpen={shopOpen}
-      autoExplore={autoExplore}
-      mapZoom={mapZoom}
-      playerDirection={playerDirection}
-      onTabChange={setActiveTab}
-      onCommandValueChange={setCommandValue}
-      onCommand={submitCommand}
-      onOpenShop={openShop}
-      onCloseShop={() => setShopOpen(false)}
-      onMapZoomChange={setMapZoom}
-      onSubmitAction={submitAction}
-    />
+    <>
+      <InstallAppPrompt ready={session.state !== null} />
+      <GameShell
+        state={session.state}
+        status={session.status}
+        events={session.lastEvents}
+        logLines={session.logLines}
+        activeTab={activeTab}
+        commandValue={commandValue}
+        shopOpen={shopOpen}
+        autoExplore={autoExplore}
+        mapZoom={mapZoom}
+        playerDirection={playerDirection}
+        onTabChange={setActiveTab}
+        onCommandValueChange={setCommandValue}
+        onCommand={submitCommand}
+        onOpenShop={openShop}
+        onCloseShop={() => setShopOpen(false)}
+        onMapZoomChange={setMapZoom}
+        onSubmitAction={submitAction}
+      />
+    </>
   );
 }
 

@@ -953,6 +953,7 @@ async function mockGame(
   page: Page,
   payload: MockGamePayload,
   options: {
+    showInstallPrompt?: boolean;
     socketStatus?: MockSocketStatus;
     heartbeatIntervalMs?: number;
     reconnectDelayMs?: number;
@@ -971,7 +972,11 @@ async function mockGame(
     replayEventsOnAction,
     actionEvents,
     actionPatch,
+    showInstallPrompt,
   }) => {
+    if (!showInstallPrompt) {
+      localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    }
     const testWindow = window as unknown as {
       __sentSocketMessages: Array<Record<string, unknown>>;
       __socketConnectionCount: number;
@@ -1104,6 +1109,7 @@ async function mockGame(
     replayEventsOnAction: options.replayEventsOnAction ?? false,
     actionEvents: options.actionEvents ?? null,
     actionPatch: options.actionPatch ?? null,
+    showInstallPrompt: options.showInstallPrompt ?? false,
   });
 
   await page.route("**/api/games", async (route) => {
@@ -1192,6 +1198,7 @@ async function drawnImageSources(page: Page): Promise<string[]> {
 
 async function mockAutoResupplyGame(page: Page) {
   await page.addInitScript(({ initial, states }) => {
+    localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     const sentActions = [] as Array<Record<string, unknown>>;
     (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions =
       sentActions;
@@ -1295,6 +1302,7 @@ async function mockAutoResupplyGame(page: Page) {
 
 async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
   await page.addInitScript((payload) => {
+    localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     const sentActions = [] as Array<Record<string, unknown>>;
     (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions =
       sentActions;
@@ -1380,6 +1388,144 @@ async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
     });
   });
 }
+
+async function useMobileInstallGuide(page: Page, platform: "android" | "ios" = "android") {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript((system) => {
+    Object.defineProperty(navigator, "userAgent", {
+      value: system === "ios" ? "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)" : "Mozilla/5.0 (Linux; Android 15; Pixel 8)",
+      configurable: true,
+    });
+  }, platform);
+  await mockGame(page, townPayload, { showInstallPrompt: true });
+}
+
+test("shows a mobile installation guide with accessible controls and remembers dismissal", async ({ page }) => {
+  await useMobileInstallGuide(page);
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", { name: "Install Text Adventures" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Open your browser’s", { exact: false })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Close installation guide" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "Continue playing" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(dialog.getByRole("button", { name: "Close installation guide" })).toBeFocused();
+  expect(await dialog.evaluate((element) => element.matches(":modal"))).toBe(true);
+  for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    const bounds = await dialog.boundingBox();
+    expect(bounds!.x).toBeGreaterThanOrEqual(16);
+    expect(bounds!.y).toBeGreaterThanOrEqual(16);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width - 16);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 16);
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  }
+  await dialog.getByRole("button", { name: "Continue playing" }).click();
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(page.getByLabel("Game title")).toBeVisible();
+  await expect(dialog).toBeHidden();
+  await page.evaluate(() => localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() - 1)));
+  await page.reload();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
+test("explains home-screen installation on iPhone", async ({ page }) => {
+  await useMobileInstallGuide(page, "ios");
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", { name: "Install Text Adventures" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Share", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Add to Home Screen", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Open as Web App", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Install app", exact: true })).toHaveCount(0);
+});
+
+for (const outcome of ["accepted", "dismissed", "error"] as const) {
+  test(`handles ${outcome} from the native mobile installation prompt`, async ({ page }) => {
+    await useMobileInstallGuide(page);
+    await page.goto("/");
+    const dialog = page.getByRole("dialog", { name: "Install Text Adventures" });
+    await expect(dialog).toBeVisible();
+    await page.evaluate((choice) => {
+      Object.assign(window, { __installPromptCalls: 0 });
+      const event = new Event("beforeinstallprompt", { cancelable: true });
+      Object.assign(event, {
+        prompt: async () => {
+          const testWindow = window as Window & { __installPromptCalls?: number };
+          testWindow.__installPromptCalls = (testWindow.__installPromptCalls ?? 0) + 1;
+          if (choice === "error") throw new Error("Installation blocked");
+        },
+        userChoice: Promise.resolve({ outcome: choice }),
+      });
+      window.dispatchEvent(event);
+      if (!event.defaultPrevented) throw new Error("Native promotion was not intercepted");
+    }, outcome);
+    const calls = () => page.evaluate(() => (window as Window & { __installPromptCalls?: number }).__installPromptCalls);
+    await expect(dialog.getByRole("button", { name: "Install app", exact: true })).toBeVisible();
+    expect(await calls()).toBe(0);
+    await dialog.getByRole("button", { name: "Install app", exact: true }).click();
+    expect(await calls()).toBe(1);
+    if (outcome === "error") {
+      await expect(dialog.getByRole("alert")).toContainText("Installation could not start");
+      await expect(dialog.getByRole("button", { name: "Install app", exact: true })).toHaveCount(0);
+      await dialog.getByRole("button", { name: "Continue playing" }).click();
+    }
+    await expect(dialog).toBeHidden();
+  });
+}
+
+for (const mode of ["desktop", "standalone", "ios-standalone", "insecure"] as const) {
+  test(`hides the mobile installation guide in ${mode} mode`, async ({ page }) => {
+    await mockGame(page, townPayload, { showInstallPrompt: true });
+    await page.addInitScript((displayMode) => {
+      Object.defineProperty(navigator, "userAgent", { value: displayMode === "desktop" ? "Desktop Chrome" : "Android" });
+      Object.defineProperty(navigator, "userAgentData", { value: { mobile: displayMode !== "desktop" } });
+      if (displayMode === "ios-standalone") Object.defineProperty(navigator, "standalone", { value: true });
+      if (displayMode === "insecure") Object.defineProperty(window, "isSecureContext", { value: false });
+      if (displayMode === "standalone") {
+        const matchMedia = window.matchMedia.bind(window);
+        window.matchMedia = (query) => {
+          const result = matchMedia(query);
+          if (query === "(display-mode: standalone)") Object.defineProperty(result, "matches", { value: true });
+          return result;
+        };
+      }
+    }, mode);
+    await page.goto("/");
+    await expect(page.getByLabel("Game title")).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Install Text Adventures" })).toHaveCount(0);
+  });
+}
+
+test("closes the mobile installation guide when the app is installed through the browser", async ({ page }) => {
+  await useMobileInstallGuide(page);
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", { name: "Install Text Adventures" });
+  await expect(dialog).toBeVisible();
+  await page.evaluate(() => window.dispatchEvent(new Event("appinstalled")));
+  await expect(dialog).toBeHidden();
+  await page.reload();
+  await expect(page.getByLabel("Game title")).toBeVisible();
+  await expect(dialog).toBeHidden();
+});
+
+test("allows dismissing the mobile installation guide when storage is blocked", async ({ page }) => {
+  await useMobileInstallGuide(page);
+  await page.addInitScript(() => {
+    Storage.prototype.getItem = () => { throw new Error("Storage blocked"); };
+    Storage.prototype.setItem = () => { throw new Error("Storage blocked"); };
+  });
+  await page.goto("/");
+  const dialog = page.getByRole("dialog", { name: "Install Text Adventures" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Close installation guide" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByLabel("Game title")).toBeVisible();
+});
 
 for (const mode of ["browser", "standalone", "ios"] as const) {
   test(`manages screen sleep in ${mode} mode`, async ({ page }) => {
