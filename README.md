@@ -161,11 +161,37 @@ persisted save was deleted, reopening `/game/<game_id>` starts a fresh run using
 the same ID-derived `world_seed`; this recreates the same world seed, not the
 deleted run state such as inventory, HP, explored cells, killed enemies, or loot.
 
-For multi-instance deployments, all Ruby API instances must share the same
-`TEXT_ADVENTURES_SAVE_DIR`, or routing must ensure a game is always handled by an
-instance that can read its save file. The per-game SQLite layout isolates
-different players from each other, while same-game HTTP and WebSocket mutations
-remain serialized by the server's per-session lock.
+### Concurrent Players
+
+One Ruby server supports multiple independent players. Each game has its own
+state, random generator, mutex, and SQLite file. HTTP and WebSocket actions for
+the same game are serialized; actions for different games can proceed
+independently. Sessions with running or queued actions are protected from idle
+expiration. Deletion waits for an in-flight action and save to finish.
+
+The defaults allow 100 cached sessions and 50 simultaneous connections. An open
+WebSocket consumes one connection slot, as does an HTTP request. Leave connection
+headroom for page loads, health checks, and reconnects: 50 connected WebSockets
+exhaust the default limit. Excess connections or new sessions receive a `503`
+response. Closing connections or expiring idle sessions releases capacity;
+persisted games survive cache eviction.
+
+Each player should use a separate game URL. Sharing `/game/<id>` shares control
+of that character, not a cooperative multiplayer world. WebSocket replies go to
+the connection issuing the action; other tabs do not receive broadcasts. Loading
+the same game's HTTP page also returns that character to town. There is no
+account ownership check: the game URL grants access to its state and actions.
+
+For multiple Ruby processes, route **both HTTP and WebSocket traffic for each
+game to one owning process**. Sharing `TEXT_ADVENTURES_SAVE_DIR` alone is not
+sufficient: session caches and mutexes are process-local, so two processes can
+overwrite the same game's progress. Cross-process locking and cache coordination
+are required before concurrent ownership of a game is supported.
+
+Run `bundle exec rspec spec/web/game_store_spec.rb spec/e2e/text_adventures_websocket_spec.rb`
+to validate session lifecycle races, 40 simultaneous WebSocket players with HTTP
+reads, and competing HTTP/WebSocket inventory transactions on one game. These
+are correctness checks, not a production capacity guarantee.
 
 Readiness check:
 

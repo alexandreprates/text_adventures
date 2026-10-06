@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'tmpdir'
+require 'timeout'
 
 RSpec.describe TextAdventures::Web::GameStore do
   around do |example|
@@ -143,6 +144,120 @@ RSpec.describe TextAdventures::Web::GameStore do
     id, = store.create(seed: 0)
 
     expect(File).to exist(repository.database_path(id))
+  end
+
+  it "allows another player to act while one game's action is blocked" do
+    store = described_class.new
+    first_id, = store.create
+    second_id, = store.create
+    entered = Queue.new
+    release = Queue.new
+    worker = Thread.new { store.with_game(first_id) { entered << true; release.pop } }
+    Timeout.timeout(2) { entered.pop }
+
+    expect(Timeout.timeout(2) { store.with_game(second_id) { :completed } }).to eq :completed
+  ensure
+    release << true if release
+    worker&.join(2)
+  end
+
+  it "does not expire or restore a second copy of a game with an action in progress" do
+    now = Time.utc(2026, 10, 6)
+    store = described_class.new(repository: repository, clock: -> { now }, session_ttl_seconds: 1)
+    id, game = store.create
+    entered = Queue.new
+    release = Queue.new
+    worker = Thread.new do
+      store.with_game(id, save: true) do |active|
+        active.player.gold = 7
+        entered << true
+        release.pop
+      end
+    end
+    Timeout.timeout(2) { entered.pop }
+    now += 2
+
+    expect(store.fetch(id)).to equal game
+    expect(store.stats.fetch(:active_sessions)).to eq 1
+    release << true
+    worker.value
+    expect(repository.load(id).player.gold).to eq 7
+  ensure
+    release << true if release
+    worker&.join(2)
+  end
+
+  it "waits for an in-flight save before deleting the game permanently" do
+    store = described_class.new(repository: repository)
+    id, = store.create
+    entered = Queue.new
+    release = Queue.new
+    worker = Thread.new do
+      store.with_game(id, save: true) { |game| entered << true; release.pop; game.player.gold = 7 }
+    end
+    Timeout.timeout(2) { entered.pop }
+    deleted = Queue.new
+    deleter = Thread.new { deleted << store.delete(id) }
+    Timeout.timeout(2) { Thread.pass until deleter.status == 'sleep' || !deleted.empty? }
+
+    expect(deleted).to be_empty
+    release << true
+    worker.value
+    expect(Timeout.timeout(2) { deleted.pop }).to be true
+    expect(store.fetch(id)).to be_nil
+    expect(File).not_to exist(repository.database_path(id))
+  ensure
+    release << true if release
+    worker&.join(2)
+    deleter&.join(2)
+  end
+
+  it "releases session reservations after an action raises" do
+    now = Time.utc(2026, 10, 6)
+    store = described_class.new(clock: -> { now }, session_ttl_seconds: 1)
+    id, = store.create
+
+    expect { store.with_game(id) { raise "failed action" } }.to raise_error("failed action")
+    now += 2
+
+    expect(store.stats.fetch(:active_sessions)).to eq 0
+  end
+
+  it "rejects an action queued behind deletion instead of resurrecting the save" do
+    persistence = repository
+    store = described_class.new(repository: persistence)
+    id, = store.create
+    deleting = Queue.new
+    release = Queue.new
+    allow(persistence).to receive(:delete).and_wrap_original do |original, game_id|
+      deleting << true
+      release.pop
+      original.call(game_id)
+    end
+    deleter = Thread.new { store.delete(id) }
+    Timeout.timeout(2) { deleting.pop }
+    action = Thread.new { store.with_game(id, save: true) { |game| game.player.gold = 99 } }
+    Timeout.timeout(2) { Thread.pass until action.status == 'sleep' }
+
+    release << true
+    expect(deleter.value).to be true
+    expect(action.value).to be_nil
+    expect(persistence.load(id)).to be_nil
+  ensure
+    release << true if release
+    deleter&.join(2)
+    action&.join(2)
+  end
+
+  it "can delete an uncached save even when the session cache is full" do
+    saved_store = described_class.new(repository: repository)
+    saved_id, = saved_store.create
+    store = described_class.new(repository: repository, max_sessions: 1)
+    active_id, = store.create
+
+    expect(store.delete(saved_id)).to be true
+    expect(repository.load(saved_id)).to be_nil
+    expect(store.fetch(active_id)).not_to be_nil
   end
 
   it "restores a persisted game after the memory session expires" do

@@ -5,7 +5,7 @@ module TextAdventures
   module Web
     class GameStore
       CapacityExceeded = Class.new(StandardError)
-      Session = Struct.new(:id, :game, :created_at, :last_accessed_at, :mutex, keyword_init: true)
+      Session = Struct.new(:id, :game, :created_at, :last_accessed_at, :mutex, :active_users, :deleted, keyword_init: true)
 
       DEFAULT_SESSION_TTL_SECONDS = 30 * 60
       DEFAULT_MAX_SESSIONS = 100
@@ -51,7 +51,9 @@ module TextAdventures
             game: game,
             created_at: now,
             last_accessed_at: now,
-            mutex: Mutex.new
+            mutex: Mutex.new,
+            active_users: 0,
+            deleted: false
           )
           sessions[id] = session
           session
@@ -66,23 +68,41 @@ module TextAdventures
       end
 
       def with_game(id, save: false)
-        session = session_for(id)
+        session = session_for(id, reserve: true)
         return nil unless session
 
         session.mutex.synchronize do
-          touch(session)
+          return nil if session.deleted
+
           result = yield session.game
           repository&.save(session.id, session.game) if save
           result
         end
+      ensure
+        release_session(session) if session
       end
 
       def delete(id)
-        removed_save = repository&.delete(id)
-        mutex.synchronize do
+        session = mutex.synchronize do
           cleanup_expired_sessions
-          !sessions.delete(id.to_s).nil? || !!removed_save
+          current = sessions[id.to_s]
+          return !!repository&.delete(id) unless current
+
+          current.active_users += 1
+          current
         end
+        session.mutex.synchronize do
+          return false if session.deleted
+
+          repository&.delete(id)
+          mutex.synchronize do
+            session.deleted = true
+            sessions.delete(id.to_s)
+          end
+          true
+        end
+      ensure
+        release_session(session) if session
       end
 
       def stats
@@ -115,12 +135,15 @@ module TextAdventures
         requested_id
       end
 
-      def session_for(id)
+      def session_for(id, reserve: false)
         mutex.synchronize do
           cleanup_expired_sessions
           session = sessions[id.to_s]
           session ||= restore_session(id)
-          touch(session) if session
+          if session
+            touch(session)
+            session.active_users += 1 if reserve
+          end
           session
         end
       end
@@ -137,8 +160,17 @@ module TextAdventures
           game: game,
           created_at: now,
           last_accessed_at: now,
-          mutex: Mutex.new
+          mutex: Mutex.new,
+          active_users: 0,
+          deleted: false
         )
+      end
+
+      def release_session(session)
+        mutex.synchronize do
+          session.active_users -= 1
+          touch(session) unless session.deleted
+        end
       end
 
       def touch(session)
@@ -149,7 +181,7 @@ module TextAdventures
         return if session_ttl_seconds <= 0
 
         cutoff = now - session_ttl_seconds
-        sessions.delete_if { |_id, session| session.last_accessed_at < cutoff }
+        sessions.delete_if { |_id, session| session.active_users.zero? && session.last_accessed_at < cutoff }
       end
 
       def now
