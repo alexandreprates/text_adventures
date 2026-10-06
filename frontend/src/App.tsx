@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GameShell } from "./components/game/GameShell";
 import { PlatformerFrontendMockup } from "./components/game/PlatformerFrontendMockup";
 import { useAutoExplore } from "./hooks/useAutoExplore";
@@ -12,6 +12,7 @@ import {
 } from "./lib/commands";
 import type { CollectionTab, GameAction } from "./lib/types";
 import { useGameSession } from "./hooks/useGameSession";
+import { startWebAppWakeLock } from "./lib/webAppWakeLock";
 import "./App.css";
 
 const initialMapZoom = 1;
@@ -27,6 +28,7 @@ function App() {
 }
 
 function PlayableGame() {
+  useEffect(startWebAppWakeLock, []);
   const session = useGameSession();
   const [activeTab, setActiveTab] = useState<CollectionTab>("inventory");
   const [commandValue, setCommandValue] = useState("");

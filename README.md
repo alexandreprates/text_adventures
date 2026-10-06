@@ -315,6 +315,13 @@ between a browser tab and an installed app varies by platform, so open an existi
 `/game/:id` link in the app if the saved session is not available. Sessions remain
 subject to the server's normal lifetime. Portrait and landscape are both allowed.
 
+While the installed web app is visible, it requests a screen wake lock to prevent
+automatic screen sleep. It releases the lock in the background and requests it
+again when you return. This requires HTTPS (or localhost) and browser support for
+the Screen Wake Lock API. Battery-saving settings or system policies may deny or
+release the lock; gameplay remains available. Regular browser tabs retain their
+normal screen-sleep behavior.
+
 Gameplay requires a connection to the server. After one online visit, the service
 worker can display a lightweight reconnect page when an app navigation fails
 offline. **Try again** reloads the same game URL. API responses, actions, and game

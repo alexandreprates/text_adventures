@@ -1381,6 +1381,56 @@ async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
   });
 }
 
+for (const mode of ["browser", "standalone", "ios"] as const) {
+  test(`manages screen sleep in ${mode} mode`, async ({ page }) => {
+    await page.addInitScript((displayMode) => {
+      const events: string[] = [];
+      Object.assign(window, { __wakeLockEvents: events });
+      const matchMedia = window.matchMedia.bind(window);
+      window.matchMedia = (query) => {
+        const result = matchMedia(query);
+        if (query === "(display-mode: standalone)") {
+          Object.defineProperty(result, "matches", { value: displayMode === "standalone" });
+        }
+        return result;
+      };
+      Object.defineProperty(navigator, "standalone", { value: displayMode === "ios" });
+      Object.defineProperty(navigator, "wakeLock", { value: {
+        request: async (type: string) => {
+          events.push(`request:${type}`);
+          const lock = Object.assign(new EventTarget(), {
+            released: false,
+            release: async () => {
+              events.push("release");
+              lock.released = true;
+              lock.dispatchEvent(new Event("release"));
+            },
+          });
+          return lock;
+        },
+      } });
+    }, mode);
+    await mockGame(page, townPayload);
+    await page.goto("/");
+    await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
+    const events = () => page.evaluate(() =>
+      (window as Window & { __wakeLockEvents?: string[] }).__wakeLockEvents,
+    );
+    await expect.poll(events).toEqual(mode === "browser" ? [] : ["request:screen"]);
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await expect.poll(events).toEqual(mode === "browser" ? [] : ["request:screen", "release"]);
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await expect.poll(events).toEqual(mode === "browser" ? [] : ["request:screen", "release", "request:screen"]);
+    await expect(page.getByLabel("Game title")).toBeVisible();
+  });
+}
+
 test("provides installable web app metadata and valid home-screen icons", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
