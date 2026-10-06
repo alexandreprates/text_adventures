@@ -1641,7 +1641,7 @@ test("persists the selected interface mode", async ({ page }) => {
   await expect(page.locator("#command-input")).toBeVisible();
 });
 
-test("keeps walking and camera motion continuous across unrelated state updates", async ({ page }) => {
+test("keeps the player centered and camera motion continuous across unrelated state updates", async ({ page }) => {
   const dungeon = isometricRuinsPayload.state.dungeon as {
     viewport: { entities: Array<{ type: string; x: number; y: number }> };
   };
@@ -1667,6 +1667,8 @@ test("keeps walking and camera motion continuous across unrelated state updates"
   await page.evaluate(() => {
     const positions: number[] = [];
     (window as unknown as { __floorPositions: number[] }).__floorPositions = positions;
+    const playerCenters: Array<{ x: number; y: number }> = [];
+    (window as unknown as { __playerCenters: typeof playerCenters }).__playerCenters = playerCenters;
     let firstFloor = true;
     const originalClear = CanvasRenderingContext2D.prototype.clearRect;
     CanvasRenderingContext2D.prototype.clearRect = function (...args) {
@@ -1678,6 +1680,12 @@ test("keeps walking and camera motion continuous across unrelated state updates"
       if (firstFloor && args[0] instanceof HTMLImageElement && args[0].src.endsWith("/tiles/floor.png")) {
         positions.push(args[1] as number);
         firstFloor = false;
+      }
+      if (args[0] instanceof HTMLImageElement && args[0].src.endsWith("/actors/adventurer-walk.png")) {
+        playerCenters.push({
+          x: (args[5] as number) + (args[7] as number) / 2,
+          y: (args[6] as number) + (args[8] as number) / 2,
+        });
       }
       return Reflect.apply(originalDraw, this, args);
     } as typeof originalDraw;
@@ -1704,6 +1712,40 @@ test("keeps walking and camera motion continuous across unrelated state updates"
   expect(positions[0] - positions.at(-1)!, JSON.stringify(positions)).toBe(32);
   const steps = positions.slice(1).map((position, index) => positions[index] - position);
   expect(steps.every((step) => step >= 0 && step <= 3)).toBe(true);
+  const centers = await page.evaluate(
+    () => (window as unknown as { __playerCenters: Array<{ x: number; y: number }> }).__playerCenters,
+  );
+  const center = await page.getByLabel("Dungeon map", { exact: true }).evaluate((canvas) => ({
+    x: Number((canvas as HTMLElement).dataset.logicalWidth) / 2,
+    y: Number((canvas as HTMLElement).dataset.logicalHeight) / 2,
+  }));
+  expect(centers.length).toBeGreaterThan(15);
+  expect(centers.every((position) => position.x === center.x && position.y === center.y)).toBe(true);
+});
+
+test("keeps the centered player above combat controls on mobile screens", async ({ page }) => {
+  await mockGame(page, adventurerCombatPayload);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-area-top", "47px");
+    document.documentElement.style.setProperty("--safe-area-bottom", "34px");
+  });
+  for (const [width, height] of [[320, 568], [360, 740], [390, 844], [430, 932]]) {
+    await page.setViewportSize({ width, height });
+    await expect.poll(async () => {
+      const geometry = await page.getByLabel("Dungeon map", { exact: true }).evaluate((canvas) => {
+        const bounds = canvas.getBoundingClientRect();
+        const logicalHeight = Number((canvas as HTMLElement).dataset.logicalHeight);
+        return { playerBottom: bounds.y + bounds.height / 2 + (96 / 2) * bounds.height / logicalHeight };
+      });
+      const commands = await page.locator(".commands-panel").boundingBox();
+      return geometry.playerBottom < commands!.y && commands!.y + commands!.height < height - 34;
+    }).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
 });
 
 test("renders auto-explore controls in ruins", async ({ page }) => {

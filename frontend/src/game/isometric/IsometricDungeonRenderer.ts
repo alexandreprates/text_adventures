@@ -61,6 +61,9 @@ const ACTOR_SOURCE_HEIGHT = 128;
 const ACTOR_DRAW_WIDTH = 72;
 const ACTOR_DRAW_HEIGHT = 96;
 const ACTOR_SCALE = ACTOR_DRAW_HEIGHT / ACTOR_SOURCE_HEIGHT;
+// Center the player's sprite frame, accounting for its tile foot anchor.
+const CAMERA_ANCHOR_Y = LOGICAL_HEIGHT / 2 +
+  directionalClassAnimationLayout.baseline * ACTOR_SCALE - TILE_HEIGHT - ACTOR_DRAW_HEIGHT / 2;
 
 type RendererOptions = {
   playerClass?: string;
@@ -937,7 +940,7 @@ export class IsometricDungeonRenderer {
     const cameraPoint = projectPosition(camera);
     return {
       x: LOGICAL_WIDTH / 2 + world.x - cameraPoint.x,
-      y: LOGICAL_HEIGHT / 2 + 42 + world.y - cameraPoint.y,
+      y: CAMERA_ANCHOR_Y + world.y - cameraPoint.y,
     };
   }
 
