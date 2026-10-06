@@ -41,6 +41,51 @@ function tavernState(overrides: Partial<GameState> = {}): GameState {
 }
 
 describe("autoExploreResupplyTradeCommand", () => {
+  const scroll = {
+    name: "town portal scroll", display_name: "Town Portal Scroll", type: "scroll",
+    effect: "town_portal", buy_price: 5, trade_enabled: true, quantity: 1,
+  };
+
+  function portalTavern(gold: number) {
+    const state = tavernState();
+    state.player.gold = gold;
+    state.town_portal = { level: 4, player_position: { x: 4, y: 2 } };
+    state.trade!.merchant_items.push(scroll);
+    return state;
+  }
+
+  it("replaces the consumed scroll together with healing supplies", () => {
+    const state = portalTavern(7);
+    state.trade!.player_items = [{ name: "cracked fang", type: "junk", quantity: 3, sell_price: 1, trade_enabled: true }];
+    expect(autoExploreResupplyTradeCommand(state)).toBe(
+      "trade sell=cracked fang:3;buy=potion of heal:5|town portal scroll:1",
+    );
+  });
+
+  it("prioritizes potions when a replacement scroll is unaffordable", () => {
+    expect(autoExploreResupplyTradeCommand(portalTavern(9))).toBe("trade buy=potion of heal:5");
+  });
+
+  it("does not accumulate scrolls when a spare is already carried", () => {
+    const state = portalTavern(100);
+    state.player.inventory = [scroll];
+    expect(autoExploreResupplyTradeCommand(state)).toBe("trade buy=potion of heal:5");
+  });
+
+  it("buys only a replacement when potions are already stocked", () => {
+    const state = portalTavern(5);
+    state.player.inventory = [{ name: "potion of heal", type: "potion", quantity: 5 }];
+    expect(autoExploreResupplyTradeCommand(state)).toBe("trade buy=town portal scroll:1");
+    state.player.inventory.push(scroll);
+    expect(autoExploreResupplyTradeCommand(state)).toBeNull();
+  });
+
+  it("skips unavailable scroll stock", () => {
+    const state = portalTavern(10);
+    state.trade!.merchant_items = state.trade!.merchant_items.map((item) => ({ ...item, trade_enabled: item.effect !== "town_portal" }));
+    expect(autoExploreResupplyTradeCommand(state)).toBe("trade buy=potion of heal:5");
+  });
+
   it("sells all junk and buys five heal potions when the gold allows it", () => {
     const state = tavernState({
       player: {

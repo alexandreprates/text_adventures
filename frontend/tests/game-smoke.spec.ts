@@ -249,6 +249,7 @@ test("uses a town scroll from inventory and exposes the preserved return trip", 
     expect.objectContaining({ action: "use", item: "town portal scroll" }),
     expect.objectContaining({ action: "travel", destination: "ruins" }),
   ]);
+  await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
   await page.evaluate((state) => {
     (window as unknown as MusicTestWindow).__pushGamePatch({ ...state, town_portal: null }, []);
   }, isometricRuinsPayload.state);
@@ -1338,7 +1339,27 @@ async function drawnImageSources(page: Page): Promise<string[]> {
   );
 }
 
-async function mockAutoResupplyGame(page: Page) {
+async function mockAutoResupplyGame(page: Page, options: { portal?: boolean; affordable?: boolean; combat?: boolean } = {}) {
+  const scroll = { name: "town portal scroll", type: "scroll", effect: "town_portal", quantity: 1, buy_price: 5, trade_enabled: true };
+  const replacement = options.portal && options.affordable !== false ? [scroll] : [];
+  const portal = options.portal ? { level: 1, player_position: { x: 1, y: 1 } } : null;
+  const player = { ...resupplyPlayer, gold: replacement.length ? 7 : 2 };
+  const suppliedPlayer = { ...resupplyStates.ruinsResupplied.player, inventory: [...resupplyStates.ruinsResupplied.player.inventory, ...replacement] };
+  const initial = {
+    ...resupplyRuinsPayload,
+    state: {
+      ...resupplyRuinsPayload.state,
+      player: { ...player, inventory: [...player.inventory, ...(options.portal ? [scroll] : [])] },
+      battle: options.combat ? combatPayload.state.battle : { active: false, enemy: null },
+    },
+  };
+  const stock = [...resupplyStates.tavern.trade.merchant_items, ...(options.portal ? [scroll] : [])];
+  const states = {
+    town: { ...resupplyStates.town, player, town_portal: portal },
+    tavern: { ...resupplyStates.tavern, player, town_portal: portal, trade: { ...resupplyStates.tavern.trade, merchant_items: stock } },
+    tavernResupplied: { ...resupplyStates.tavernResupplied, player: suppliedPlayer, town_portal: portal, trade: { ...resupplyStates.tavernResupplied.trade, merchant_items: stock } },
+    ruinsResupplied: { ...resupplyStates.ruinsResupplied, player: suppliedPlayer, town_portal: null },
+  };
   await page.addInitScript(({ initial, states }) => {
     localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     const sentActions = [] as Array<Record<string, unknown>>;
@@ -1352,7 +1373,7 @@ async function mockAutoResupplyGame(page: Page) {
       static CLOSED = 3;
 
       readyState = FakeWebSocket.CONNECTING;
-      currentState = initial.state;
+      currentState: Record<string, unknown> = initial.state;
 
       constructor() {
         super();
@@ -1381,7 +1402,11 @@ async function mockAutoResupplyGame(page: Page) {
           return;
         }
 
-        if (action.action === "move" && action.direction === "left") {
+        if (action.action === "attack") {
+          this.currentState = { ...this.currentState, battle: { active: false, enemy: null } };
+        } else if (action.action === "use" && action.item === "town portal scroll") {
+          this.currentState = states.town;
+        } else if (action.action === "move" && action.direction === "left") {
           this.currentState = states.town;
         } else if (action.action === "travel" && action.destination === "tavern") {
           this.currentState = states.tavern;
@@ -1424,20 +1449,20 @@ async function mockAutoResupplyGame(page: Page) {
     }
 
     window.WebSocket = FakeWebSocket as unknown as typeof WebSocket;
-  }, { initial: resupplyRuinsPayload, states: resupplyStates });
+  }, { initial, states });
 
   await page.route("**/api/games", async (route) => {
     await route.fulfill({
       status: 201,
       contentType: "application/json",
-      body: JSON.stringify(resupplyRuinsPayload),
+      body: JSON.stringify(initial),
     });
   });
   await page.route("**/api/games/demo-game", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify(resupplyRuinsPayload),
+      body: JSON.stringify(initial),
     });
   });
 }
@@ -3048,6 +3073,61 @@ test("auto-explore resupplies at the tavern before returning to ruins", async ({
 
   await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
   await expect(page.getByText("Auto: exploring")).toBeVisible();
+});
+
+for (const affordable of [true, false]) {
+  test(`auto-explore uses its portal and ${affordable ? "replaces the scroll" : "returns without an unaffordable replacement"}`, async ({ page }) => {
+    await mockAutoResupplyGame(page, { portal: true, affordable });
+    await page.addInitScript(() => {
+      localStorage.setItem("text_adventures.auto_explore.demo-game", JSON.stringify({
+        level: 1, cells: [["8,8", "open"]], visited: ["8,8"], failedMoves: ["8,8:up"],
+      }));
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Explore" }).click();
+    const actions = () => page.evaluate(() =>
+      (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions.filter((action) => action.type === "action").slice(0, 4),
+    );
+    await expect.poll(async () => (await actions()).length).toBe(4);
+    expect(await actions()).toEqual([
+      { type: "action", action: "use", item: "town portal scroll" },
+      { type: "action", action: "travel", destination: "tavern" },
+      { type: "action", action: "trade", buy: [
+        { item: "potion of heal", quantity: 5 },
+        ...(affordable ? [{ item: "town portal scroll", quantity: 1 }] : []),
+      ], sell: [{ item: "cracked fang", quantity: 3 }] },
+      { type: "action", action: "travel", destination: "ruins" },
+    ]);
+    await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+    await expect(page.getByText("Auto: exploring")).toBeVisible();
+    const memory = await page.evaluate(() => JSON.parse(localStorage.getItem("text_adventures.auto_explore.demo-game")!));
+    expect(memory.visited).toContain("8,8");
+    expect(memory.failedMoves).toContain("8,8:up");
+    expect(memory.cells).toContainEqual(["8,8", "open"]);
+  });
+}
+
+test("auto-explore finishes combat before using a scroll to resupply", async ({ page }) => {
+  await mockAutoResupplyGame(page, { portal: true, combat: true });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Auto", exact: true }).click();
+  await expect.poll(() => page.evaluate(() =>
+    (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions.slice(0, 2),
+  )).toEqual([
+    { type: "action", action: "attack" },
+    { type: "action", action: "use", item: "town portal scroll" },
+  ]);
+});
+
+test("the explicit town goal uses a scroll and stops on arrival", async ({ page }) => {
+  await mockAutoResupplyGame(page, { portal: true });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Go town" }).click();
+  await expect(page.getByRole("button", { name: /^Return to dungeon/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Auto", exact: true })).toBeHidden();
+  expect(await page.evaluate(() =>
+    (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions,
+  )).toEqual([{ type: "action", action: "use", item: "town portal scroll" }]);
 });
 
 test("keeps mobile ruins feedback and loadout visible during combat", async ({ page }) => {

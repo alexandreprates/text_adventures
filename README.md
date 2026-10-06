@@ -432,9 +432,17 @@ page reloads while in town or its shops and saved-game/server restarts. It belon
 only to that player's game. Normal entrance exits and reloads inside the dungeon
 do not create a free return portal; death/revival clears it.
 
-Using a scroll stops automatic exploration so the player can trade at their own
-pace. Invalid uses (outside the dungeon, in battle, or while dead) do not consume
-the scroll. Normal status-effect turn rules still apply.
+Manually using a scroll stops automatic exploration so the player can trade at
+their own pace. Automatic resupply uses a carried scroll outside combat, or walks
+back when none is available. At the Tavern it sells junk, prioritizes replenishing
+five healing potions, and buys one replacement scroll if needed and affordable.
+It then returns through the existing portal and resumes exploration with its map
+knowledge preserved. An unaffordable replacement does not block the return;
+insufficient healing supplies still stop automatic resupply at the Tavern. An
+explicit **Go town** goal uses a scroll when available and stops on arrival.
+
+Invalid uses (outside the dungeon, in battle, or while dead) do not consume the
+scroll. Normal status-effect turn rules still apply.
 
 ## Dungeon
 

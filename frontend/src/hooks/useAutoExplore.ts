@@ -324,6 +324,7 @@ export function useAutoExplore({
     }
 
     if (autoExploreShouldReturnForHealing()) return startAutoExploreResupply();
+    if (model.goal === "town" && townPortalScroll(currentState)) return nextAutoExploreGoalDecision();
 
     const visibleEnemy = visibleEnemyPosition();
     if (visibleEnemy) {
@@ -367,6 +368,11 @@ export function useAutoExplore({
     const currentState = stateRef.current;
     const model = modelRef.current;
     if (!currentState?.dungeon) return { stopReason: "stopped" };
+
+    const scroll = townPortalScroll(currentState);
+    if (model.goal === "town" && scroll && !currentState.battle?.active) {
+      return { command: `use ${scroll.name}`, status: "Auto: teleporting to town" };
+    }
 
     if (model.goal === "descent" && currentState.dungeon.nearby_loot) {
       return { command: "loot", status: "Auto: looting" };
@@ -645,7 +651,7 @@ export function useAutoExplore({
     const currentGameId = gameIdRef.current;
     const model = modelRef.current;
 
-    if (currentState?.scene !== "ruins") {
+    if (currentState?.scene !== "ruins" && !(currentState?.town_portal && playerAlive(currentState))) {
       forgetAutoExploreMemory(currentGameId);
       clearAutoExploreKnowledge();
       model.memoryGameId = currentGameId;
@@ -659,7 +665,8 @@ export function useAutoExplore({
       model.memoryGameId = currentGameId;
     }
 
-    if (model.knownLevel === currentState.dungeon?.level) return;
+    const level = currentState.dungeon?.level ?? currentState.town_portal?.level;
+    if (model.knownLevel === level) return;
 
     const key = autoExploreMemoryKey(currentGameId);
     if (!key) return;
@@ -671,7 +678,7 @@ export function useAutoExplore({
         visited?: string[];
         failedMoves?: string[];
       } | null;
-      if (!payload || payload.level !== currentState.dungeon?.level) return;
+      if (!payload || payload.level !== level) return;
 
       clearAutoExploreKnowledge();
       model.knownLevel = payload.level ?? null;
@@ -1141,13 +1148,23 @@ export function autoExploreResupplyTradeCommand(state: GameState): string | null
     ? autoExploreHealPotionBuyQuantity(state, healPotion, sellItems)
     : 0;
   const segments: string[] = [];
+  const purchases: string[] = [];
 
   if (sellItems.length) {
     segments.push(`sell=${sellItems.map(autoExploreTradeItemSegment).join("|")}`);
   }
   if (buyQuantity > 0) {
-    segments.push(`buy=${AUTO_EXPLORE_HEAL_POTION_NAME}:${buyQuantity}`);
+    purchases.push(`${AUTO_EXPLORE_HEAL_POTION_NAME}:${buyQuantity}`);
   }
+
+  const scroll = state.trade?.merchant_items.find(
+    (item) => item.effect === "town_portal" && item.trade_enabled !== false,
+  );
+  const remainingGold = autoExploreTradeBudget(state, sellItems) - buyQuantity * itemBuyPrice(healPotion);
+  if (scroll && !townPortalScroll(state) && itemBuyPrice(scroll) > 0 && remainingGold >= itemBuyPrice(scroll)) {
+    purchases.push(`${scroll.name}:1`);
+  }
+  if (purchases.length) segments.push(`buy=${purchases.join("|")}`);
 
   return segments.length ? `trade ${segments.join(";")}` : null;
 }
@@ -1176,16 +1193,28 @@ function autoExploreHealPotionBuyQuantity(
   sellItems: Item[],
 ) {
   const needed = Math.max(0, AUTO_EXPLORE_TARGET_HEAL_POTIONS - healPotionQuantity(state));
-  const price = Number(healPotion.buy_price ?? healPotion.price ?? 0);
+  const price = itemBuyPrice(healPotion);
   if (!needed || price <= 0) return 0;
 
+  return Math.min(needed, Math.floor(autoExploreTradeBudget(state, sellItems) / price));
+}
+
+function autoExploreTradeBudget(state: GameState, sellItems: Item[]) {
   const sellTotal = sellItems.reduce(
     (total, item) => total + Number(item.sell_price || 0) * autoExploreTradeItemQuantity(item),
     0,
   );
-  const availableGold = Number(state.player.gold || 0) + sellTotal;
+  return Number(state.player.gold || 0) + sellTotal;
+}
 
-  return Math.min(needed, Math.floor(availableGold / price));
+function itemBuyPrice(item: Item | null) {
+  return Number(item?.buy_price ?? item?.price ?? 0);
+}
+
+function townPortalScroll(state: GameState) {
+  return state.player.inventory.find(
+    (item) => item.effect === "town_portal" && autoExploreInventoryItemQuantity(item) > 0,
+  );
 }
 
 function autoExploreTradeItemSegment(item: Item) {
