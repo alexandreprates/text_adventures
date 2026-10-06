@@ -1552,6 +1552,71 @@ test("persists the selected interface mode", async ({ page }) => {
   await expect(page.locator("#command-input")).toBeVisible();
 });
 
+test("keeps walking and camera motion continuous across unrelated state updates", async ({ page }) => {
+  const dungeon = isometricRuinsPayload.state.dungeon as {
+    viewport: { entities: Array<{ type: string; x: number; y: number }> };
+  };
+  await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+  await mockGame(page, isometricRuinsPayload, {
+    actionPatch: {
+      dungeon: {
+        ...dungeon,
+        player_position: { x: 3, y: 2 },
+        viewport: {
+          ...dungeon.viewport,
+          entities: dungeon.viewport.entities.map((entity) =>
+            entity.type === "player" ? { ...entity, x: 3 } : entity,
+          ),
+        },
+      },
+    },
+  });
+  await page.goto("/");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
+  await page.evaluate(() => {
+    const positions: number[] = [];
+    (window as unknown as { __floorPositions: number[] }).__floorPositions = positions;
+    let firstFloor = true;
+    const originalClear = CanvasRenderingContext2D.prototype.clearRect;
+    CanvasRenderingContext2D.prototype.clearRect = function (...args) {
+      firstFloor = true;
+      return originalClear.apply(this, args);
+    };
+    const originalDraw = CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
+      if (firstFloor && args[0] instanceof HTMLImageElement && args[0].src.endsWith("/tiles/floor.png")) {
+        positions.push(args[1] as number);
+        firstFloor = false;
+      }
+      return Reflect.apply(originalDraw, this, args);
+    } as typeof originalDraw;
+  });
+  await page.clock.runFor(100);
+  await expect.poll(() => page.evaluate(
+    () => (window as unknown as { __floorPositions: number[] }).__floorPositions.length,
+  )).toBeGreaterThan(0);
+  await page.locator("#command-input").fill("go right");
+  await page.locator("#command-input").press("Enter");
+  await page.clock.runFor(1);
+  await expect(page.getByLabel("Connection online")).toBeVisible();
+  await page.clock.runFor(100);
+  await page.locator("#command-input").fill("look");
+  await page.locator("#command-input").press("Enter");
+  await page.clock.runFor(1);
+  await expect(page.getByLabel("Connection online")).toBeVisible();
+  await page.clock.runFor(240);
+
+  const positions = await page.evaluate(
+    () => (window as unknown as { __floorPositions: number[] }).__floorPositions,
+  );
+  expect(positions.length).toBeGreaterThan(15);
+  expect(positions[0] - positions.at(-1)!, JSON.stringify(positions)).toBe(32);
+  const steps = positions.slice(1).map((position, index) => positions[index] - position);
+  expect(steps.every((step) => step >= 0 && step <= 3)).toBe(true);
+});
+
 test("renders auto-explore controls in ruins", async ({ page }) => {
   await mockGame(page, isometricRuinsPayload);
   await page.goto("/");

@@ -10,6 +10,7 @@ import type {
 } from "../../lib/types";
 import type { AutoExploreControls } from "../../hooks/useAutoExplore";
 import { commandPlaceholder } from "../../lib/viewModels";
+import { autoExploreStepDuration } from "../../lib/autoExploreTiming";
 import { CharacterPanel } from "./CharacterPanel";
 import { CollectionPanel } from "./CollectionPanel";
 import { CommandBar } from "./CommandBar";
@@ -193,6 +194,7 @@ export function GameShell({
             events={events}
             zoom={mapZoom}
             playerDirection={playerDirection}
+            movementDurationMs={autoExplore.enabled ? autoExploreStepDuration(autoExplore.speedMultiplier) : undefined}
             onZoomChange={onMapZoomChange}
             onCommand={onCommand}
           />

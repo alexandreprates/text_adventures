@@ -43,8 +43,6 @@ import {
 } from "./enemyAnimations";
 import {
   depthFor,
-  easeOutCubic,
-  interpolatePosition,
   projectPosition,
   TILE_HEIGHT,
   TILE_WIDTH,
@@ -52,13 +50,11 @@ import {
 } from "./projection";
 import { torchDrawPosition, torchFlamePosition } from "./torchPlacement";
 import { isForegroundWall, isRightWallTorchAnchor } from "./wallTopology";
+import { MANUAL_MOVE_DURATION_MS, PlayerMovement } from "./movement";
 
 const LOGICAL_WIDTH = 752;
 const LOGICAL_HEIGHT = 416;
-const PLAYER_MOVE_MS = 260;
-const CAMERA_MOVE_MS = 440;
 const TRANSIENT_MS = 1_400;
-const DESKTOP_FRAME_INTERVAL_MS = 1_000 / 60;
 const MOBILE_FRAME_INTERVAL_MS = 1_000 / 30;
 const ACTOR_SOURCE_WIDTH = 96;
 const ACTOR_SOURCE_HEIGHT = 128;
@@ -71,6 +67,8 @@ type RendererOptions = {
   playerDirection?: string;
   playerDead?: boolean;
   reducedMotion?: boolean;
+  movementDurationMs?: number;
+  dungeonLevel?: number;
 };
 
 type PositionedEntity = ViewportEntity & Position;
@@ -114,11 +112,7 @@ export class IsometricDungeonRenderer {
   private options: RendererOptions = {};
   private frameRequest: number | null = null;
   private lastFrameTime = 0;
-  private playerFrom: Position | null = null;
-  private playerTo: Position | null = null;
-  private cameraFrom: Position | null = null;
-  private cameraTo: Position | null = null;
-  private movementStartedAt = 0;
+  private readonly movement = new PlayerMovement();
   private combat: CombatState | null = null;
   private vanishedEnemies: TransientEntity[] = [];
   private openedLoot: TransientEntity[] = [];
@@ -149,17 +143,18 @@ export class IsometricDungeonRenderer {
     const now = performance.now();
     const previousPlayer = this.viewport ? playerPosition(this.viewport) : null;
     const nextPlayer = playerPosition(viewport);
+    const levelChanged = this.options.dungeonLevel !== options.dungeonLevel;
 
     this.captureTransientEntities(this.viewport, viewport, now);
     this.viewport = viewport;
     this.options = options;
 
     if (nextPlayer) {
-      this.playerFrom = previousPlayer ?? nextPlayer;
-      this.playerTo = nextPlayer;
-      this.cameraFrom = this.cameraTo ?? previousPlayer ?? nextPlayer;
-      this.cameraTo = nextPlayer;
-      this.movementStartedAt = now;
+      const distance = previousPlayer
+        ? Math.abs(nextPlayer.x - previousPlayer.x) + Math.abs(nextPlayer.y - previousPlayer.y)
+        : 0;
+      this.movement.moveTo(nextPlayer, now, options.movementDurationMs ?? MANUAL_MOVE_DURATION_MS,
+        !previousPlayer || levelChanged || distance > 1 || options.reducedMotion);
     }
 
     this.requestFrame();
@@ -186,10 +181,9 @@ export class IsometricDungeonRenderer {
 
   private draw(time: number): void {
     if (!this.assets || !this.viewport) return;
-    const frameInterval = window.innerWidth <= 700
-      ? MOBILE_FRAME_INTERVAL_MS
-      : DESKTOP_FRAME_INTERVAL_MS;
-    if (this.lastFrameTime && time - this.lastFrameTime < frameInterval) {
+    // Follow display refresh while moving; retain the mobile idle power budget.
+    if (window.innerWidth <= 700 && !this.movement.isMovingAt(time) &&
+        this.lastFrameTime && time - this.lastFrameTime < MOBILE_FRAME_INTERVAL_MS - 0.5) {
       this.requestFrame();
       return;
     }
@@ -924,16 +918,11 @@ export class IsometricDungeonRenderer {
   }
 
   private directionalClassWalkPhase(time: number): number {
-    if (this.options.reducedMotion || !this.playerFrom || !this.playerTo) {
+    if (this.options.reducedMotion || !this.movement.isMovingAt(time)) {
       return directionalClassAnimationLayout.idlePhase;
     }
-    if (this.playerFrom.x === this.playerTo.x && this.playerFrom.y === this.playerTo.y) {
-      return directionalClassAnimationLayout.idlePhase;
-    }
-
-    const progress = (time - this.movementStartedAt) / PLAYER_MOVE_MS;
-    if (progress < 0 || progress >= 1) return directionalClassAnimationLayout.idlePhase;
-    return animationPhaseAt(progress, directionalClassAnimationLayout.phaseCount);
+    // Return through the neutral pose between alternating foot contacts.
+    return [0, 1, 2, 1][animationPhaseAt(this.movement.progressAt(time), 4)];
   }
 
   private combatFrame(actor: "player" | "enemy", time: number): number {
@@ -953,17 +942,11 @@ export class IsometricDungeonRenderer {
   }
 
   private animatedPlayerPosition(time: number): Position | null {
-    if (!this.playerFrom || !this.playerTo) return this.playerTo;
-    if (this.options.reducedMotion) return this.playerTo;
-    const progress = easeOutCubic((time - this.movementStartedAt) / PLAYER_MOVE_MS);
-    return interpolatePosition(this.playerFrom, this.playerTo, progress);
+    return this.movement.positionAt(time);
   }
 
   private cameraPosition(time: number): Position {
-    const target = this.cameraTo ?? this.playerTo ?? { x: 0, y: 0 };
-    if (!this.cameraFrom || this.options.reducedMotion) return target;
-    const progress = easeOutCubic((time - this.movementStartedAt) / CAMERA_MOVE_MS);
-    return interpolatePosition(this.cameraFrom, target, progress);
+    return this.movement.positionAt(time) ?? { x: 0, y: 0 };
   }
 
   private shouldAnimate(time: number): boolean {

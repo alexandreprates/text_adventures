@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AutoExploreGoal, ConnectionStatus, GameState, Item, Position, Spell } from "../lib/types";
 import { samePosition } from "../lib/viewModels";
+import { autoExploreStepDelay, autoExploreStepDuration } from "../lib/autoExploreTiming";
 
 type KnownCellType = "open" | "wall" | "transition";
 export type AutoExploreStopReason =
@@ -36,6 +37,7 @@ type AutoExploreModel = {
   speedMultiplier: number;
   statusText: string;
   actionInFlight: boolean;
+  lastStepStartedAt: number | null;
 };
 
 type AutoExploreView = {
@@ -71,7 +73,6 @@ type Decision =
   | { command?: never; status?: never; stopReason: AutoExploreStopReason };
 
 const AUTO_EXPLORE_MEMORY_KEY_PREFIX = "text_adventures.auto_explore.";
-const AUTO_EXPLORE_DELAY_MS = 520;
 const AUTO_EXPLORE_SPEEDS = [1, 2, 3];
 const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
 const AUTO_EXPLORE_REPEAT_LIMIT = 8;
@@ -116,6 +117,7 @@ export function useAutoExplore({
     speedMultiplier: 1,
     statusText: "Auto: stopped",
     actionInFlight: false,
+    lastStepStartedAt: null,
   });
   const [view, setView] = useState<AutoExploreView>({
     enabled: false,
@@ -166,6 +168,7 @@ export function useAutoExplore({
     model.pendingSince = null;
     model.repeatCount = 0;
     model.resupplying = false;
+    model.lastStepStartedAt = null;
     restoreAutoExploreMemory();
     updateAutoExploreKnowledge();
     model.enabled = true;
@@ -250,7 +253,7 @@ export function useAutoExplore({
 
     timerRef.current = window.setTimeout(() => {
       void runAutoExploreStep();
-    }, autoExploreDelay());
+    }, autoExploreStepDelay(model.speedMultiplier, model.lastStepStartedAt, performance.now()));
   }
 
   async function runAutoExploreStep() {
@@ -269,6 +272,7 @@ export function useAutoExplore({
     model.lastPositionKey = positionKey(stateRef.current?.dungeon?.player_position);
     model.pendingSince = Date.now();
     model.actionInFlight = true;
+    model.lastStepStartedAt = performance.now();
     publish();
 
     try {
@@ -296,7 +300,7 @@ export function useAutoExplore({
   }
 
   function autoExploreDelay() {
-    return Math.round(AUTO_EXPLORE_DELAY_MS / modelRef.current.speedMultiplier);
+    return autoExploreStepDuration(modelRef.current.speedMultiplier);
   }
 
   function nextAutoExploreDecision(): Decision {

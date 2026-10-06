@@ -15,6 +15,7 @@ type MapPanelProps = {
   events: GameEvent[];
   zoom: number;
   playerDirection: string;
+  movementDurationMs?: number;
   onZoomChange: (zoom: number) => void;
   onCommand: (command: string) => void;
 };
@@ -32,6 +33,7 @@ export function MapPanel({
   events,
   zoom,
   playerDirection,
+  movementDurationMs,
   onZoomChange,
   onCommand,
 }: MapPanelProps) {
@@ -83,9 +85,11 @@ export function MapPanel({
       playerDirection,
       playerDead: playerDefeated(state),
       reducedMotion,
+      movementDurationMs,
+      dungeonLevel: dungeon?.level,
     });
     fitCanvas(canvasRef.current, stageRef.current, zoom);
-  }, [playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
+  }, [dungeon?.level, movementDurationMs, playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
 
   useEffect(() => {
     function handleResize() {
