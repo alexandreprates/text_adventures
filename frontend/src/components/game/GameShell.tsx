@@ -18,6 +18,7 @@ import { CommandPanel } from "./CommandPanel";
 import { MapPanel } from "./MapPanel";
 import { MessageLog } from "./MessageLog";
 import { TradeOverlay } from "./TradeOverlay";
+import { GameTools } from "./GameTools";
 
 type InterfaceMode = "actions" | "text";
 
@@ -147,6 +148,7 @@ export function GameShell({
             <span>Mode</span>
             <strong>{actionsMode ? "Actions" : "Text"}</strong>
           </button>
+          <GameTools scene={state?.scene} />
         </header>
 
         <main

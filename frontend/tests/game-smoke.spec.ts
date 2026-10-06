@@ -14,6 +14,90 @@ type MockGamePayload = {
   state: Record<string, unknown>;
 };
 
+type MusicTestWindow = Window & {
+  __musicElements: HTMLAudioElement[];
+  __musicGains: GainNode[];
+  __musicContext: AudioContext;
+  __pushGamePatch: (patch: Record<string, unknown>, events: []) => void;
+};
+
+test("plays the selected soundtrack, crossfades scenes, and remembers mute", async ({ page }) => {
+  await mockGame(page, townPayload, { enableMusic: true });
+  await page.addInitScript(() => {
+    const observed = window as unknown as MusicTestWindow;
+    observed.__musicElements = [];
+    observed.__musicGains = [];
+    window.Audio = class extends Audio {
+      constructor(src?: string) { super(src); observed.__musicElements.push(this); }
+    };
+    window.AudioContext = class extends AudioContext {
+      constructor() { super(); observed.__musicContext = this; }
+      createGain() {
+        const gain = super.createGain();
+        observed.__musicGains.push(gain);
+        return gain;
+      }
+    };
+  });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Town", exact: true })).toBeAttached();
+  expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements.length)).toBe(0);
+  await page.getByRole("button", { name: "Play music", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Mute music", exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const w = window as unknown as MusicTestWindow;
+    return w.__musicElements[0]?.currentTime > 0 && w.__musicGains[0]?.gain.value === 0.25 && w.__musicElements[1]?.paused;
+  })).toBe(true);
+  expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements.map((audio) => audio.loop))).toEqual([true, true]);
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ scene: "ruins" }, []));
+  await expect.poll(() => page.evaluate(() => {
+    const w = window as unknown as MusicTestWindow;
+    return w.__musicElements[0].paused && !w.__musicElements[1].paused && w.__musicGains[1].gain.value === 0.25;
+  })).toBe(true);
+  const time = await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements[1].currentTime);
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ battle: { active: true, enemy: null } }, []));
+  expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements[1].currentTime)).toBeGreaterThanOrEqual(time);
+  await page.getByRole("button", { name: "Mute music", exact: true }).click();
+  expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements.every((audio) => audio.paused))).toBe(true);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Enable music", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Game credits", exact: true }).click();
+  expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements.length)).toBe(0);
+});
+
+test("shows accessible game and music credits without crowding the mobile header", async ({ page }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+  for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1024, height: 768 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size);
+    const credits = page.getByRole("button", { name: "Game credits", exact: true });
+    await credits.click();
+    const dialog = page.getByRole("dialog", { name: "Game credits", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Alexandre Prates", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("OpenAI Codex", { exact: true })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "Village Consort" })).toHaveAttribute("href", /USUAN1700007/);
+    await expect(dialog.getByRole("link", { name: "Darkest Child var A" })).toHaveAttribute("href", /USUAN1100784/);
+    await expect(dialog.getByRole("link", { name: /Creative Commons/ })).toHaveAttribute("href", "https://creativecommons.org/licenses/by/4.0/");
+    const bounds = await dialog.boundingBox();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(size.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(credits).toBeFocused();
+    const overlaps = await page.locator(".platform-top-hud").evaluate((header) => {
+      const rects = Array.from(header.children).filter((child) => !child.classList.contains("sr-only")).map((child) => child.getBoundingClientRect());
+      return rects.some((a, i) => rects.slice(i + 1).some((b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top));
+    });
+    expect(overlaps).toBe(false);
+  }
+  await page.getByRole("button", { name: "Game credits", exact: true }).click();
+  await page.getByRole("button", { name: "Close credits", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Game credits", exact: true })).not.toBeVisible();
+});
+
 const townPayload: MockGamePayload = {
   game_id: "demo-game",
   events: [{ type: "message", text: "Welcome to Text Adventures" }],
@@ -953,6 +1037,7 @@ async function mockGame(
   page: Page,
   payload: MockGamePayload,
   options: {
+    enableMusic?: boolean;
     showInstallPrompt?: boolean;
     socketStatus?: MockSocketStatus;
     heartbeatIntervalMs?: number;
@@ -973,7 +1058,9 @@ async function mockGame(
     actionEvents,
     actionPatch,
     showInstallPrompt,
+    enableMusic,
   }) => {
+    if (!enableMusic) localStorage.setItem("text_adventures.music_enabled", "false");
     if (!showInstallPrompt) {
       localStorage.setItem("text_adventures.install_prompt_dismissed_until", String(Date.now() + 7 * 24 * 60 * 60 * 1000));
     }
@@ -1116,6 +1203,7 @@ async function mockGame(
     actionEvents: options.actionEvents ?? null,
     actionPatch: options.actionPatch ?? null,
     showInstallPrompt: options.showInstallPrompt ?? false,
+    enableMusic: options.enableMusic ?? false,
   });
 
   await page.route("**/api/games", async (route) => {
