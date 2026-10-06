@@ -39,6 +39,7 @@ export type Item = {
   recovery?: number;
   quantity?: number;
   spell?: string;
+  effect?: string;
   weapon_class?: string;
   armor_class?: string;
   min_level?: number;
@@ -162,6 +163,7 @@ export type GameState = {
   prompt: string;
   player: PlayerState;
   dungeon?: DungeonState | null;
+  town_portal?: { level: number; player_position: Position } | null;
   battle?: BattleState;
   trade?: TradeState | null;
   pending?: PendingState;

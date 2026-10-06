@@ -36,7 +36,7 @@ export const locationArts: Record<string, { src: string; alt: string }> = {
 
 export const locationPanels: Record<string, string[]> = {
   town: ["Town of Nee'Peh", "", "Tavern", "Aluriel's Priest", "Blacksmith", "Armorsmith", "Ruins"],
-  tavern: ["Tavern", "", "Rest in a rented room", "Buy or sell potions", "Return to town"],
+  tavern: ["Tavern", "", "Rest in a rented room", "Buy or sell potions and scrolls", "Return to town"],
   priest: ["Aluriel's Priest", "", "Recover health", "Cure poison", "Buy or sell tomes", "Return to town"],
   blacksmith: ["Blacksmith", "", "Show weapons", "Buy weapons", "Sell weapons", "Return to town"],
   armorsmith: ["Armorsmith", "", "Show armors", "Buy armors", "Sell armors", "Return to town"],
@@ -89,7 +89,7 @@ export function inventoryItemLabel(item: Item): string {
 
 export function inventoryCommandValue(item: Item): string {
   if (item.type === "weapon" || item.type === "armor") return `equip ${item.name}`;
-  if (item.type === "tome" || item.type === "potion") return `use ${item.name}`;
+  if (item.type === "tome" || item.type === "potion" || item.type === "scroll") return `use ${item.name}`;
   if (item.type === "junk") return `drop ${item.name}`;
 
   return item.name;

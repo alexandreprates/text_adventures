@@ -25,6 +25,10 @@ module TextAdventures
         false
       end
 
+      def scroll?
+        false
+      end
+
       def junk?
         false
       end
@@ -139,6 +143,7 @@ module TextAdventures
     def self.starter_inventory
       Inventory.new.tap do |inventory|
         inventory.add(ContentCatalog.item("potion_of_heal"), quantity: STARTER_POTION_QUANTITY)
+        inventory.add(ContentCatalog.item("town_portal_scroll"))
       end
     end
 

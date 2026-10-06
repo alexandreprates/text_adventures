@@ -12,6 +12,7 @@ module TextAdventures
           prompt: prompt,
           player: player_state,
           dungeon: dungeon_state,
+          town_portal: town_portal_state,
           battle: battle_state,
           trade: trade_state,
           pending: pending_state
@@ -100,6 +101,7 @@ module TextAdventures
           recovery: item.recovery,
           cures: item.respond_to?(:cures) ? item.cures.map(&:to_s) : nil,
           spell: item.spell,
+          effect: optional_string(item, :effect),
           weapon_class: item.weapon_class&.to_s,
           armor_class: item.armor_class&.to_s,
           min_level: item.respond_to?(:min_level) ? item.min_level : nil
@@ -176,6 +178,15 @@ module TextAdventures
         {
           active: true,
           enemy: creature_state(battle.creature)
+        }
+      end
+
+      def town_portal_state
+        return nil unless game.town_portal_active?
+
+        {
+          level: game.dungeon.level,
+          player_position: position_state(game.dungeon.current_global_position)
         }
       end
 

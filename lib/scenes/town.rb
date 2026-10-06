@@ -15,6 +15,10 @@ module TextAdventures
       end
 
       def self.route(game, target)
+        if Item.normalize_name(target) == "ruins" && game.town_portal_active?
+          return game.return_through_town_portal
+        end
+
         destination_factory = DESTINATIONS[Item.normalize_name(target)]
         return invalid_destination(target) unless destination_factory
 
@@ -41,7 +45,7 @@ module TextAdventures
           "You are now on the town of Nee'Peh",
           "",
           "Here you can:",
-          " go Tavern - small talk, some Ale and Potions",
+          " go Tavern - small talk, some Ale, Potions and Portal Scrolls",
           " go Aluriel's Priest - cure diseases, recover health, buy and sell tomes",
           " go Blacksmith - buy or sell weapons",
           " go Armorsmith - buy or sell armors",
@@ -60,7 +64,7 @@ module TextAdventures
           " go Aluriel's Priest",
           " go Blacksmith",
           " go Armorsmith",
-          " go Ruins",
+          " go Ruins - enter the ruins, or use your scroll's return portal",
           "",
           "Global commands:",
           " inventory - show carried and equipped items",

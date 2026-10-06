@@ -33,6 +33,7 @@ module TextAdventures
       current_scene: Scenes::Town.new,
       pending_confirmation: nil,
       dungeon: nil,
+      town_portal_active: false,
       battle: nil,
       pending_loot: nil,
       active_enemy_position: nil,
@@ -43,6 +44,7 @@ module TextAdventures
       @current_scene = current_scene
       @pending_confirmation = pending_confirmation
       @dungeon = dungeon
+      @town_portal_active = town_portal_active == true
       @battle = battle
       @pending_loot = pending_loot
       @active_enemy_position = active_enemy_position
@@ -58,6 +60,26 @@ module TextAdventures
       @current_scene = scene
     end
 
+    def town_portal_active?
+      @town_portal_active && !dungeon.nil? && current_scene_name != :ruins && player.alive?
+    end
+
+    def return_through_town_portal
+      return Response.new("There is no return portal available.") unless town_portal_active?
+
+      @town_portal_active = false
+      @pending_confirmation = nil
+      scene = Scenes::Ruins.new(dungeon: dungeon)
+      transition_to(scene)
+      scene.enter(self)
+      Response.new(
+        "You return through the portal to Ruins Level #{dungeon.level}, where you left off.",
+        "The return portal closes behind you.",
+        "",
+        scene.describe
+      )
+    end
+
     def return_to_town_on_page_load
       return false unless current_scene_name == :ruins
 
@@ -65,6 +87,7 @@ module TextAdventures
       @pending_loot = nil
       @active_enemy_position = nil
       @pending_confirmation = nil
+      @town_portal_active = false
       transition_to(Scenes::Town.new)
       true
     end
@@ -77,6 +100,7 @@ module TextAdventures
       player.heal(player.health.max)
       player.recover_mana(player.mana.max)
       player.clear_statuses(*player.status_effects)
+      @town_portal_active = false
       @battle = nil
       @pending_loot = nil
       @active_enemy_position = nil
@@ -195,8 +219,29 @@ module TextAdventures
 
       return use_potion(item) if item.potion?
       return use_tome(item) if item.tome?
+      return use_town_portal_scroll(item) if item.scroll? && item.effect == :town_portal
 
       Response.new("#{item.display_name} cannot be used.")
+    end
+
+    def use_town_portal_scroll(item)
+      unless current_scene_name == :ruins && dungeon
+        return Response.new("Town Portal Scroll can only be used inside the Ruins.")
+      end
+      return Response.new("You cannot use Town Portal Scroll during battle.") if battle
+
+      player.inventory.remove(item.command_name)
+      @town_portal_active = true
+      @pending_confirmation = nil
+      @active_enemy_position = nil
+      transition_to(Scenes::Town.new)
+      Response.new(
+        "Used #{item.display_name}.",
+        "[1x #{item.display_name} removed from inventory]",
+        "You teleport to the town of Nee'Peh.",
+        "Your return portal leads to Ruins Level #{dungeon.level}, exactly where you left off.",
+        "Visit the merchants, then use go ruins to return. No second scroll is needed."
+      )
     end
 
     def use_potion(item)

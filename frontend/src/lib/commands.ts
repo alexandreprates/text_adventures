@@ -80,7 +80,9 @@ export function manualAutoExploreGoal(
   return null;
 }
 
-export function autoCompatibleManualCommand(command: string): boolean {
+export function autoCompatibleManualCommand(command: string, state?: GameState | null): boolean {
+  const usedItem = command.trim().toLowerCase().replace(/\s+/g, " ").match(/^use (.+)$/)?.[1];
+  if (state?.player.inventory.some((item) => item.name === usedItem && item.effect === "town_portal")) return false;
   return /^(equip|use)\b/i.test(command.trim());
 }
 
@@ -134,7 +136,7 @@ export function quickCommandsFor(state: GameState | null): QuickCommand[] {
 
   const travel = [
     { label: "Town", command: "go town" },
-    { label: "Ruins", command: "go ruins", kind: "primary" as const },
+    { label: state.town_portal ? "Return to dungeon" : "Ruins", command: "go ruins", kind: "primary" as const },
     { label: "Tavern", command: "go tavern" },
     { label: "Temple", command: "go priest" },
     { label: "Blacksmith", command: "go blacksmith" },
@@ -226,6 +228,7 @@ function suggestedItemCommands(items: Item[], state: GameState): QuickCommand[] 
 
   return items
     .filter((item) => !equippedNames.includes(item.name))
+    .filter((item) => item.effect !== "town_portal")
     .slice(0, 2)
     .map((item) => {
       if (item.type === "weapon" || item.type === "armor") {

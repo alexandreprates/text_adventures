@@ -243,7 +243,7 @@ RSpec.describe "Frontend assets" do
     expect(app).to include('actionFromCommand(normalized)')
     expect(app).to include('isShopCommand(normalized)')
     expect(app).to include('manualAutoExploreGoal(normalized')
-    expect(app).to include('autoCompatibleManualCommand(normalized)')
+    expect(app).to include('autoCompatibleManualCommand(normalized, session.state)')
     expect(app).to include('setPlayerDirection(nextDirection)')
     expect(shell).to include('<CharacterPanel state={state} />')
     expect(shell).to include('<MapPanel')

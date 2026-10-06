@@ -526,6 +526,7 @@ RSpec.describe TextAdventures::Character do
       expect(character.inventory_report).to eq <<~TEXT.chomp
         Currently you have:
          5x Potion of Heal (Recovery 20 Health)
+         1x Town Portal Scroll (Visit town and return; outside combat)
         Equipped:
          weapon: Sword (Atk: 10)
          armor: Leather Armor (Def: 12)
@@ -544,6 +545,7 @@ RSpec.describe TextAdventures::Character do
         Currently you have:
          7x Potion of Heal (Recovery 20 Health)
          1x Sword (Atk: 10)
+         1x Town Portal Scroll (Visit town and return; outside combat)
         Equipped:
          weapon: Sword (Atk: 10)
          armor: Leather Armor (Def: 20)

@@ -220,6 +220,11 @@ items:
     name: Potion of Heal
     price: 1
     recovery: 20
+  town_portal_scroll:
+    type: scroll
+    name: Town Portal Scroll
+    price: 5
+    effect: town_portal
   antidote:
     type: potion
     name: Antidote

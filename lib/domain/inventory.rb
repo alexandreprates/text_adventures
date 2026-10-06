@@ -82,6 +82,7 @@ module TextAdventures
       details << "Def: #{item.defense}" if item.defense.positive?
       details << "Recovery #{item.recovery} Health" if item.recovery.positive?
       details << "Cures #{status_list(item.cures)}" if item.respond_to?(:cures) && item.cures.any?
+      details << "Visit town and return; outside combat" if item.respond_to?(:effect) && item.effect == :town_portal
       return "" if details.empty?
 
       " (#{details.join(', ')})"

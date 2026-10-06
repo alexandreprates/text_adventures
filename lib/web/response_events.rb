@@ -98,7 +98,7 @@ module TextAdventures
 
       def event_type(text)
         return "movement" if text.start_with?("You move ", "You descend ")
-        return "travel.changed_scene" if text.start_with?("You go to ", "You are now ")
+        return "travel.changed_scene" if text.start_with?("You go to ", "You are now ", "You teleport to ", "You return through the portal ")
         return "combat.damage" if text.match?(/\A(?:You|.+) (?:attack|attacks|cast|hits?|bites?|strikes?).* causing \d+ of damage/)
         return "combat.defeated" if text.match?(/(?:defeated|has fallen|is dead)/i)
         return "loot.collected" if text.match?(/\b(?:collected|loot|picked up)\b/i)

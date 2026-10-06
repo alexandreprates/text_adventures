@@ -29,6 +29,7 @@ module TextAdventures
           prompt: state.fetch(:prompt),
           player: player_patch,
           dungeon: state.fetch(:dungeon),
+          town_portal: state.fetch(:town_portal),
           battle: state.fetch(:battle),
           trade: state.fetch(:trade),
           pending: state.fetch(:pending)

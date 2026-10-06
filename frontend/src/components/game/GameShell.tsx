@@ -210,6 +210,7 @@ export function GameShell({
                 player={player}
                 activeTab={activeTab}
                 onItemCommand={onCommand}
+                canTeleport={state?.scene === "ruins" && !state.battle?.active && (player?.health.current || 0) > 0}
               />
             </aside>
           ) : null}

@@ -30,9 +30,9 @@ module TextAdventures
           "The room is warm, loud, and full of adventurers trading rumors over ale.",
           "Here you can:",
           " sleep - rent a room and fully recover health and MP",
-          " show - view potions for sale",
-          " buy <item> - buy a potion",
-          " sell <item> - sell potions and junk",
+          " show - view potions and portal scrolls for sale",
+          " buy <item> - buy a potion or scroll",
+          " sell <item> - sell potions, scrolls and junk",
           " go town - return to Nee'Peh"
         )
       end

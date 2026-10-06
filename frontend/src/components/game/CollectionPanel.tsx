@@ -15,9 +15,10 @@ type CollectionPanelProps = {
   player: PlayerState | null;
   activeTab: CollectionTab;
   onItemCommand: (command: string) => void;
+  canTeleport?: boolean;
 };
 
-export function CollectionPanel({ player, activeTab, onItemCommand }: CollectionPanelProps) {
+export function CollectionPanel({ player, activeTab, onItemCommand, canTeleport = false }: CollectionPanelProps) {
   const title = activeTab === "inventory" ? "=== INVENTORY ==" : "=== SPELLS ====";
 
   return (
@@ -33,6 +34,8 @@ export function CollectionPanel({ player, activeTab, onItemCommand }: Collection
                 <button
                   className="collection-item-command"
                   type="button"
+                  disabled={item.effect === "town_portal" && !canTeleport}
+                  title={item.effect === "town_portal" ? "Visit town and return to this spot. Only outside combat in the dungeon." : undefined}
                   onClick={() => onItemCommand(inventoryCommandValue(item))}
                 >
                   <span className="collection-item-name">
@@ -94,7 +97,7 @@ function PassiveListItem({ passive }: { passive: ClassPassive }) {
 
 function itemActionLabel(item: Item): string {
   if (item.type === "weapon" || item.type === "armor") return "Equip";
-  if (item.type === "tome" || item.type === "potion") return "Use";
+  if (item.type === "tome" || item.type === "potion" || item.type === "scroll") return "Use";
   if (item.type === "junk") return "Drop";
 
   return "Command";

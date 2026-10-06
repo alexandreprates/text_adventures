@@ -105,7 +105,7 @@ function PlayableGame() {
         return;
       }
 
-      if (autoExplore.enabled && !autoCompatibleManualCommand(normalized)) {
+      if (autoExplore.enabled && !autoCompatibleManualCommand(normalized, session.state)) {
         autoExplore.stop("stopped");
       }
 

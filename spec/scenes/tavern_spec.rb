@@ -16,9 +16,9 @@ RSpec.describe TextAdventures::Scenes::Tavern do
     expect(response).to include "You enter the Tavern."
     expect(response).to include "adventurers trading rumors over ale"
     expect(response).to include "sleep - rent a room and fully recover health"
-    expect(response).to include "show - view potions for sale"
+    expect(response).to include "show - view potions and portal scrolls for sale"
     expect(response).to include "buy <item> - buy a potion"
-    expect(response).to include "sell <item> - sell potions and junk"
+    expect(response).to include "sell <item> - sell potions, scrolls and junk"
     expect(response).to include "go town"
   end
 
@@ -28,6 +28,8 @@ RSpec.describe TextAdventures::Scenes::Tavern do
        Potions:
         1x Potion of Heal - 1g
         1x Antidote (Cures poison) - 2g
+       Scrolls:
+        1x Town Portal Scroll - 5g
     TEXT
   end
 

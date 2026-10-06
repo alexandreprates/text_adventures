@@ -365,7 +365,7 @@ spellbook       show known spells
 level           show overall character level and XP
 skills          show progression by skill track
 equip <item>    equip a carried weapon or armor
-use <item>      use a potion or tome
+use <item>      use a potion, tome, or scroll
 drop <item>     drop a carried item
 ```
 
@@ -415,6 +415,27 @@ The Tavern sells potions and lets the player sleep to fully recover health. The
 Priest heals, cures poison and disease, and sells tomes. The Blacksmith sells
 weapons. The Armorsmith sells armor.
 
+### Town Portal Scroll
+
+New characters carry one Town Portal Scroll. Existing characters can buy one at
+the Tavern for 5 gold. Use it from the inventory, or enter
+`use town portal scroll`, while alive and outside combat in the Ruins.
+
+The scroll is consumed and teleports you to town. Visit merchants to sell loot,
+buy supplies, or rest, then select **Return to dungeon** in town (or enter
+`go ruins` from town or a merchant). Returning costs no additional scroll and
+closes that return portal. A later round trip requires another scroll.
+
+The same dungeon is preserved: floor, exact departure position, revealed blocks,
+remaining enemies, stairs, and uncollected loot. The return destination survives
+page reloads while in town or its shops and saved-game/server restarts. It belongs
+only to that player's game. Normal entrance exits and reloads inside the dungeon
+do not create a free return portal; death/revival clears it.
+
+Using a scroll stops automatic exploration so the player can trade at their own
+pace. Invalid uses (outside the dungeon, in battle, or while dead) do not consume
+the scroll. Normal status-effect turn rules still apply.
+
 ## Dungeon
 
 The Ruins are built from connected dungeon blocks. Moving through exits reveals
@@ -458,7 +479,7 @@ directly, without hidden type-specific multipliers. Rewards must still be
 collected from the map.
 
 Healing potions cost 1 gold and restore 20 HP; antidotes cost 2 gold. Characters
-start with five healing potions and no gold. Tavern rest and priest services
+start with five healing potions, one Town Portal Scroll, and no gold. Tavern rest and priest services
 remain free, providing a recovery option after returning to town without cash.
 
 Shop purchase prices come directly from `data/items.yml`. Resale pays 10% of the
@@ -527,7 +548,7 @@ Skill levels grant gameplay bonuses:
 Game content is stored in YAML files:
 
 ```text
-data/items.yml          weapons, armor, potions, and tomes
+data/items.yml          weapons, armor, potions, tomes, and scrolls
 data/shops.yml          merchant stock and accepted item types
 data/creatures.yml      creatures, attacks, loot, statuses, and XP rewards
 data/dungeon_blocks.yml dungeon block layouts and exits

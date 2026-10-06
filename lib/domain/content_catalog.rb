@@ -183,6 +183,8 @@ module TextAdventures
         )
       when "tome"
         Item.tome(name, price: price, spell: definition.fetch("spell"))
+      when "scroll"
+        Item.scroll(name, price: price, effect: definition.fetch("effect"))
       when "junk"
         Item.junk(name, price: price)
       else

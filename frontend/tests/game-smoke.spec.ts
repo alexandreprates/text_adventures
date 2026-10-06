@@ -221,6 +221,54 @@ const isometricRuinsPayload: MockGamePayload = {
   },
 };
 
+test("uses a town scroll from inventory and exposes the preserved return trip", async ({ page }) => {
+  const scroll = { name: "town portal scroll", display_name: "Town Portal Scroll", type: "scroll", effect: "town_portal", quantity: 1 };
+  const initial = {
+    ...isometricRuinsPayload,
+    state: { ...isometricRuinsPayload.state, player: { ...(townPayload.state.player as object), inventory: [scroll] } },
+  };
+  await mockGame(page, initial, {
+    actionPatch: {
+      scene: "town", scene_display_name: "Town", prompt: "Town",
+      player: { inventory: [] }, town_portal: { level: 1, player_position: { x: 2, y: 2 } },
+    },
+    actionEvents: [{ type: "travel.changed_scene", text: "You teleport to the town of Nee'Peh." }],
+  });
+  await page.goto("/");
+  await expect(page.getByLabel("Dungeon map", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  await page.getByRole("button", { name: /1x Town Portal Scroll Use/ }).click();
+  await expect(page.getByRole("heading", { name: "Town", exact: true })).toBeAttached();
+  await expect(page.getByRole("button", { name: /1x Town Portal Scroll Use/ })).toHaveCount(0);
+  const returnButton = page.getByRole("button", { name: /^Return to dungeon/ });
+  await expect(returnButton).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await returnButton.click();
+  const sent = await page.evaluate(() => (window as unknown as { __sentSocketMessages: Array<{ action: unknown }> }).__sentSocketMessages);
+  expect(sent).toEqual([
+    expect.objectContaining({ action: "use", item: "town portal scroll" }),
+    expect.objectContaining({ action: "travel", destination: "ruins" }),
+  ]);
+  await page.evaluate((state) => {
+    (window as unknown as MusicTestWindow).__pushGamePatch({ ...state, town_portal: null }, []);
+  }, isometricRuinsPayload.state);
+  await expect(page.getByLabel("Dungeon map", { exact: true })).toBeVisible();
+  await expect(returnButton).toHaveCount(0);
+});
+
+test("disables portal scrolls in town and in battle", async ({ page }) => {
+  const scroll = { name: "town portal scroll", display_name: "Town Portal Scroll", type: "scroll", effect: "town_portal", quantity: 1 };
+  await mockGame(page, { ...townPayload, state: { ...townPayload.state, player: { ...(townPayload.state.player as object), inventory: [scroll] } } });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Inventory", exact: true }).click();
+  const use = page.getByRole("button", { name: /1x Town Portal Scroll Use/ });
+  await expect(use).toBeDisabled();
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ scene: "ruins", battle: { active: true, enemy: null } }, []));
+  await expect(use).toBeDisabled();
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ battle: { active: false, enemy: null } }, []));
+  await expect(use).toBeEnabled();
+});
+
 const noTorchRuinsPayload: MockGamePayload = {
   ...isometricRuinsPayload,
   state: {

@@ -27,6 +27,35 @@ RSpec.describe TextAdventures::Web::Router do
     )
   end
 
+  it "persists a scroll return trip across server restart and isolates it from other players" do
+    store = persistent_store(id_generator: -> { ids.shift })
+    router = described_class.new(store: store)
+    2.times { router.call(method: "POST", path: "/games", body: '{"seed":0}') }
+    action = lambda do |id, payload|
+      parsed(router.call(method: "POST", path: "/games/#{id}/actions", body: JSON.generate(payload)))
+    end
+    action.call("game-1", type: "travel", destination: "ruins")
+    moved = action.call("game-1", type: "move", direction: "right")
+    departure = moved.fetch("state").fetch("dungeon")
+    teleported = action.call("game-1", type: "use", item: "town portal scroll")
+    expect(teleported.dig("state", "scene")).to eq "town"
+    expect(teleported.dig("state", "town_portal", "player_position")).to eq departure.fetch("player_position")
+    expect(teleported.fetch("events")).to include(hash_including("type" => "travel.changed_scene"))
+    action.call("game-1", type: "travel", destination: "tavern")
+
+    router = described_class.new(store: persistent_store)
+    restored = parsed(router.call(method: "GET", path: "/games/game-1", body: nil))
+    expect(restored.dig("state", "town_portal")).not_to be_nil
+    returned = action.call("game-1", type: "travel", destination: "ruins")
+    expect(returned.dig("state", "dungeon")).to eq departure
+    expect(returned.dig("state", "town_portal")).to be_nil
+    expect(returned.dig("state", "player", "inventory").map { |item| item.fetch("name") }).not_to include("town portal scroll")
+    other = parsed(router.call(method: "GET", path: "/games/game-2", body: nil))
+    expect(other.dig("state", "town_portal")).to be_nil
+    expect(other.dig("state", "dungeon")).to be_nil
+    expect(other.dig("state", "player", "inventory")).to include(hash_including("name" => "town portal scroll", "quantity" => 1))
+  end
+
   it "creates a game and returns initial state" do
     response = router.call(method: "POST", path: "/games", body: '{"seed":0}')
 

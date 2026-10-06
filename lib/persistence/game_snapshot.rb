@@ -24,6 +24,7 @@ module TextAdventures
             "random" => random_snapshot(game.random),
             "player" => player_snapshot(game.player),
             "dungeon" => dungeon_snapshot(game.dungeon),
+            "town_portal_active" => game.town_portal_active?,
             "battle" => battle_snapshot(game.battle),
             "pending" => pending_snapshot(game)
           }
@@ -53,6 +54,7 @@ module TextAdventures
           current_scene: scene,
           pending_confirmation: confirmation_from(pending["confirmation"], current_scene: scene),
           dungeon: dungeon,
+          town_portal_active: game_snapshot.fetch("town_portal_active", false),
           battle: battle,
           pending_loot: loot_from(pending["loot"]),
           active_enemy_position: position_from(pending["active_enemy_position"]),

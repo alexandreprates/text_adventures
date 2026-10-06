@@ -153,7 +153,9 @@ RSpec.describe "text_adventures WebSocket server" do
       expect(successful).to eq 5
       final = JSON.parse(request_json(port, Net::HTTP::Get, "/api/games/#{id}").body)
       expect(final.dig("state", "player", "gold")).to eq 5
-      expect(final.dig("state", "player", "inventory")).to be_empty
+      expect(final.dig("state", "player", "inventory")).to contain_exactly(
+        hash_including("name" => "town portal scroll", "quantity" => 1)
+      )
     ensure
       sockets&.each(&:close)
       workers&.each { |worker| worker.join(2) }

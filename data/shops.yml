@@ -57,6 +57,8 @@ shops:
     stock:
       - potion_of_heal
       - antidote
+      - town_portal_scroll
     accepted_types:
       - potion
+      - scroll
       - junk

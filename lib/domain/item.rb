@@ -1,10 +1,10 @@
 module TextAdventures
   class Item
-    VALID_TYPES = %i[weapon armor potion tome junk].freeze
+    VALID_TYPES = %i[weapon armor potion tome scroll junk].freeze
 
     attr_reader :name, :display_name, :price, :type,
                 :attack, :defense, :recovery, :cures, :spell, :armor_class,
-                :weapon_class, :min_level
+                :weapon_class, :min_level, :effect
 
     def self.weapon(name, price:, attack:, defense: 0, weapon_class: nil, min_level: 1)
       new(
@@ -30,6 +30,10 @@ module TextAdventures
       new(name: name, price: price, type: :tome, spell: spell)
     end
 
+    def self.scroll(name, price:, effect:)
+      new(name: name, price: price, type: :scroll, effect: effect)
+    end
+
     def self.junk(name, price:)
       new(name: name, price: price, type: :junk)
     end
@@ -50,7 +54,8 @@ module TextAdventures
       spell: nil,
       armor_class: nil,
       weapon_class: nil,
-      min_level: 1
+      min_level: 1,
+      effect: nil
     )
       @name = self.class.normalize_name(name)
       @display_name = display_name
@@ -64,6 +69,7 @@ module TextAdventures
       @armor_class = armor_class && self.class.normalize_name(armor_class).to_sym
       @weapon_class = weapon_class && self.class.normalize_name(weapon_class).to_sym
       @min_level = [min_level.to_i, 1].max
+      @effect = effect&.to_sym
     end
 
     def command_name
@@ -92,6 +98,10 @@ module TextAdventures
 
     def tome?
       type == :tome
+    end
+
+    def scroll?
+      type == :scroll
     end
 
     def junk?
