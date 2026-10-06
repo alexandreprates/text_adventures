@@ -508,6 +508,71 @@ RSpec.describe TextAdventures::Dungeon do
       expect(edge_dungeon.enemies).to eq({})
     end
 
+    { "up" => [[2, 0], [3, 0]], "down" => [[2, 4], [3, 4]],
+      "left" => [[0, 2]], "right" => [[5, 2]] }.each do |direction, positions|
+      positions.each do |x, y|
+        [false, true].each do |already_revealed|
+          it "keeps a one-tile #{direction} step from #{x},#{y} with neighbor revealed=#{already_revealed}" do
+            block = described_class::BlockPosition.new(x: 2, y: -2)
+            dx, dy = described_class::DIRECTIONS.fetch(direction)
+            neighbor = [block.x + dx, block.y + dy]
+            blocks = { block.key => "four_exits" }
+            blocks[neighbor] = "four_exits" if already_revealed
+            crossing = described_class.new(
+              revealed_blocks: blocks,
+              current_block_position: block,
+              player_position: described_class::Position.new(x: x, y: y),
+              random: FixedRandom.new(0)
+            )
+            before = crossing.current_global_position
+
+            expect(crossing.move(direction)).to be_success
+            expect(crossing.current_global_position).to have_attributes(x: before.x + dx, y: before.y + dy)
+            expect(crossing).to be_player_on_open_tile
+            expect(crossing.enemies).not_to have_key([before.x + dx, before.y + dy])
+            expect(crossing.floor_exit_position).not_to eq crossing.current_global_position
+
+            viewport = crossing.viewport_state
+            player = viewport[:entities].find { |entity| entity[:type] == "player" }
+            expect([viewport[:origin][:x] + player[:x], viewport[:origin][:y] + player[:y]])
+              .to eq [before.x + dx, before.y + dy]
+            expect(crossing.move(described_class::OPPOSITE_DIRECTIONS.fetch(direction))).to be_success
+            expect(crossing.current_global_position).to eq before
+          end
+        end
+      end
+    end
+
+    it "does not shift sideways into an open lane when the aligned neighbor tile is blocked" do
+      narrow = TextAdventures::DungeonBlock.new(
+        id: "narrow", name: "Narrow", exits: %w[up right down left],
+        tiles: ["## ###", "#    #", "      ", "#    #", "##  ##"]
+      )
+      crossing = described_class.new(
+        revealed_blocks: { [0, 0] => "four_exits", [0, 1] => narrow },
+        player_position: described_class::Position.new(x: 3, y: 4)
+      )
+      before = crossing.current_global_position
+      expect(crossing.move("down")).not_to be_success
+      expect(crossing.current_global_position).to eq before
+    end
+
+    it "only reveals blocks whose entry aligns with the departure lane" do
+      narrow = TextAdventures::DungeonBlock.new(
+        id: "narrow", name: "Narrow", exits: %w[up right down left],
+        tiles: ["## ###", "#    #", "      ", "#    #", "##  ##"]
+      )
+      wide = TextAdventures::ContentCatalog.dungeon_block("four_exits")
+      allow(TextAdventures::ContentCatalog).to receive(:dungeon_blocks).and_return([narrow, wide])
+      crossing = described_class.new(
+        revealed_blocks: { [0, 0] => wide },
+        player_position: described_class::Position.new(x: 3, y: 4), random: FixedRandom.new(0)
+      )
+      expect(crossing.move("down")).to be_success
+      expect(crossing.revealed_blocks.fetch([0, 1])).to eq wide
+      expect(crossing.current_global_position).to have_attributes(x: 3, y: 5)
+    end
+
     it "requires new blocks to remain compatible with revealed neighbors" do
       edge_dungeon = described_class.new(
         revealed_blocks: {

@@ -2086,6 +2086,66 @@ test("keeps the player centered and camera motion continuous across unrelated st
   expect(centers.every((position) => position.x === center.x && position.y === center.y)).toBe(true);
 });
 
+for (const direction of ["up", "down"] as const) {
+  test(`keeps camera motion continuous while revealing a block ${direction}`, async ({ page }) => {
+    const step = direction === "down" ? 1 : -1;
+    const startY = direction === "down" ? 4 : 0;
+    function viewport(crossed: boolean) {
+      const origin = { x: -6, y: -5 + (crossed ? step * 5 : 0) };
+      const rows = ["##..##", "#....#", "......", "#....#", "##..##"];
+      const terrain = Array.from({ length: 270 }, (_, index) => {
+        const x = index % 18 + origin.x;
+        const y = Math.floor(index / 18) + origin.y;
+        const blockY = Math.floor(y / 5);
+        return x >= 0 && x < 6 && (blockY === 0 || (crossed && blockY === step))
+          ? rows[((y % 5) + 5) % 5][x] : "?";
+      }).join("");
+      return {
+        width: 18, height: 15, origin, terrain,
+        entities: [{ type: "player", x: 3 - origin.x, y: startY + (crossed ? step : 0) - origin.y }],
+        decorations: [{ kind: "barrel", x: 1 - origin.x, y: 1 - origin.y }],
+      };
+    }
+    const dungeon = { level: 1, player_position: { x: 3, y: startY }, viewport: viewport(false) };
+    await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+    await mockGame(page, { ...ruinsPayload, state: { ...ruinsPayload.state, dungeon } });
+    await page.goto("/");
+    await expect(page.getByLabel("Dungeon map", { exact: true })).toBeVisible();
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
+    await page.evaluate(() => {
+      const samples: Array<{ x: number; y: number }> = [];
+      (window as unknown as { __barrelPositions: typeof samples }).__barrelPositions = samples;
+      const original = CanvasRenderingContext2D.prototype.drawImage;
+      CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
+        if (args[0] instanceof HTMLImageElement && args[0].src.endsWith("/props/barrel.png")) {
+          samples.push({ x: args[1] as number, y: args[2] as number });
+        }
+        return Reflect.apply(original, this, args);
+      } as typeof original;
+    });
+    await page.clock.runFor(100);
+    await page.evaluate((dungeon) => {
+      (window as unknown as MusicTestWindow).__pushGamePatch({ dungeon }, []);
+    }, { ...dungeon, player_position: { x: 3, y: startY + step }, viewport: viewport(true) });
+    await page.clock.runFor(320);
+    const positions = await page.evaluate(() =>
+      (window as unknown as { __barrelPositions: Array<{ x: number; y: number }> }).__barrelPositions,
+    );
+    expect(positions.length).toBeGreaterThan(15);
+    expect(positions.at(-1)!.x - positions[0].x).toBe(32 * step);
+    expect(positions.at(-1)!.y - positions[0].y).toBe(-16 * step);
+    for (let i = 1; i < positions.length; i++) {
+      const dx = (positions[i].x - positions[i - 1].x) * step;
+      const dy = (positions[i].y - positions[i - 1].y) * step;
+      expect(dx).toBeGreaterThanOrEqual(0);
+      expect(dx).toBeLessThanOrEqual(3);
+      expect(dy).toBeLessThanOrEqual(0);
+      expect(dy).toBeGreaterThanOrEqual(-2);
+    }
+  });
+}
+
 test("keeps the centered player above combat controls on mobile screens", async ({ page }) => {
   await mockGame(page, adventurerCombatPayload);
   await page.setViewportSize({ width: 390, height: 844 });

@@ -474,8 +474,11 @@ module TextAdventures
       next_block ||= reveal_block(next_block_position, direction)
       return failed_move(direction, "You cannot go #{direction}; the path leaves the dungeon.", from: from, to: attempted_to) unless next_block
 
+      entry = entry_position_for(direction)
+      return failed_move(direction, "You cannot go #{direction}; a wall blocks the way.", from: from, to: attempted_to) unless next_block.open?(entry.x, entry.y)
+
       @current_block_position = next_block_position
-      @player_position = entry_position_for(direction)
+      @player_position = entry
       MoveResult.new(
         success?: true,
         direction: direction,
@@ -487,8 +490,9 @@ module TextAdventures
 
     def reveal_block(block_position, direction)
       required_exit = OPPOSITE_DIRECTIONS.fetch(direction)
+      entry = entry_position_for(direction)
       candidates = ContentCatalog.dungeon_blocks.select do |block|
-        block.exit?(required_exit) && compatible_with_neighbors?(block_position, block)
+        block.exit?(required_exit) && block.open?(entry.x, entry.y) && compatible_with_neighbors?(block_position, block)
       end
       return nil if candidates.empty?
 
@@ -593,13 +597,13 @@ module TextAdventures
     def entry_position_for(direction)
       case direction
       when "up"
-        Position.new(x: 2, y: height - 1)
+        Position.new(x: player_position.x, y: height - 1)
       when "right"
-        Position.new(x: 0, y: 2)
+        Position.new(x: 0, y: player_position.y)
       when "down"
-        Position.new(x: 2, y: 0)
+        Position.new(x: player_position.x, y: 0)
       when "left"
-        Position.new(x: width - 1, y: 2)
+        Position.new(x: width - 1, y: player_position.y)
       end
     end
 
