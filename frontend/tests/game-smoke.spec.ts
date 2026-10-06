@@ -1381,6 +1381,95 @@ async function mockRecordedSocketGame(page: Page, payload: MockGamePayload) {
   });
 }
 
+test("provides installable web app metadata and valid home-screen icons", async ({ page }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+  const manifestUrl = await page.locator('link[rel="manifest"]').getAttribute("href");
+  const manifestResponse = await page.request.get(manifestUrl!);
+  expect(manifestResponse.ok()).toBe(true);
+  const manifest = await manifestResponse.json();
+  expect(manifest).toMatchObject({ id: "/", start_url: "/", scope: "/", display: "standalone" });
+  expect(manifest.icons.map((icon: { sizes: string }) => icon.sizes)).toEqual(
+    expect.arrayContaining(["192x192", "512x512"]),
+  );
+  expect(manifest.icons.some((icon: { purpose: string }) => icon.purpose === "maskable")).toBe(true);
+  const appleIcon = await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
+  for (const icon of [...manifest.icons, { src: appleIcon, sizes: "180x180" }]) {
+    const dimensions = await page.evaluate(async (src: string) => {
+      const image = new Image();
+      image.src = src;
+      await image.decode();
+      return `${image.naturalWidth}x${image.naturalHeight}`;
+    }, icon.src);
+    expect(dimensions).toBe(icon.sizes);
+  }
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute("content", /viewport-fit=cover/);
+  await expect(page.locator('meta[name="apple-mobile-web-app-capable"]')).toHaveAttribute("content", "yes");
+});
+
+test("offers offline recovery without caching game state or losing the game URL", async ({ page, context }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+  await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await context.setOffline(true);
+  for (const path of ["/", "/game/demo-game"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { name: "Reconnect to continue" })).toBeVisible();
+    expect(new URL(page.url()).pathname).toBe(path);
+  }
+  const cachePaths = await page.evaluate(async () => {
+    const names = await caches.keys();
+    const requests = await Promise.all(names.map(async (name) => (await caches.open(name)).keys()));
+    return requests.flat().map((request) => new URL(request.url).pathname);
+  });
+  expect(cachePaths).toEqual(["/offline.html"]);
+  expect(await page.evaluate(() => fetch("/api/games/uncached-game").then(() => true, () => false))).toBe(false);
+  await context.setOffline(false);
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
+  await expect(page).toHaveURL(/\/game\/demo-game$/);
+});
+
+test("keeps web app controls inside safe areas as the mobile viewport changes", async ({ page }) => {
+  await mockGame(page, isometricRuinsPayload);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-area-top", "47px");
+    document.documentElement.style.setProperty("--safe-area-bottom", "34px");
+  });
+  for (const height of [844, 700]) {
+    await page.setViewportSize({ width: 390, height });
+    const hud = await page.locator(".platform-top-hud").boundingBox();
+    const playfield = await page.locator(".platform-live-playfield").boundingBox();
+    expect(hud!.y).toBeGreaterThanOrEqual(47);
+    expect(playfield!.y + playfield!.height).toBeLessThanOrEqual(height - 34);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-area-top", "0px");
+    document.documentElement.style.setProperty("--safe-area-left", "47px");
+    document.documentElement.style.setProperty("--safe-area-right", "47px");
+    document.documentElement.style.setProperty("--safe-area-bottom", "21px");
+  });
+  await page.setViewportSize({ width: 844, height: 390 });
+  await expect(page.getByRole("button", { name: "Character", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Character overview")).toHaveCount(0);
+  const landscapeHud = await page.locator(".platform-top-hud").boundingBox();
+  expect(landscapeHud!.height).toBeLessThan(120);
+  expect(landscapeHud!.x).toBeGreaterThanOrEqual(47);
+  expect(landscapeHud!.x + landscapeHud!.width).toBeLessThanOrEqual(844 - 47);
+  const canvas = await page.getByLabel("Dungeon map", { exact: true }).boundingBox();
+  const commands = await page.locator(".commands-panel").boundingBox();
+  expect(canvas!.x + canvas!.width / 2).toBeLessThan(commands!.x);
+  await page.getByRole("button", { name: "Character", exact: true }).click();
+  await expect(page.getByLabel("Character overview")).toBeVisible();
+});
+
 test("renders the migrated game shell", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");

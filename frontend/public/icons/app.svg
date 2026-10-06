@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Text Adventures</title>
+  <rect width="512" height="512" fill="#090c10"/>
+  <path d="M152 360V224a104 104 0 0 1 208 0v136" fill="#111820" stroke="#f3cc66" stroke-width="24"/>
+  <path d="m208 228 40 32-40 32m64 0h32" fill="none" stroke="#7be88f" stroke-width="16" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M136 376h240" stroke="#f3cc66" stroke-width="24"/>
+</svg>

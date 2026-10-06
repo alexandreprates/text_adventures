@@ -19,4 +19,8 @@ export default defineConfig([globalIgnores(['dist', 'test-results', 'playwright-
   languageOptions: {
     globals: globals.browser,
   },
+}, {
+  files: ['public/sw.js'],
+  extends: [js.configs.recommended],
+  languageOptions: { globals: globals.serviceworker },
 }, ...storybook.configs["flat/recommended"]])

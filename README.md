@@ -298,6 +298,36 @@ pnpm build
 pnpm playwright test
 ```
 
+## Mobile Web App
+
+The production frontend is installable as a Progressive Web App (PWA). Serve it
+over HTTPS with the same-origin `/api/` and `/ws` proxies. HTTP on localhost works
+for development; a phone accessing a plain HTTP LAN address cannot use the full
+installation and service-worker features.
+
+- Android: open the game in Chrome and choose **Install app** or **Add to Home screen**.
+- iPhone/iPad: open the game in Safari, choose **Share → Add to Home Screen**, and
+  enable **Open as Web App** when offered.
+
+The home-screen icon opens the game in standalone mode. The launch URL is `/`;
+the existing browser game ID restores the session when available. Storage sharing
+between a browser tab and an installed app varies by platform, so open an existing
+`/game/:id` link in the app if the saved session is not available. Sessions remain
+subject to the server's normal lifetime. Portrait and landscape are both allowed.
+
+Gameplay requires a connection to the server. After one online visit, the service
+worker can display a lightweight reconnect page when an app navigation fails
+offline. **Try again** reloads the same game URL. API responses, actions, and game
+bundles are not stored in the service-worker cache. Updates wait for open app
+windows to close and never force-reload an active game.
+
+PWA metadata lives in `frontend/public/manifest.webmanifest`. Icon PNGs are generated
+from `frontend/public/icons/app.svg` with `node scripts/generate-app-icons.mjs` from
+the frontend directory. Keep artwork within the central maskable safe zone.
+When editing `frontend/public/offline.html`, bump the offline cache version in
+`frontend/public/sw.js`. Service workers register only in production builds;
+validate locally with `pnpm build && pnpm preview` or the Compose web service.
+
 ## Running Tests
 
 ```sh

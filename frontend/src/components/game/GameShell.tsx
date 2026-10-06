@@ -311,12 +311,13 @@ function rememberInterfaceMode(mode: InterfaceMode): void {
 }
 
 function useCompactViewport(): boolean {
+  const compactQuery = "(max-width: 700px), (max-width: 980px) and (max-height: 500px)";
   const [compact, setCompact] = useState(() =>
-    typeof window === "undefined" ? false : window.matchMedia("(max-width: 700px)").matches,
+    typeof window === "undefined" ? false : window.matchMedia(compactQuery).matches,
   );
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 700px)");
+    const query = window.matchMedia(compactQuery);
     const updateCompact = () => setCompact(query.matches);
 
     updateCompact();
