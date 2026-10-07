@@ -52,6 +52,7 @@ import {
 import { torchDrawPosition, torchFlamePosition } from "./torchPlacement";
 import { isForegroundWall, isRightWallTorchAnchor } from "./wallTopology";
 import { MANUAL_MOVE_DURATION_MS, PlayerMovement } from "./movement";
+import { PlayerColorLayer } from "./PlayerColorLayer";
 
 const LOGICAL_WIDTH = 752;
 const LOGICAL_HEIGHT = 416;
@@ -87,6 +88,7 @@ type CombatState = CombatAnimationCue & {
 };
 
 type DepthNode = {
+  player?: boolean;
   position: Position;
   layer: number;
   draw: (screen: ProjectedPoint) => void;
@@ -123,6 +125,8 @@ export class IsometricDungeonRenderer {
   private openedLoot: TransientEntity[] = [];
   private readonly fallbackEnemies = new Map<string, HTMLImageElement>();
   private readonly enemyActionSheets = new Map<string, HTMLImageElement>();
+  private readonly playerColors = new PlayerColorLayer();
+  private drawingPlayer = false;
 
   constructor(canvas: HTMLCanvasElement) {
     const context = canvas.getContext("2d");
@@ -180,6 +184,7 @@ export class IsometricDungeonRenderer {
   }
 
   clear(): void {
+    this.playerColors.reset();
     if (this.options.lootAnimation) this.options.lootAnimation.pending = false;
     this.viewport = null;
     this.vanishedEnemies = [];
@@ -211,11 +216,13 @@ export class IsometricDungeonRenderer {
     this.context.imageSmoothingEnabled = false;
 
     const camera = this.cameraPosition(time);
+    this.playerColors.reset();
     this.drawTerrain(camera);
     this.drawLightPools(camera, time);
     this.drawDepthLayer(camera, time);
     this.drawFallbackCombatEffect(camera, time);
     this.drawDungeonLighting(camera, time);
+    this.playerColors.composite(this.context);
 
     // Release automation only after a frame without the corpse has actually been drawn.
     if (this.options.lootAnimation) this.options.lootAnimation.pending = this.hasCoveredLoot();
@@ -417,7 +424,7 @@ export class IsometricDungeonRenderer {
           draw: (screen) => {
             const foot = screen.y + TILE_HEIGHT;
             const wall = foreground ? this.assets!.wallFront : this.assets!.wall;
-            this.context.drawImage(
+            this.drawImage(
               wall,
               Math.round(screen.x - 32),
               Math.round(foot - wall.height),
@@ -435,7 +442,7 @@ export class IsometricDungeonRenderer {
     positionedEntities(this.viewport).forEach((entity) => {
       if (entity.type === "loot" && this.lootCoveredByCorpse(entity)) return;
       const position = entity.type === "player" ? this.animatedPlayerPosition(time) ?? entity : entity;
-      nodes.push(this.entityNode(entity, position, time));
+      nodes.push({ ...this.entityNode(entity, position, time), player: entity.type === "player" });
     });
 
     this.vanishedEnemies.forEach((entity) => {
@@ -448,7 +455,11 @@ export class IsometricDungeonRenderer {
 
     nodes
       .sort((left, right) => depthFor(left.position, left.layer) - depthFor(right.position, right.layer))
-      .forEach((node) => node.draw(this.screenPosition(node.position, camera)));
+      .forEach((node) => {
+        this.drawingPlayer = Boolean(node.player);
+        node.draw(this.screenPosition(node.position, camera));
+      });
+    this.drawingPlayer = false;
   }
 
   private decorationNode(decoration: DungeonDecoration, position: Position, time: number): DepthNode {
@@ -479,7 +490,7 @@ export class IsometricDungeonRenderer {
       return {
         position,
         layer: 14,
-        draw: (screen) => this.context.drawImage(
+        draw: (screen) => this.drawImage(
           this.assets!.barrel,
           Math.round(screen.x - 24),
           Math.round(screen.y - 27),
@@ -493,7 +504,7 @@ export class IsometricDungeonRenderer {
       return {
         position,
         layer: 8,
-        draw: (screen) => this.context.drawImage(
+        draw: (screen) => this.drawImage(
           this.assets!.rubble,
           Math.round(screen.x - 32),
           Math.round(screen.y - 34),
@@ -505,7 +516,7 @@ export class IsometricDungeonRenderer {
       return {
         position,
         layer: 36,
-        draw: (screen) => this.context.drawImage(
+        draw: (screen) => this.drawImage(
           this.assets!.banner,
           Math.round(screen.x - 24),
           Math.round(screen.y - 60),
@@ -811,16 +822,16 @@ export class IsometricDungeonRenderer {
     }
     if (!image.complete || image.naturalWidth === 0) return;
 
-    this.context.drawImage(image, screen.x - 32, screen.y - 48, 64, 64);
+    this.drawImage(image, screen.x - 32, screen.y - 48, 64, 64, 0, 0, image.width, image.height, true);
   }
 
   private drawMarker(type: string, screen: ProjectedPoint): void {
     if (type === "portal") {
-      this.context.drawImage(this.assets!.portal, screen.x - 32, screen.y - 88);
+      this.drawImage(this.assets!.portal, screen.x - 32, screen.y - 88);
       return;
     }
     if (type === "ascent" || type === "descent") {
-      this.context.drawImage(this.assets!.stairsDown, screen.x - 32, screen.y - 48);
+      this.drawImage(this.assets!.stairsDown, screen.x - 32, screen.y - 48);
     }
   }
 
@@ -890,17 +901,29 @@ export class IsometricDungeonRenderer {
     const sourceColumn = Math.max(0, Math.min(columns - 1, column));
     const sourceRow = Math.max(0, Math.min(rows - 1, row));
 
-    this.context.drawImage(
+    this.drawImage(
       sheet,
-      sourceColumn * frameWidth,
-      sourceRow * frameHeight,
-      frameWidth,
-      frameHeight,
       Math.round(x),
       Math.round(y),
       drawWidth,
       drawHeight,
+      sourceColumn * frameWidth,
+      sourceRow * frameHeight,
+      frameWidth,
+      frameHeight,
     );
+  }
+
+  private drawImage(
+    image: HTMLImageElement, x: number, y: number,
+    width = image.width, height = image.height,
+    sourceX = 0, sourceY = 0, sourceWidth = image.width, sourceHeight = image.height,
+    translucent = false,
+  ): void {
+    this.context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+    const sprite = { image, x, y, width, height, sourceX, sourceY, sourceWidth, sourceHeight };
+    if (this.drawingPlayer) this.playerColors.capture(this.context, sprite);
+    else this.playerColors.occlude(sprite, translucent);
   }
 
   private directionalClassAttackPhase(time: number): number | null {

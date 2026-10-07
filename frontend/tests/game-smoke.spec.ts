@@ -2193,8 +2193,10 @@ for (const direction of ["up", "down"] as const) {
       (window as unknown as { __barrelPositions: typeof samples }).__barrelPositions = samples;
       const original = CanvasRenderingContext2D.prototype.drawImage;
       CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
-        if (args[0] instanceof HTMLImageElement && args[0].src.endsWith("/props/barrel.png")) {
-          samples.push({ x: args[1] as number, y: args[2] as number });
+        if (this.canvas instanceof HTMLCanvasElement && this.canvas.dataset.logicalWidth
+          && args[0] instanceof HTMLImageElement && args[0].src.endsWith("/props/barrel.png")) {
+          const destination = args.length === 9 ? 5 : 1;
+          samples.push({ x: args[destination] as number, y: args[destination + 1] as number });
         }
         return Reflect.apply(original, this, args);
       } as typeof original;
@@ -2423,6 +2425,159 @@ test("never renders torches away from the right-side wall", async ({ page }) => 
   expect(floatingFrame).toBe(referenceFrame);
   await referencePage.close();
 });
+
+type PlayerColorSample = { path: string; pixels: number; changed: number; backgroundChanged: number };
+type PlayerColorWindow = Window & { __playerColors: PlayerColorSample[] };
+
+async function trackPlayerColors(page: Page) {
+  await page.addInitScript(() => {
+    const original = CanvasRenderingContext2D.prototype.drawImage;
+    (window as unknown as PlayerColorWindow).__playerColors = [];
+    const recorded = new Set<string>();
+    CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
+      const result = Reflect.apply(original, this, args);
+      const image = args[0];
+      if (!(image instanceof HTMLImageElement) || !image.src.includes("/actors/")
+        || !(this.canvas instanceof HTMLCanvasElement) || !this.canvas.dataset.logicalWidth
+        || recorded.has(image.src)) return result;
+      recorded.add(image.src);
+      const reference = document.createElement("canvas");
+      reference.width = this.canvas.width;
+      reference.height = this.canvas.height;
+      const context = reference.getContext("2d")!;
+      context.setTransform(this.getTransform());
+      context.imageSmoothingEnabled = false;
+      Reflect.apply(original, context, args);
+      const sprite = context.getImageData(0, 0, reference.width, reference.height).data;
+      const before = this.getImageData(0, 0, reference.width, reference.height).data;
+      queueMicrotask(() => {
+        const after = this.getImageData(0, 0, reference.width, reference.height).data;
+        let pixels = 0;
+        let changed = 0;
+        let backgroundChanged = 0;
+        for (let i = 0; i < sprite.length; i += 4) {
+          if (sprite[i + 3] === 255) {
+            pixels++;
+            if (after[i] !== sprite[i] || after[i + 1] !== sprite[i + 1] || after[i + 2] !== sprite[i + 2]) changed++;
+          } else if (before[i] !== after[i] || before[i + 1] !== after[i + 1] || before[i + 2] !== after[i + 2]) {
+            backgroundChanged++;
+          }
+        }
+        (window as unknown as PlayerColorWindow).__playerColors.push({ path: image.src, pixels, changed, backgroundChanged });
+      });
+      return result;
+    } as typeof original;
+  });
+}
+
+for (const playerClass of ["Adventurer", "Arcanist", "Battlemage", "Blademaster", "Dragoon", "Druid", "Duelist", "Hexblade", "Mystic", "Nightblade", "Ranger", "Sentinel", "Skirmisher", "Spellblade", "Warden", "Warlord"]) {
+  test(`preserves ${playerClass} sprite colors under dungeon lighting`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockGame(page, { ...wideRuinsPayload, events: [], state: {
+      ...wideRuinsPayload.state,
+      player: { ...(wideRuinsPayload.state.player as Record<string, unknown>), current_class: playerClass },
+    } });
+    await trackPlayerColors(page);
+    await page.goto("/");
+    await expect.poll(() => page.evaluate(() => (window as unknown as PlayerColorWindow).__playerColors.length)).toBe(1);
+    await page.evaluate(() => {
+      (window as unknown as { __pushGamePatch: (patch: object, events: object[]) => void }).__pushGamePatch({}, [{
+        type: "combat.damage", actor: "player", target: "enemy", action: "attack", effect: "slash", duration_ms: 1200,
+      }]);
+    });
+    await expect.poll(() => page.evaluate(() => (window as unknown as PlayerColorWindow).__playerColors.length)).toBe(2);
+    const samples = await page.evaluate(() => (window as unknown as PlayerColorWindow).__playerColors);
+    expect(samples.map((sample) => sample.path.split("/").at(-1))).toEqual([
+      `${playerClass.toLowerCase()}-walk.png`, `${playerClass.toLowerCase()}-attack.png`,
+    ]);
+    for (const sample of samples) {
+      expect(sample.pixels).toBeGreaterThan(100);
+      expect(sample.changed).toBe(0);
+      expect(sample.backgroundChanged).toBeGreaterThan(1000);
+    }
+    if (["Adventurer", "Druid", "Mystic"].includes(playerClass)) {
+      await page.screenshot({ path: testInfo.outputPath("player-colors.png") });
+    }
+  });
+}
+
+for (const occluder of ["barrel", "wall", "fallback"] as const) {
+  test(`preserves foreground ${occluder} occlusion when restoring player colors`, async ({ page, context }) => {
+    const reference = await context.newPage();
+    const viewport = (wideRuinsPayload.state.dungeon as { viewport: Record<string, unknown> }).viewport;
+    const terrain = (viewport.terrain as string).split("");
+    if (occluder === "wall") terrain[5 * 9 + 4] = "#";
+    const payload = { ...wideRuinsPayload, events: [], state: { ...wideRuinsPayload.state,
+      dungeon: { ...(wideRuinsPayload.state.dungeon as object), viewport: { ...viewport,
+        terrain: terrain.join(""), decorations: occluder === "barrel" ? [{ kind: "barrel", x: 5, y: 5 }] : [],
+        entities: [...viewport.entities as object[], ...(occluder === "fallback"
+          ? [{ type: "enemy", creature_id: "skeleton_archer", x: 5, y: 5 }] : [])],
+      } },
+    } };
+    const snapshots = [];
+    for (const target of [reference, page]) {
+      await target.emulateMedia({ reducedMotion: "reduce" });
+      await mockGame(target, payload);
+      if (occluder === "fallback") await target.route("**/enemies/skeleton_archer-*.png", (route) => route.abort());
+      await target.addInitScript((skipRestoration) => {
+        type Draw = { image: HTMLImageElement; args: number[]; scale: number };
+        const draws: Draw[] = [];
+        (window as unknown as { __colorDraws: Draw[] }).__colorDraws = draws;
+        const original = CanvasRenderingContext2D.prototype.drawImage;
+        CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
+          const main = this.canvas instanceof HTMLCanvasElement && this.canvas.dataset.logicalWidth;
+          if (main && args[0] instanceof HTMLCanvasElement && skipRestoration) return;
+          if (main && args[0] instanceof HTMLImageElement) {
+            draws.push({ image: args[0], args: args.slice(1) as number[], scale: this.getTransform().a });
+          }
+          return Reflect.apply(original, this, args);
+        } as typeof original;
+      }, target === reference);
+      await target.goto("/");
+      await expect(target.getByText("Loading isometric dungeon…")).toBeHidden();
+      await expect.poll(() => target.evaluate(() =>
+        (window as unknown as { __colorDraws: { image: HTMLImageElement }[] }).__colorDraws.some((draw) => draw.image.src.includes("/actors/")),
+      )).toBe(true);
+      if (occluder === "fallback") await expect.poll(() => target.evaluate(() =>
+        (window as unknown as { __colorDraws: { image: HTMLImageElement }[] }).__colorDraws.some((draw) => draw.image.src.includes("/enemies/sprites/")),
+      )).toBe(true);
+      snapshots.push(await target.evaluate((occluder) => {
+        const canvas = document.querySelector<HTMLCanvasElement>("canvas[data-logical-width]")!;
+        const scene = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data;
+        const draws = (window as unknown as { __colorDraws: { image: HTMLImageElement; args: number[]; scale: number }[] }).__colorDraws;
+        function mask(selected: typeof draws) {
+          const mask = document.createElement("canvas");
+          mask.width = canvas.width;
+          mask.height = canvas.height;
+          const ctx = mask.getContext("2d")!;
+          ctx.imageSmoothingEnabled = false;
+          for (const draw of selected) {
+            ctx.setTransform(draw.scale, 0, 0, draw.scale, 0, 0);
+            Reflect.apply(ctx.drawImage, ctx, [draw.image, ...draw.args]);
+          }
+          return ctx.getImageData(0, 0, mask.width, mask.height).data;
+        }
+        const player = mask(draws.filter((draw) => draw.image.src.includes("/actors/")).slice(-1));
+        const foreground = mask(draws.filter((draw) => draw.image.src.includes(occluder === "barrel"
+          ? "/props/barrel.png" : occluder === "wall" ? "/tiles/wall" : "/enemies/sprites/")));
+        const covered: number[] = [];
+        const visible: number[] = [];
+        for (let i = 0; i < player.length; i += 4) {
+          if (player[i + 3] !== 255) continue;
+          const pixels = foreground[i + 3] > 0 ? covered : visible;
+          pixels.push(scene[i], scene[i + 1], scene[i + 2]);
+        }
+        return { covered, visible };
+      }, occluder));
+    }
+    expect(snapshots[1].covered.length).toBeGreaterThan(30);
+    expect(snapshots[1].visible.length).toBeGreaterThan(30);
+    expect(snapshots[1].covered).toEqual(snapshots[0].covered);
+    if (occluder === "fallback") expect(snapshots[1].visible).toEqual(snapshots[0].visible);
+    else expect(snapshots[1].visible).not.toEqual(snapshots[0].visible);
+    await reference.close();
+  });
+}
 
 test("renders the Adventurer directional player assets", async ({ page }) => {
   await mockGame(page, wideRuinsPayload);

@@ -1,5 +1,18 @@
 # Isometric Actor Sprites
 
+## Runtime color and transparency
+
+Class sprites use binary alpha and keep their source colors under dungeon
+lighting. A reusable sprite-sized canvas captures the player at device-pixel
+resolution; later foreground sprites remove covered pixels before the visible
+player colors are composited over the lit scene. This preserves walls, props,
+and enemy occlusion without changing dungeon lighting or reading pixels back
+each frame. The layer resets every frame and when the scene clears.
+
+If a failed enemy animation falls back to legacy artwork with soft alpha and
+overlaps the player, that frame retains normal scene lighting to preserve the
+fallback's translucent edges without blending them twice.
+
 ## Druid
 
 The Druid is an adult wildwood guardian whose warm umber-brown face remains
