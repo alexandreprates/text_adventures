@@ -1392,6 +1392,28 @@ async function drawnImageSources(page: Page): Promise<string[]> {
   );
 }
 
+type EnemySpriteDraw = { source: string; bounds: number[] };
+type EnemySpriteWindow = Window & { __enemySpriteDraws: EnemySpriteDraw[] };
+
+async function trackEnemySpriteDraws(page: Page) {
+  await page.addInitScript(() => {
+    const draws: EnemySpriteDraw[] = [];
+    (window as unknown as EnemySpriteWindow).__enemySpriteDraws = draws;
+    const original = CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage = function (...args: unknown[]) {
+      const source = args[0];
+      if (source instanceof HTMLImageElement && source.src.includes("/enemies/")) {
+        draws.push({ source: source.src, bounds: args.slice(1) as number[] });
+      }
+      return Reflect.apply(original, this, args);
+    } as typeof original;
+  });
+}
+
+async function enemySpriteDraws(page: Page): Promise<EnemySpriteDraw[]> {
+  return page.evaluate(() => (window as unknown as EnemySpriteWindow).__enemySpriteDraws);
+}
+
 async function mockAutoResupplyGame(page: Page, options: { portal?: boolean; affordable?: boolean; combat?: boolean } = {}) {
   const scroll = { name: "town portal scroll", type: "scroll", effect: "town_portal", quantity: 1, buy_price: 5, trade_enabled: true };
   const replacement = options.portal && options.affordable !== false ? [scroll] : [];
@@ -2794,20 +2816,35 @@ type LootSequenceWindow = Window & {
 for (const { creatureId, displayName, maxHealth } of animatedEnemyFixtures) {
   const payload = animatedEnemyCombatPayload(creatureId, displayName, maxHealth);
 
-  test(`renders the ${displayName} attack sheet without the generic slash`, async ({ page }) => {
+  test(`keeps the ${displayName} identity and scale from idle through attack`, async ({ page }, testInfo) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await mockGame(page, payload, { replayEventsOnAction: true });
+    await mockGame(page, { ...payload, events: [] }, { actionEvents: payload.events });
+    await trackEnemySpriteDraws(page);
     await page.goto("/");
 
     await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
     await expect(page.getByLabel("Enemy status")).toContainText(displayName);
+    const attackPath = `/enemies/${creatureId}-attack.png`;
+    await expect.poll(async () => (await enemySpriteDraws(page)).length).toBeGreaterThan(0);
+    const idle = (await enemySpriteDraws(page)).at(-1)!;
+    expect(idle.source.endsWith(attackPath)).toBe(true);
+    expect(idle.bounds.slice(0, 4)).toEqual([0, 0, 128, 128]);
+    expect(idle.bounds.slice(6)).toEqual([80, 80]);
+    const capture = ["goblin_hexer", "hobgoblin_soldier", "skeleton_archer", "wyvern_juvenile", "fire_elemental_ling"].includes(creatureId);
+    if (capture) await page.screenshot({ path: testInfo.outputPath("enemy-idle.png") });
     await trackDrawnImageSources(page);
     await page.getByRole("button", { name: /attack/i }).click();
 
     await expect.poll(async () => {
-      const sources = await drawnImageSources(page);
-      return sources.some((source) => source.endsWith(`/enemies/${creatureId}-attack.png`));
+      const draws = await enemySpriteDraws(page);
+      return draws.some((draw) => draw.source.endsWith(attackPath) && draw.bounds[1] === 128);
     }).toBe(true);
+    if (capture) await page.screenshot({ path: testInfo.outputPath("enemy-attack.png") });
+    await expect.poll(async () => (await enemySpriteDraws(page)).at(-1)?.bounds).toEqual(idle.bounds);
+
+    const draws = await enemySpriteDraws(page);
+    expect(draws.every((draw) => draw.source.endsWith(attackPath))).toBe(true);
+    expect(draws.every((draw) => draw.bounds[6] === 80 && draw.bounds[7] === 80)).toBe(true);
 
     const sources = await drawnImageSources(page);
     expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
@@ -2844,6 +2881,39 @@ for (const { creatureId, displayName, maxHealth } of animatedEnemyFixtures) {
 
   });
 }
+
+test("waits for the dedicated enemy sheet without flashing a different idle sprite", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const payload = animatedEnemyCombatPayload("goblin_hexer", "Goblin Hexer", 12);
+  await mockGame(page, { ...payload, events: [] });
+  await trackEnemySpriteDraws(page);
+  let releaseSheet!: () => void;
+  const sheetReleased = new Promise<void>((resolve) => { releaseSheet = resolve; });
+  let requested = false;
+  await page.route("**/enemies/goblin_hexer-attack.png", async (route) => {
+    requested = true;
+    await sheetReleased;
+    await route.continue();
+  });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  await expect.poll(() => requested).toBe(true);
+  expect(await enemySpriteDraws(page)).toEqual([]);
+  releaseSheet();
+  await expect.poll(async () => (await enemySpriteDraws(page)).length).toBeGreaterThan(0);
+  expect((await enemySpriteDraws(page)).every((draw) => draw.source.endsWith("/goblin_hexer-attack.png"))).toBe(true);
+});
+
+test("uses the creature's own static sprite if its animation fails to load", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const payload = animatedEnemyCombatPayload("skeleton_archer", "Skeleton Archer", 12);
+  await mockGame(page, { ...payload, events: [] });
+  await trackEnemySpriteDraws(page);
+  await page.route("**/enemies/skeleton_archer-attack.png", (route) => route.abort());
+  await page.goto("/");
+  await expect.poll(async () => (await enemySpriteDraws(page)).length).toBeGreaterThan(0);
+  expect((await enemySpriteDraws(page)).every((draw) => draw.source.endsWith("/enemies/sprites/skeleton_archer.png"))).toBe(true);
+});
 
 test("renders the Druid attack assets during player combat", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -551,11 +551,10 @@ export class IsometricDungeonRenderer {
 
     if (entity.type === "enemy") {
       this.preloadEnemyAnimation(entity);
-      const attackPhase = this.enemyAttackPhase(time);
-      if (attackPhase !== null) {
-        const animated = this.animatedEnemyNode(entity, position, "attack", attackPhase);
-        if (animated) return animated;
-      }
+      // The ready pose shares the animation's identity, scale, and foot anchor.
+      const phase = this.enemyAttackPhase(time) ?? 0;
+      const animated = this.animatedEnemyNode(entity, position, "attack", phase);
+      if (animated) return animated;
 
       return this.actorNode(entity, position, this.combatFrame("enemy", time));
     }
@@ -685,19 +684,21 @@ export class IsometricDungeonRenderer {
       position,
       layer: 20,
       draw: (screen) => {
-        const useDirectionalPlayerFrame = entity.type === "player" && frame === 0;
+        if (entity.type !== "player") {
+          this.drawFallbackEnemy(entity, screen);
+          return;
+        }
+        const useDirectionalPlayerFrame = frame === 0;
         const sheet = useDirectionalPlayerFrame
           ? this.assets!.adventurerFacings
-          : entity.type === "player"
-            ? this.assets!.adventurer
-            : this.enemySheet(entity);
+          : this.assets!.adventurer;
         const sheetFrame = useDirectionalPlayerFrame
           ? adventurerFacingFrame(this.options.playerDirection)
           : frame;
         const bob = frame === 0 && !this.options.reducedMotion ? Math.round(Math.sin(this.lastFrameTime / 280)) : 0;
         if (sheet) {
           const foot = screen.y + TILE_HEIGHT;
-          const baseline = this.actorBaseline(entity);
+          const baseline = 92;
           this.drawSheetFrame(
             sheet,
             sheetFrame,
@@ -710,8 +711,6 @@ export class IsometricDungeonRenderer {
           );
           return;
         }
-
-        this.drawFallbackEnemy(entity, screen);
       },
     };
   }
@@ -726,7 +725,6 @@ export class IsometricDungeonRenderer {
     if (!animation) return null;
 
     const sheet = this.enemyActionSheet(entity.creature_id!, action, animation[action].path);
-    if (!sheet) return null;
 
     const cell = enemyAnimationCell(phase);
     const baseline = animation[action].baselines[phase];
@@ -736,6 +734,12 @@ export class IsometricDungeonRenderer {
       position,
       layer: 20,
       draw: (screen) => {
+        // Do not flash an unrelated static model while the sheet is loading.
+        if (!sheet.complete) return;
+        if (sheet.naturalWidth === 0) {
+          this.drawFallbackEnemy(entity, screen);
+          return;
+        }
         const foot = screen.y + TILE_HEIGHT;
         this.drawSheetCell(
           sheet,
@@ -770,18 +774,19 @@ export class IsometricDungeonRenderer {
     creatureId: string,
     action: EnemyAnimationAction,
     path: string,
-  ): HTMLImageElement | null {
+  ): HTMLImageElement {
     const key = `${creatureId}:${action}`;
     let image = this.enemyActionSheets.get(key);
     if (!image) {
       image = new Image();
       image.decoding = "async";
       image.addEventListener("load", () => this.requestFrame(), { once: true });
+      image.addEventListener("error", () => this.requestFrame(), { once: true });
       image.src = path;
       this.enemyActionSheets.set(key, image);
     }
 
-    return image.complete && image.naturalWidth > 0 ? image : null;
+    return image;
   }
 
   private chestNode(position: Position, frame: number): DepthNode {
@@ -790,21 +795,6 @@ export class IsometricDungeonRenderer {
       layer: 12,
       draw: (screen) => this.drawSheetFrame(this.assets!.chest, frame, 64, 64, screen.x - 32, screen.y - 44),
     };
-  }
-
-  private actorBaseline(entity: PositionedEntity): number {
-    if (entity.type === "player") return 92;
-    const creatureId = entity.creature_id ?? "";
-    if (creatureId.includes("skeleton")) return 107;
-    if (creatureId.includes("goblin")) return 101;
-    return 96;
-  }
-
-  private enemySheet(entity: PositionedEntity): HTMLImageElement | null {
-    const creatureId = entity.creature_id ?? "";
-    if (creatureId.includes("skeleton")) return this.assets!.skeleton;
-    if (creatureId.includes("goblin")) return this.assets!.goblin;
-    return null;
   }
 
   private drawFallbackEnemy(entity: PositionedEntity, screen: ProjectedPoint): void {

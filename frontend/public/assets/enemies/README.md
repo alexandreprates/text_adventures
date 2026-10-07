@@ -72,6 +72,14 @@ Enemy action sheets use a shared production contract:
 - `128x128` frames with binary alpha and at most 32 opaque colors;
 - per-phase ground baselines recorded by the renderer.
 
+For registered animated creatures, the map uses attack phase 0 as the idle
+pose, with the same 80x80 draw size and phase baseline used during combat.
+This keeps identity, equipment, scale, and ground contact consistent when
+an attack starts or ends. Do not select a generic sprite by matching part
+of a creature ID. The individual `sprites/` image is only a fallback for
+creatures without an animation or when the requested sheet fails to load;
+pending sheets redraw on load without flashing a different static model.
+
 ### Giant Spider
 
 The Giant Spider is a massive cave arachnid with a low, forward-facing
