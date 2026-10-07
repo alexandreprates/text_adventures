@@ -408,29 +408,31 @@ module TextAdventures
     end
 
     def viewport_decorations(origin, render_width, render_height)
-      revealed_blocks.flat_map do |(block_x, block_y), block|
-        block_position = BlockPosition.new(x: block_x, y: block_y)
-        block.decorations.filter_map do |decoration|
-          global = global_position(
-            Position.new(x: decoration.fetch(:x), y: decoration.fetch(:y)),
-            block_position
-          )
-          position = viewport_position(global, origin, render_width, render_height)
-          next unless position
+      decorations = []
+      (render_height / height).times do |block_y|
+        (render_width / width).times do |block_x|
+          block = revealed_blocks[[origin.x + block_x, origin.y + block_y]]
+          next unless block
 
-          position.merge(decoration.slice(:kind, :variant))
+          block.decorations.each do |decoration|
+            decorations << decoration.slice(:kind, :variant).merge(
+              x: block_x * width + decoration.fetch(:x),
+              y: block_y * height + decoration.fetch(:y)
+            )
+          end
         end
-      end.sort_by { |decoration| [decoration.fetch(:y), decoration.fetch(:x), decoration.fetch(:kind)] }
+      end
+      decorations.sort_by { |decoration| [decoration.fetch(:y), decoration.fetch(:x), decoration.fetch(:kind)] }
     end
 
     def viewport_loot_entities(origin, render_width, render_height)
-      dropped_loot.keys.filter_map do |key|
+      viewport_entries(dropped_loot, origin, render_width, render_height).filter_map do |key, _loot|
         viewport_entity("loot", Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
       end
     end
 
     def enemy_viewport_entities(origin, render_width, render_height)
-      enemies.filter_map do |key, creature_id|
+      viewport_entries(enemies, origin, render_width, render_height).filter_map do |key, creature_id|
         position = viewport_position(Position.new(x: key[0], y: key[1]), origin, render_width, render_height)
         next unless position
 
@@ -438,6 +440,22 @@ module TextAdventures
           type: "enemy",
           creature_id: creature_id
         )
+      end
+    end
+
+    def viewport_entries(collection, origin, render_width, render_height)
+      return collection.each if collection.size <= render_width * render_height
+
+      Enumerator.new do |entries|
+        start_x = origin.x * width
+        start_y = origin.y * height
+        render_height.times do |y|
+          render_width.times do |x|
+            key = [start_x + x, start_y + y]
+            value = collection[key]
+            entries.yield(key, value) if value
+          end
+        end
       end
     end
 
