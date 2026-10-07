@@ -21,6 +21,59 @@ type MusicTestWindow = Window & {
   __pushGamePatch: (patch: Record<string, unknown>, events: []) => void;
 };
 
+test("avoids map-cache writes for manual typing and unchanged server terrain", async ({ page }) => {
+  await mockGame(page, isometricRuinsPayload);
+  await observeExplorationWrites(page);
+  await page.goto("/");
+  await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
+  await expect.poll(() => explorationWriteCount(page)).toBe(1);
+  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.locator("#command-input").fill("look");
+  await page.locator("#command-input").press("Enter");
+  await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
+  await page.evaluate((dungeon) => (window as unknown as MusicTestWindow).__pushGamePatch({ dungeon }, []), isometricRuinsPayload.state.dungeon);
+  await page.waitForTimeout(900);
+  expect(await explorationWriteCount(page)).toBe(1);
+});
+
+test("flushes coalesced map discoveries on pagehide and forgets an abandoned floor", async ({ page }) => {
+  await mockGame(page, isometricRuinsPayload);
+  await observeExplorationWrites(page);
+  await page.goto("/");
+  await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
+  await expect.poll(() => explorationWriteCount(page)).toBe(1);
+  const dungeon = isometricRuinsPayload.state.dungeon as Record<string, unknown>;
+  const viewport = dungeon.viewport as Record<string, unknown>;
+  await page.evaluate((dungeon) => (window as unknown as MusicTestWindow).__pushGamePatch({ dungeon }, []), {
+    ...dungeon, viewport: { ...viewport, origin: { x: 30, y: 0 } },
+  });
+  await page.waitForTimeout(50);
+  expect(await explorationWriteCount(page)).toBe(1);
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  expect(await explorationWriteCount(page)).toBe(2);
+  const memory = await page.evaluate(() => JSON.parse(localStorage.getItem("text_adventures.auto_explore.demo-game")!));
+  expect(memory.cells).toContainEqual(["30,0", "wall"]);
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ scene: "town", dungeon: null, town_portal: null }, []));
+  await page.waitForTimeout(900);
+  expect(await page.evaluate(() => localStorage.getItem("text_adventures.auto_explore.demo-game"))).toBeNull();
+});
+
+async function observeExplorationWrites(page: Page) {
+  await page.addInitScript(() => {
+    const observed = window as unknown as { __explorationWrites: number };
+    observed.__explorationWrites = 0;
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith("text_adventures.auto_explore.")) observed.__explorationWrites++;
+      return original.call(this, key, value);
+    };
+  });
+}
+
+async function explorationWriteCount(page: Page) {
+  return page.evaluate(() => (window as unknown as { __explorationWrites: number }).__explorationWrites);
+}
+
 test("plays the selected soundtrack, crossfades scenes, and remembers mute", async ({ page }) => {
   await mockGame(page, townPayload, { enableMusic: true });
   await page.addInitScript(() => {

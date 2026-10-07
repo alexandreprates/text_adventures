@@ -3,6 +3,7 @@ import type { AutoExploreGoal, ConnectionStatus, GameState, Item, Position, Spel
 import { samePosition } from "../lib/viewModels";
 import { autoExploreStepDelay, autoExploreStepDuration } from "../lib/autoExploreTiming";
 import { AutoExploreMap, explorationPathSteps, type KnownCellType } from "../lib/autoExploreMap";
+import { ExplorationCache } from "../lib/explorationCache";
 
 export type AutoExploreStopReason =
   | "level complete"
@@ -97,6 +98,9 @@ export function useAutoExplore({
   const connectionStatusRef = useRef<ConnectionStatus>(connectionStatus);
   const planningRef = useRef(false);
   const generationRef = useRef(0);
+  const appliedRef = useRef<{ state: GameState | null; gameId: string | null; connectionStatus: ConnectionStatus } | null>(null);
+  const cacheRef = useRef(new ExplorationCache((key, value) => window.localStorage.setItem(key, value)));
+  const knowledgeRef = useRef<GameState["dungeon"] | null>(null);
   const timerRef = useRef<number | null>(null);
   const modelRef = useRef<AutoExploreModel>({
     enabled: false,
@@ -187,6 +191,7 @@ export function useAutoExplore({
     generationRef.current++;
     stopModel(reason);
     clearAutoExploreTimer();
+    cacheRef.current.flush();
     publish();
   }
 
@@ -674,6 +679,8 @@ export function useAutoExplore({
     const currentGameId = gameIdRef.current;
     const model = modelRef.current;
 
+    if (!currentState) return;
+
     if (currentState?.scene !== "ruins" && !(currentState?.town_portal && playerAlive(currentState))) {
       forgetAutoExploreMemory(currentGameId);
       clearAutoExploreKnowledge();
@@ -684,6 +691,7 @@ export function useAutoExplore({
     if (!currentGameId) return;
 
     if (model.memoryGameId !== currentGameId) {
+      cacheRef.current.flush();
       clearAutoExploreKnowledge();
       model.memoryGameId = currentGameId;
     }
@@ -722,13 +730,17 @@ export function useAutoExplore({
   }
 
   function updateAutoExploreKnowledge() {
+    if (knowledgeRef.current === stateRef.current?.dungeon) return;
     const viewport = stateRef.current?.dungeon?.viewport;
     if (!viewport?.origin) return;
+    knowledgeRef.current = stateRef.current?.dungeon;
 
     const currentState = stateRef.current;
     const model = modelRef.current;
     const level = currentState?.dungeon?.level ?? null;
     if (model.knownLevel !== level) {
+      cacheRef.current.flush();
+      cacheRef.current.discard();
       model.navigation.clear();
       model.visited.clear();
       model.currentPath = [];
@@ -742,6 +754,12 @@ export function useAutoExplore({
       Math.floor(viewport.width / 3), Math.floor(viewport.height / 3),
       [dungeon?.ascent, dungeon?.descent, dungeon?.entrance_portal].filter((position): position is Position => Boolean(position)),
     );
+    const entities = new Map<string, KnownCellType>();
+    for (const entity of viewport.entities || []) {
+      const position = { x: viewport.origin.x + entity.x, y: viewport.origin.y + entity.y };
+      entities.set(positionKey(position)!, ["ascent", "descent", "portal"].includes(entity.type) &&
+        !samePosition(position, dungeon?.player_position) ? "transition" : "open");
+    }
     for (let y = 0; y < viewport.height; y += 1) {
       for (let x = 0; x < viewport.width; x += 1) {
         const tile = terrain[y * viewport.width + x];
@@ -751,23 +769,12 @@ export function useAutoExplore({
           x: viewport.origin.x + x,
           y: viewport.origin.y + y,
         };
-        model.navigation.setCell(positionKey(position) || "", tile === "#" ? "wall" : "open");
+        const key = positionKey(position)!;
+        model.navigation.setCell(key, entities.get(key) ?? (tile === "#" ? "wall" : "open"));
       }
     }
 
-    (viewport.entities || []).forEach((entity) => {
-      const position = {
-        x: viewport.origin!.x + entity.x,
-        y: viewport.origin!.y + entity.y,
-      };
-      const currentPlayerPosition = currentState?.dungeon?.player_position;
-      const type =
-        ["ascent", "descent", "portal"].includes(entity.type) &&
-        !samePosition(position, currentPlayerPosition)
-          ? "transition"
-          : "open";
-      model.navigation.setCell(positionKey(position) || "", type);
-    });
+    entities.forEach((type, key) => model.navigation.setCell(key, type));
 
     saveAutoExploreMemory();
   }
@@ -968,6 +975,7 @@ export function useAutoExplore({
   }
 
   function forgetAutoExploreMemory(currentGameId = gameIdRef.current) {
+    cacheRef.current.discard();
     const key = autoExploreMemoryKey(currentGameId);
     if (!key) return;
 
@@ -979,6 +987,8 @@ export function useAutoExplore({
   }
 
   function clearAutoExploreKnowledge() {
+    knowledgeRef.current = null;
+    cacheRef.current.discard();
     const model = modelRef.current;
     model.navigation.clear();
     model.visited.clear();
@@ -992,36 +1002,44 @@ export function useAutoExplore({
     const model = modelRef.current;
     if (!key || model.knownLevel === null) return;
 
-    try {
-      window.localStorage.setItem(
-        key,
+    cacheRef.current.queue(key, `${model.knownLevel}:${model.navigation.revision}:${model.visited.size}`, () =>
         JSON.stringify({
           level: model.knownLevel,
           cells: Array.from(model.navigation.cells.entries()),
           visited: Array.from(model.visited),
           failedMoves: Array.from(model.navigation.failedMoves),
         }),
-      );
-    } catch {
-      // localStorage can be unavailable in restricted browser contexts.
-    }
+    );
   }
 
   useEffect(() => {
+    const previous = appliedRef.current;
+    const stateChanged = !previous || previous.state !== state || previous.gameId !== gameId;
+    const connectionChanged = previous?.connectionStatus !== connectionStatus;
+    if (previous?.gameId !== gameId || previous?.state?.dungeon?.level !== state?.dungeon?.level) cacheRef.current.flush();
     stateRef.current = state;
     gameIdRef.current = gameId;
     connectionStatusRef.current = connectionStatus;
-    restoreAutoExploreMemory();
-    updateAutoExploreKnowledge();
-    trackAutoExploreResult();
-    scheduleAutoExplore();
-    deferPublish();
+    appliedRef.current = { state, gameId, connectionStatus };
+    if (stateChanged) {
+      restoreAutoExploreMemory();
+      updateAutoExploreKnowledge();
+      trackAutoExploreResult();
+      if (previous?.state?.scene !== state?.scene) cacheRef.current.flush();
+      deferPublish();
+    }
+    if (stateChanged || connectionChanged) scheduleAutoExplore();
   });
 
   useEffect(() => {
     const model = modelRef.current;
     const generation = generationRef;
+    const cache = cacheRef.current;
+    const flush = () => cache.flush();
+    window.addEventListener("pagehide", flush);
     return () => {
+      window.removeEventListener("pagehide", flush);
+      cache.flush();
       generation.current++;
       model.enabled = false;
       if (!timerRef.current) return;
