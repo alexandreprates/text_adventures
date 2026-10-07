@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { AutoExploreGoal, ConnectionStatus, GameState, Item, Position, Spell } from "../lib/types";
 import { samePosition } from "../lib/viewModels";
 import { autoExploreStepDelay, autoExploreStepDuration } from "../lib/autoExploreTiming";
+import { AutoExploreMap, explorationPathSteps, type KnownCellType } from "../lib/autoExploreMap";
 
-type KnownCellType = "open" | "wall" | "transition";
 export type AutoExploreStopReason =
   | "level complete"
   | "error"
@@ -20,9 +20,8 @@ type AutoExploreModel = {
   enabled: boolean;
   resupplying: boolean;
   memoryGameId: string | null;
-  knownCells: Map<string, KnownCellType>;
+  navigation: AutoExploreMap;
   visited: Set<string>;
-  failedMoves: Set<string>;
   currentPath: string[];
   destinationKey: string | null;
   goal: AutoExploreGoal;
@@ -72,6 +71,7 @@ type Decision =
   | { command: string; status: string; stopReason?: never }
   | { command?: never; status?: never; stopReason: AutoExploreStopReason };
 
+const SEARCH_CANCELLED = Symbol("search cancelled");
 const AUTO_EXPLORE_MEMORY_KEY_PREFIX = "text_adventures.auto_explore.";
 const AUTO_EXPLORE_SPEEDS = [1, 2, 3];
 const AUTO_EXPLORE_PENDING_TIMEOUT_MS = 5000;
@@ -95,14 +95,15 @@ export function useAutoExplore({
   const stateRef = useRef<GameState | null>(state);
   const gameIdRef = useRef<string | null>(gameId);
   const connectionStatusRef = useRef<ConnectionStatus>(connectionStatus);
+  const planningRef = useRef(false);
+  const generationRef = useRef(0);
   const timerRef = useRef<number | null>(null);
   const modelRef = useRef<AutoExploreModel>({
     enabled: false,
     resupplying: false,
     memoryGameId: null,
-    knownCells: new Map(),
+    navigation: new AutoExploreMap(),
     visited: new Set(),
-    failedMoves: new Set(),
     currentPath: [],
     destinationKey: null,
     goal: "explore",
@@ -154,6 +155,7 @@ export function useAutoExplore({
   }
 
   function start(goal: AutoExploreGoal = "explore") {
+    generationRef.current++;
     if (!canRun()) {
       setStatusText("Auto: enter ruins");
       return;
@@ -182,12 +184,14 @@ export function useAutoExplore({
   }
 
   function stop(reason: AutoExploreStopReason = "stopped") {
+    generationRef.current++;
     stopModel(reason);
     clearAutoExploreTimer();
     publish();
   }
 
   function setGoal(goal: AutoExploreGoal) {
+    generationRef.current++;
     if (!canRun()) {
       setStatusText("Auto: enter ruins");
       return;
@@ -241,7 +245,7 @@ export function useAutoExplore({
       return;
     }
 
-    if (model.actionInFlight || connectionStatusRef.current === "sending") {
+    if (planningRef.current || model.actionInFlight || connectionStatusRef.current === "sending") {
       if (model.pendingSince && Date.now() - model.pendingSince > AUTO_EXPLORE_PENDING_TIMEOUT_MS) {
         stop("error");
         return;
@@ -261,7 +265,26 @@ export function useAutoExplore({
     timerRef.current = null;
     if (!model.enabled || model.actionInFlight) return;
 
-    const decision = nextAutoExploreDecision();
+    if (planningRef.current) return;
+    planningRef.current = true;
+    const generation = generationRef.current;
+    const decisionState = stateRef.current;
+    const decisionGame = gameIdRef.current;
+    let decision: Decision;
+    try {
+      decision = await nextAutoExploreDecision();
+    } catch (error) {
+      if (error !== SEARCH_CANCELLED) stop("error");
+      scheduleAutoExplore();
+      return;
+    } finally {
+      planningRef.current = false;
+    }
+    if (!model.enabled || generation !== generationRef.current) return;
+    if (decisionState !== stateRef.current || decisionGame !== gameIdRef.current || connectionStatusRef.current !== "online") {
+      scheduleAutoExplore();
+      return;
+    }
     if (decision.stopReason) {
       stop(decision.stopReason);
       return;
@@ -303,7 +326,7 @@ export function useAutoExplore({
     return autoExploreStepDuration(modelRef.current.speedMultiplier);
   }
 
-  function nextAutoExploreDecision(): Decision {
+  async function nextAutoExploreDecision(): Promise<Decision> {
     const currentState = stateRef.current;
     const model = modelRef.current;
     if (model.resupplying) return nextAutoExploreResupplyDecision();
@@ -335,7 +358,7 @@ export function useAutoExplore({
         return { command: "attack", status: "Auto: fighting" };
       }
 
-      const direction = nextDirectionTowardVisibleEnemy(visibleEnemy);
+      const direction = await nextDirectionTowardVisibleEnemy(visibleEnemy);
       if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
     }
 
@@ -345,13 +368,13 @@ export function useAutoExplore({
       return { command: "loot", status: "Auto: looting" };
     }
 
-    const direction = nextAutoExploreDirection();
+    const direction = await nextAutoExploreDirection();
     return direction
       ? { command: `go ${direction}`, status: "Auto: exploring" }
       : autoExploreLevelCompleteDecision();
   }
 
-  function autoExploreLevelCompleteDecision(): Decision {
+  async function autoExploreLevelCompleteDecision(): Promise<Decision> {
     const model = modelRef.current;
     if (!autoExploreDescentFound()) return { stopReason: "level complete" };
 
@@ -364,7 +387,7 @@ export function useAutoExplore({
     return nextAutoExploreGoalDecision();
   }
 
-  function nextAutoExploreGoalDecision(): Decision {
+  async function nextAutoExploreGoalDecision(): Promise<Decision> {
     const currentState = stateRef.current;
     const model = modelRef.current;
     if (!currentState?.dungeon) return { stopReason: "stopped" };
@@ -379,7 +402,7 @@ export function useAutoExplore({
     }
 
     if (model.goal === "descent" && autoExploreShouldHuntBeforeDescent()) {
-      const direction = nextAutoExploreDirection();
+      const direction = await nextAutoExploreDirection();
       if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
     }
 
@@ -390,7 +413,7 @@ export function useAutoExplore({
     const target = autoExploreGoalPosition();
     if (!target) return { stopReason: "target unavailable" };
 
-    const direction = nextAutoExploreTargetDirection(target);
+    const direction = await nextAutoExploreTargetDirection(target);
     if (!direction) return { stopReason: "no path" };
 
     return {
@@ -399,12 +422,12 @@ export function useAutoExplore({
     };
   }
 
-  function nextAutoExploreDeepExplorationDecision(): Decision {
+  async function nextAutoExploreDeepExplorationDecision(): Promise<Decision> {
     if (stateRef.current?.dungeon?.nearby_loot) {
       return { command: "loot", status: "Auto: looting" };
     }
 
-    const direction = nextAutoExploreDirection();
+    const direction = await nextAutoExploreDirection();
     return direction
       ? { command: `go ${direction}`, status: "Auto: seeking descent" }
       : autoExploreLevelCompleteDecision();
@@ -430,7 +453,7 @@ export function useAutoExplore({
     return null;
   }
 
-  function nextAutoExploreTargetDirection(target: Position) {
+  async function nextAutoExploreTargetDirection(target: Position) {
     const currentState = stateRef.current;
     const position = currentState?.dungeon?.player_position;
     if (!position) return null;
@@ -439,7 +462,7 @@ export function useAutoExplore({
       return nextDirectionAwayFromAutoExploreTarget(position);
     }
 
-    const path = shortestAutoExplorePath(position, [target], { allowTransitionGoal: true });
+    const path = await shortestAutoExplorePath(position, [target], { allowTransitionGoal: true });
     return path.length >= 2 ? directionBetween(position, positionFromKey(path[1])) : null;
   }
 
@@ -449,7 +472,7 @@ export function useAutoExplore({
 
     return (
       AUTO_EXPLORE_DIRECTIONS.find((direction) => {
-        if (modelRef.current.failedMoves.has(`${currentKey}:${direction}`)) return false;
+        if (modelRef.current.navigation.failedMoves.has(`${currentKey}:${direction}`)) return false;
 
         const step = AUTO_EXPLORE_STEPS[direction];
         const nextPosition = { x: position.x + step.x, y: position.y + step.y };
@@ -481,7 +504,7 @@ export function useAutoExplore({
     );
   }
 
-  function startAutoExploreResupply(): Decision {
+  async function startAutoExploreResupply(): Promise<Decision> {
     modelRef.current.resupplying = true;
     prepareAutoExploreTownGoal();
     return nextAutoExploreGoalDecision();
@@ -498,7 +521,7 @@ export function useAutoExplore({
     model.repeatCount = 0;
   }
 
-  function nextAutoExploreResupplyDecision(): Decision {
+  async function nextAutoExploreResupplyDecision(): Promise<Decision> {
     const currentState = stateRef.current;
     if (!currentState) return { stopReason: "stopped" };
     if (!playerAlive(currentState)) return { stopReason: "dead" };
@@ -617,18 +640,18 @@ export function useAutoExplore({
     return Math.max(0, Number(health.max || 0) - Number(health.current || 0));
   }
 
-  function nextAutoExploreDirection() {
+  async function nextAutoExploreDirection() {
     const position = stateRef.current?.dungeon?.player_position;
     if (!position) return null;
 
     const frontierDirection = unexploredDirectionFrom(position);
     if (frontierDirection) return frontierDirection;
 
-    const nextPosition = nextPositionOnAutoExplorePath(position);
+    const nextPosition = await nextPositionOnAutoExplorePath(position);
     return nextPosition ? directionBetween(position, nextPosition) : null;
   }
 
-  function nextPositionOnAutoExplorePath(position: Position) {
+  async function nextPositionOnAutoExplorePath(position: Position) {
     const model = modelRef.current;
     const currentKey = positionKey(position);
     if (!currentKey) return null;
@@ -638,7 +661,7 @@ export function useAutoExplore({
       return positionFromKey(model.currentPath[0]);
     }
 
-    const path = pathToNearestAutoExploreFrontier(position);
+    const path = await pathToNearestAutoExploreFrontier(position);
     if (path.length < 2) return null;
 
     model.currentPath = path.slice(1);
@@ -684,14 +707,14 @@ export function useAutoExplore({
       model.knownLevel = payload.level ?? null;
       (payload.cells || []).forEach(([cellKey, type]) => {
         if (typeof cellKey === "string" && ["open", "wall", "transition"].includes(type)) {
-          model.knownCells.set(cellKey, type);
+          model.navigation.setCell(cellKey, type);
         }
       });
       (payload.visited || []).forEach((cellKey) => {
         if (typeof cellKey === "string") model.visited.add(cellKey);
       });
       (payload.failedMoves || []).forEach((edgeKey) => {
-        if (typeof edgeKey === "string") model.failedMoves.add(edgeKey);
+        if (typeof edgeKey === "string") model.navigation.blockEdge(edgeKey);
       });
     } catch {
       clearAutoExploreKnowledge();
@@ -706,15 +729,19 @@ export function useAutoExplore({
     const model = modelRef.current;
     const level = currentState?.dungeon?.level ?? null;
     if (model.knownLevel !== level) {
-      model.knownCells.clear();
+      model.navigation.clear();
       model.visited.clear();
-      model.failedMoves.clear();
       model.currentPath = [];
       model.destinationKey = null;
       model.knownLevel = level;
     }
 
     const terrain = String(viewport.terrain || "").padEnd(viewport.width * viewport.height, "?");
+    const dungeon = currentState?.dungeon;
+    model.navigation.configure(
+      Math.floor(viewport.width / 3), Math.floor(viewport.height / 3),
+      [dungeon?.ascent, dungeon?.descent, dungeon?.entrance_portal].filter((position): position is Position => Boolean(position)),
+    );
     for (let y = 0; y < viewport.height; y += 1) {
       for (let x = 0; x < viewport.width; x += 1) {
         const tile = terrain[y * viewport.width + x];
@@ -724,7 +751,7 @@ export function useAutoExplore({
           x: viewport.origin.x + x,
           y: viewport.origin.y + y,
         };
-        model.knownCells.set(positionKey(position) || "", tile === "#" ? "wall" : "open");
+        model.navigation.setCell(positionKey(position) || "", tile === "#" ? "wall" : "open");
       }
     }
 
@@ -739,7 +766,7 @@ export function useAutoExplore({
         !samePosition(position, currentPlayerPosition)
           ? "transition"
           : "open";
-      model.knownCells.set(positionKey(position) || "", type);
+      model.navigation.setCell(positionKey(position) || "", type);
     });
 
     saveAutoExploreMemory();
@@ -756,7 +783,7 @@ export function useAutoExplore({
     };
   }
 
-  function nextDirectionTowardVisibleEnemy(enemyPosition: Position) {
+  async function nextDirectionTowardVisibleEnemy(enemyPosition: Position) {
     const position = stateRef.current?.dungeon?.player_position;
     if (!position) return null;
 
@@ -768,51 +795,43 @@ export function useAutoExplore({
         walkableKnownPositionKey(positionKey(candidate)) && !isLevelTransitionPosition(candidate),
     );
 
-    const path = shortestAutoExplorePath(position, targetPositions);
+    const path = await shortestAutoExplorePath(position, targetPositions);
     return path.length >= 2 ? directionBetween(position, positionFromKey(path[1])) : null;
   }
 
-  function pathToNearestAutoExploreFrontier(start: Position) {
-    return shortestAutoExplorePath(start, autoExploreFrontierPositions());
+  async function pathToNearestAutoExploreFrontier(start: Position) {
+    return searchPath(start, modelRef.current.navigation.frontierTargets());
   }
 
-  function shortestAutoExplorePath(
+  async function shortestAutoExplorePath(
     start: Position,
     targets: Position[],
     options: { allowTransitionGoal?: boolean } = {},
   ) {
-    let bestPath: string[] = [];
-
-    targets.forEach((target) => {
-      const path = findAutoExplorePath(start, target, options);
-      if (path.length && (!bestPath.length || path.length < bestPath.length)) bestPath = path;
-    });
-
-    return bestPath;
+    return searchPath(start, targets.map((target) => positionKey(target)!), options.allowTransitionGoal);
   }
 
-  function autoExploreFrontierPositions() {
-    return Array.from(modelRef.current.knownCells.entries())
-      .filter(([, type]) => type === "open")
-      .map(([key]) => positionFromKey(key))
-      .filter((position) => Boolean(unexploredDirectionFrom(position)));
+  async function searchPath(start: Position, targets: string[], allowTransitionGoal = false) {
+    const model = modelRef.current;
+    const sourceState = stateRef.current;
+    const sourceGame = gameIdRef.current;
+    const generation = generationRef.current;
+    const search = explorationPathSteps(positionKey(start)!, targets, model.navigation.cells, model.navigation.failedMoves, allowTransitionGoal);
+    let deadline = performance.now() + 4;
+    let result = search.next();
+    while (!result.done) {
+      if (performance.now() >= deadline) {
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+        if (!model.enabled || generation !== generationRef.current || sourceState !== stateRef.current || sourceGame !== gameIdRef.current) throw SEARCH_CANCELLED;
+        deadline = performance.now() + 4;
+      }
+      result = search.next();
+    }
+    return result.value;
   }
 
   function unexploredDirectionFrom(position: Position) {
-    const currentKey = positionKey(position);
-    if (!currentKey) return null;
-
-    return (
-      AUTO_EXPLORE_DIRECTIONS.find((direction) => {
-        const step = AUTO_EXPLORE_STEPS[direction];
-        const nextPosition = { x: position.x + step.x, y: position.y + step.y };
-        if (modelRef.current.failedMoves.has(`${currentKey}:${direction}`)) return false;
-        if (isLevelTransitionPosition(nextPosition)) return false;
-        if (modelRef.current.knownCells.has(positionKey(nextPosition) || "")) return false;
-
-        return isBlockExitPosition(position, direction);
-      }) || null
-    );
+    return modelRef.current.navigation.unexploredDirection(position);
   }
 
   function isLevelTransitionPosition(position: Position) {
@@ -824,125 +843,12 @@ export function useAutoExplore({
     );
   }
 
-  function findAutoExplorePath(
-    start: Position,
-    goal: Position,
-    options: { allowTransitionGoal?: boolean } = {},
-  ) {
-    const startKey = positionKey(start);
-    const goalKey = positionKey(goal);
-    if (
-      !startKey ||
-      !goalKey ||
-      !walkableKnownPositionKey(startKey) ||
-      !walkableAutoExploreGoalKey(goalKey, options)
-    ) {
-      return [];
-    }
-
-    const openSet = new Set([startKey]);
-    const cameFrom = new Map<string, string>();
-    const gScore = new Map([[startKey, 0]]);
-    const fScore = new Map([[startKey, manhattanDistance(start, goal)]]);
-
-    while (openSet.size) {
-      const currentKey = lowestScoreKey(openSet, fScore);
-      if (currentKey === goalKey) return reconstructAutoExplorePath(cameFrom, currentKey);
-
-      openSet.delete(currentKey);
-      autoExploreNeighbors(currentKey, goalKey, options).forEach((neighborKey) => {
-        const tentativeScore = (gScore.get(currentKey) ?? Infinity) + 1;
-        if (tentativeScore >= (gScore.get(neighborKey) ?? Infinity)) return;
-
-        cameFrom.set(neighborKey, currentKey);
-        gScore.set(neighborKey, tentativeScore);
-        fScore.set(neighborKey, tentativeScore + manhattanDistance(positionFromKey(neighborKey), goal));
-        openSet.add(neighborKey);
-      });
-    }
-
-    return [];
-  }
-
-  function autoExploreNeighbors(
-    key: string,
-    goalKey: string | null = null,
-    options: { allowTransitionGoal?: boolean } = {},
-  ) {
-    const position = positionFromKey(key);
-    return AUTO_EXPLORE_DIRECTIONS.map((direction) => {
-      const step = AUTO_EXPLORE_STEPS[direction];
-      const nextPosition = { x: position.x + step.x, y: position.y + step.y };
-      const nextKey = positionKey(nextPosition);
-      if (!nextKey) return null;
-      const walkable =
-        nextKey === goalKey
-          ? walkableAutoExploreGoalKey(nextKey, options)
-          : walkableKnownPositionKey(nextKey);
-      return blockedAutoExploreEdge(key, direction) || !walkable ? null : nextKey;
-    }).filter((key): key is string => Boolean(key));
-  }
-
-  function blockedAutoExploreEdge(key: string, direction: string) {
-    return modelRef.current.failedMoves.has(`${key}:${direction}`);
-  }
-
   function walkableKnownPositionKey(key: string | null) {
-    return Boolean(key && modelRef.current.knownCells.get(key) === "open");
-  }
-
-  function walkableAutoExploreGoalKey(
-    key: string,
-    options: { allowTransitionGoal?: boolean } = {},
-  ) {
-    return (
-      walkableKnownPositionKey(key) ||
-      Boolean(options.allowTransitionGoal && modelRef.current.knownCells.get(key) === "transition")
-    );
-  }
-
-  function lowestScoreKey(keys: Set<string>, scores: Map<string, number>) {
-    return Array.from(keys).reduce((bestKey, key) =>
-      (scores.get(key) ?? Infinity) < (scores.get(bestKey) ?? Infinity) ? key : bestKey,
-    );
-  }
-
-  function reconstructAutoExplorePath(cameFrom: Map<string, string>, currentKey: string) {
-    const path = [currentKey];
-    let nextKey = currentKey;
-    while (cameFrom.has(nextKey)) {
-      nextKey = cameFrom.get(nextKey)!;
-      path.unshift(nextKey);
-    }
-
-    return path;
+    return Boolean(key && modelRef.current.navigation.cells.get(key) === "open");
   }
 
   function manhattanDistance(left: Position, right: Position) {
     return Math.abs(left.x - right.x) + Math.abs(left.y - right.y);
-  }
-
-  function isBlockExitPosition(position: Position, direction: string) {
-    const viewport = stateRef.current?.dungeon?.viewport;
-    if (!viewport) return false;
-
-    const blockWidth = Math.floor(viewport.width / 3);
-    const blockHeight = Math.floor(viewport.height / 3);
-    if (blockWidth <= 0 || blockHeight <= 0) return false;
-
-    const localX = positiveModulo(position.x, blockWidth);
-    const localY = positiveModulo(position.y, blockHeight);
-
-    return (
-      (direction === "up" && localY === 0) ||
-      (direction === "right" && localX === blockWidth - 1) ||
-      (direction === "down" && localY === blockHeight - 1) ||
-      (direction === "left" && localX === 0)
-    );
-  }
-
-  function positiveModulo(value: number, divisor: number) {
-    return ((value % divisor) + divisor) % divisor;
   }
 
   function directionBetween(from: Position, to: Position) {
@@ -975,7 +881,7 @@ export function useAutoExplore({
 
     if (currentKey === model.lastPositionKey) {
       const direction = model.lastAction.slice(3);
-      model.failedMoves.add(`${model.lastPositionKey}:${direction}`);
+      model.navigation.blockEdge(`${model.lastPositionKey}:${direction}`);
       saveAutoExploreMemory();
       model.repeatCount += 1;
       model.currentPath = [];
@@ -1054,7 +960,7 @@ export function useAutoExplore({
 
   function autoExploreDescentFound() {
     const key = positionKey(stateRef.current?.dungeon?.descent);
-    return Boolean(key && modelRef.current.knownCells.get(key) === "transition");
+    return Boolean(key && modelRef.current.navigation.cells.get(key) === "transition");
   }
 
   function autoExploreMemoryKey(currentGameId = gameIdRef.current) {
@@ -1074,9 +980,8 @@ export function useAutoExplore({
 
   function clearAutoExploreKnowledge() {
     const model = modelRef.current;
-    model.knownCells.clear();
+    model.navigation.clear();
     model.visited.clear();
-    model.failedMoves.clear();
     model.currentPath = [];
     model.destinationKey = null;
     model.knownLevel = null;
@@ -1092,9 +997,9 @@ export function useAutoExplore({
         key,
         JSON.stringify({
           level: model.knownLevel,
-          cells: Array.from(model.knownCells.entries()),
+          cells: Array.from(model.navigation.cells.entries()),
           visited: Array.from(model.visited),
-          failedMoves: Array.from(model.failedMoves),
+          failedMoves: Array.from(model.navigation.failedMoves),
         }),
       );
     } catch {
@@ -1114,7 +1019,11 @@ export function useAutoExplore({
   });
 
   useEffect(() => {
+    const model = modelRef.current;
+    const generation = generationRef;
     return () => {
+      generation.current++;
+      model.enabled = false;
       if (!timerRef.current) return;
 
       window.clearTimeout(timerRef.current);
