@@ -8,6 +8,8 @@ export type ConnectionStatus =
 export type CollectionTab = "inventory" | "spells";
 export type AutoExploreGoal = "explore" | "town" | "descent";
 
+export type LootAnimationGate = { pending: boolean };
+
 export type SceneName =
   | "town"
   | "tavern"

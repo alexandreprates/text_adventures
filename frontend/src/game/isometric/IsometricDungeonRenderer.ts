@@ -2,6 +2,7 @@ import type {
   DungeonDecoration,
   DungeonViewport,
   GameEvent,
+  LootAnimationGate,
   Position,
   ViewportEntity,
 } from "../../lib/types";
@@ -66,6 +67,7 @@ const CAMERA_ANCHOR_Y = LOGICAL_HEIGHT / 2 +
   directionalClassAnimationLayout.baseline * ACTOR_SCALE - TILE_HEIGHT - ACTOR_DRAW_HEIGHT / 2;
 
 type RendererOptions = {
+  lootAnimation?: LootAnimationGate;
   playerClass?: string;
   playerDirection?: string;
   playerDead?: boolean;
@@ -148,9 +150,11 @@ export class IsometricDungeonRenderer {
     const nextPlayer = playerPosition(viewport);
     const levelChanged = this.options.dungeonLevel !== options.dungeonLevel;
 
+    if (levelChanged) this.clear();
     this.captureTransientEntities(this.viewport, viewport, now);
     this.viewport = viewport;
     this.options = options;
+    if (this.hasCoveredLoot() && options.lootAnimation) options.lootAnimation.pending = true;
 
     if (nextPlayer) {
       const distance = previousPlayer
@@ -170,8 +174,17 @@ export class IsometricDungeonRenderer {
   }
 
   destroy(): void {
+    this.clear();
     if (this.frameRequest !== null) cancelAnimationFrame(this.frameRequest);
     this.frameRequest = null;
+  }
+
+  clear(): void {
+    if (this.options.lootAnimation) this.options.lootAnimation.pending = false;
+    this.viewport = null;
+    this.vanishedEnemies = [];
+    this.openedLoot = [];
+    this.combat = null;
   }
 
   private requestFrame(): void {
@@ -192,6 +205,8 @@ export class IsometricDungeonRenderer {
     }
 
     this.lastFrameTime = time;
+    this.vanishedEnemies = this.vanishedEnemies.filter((entity) => entity.expiresAt > time);
+    this.openedLoot = this.openedLoot.filter((entity) => entity.expiresAt > time);
     this.context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     this.context.imageSmoothingEnabled = false;
 
@@ -202,8 +217,8 @@ export class IsometricDungeonRenderer {
     this.drawFallbackCombatEffect(camera, time);
     this.drawDungeonLighting(camera, time);
 
-    this.vanishedEnemies = this.vanishedEnemies.filter((entity) => entity.expiresAt > time);
-    this.openedLoot = this.openedLoot.filter((entity) => entity.expiresAt > time);
+    // Release automation only after a frame without the corpse has actually been drawn.
+    if (this.options.lootAnimation) this.options.lootAnimation.pending = this.hasCoveredLoot();
     if (this.shouldAnimate(time)) this.requestFrame();
   }
 
@@ -418,6 +433,7 @@ export class IsometricDungeonRenderer {
     });
 
     positionedEntities(this.viewport).forEach((entity) => {
+      if (entity.type === "loot" && this.lootCoveredByCorpse(entity)) return;
       const position = entity.type === "player" ? this.animatedPlayerPosition(time) ?? entity : entity;
       nodes.push(this.entityNode(entity, position, time));
     });
@@ -426,6 +442,7 @@ export class IsometricDungeonRenderer {
       nodes.push(this.vanishedEnemyNode(entity, time));
     });
     this.openedLoot.forEach((entity) => {
+      if (this.lootCoveredByCorpse(entity)) return;
       nodes.push(this.chestNode(entity, 3));
     });
 
@@ -956,6 +973,16 @@ export class IsometricDungeonRenderer {
     if (!this.options.reducedMotion) return true;
     if (this.combat && time < this.combat.startedAt + this.combat.durationMs) return true;
     return this.vanishedEnemies.length > 0 || this.openedLoot.length > 0;
+  }
+
+  private lootCoveredByCorpse(position: Position): boolean {
+    return this.vanishedEnemies.some((enemy) => enemy.x === position.x && enemy.y === position.y);
+  }
+
+  private hasCoveredLoot(): boolean {
+    return Boolean(this.viewport && positionedEntities(this.viewport).some(
+      (entity) => entity.type === "loot" && this.lootCoveredByCorpse(entity),
+    ));
   }
 
   private captureTransientEntities(

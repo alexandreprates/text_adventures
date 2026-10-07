@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { IsometricDungeonRenderer } from "../../game/isometric";
-import type { ConnectionStatus, GameEvent, GameState } from "../../lib/types";
+import type { ConnectionStatus, GameEvent, GameState, LootAnimationGate } from "../../lib/types";
 import {
   locationArts,
   locationPanels,
@@ -10,6 +10,7 @@ import {
 import { ConnectionIndicator } from "./ConnectionIndicator";
 
 type MapPanelProps = {
+  lootAnimation?: LootAnimationGate;
   state: GameState | null;
   status: ConnectionStatus;
   events: GameEvent[];
@@ -28,6 +29,7 @@ const locationArtBaseZoom = 1.12;
 type RendererStatus = "loading" | "ready" | "error";
 
 export function MapPanel({
+  lootAnimation,
   state,
   status,
   events,
@@ -67,6 +69,7 @@ export function MapPanel({
         if (!cancelled) setRendererStatus("ready");
       })
       .catch(() => {
+        renderer.clear();
         if (!cancelled) setRendererStatus("error");
       });
 
@@ -78,9 +81,14 @@ export function MapPanel({
   }, []);
 
   useEffect(() => {
-    if (!viewport || !rendererRef.current) return;
+    if (!rendererRef.current) return;
+    if (!viewport || rendererStatus === "error") {
+      rendererRef.current.clear();
+      return;
+    }
 
     rendererRef.current.render(viewport, {
+      lootAnimation,
       playerClass: state?.player.current_class,
       playerDirection,
       playerDead: playerDefeated(state),
@@ -89,7 +97,7 @@ export function MapPanel({
       dungeonLevel: dungeon?.level,
     });
     fitCanvas(canvasRef.current, stageRef.current, zoom);
-  }, [dungeon?.level, movementDurationMs, playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
+  }, [dungeon?.level, lootAnimation, movementDurationMs, playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
 
   useEffect(() => {
     function handleResize() {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { AutoExploreGoal, ConnectionStatus, GameState, Item, Position, Spell } from "../lib/types";
+import type { AutoExploreGoal, ConnectionStatus, GameState, Item, LootAnimationGate, Position, Spell } from "../lib/types";
 import { samePosition } from "../lib/viewModels";
 import { autoExploreStepDelay, autoExploreStepDuration } from "../lib/autoExploreTiming";
 import { AutoExploreMap, explorationPathSteps, type KnownCellType } from "../lib/autoExploreMap";
@@ -52,6 +52,7 @@ type RuinsGameState = GameState & {
 };
 
 export type AutoExploreControls = AutoExploreView & {
+  lootAnimation: LootAnimationGate;
   speeds: number[];
   canRun: boolean;
   descentFound: boolean;
@@ -102,6 +103,7 @@ export function useAutoExplore({
   const cacheRef = useRef(new ExplorationCache((key, value) => window.localStorage.setItem(key, value)));
   const knowledgeRef = useRef<GameState["dungeon"] | null>(null);
   const timerRef = useRef<number | null>(null);
+  const lootAnimationRef = useRef<LootAnimationGate>({ pending: false });
   const modelRef = useRef<AutoExploreModel>({
     enabled: false,
     resupplying: false,
@@ -250,6 +252,13 @@ export function useAutoExplore({
       return;
     }
 
+    if (lootAnimationRef.current.pending) {
+      model.statusText = "Auto: waiting for loot";
+      deferPublish();
+      timerRef.current = window.setTimeout(scheduleAutoExplore, autoExploreDelay());
+      return;
+    }
+
     if (planningRef.current || model.actionInFlight || connectionStatusRef.current === "sending") {
       if (model.pendingSince && Date.now() - model.pendingSince > AUTO_EXPLORE_PENDING_TIMEOUT_MS) {
         stop("error");
@@ -269,6 +278,10 @@ export function useAutoExplore({
     const model = modelRef.current;
     timerRef.current = null;
     if (!model.enabled || model.actionInFlight) return;
+    if (lootAnimationRef.current.pending) {
+      scheduleAutoExplore();
+      return;
+    }
 
     if (planningRef.current) return;
     planningRef.current = true;
@@ -286,7 +299,7 @@ export function useAutoExplore({
       planningRef.current = false;
     }
     if (!model.enabled || generation !== generationRef.current) return;
-    if (decisionState !== stateRef.current || decisionGame !== gameIdRef.current || connectionStatusRef.current !== "online") {
+    if (lootAnimationRef.current.pending || decisionState !== stateRef.current || decisionGame !== gameIdRef.current || connectionStatusRef.current !== "online") {
       scheduleAutoExplore();
       return;
     }
@@ -1051,6 +1064,7 @@ export function useAutoExplore({
 
   return {
     ...view,
+    lootAnimation: lootAnimationRef.current,
     speeds: AUTO_EXPLORE_SPEEDS,
     canRun: canAutoExplore(state),
     start,

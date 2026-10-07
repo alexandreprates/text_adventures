@@ -48,6 +48,18 @@ function setup() {
 }
 
 describe("cooperative auto exploration", () => {
+  it.each([1, 2, 3])("waits for the rendered loot frame at speed %s even after the death timer elapsed", async (speed) => {
+    const { render, controls, state, runCommand } = setup();
+    controls.setSpeed(speed);
+    controls.lootAnimation.pending = true;
+    render("online", { ...state, dungeon: { ...state.dungeon!, nearby_loot: { x: 999, y: 2, gold: 1, items: [] } } });
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(runCommand).not.toHaveBeenCalled();
+    controls.lootAnimation.pending = false;
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(runCommand).toHaveBeenCalledWith("loot", { source: "auto" });
+  });
+
   it("flushes the previous game before clearing its mutable map", async () => {
     const { render, state } = setup();
     render("online", { ...state, dungeon: { ...state.dungeon!, level: 2 } }, "other-game");

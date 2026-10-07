@@ -2716,6 +2716,81 @@ test("renders the Adventurer attack assets during player combat", async ({ page 
   expect(sources.some((source) => source.endsWith("/effects/slash.png"))).toBe(false);
 });
 
+for (const scenario of [
+  { auto: false, reducedMotion: "reduce", speed: 1 },
+  { auto: false, reducedMotion: "no-preference", speed: 1 },
+  { auto: true, reducedMotion: "reduce", speed: 1 },
+  { auto: true, reducedMotion: "no-preference", speed: 3 },
+] as const) {
+  test(`reveals loot after the corpse disappears with auto ${scenario.auto}, motion ${scenario.reducedMotion}, speed ${scenario.speed}`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ reducedMotion: scenario.reducedMotion });
+    const payload = animatedEnemyCombatPayload("giant_spider", "Giant Spider", 12);
+    const dungeon = payload.state.dungeon as { viewport: { entities: Array<Record<string, unknown>> } };
+    dungeon.viewport.entities = dungeon.viewport.entities.filter((entity) => entity.type !== "loot");
+    const patch = {
+      battle: { active: false, enemy: null },
+      dungeon: { ...dungeon, nearby_loot: { x: 3, y: 2, gold: 1, items: [] }, viewport: {
+        ...dungeon.viewport,
+        entities: dungeon.viewport.entities.map((entity) => entity.type === "enemy" ? { type: "loot", x: entity.x, y: entity.y } : entity),
+      } },
+    };
+    await mockGame(page, payload, { actionPatch: patch });
+    await page.goto("/");
+    await expect(page.getByLabel("Dungeon map", { exact: true })).toBeVisible();
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
+    await page.evaluate(() => {
+      const observed = window as unknown as LootSequenceWindow;
+      observed.__lootFrames = [];
+      observed.__lootActions = [];
+      const clear = CanvasRenderingContext2D.prototype.clearRect;
+      CanvasRenderingContext2D.prototype.clearRect = function(...args) {
+        if (this.canvas.getAttribute("aria-label") === "Dungeon map") observed.__lootFrames.push({ at: performance.now(), corpse: false, chest: false });
+        return Reflect.apply(clear, this, args);
+      };
+      const draw = CanvasRenderingContext2D.prototype.drawImage;
+      CanvasRenderingContext2D.prototype.drawImage = function(...args: unknown[]) {
+        const image = args[0];
+        const frame = observed.__lootFrames.at(-1);
+        if (frame && image instanceof HTMLImageElement) {
+          if (image.src.endsWith("giant_spider-death.png")) frame.corpse = true;
+          if (image.src.endsWith("chest-actions.png") && args[1] === 128) frame.chest = true;
+        }
+        return Reflect.apply(draw, this, args);
+      } as typeof draw;
+      const send = WebSocket.prototype.send;
+      WebSocket.prototype.send = function(data) {
+        const message = JSON.parse(String(data));
+        if (message.type === "action") observed.__lootActions.push({ at: performance.now(), action: message.action });
+        return send.call(this, data);
+      };
+    });
+    if (scenario.auto) {
+      await page.getByRole("button", { name: `Auto speed ${scenario.speed}x` }).click();
+      await page.getByRole("button", { name: "Auto", exact: true }).click();
+    } else await page.getByRole("button", { name: /attack/i }).click();
+    await expect.poll(() => page.evaluate(() => (window as unknown as LootSequenceWindow).__lootFrames.some((frame) => frame.corpse))).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("corpse-before-loot.png") });
+    await expect.poll(() => page.evaluate(() => (window as unknown as LootSequenceWindow).__lootFrames.some((frame) => frame.chest))).toBe(true);
+    if (scenario.auto) await expect.poll(() => page.evaluate(() => (window as unknown as LootSequenceWindow).__lootActions.some((entry) => entry.action === "loot"))).toBe(true);
+    const { frames, actions } = await page.evaluate(() => ({ frames: (window as unknown as LootSequenceWindow).__lootFrames, actions: (window as unknown as LootSequenceWindow).__lootActions }));
+    const death = frames.find((frame) => frame.corpse)!;
+    const chest = frames.find((frame) => frame.chest)!;
+    expect(chest.at - death.at).toBeGreaterThan(1200);
+    expect(frames.some((frame) => frame.corpse && frame.chest)).toBe(false);
+    if (scenario.auto) {
+      expect(actions[0].action).toBe("attack");
+      expect(actions.slice(1).every((entry) => entry.at >= chest.at)).toBe(true);
+    }
+    await page.screenshot({ path: testInfo.outputPath("loot-after-corpse.png") });
+  });
+}
+
+type LootSequenceWindow = Window & {
+  __lootFrames: Array<{ at: number; corpse: boolean; chest: boolean }>;
+  __lootActions: Array<{ at: number; action: string }>;
+};
+
 for (const { creatureId, displayName, maxHealth } of animatedEnemyFixtures) {
   const payload = animatedEnemyCombatPayload(creatureId, displayName, maxHealth);
 

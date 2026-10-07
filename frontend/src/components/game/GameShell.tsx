@@ -191,6 +191,7 @@ export function GameShell({
           ) : null}
 
           <MapPanel
+            lootAnimation={autoExplore.lootAnimation}
             state={state}
             status={status}
             events={events}
