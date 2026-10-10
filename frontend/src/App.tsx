@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { GameShell } from "./components/game/GameShell";
 import { InstallAppPrompt } from "./components/game/InstallAppPrompt";
 import { PlatformerFrontendMockup } from "./components/game/PlatformerFrontendMockup";
+import { InterfaceMockup } from "./components/mockup/InterfaceMockup";
 import { useAutoExplore } from "./hooks/useAutoExplore";
 import {
   actionFromCommand,
@@ -20,6 +21,10 @@ const initialMapZoom = 1;
 
 function App() {
   const mockup = new URLSearchParams(window.location.search).get("mockup");
+
+  if (mockup === "interface") {
+    return <InterfaceMockup />;
+  }
 
   if (mockup === "platformer") {
     return <PlatformerFrontendMockup />;
