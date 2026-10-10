@@ -57,6 +57,9 @@ export function InterfaceMockup() {
   const [potions, setPotions] = useState(3);
   const [messages, setMessages] = useState(initialMessages);
   const [view, setView] = useState<JournalView>("journal");
+  const [sidebarView, setSidebarView] = useState<"journal" | "terminal">(
+    "journal",
+  );
   const [zoom, setZoom] = useState(1.3);
   const [panel, setPanel] = useState<
     "details" | "terminal" | "notes" | "preview" | null
@@ -70,6 +73,11 @@ export function InterfaceMockup() {
   }, [panel]);
   const [command, setCommand] = useState("");
   const [error, setError] = useState("");
+  const terminalRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const output = terminalRef.current;
+    if (output) output.scrollTop = output.scrollHeight;
+  }, [messages, sidebarView]);
   const state = mockupState(scene, health, enemyHealth, gold);
   const isCombat = scene === "combat";
   const primaryLabel = isCombat
@@ -275,6 +283,9 @@ export function InterfaceMockup() {
                 (name) => (
                   <button
                     key={name}
+                    className={
+                      name === "journal" ? "im-mobile-panel" : undefined
+                    }
                     onClick={() => {
                       setView(name);
                       setPanel("details");
@@ -284,7 +295,10 @@ export function InterfaceMockup() {
                   </button>
                 ),
               )}
-              <button onClick={() => setPanel("terminal")}>
+              <button
+                className="im-mobile-panel"
+                onClick={() => setPanel("terminal")}
+              >
                 <span className="im-command-prompt" aria-hidden="true">
                   &gt;_
                 </span>{" "}
@@ -301,6 +315,49 @@ export function InterfaceMockup() {
             </p>
           </div>
         </section>
+        <aside className="im-sidebar" aria-label="Journal and terminal">
+          <nav className="im-detail-tabs" aria-label="Sidebar views">
+            <button
+              aria-pressed={sidebarView === "journal"}
+              onClick={() => setSidebarView("journal")}
+            >
+              Journal
+            </button>
+            <button
+              aria-pressed={sidebarView === "terminal"}
+              onClick={() => setSidebarView("terminal")}
+            >
+              Terminal
+            </button>
+          </nav>
+          {sidebarView === "journal" ? (
+            <JournalContent messages={messages} />
+          ) : (
+            <div className="im-sidebar-terminal">
+              <div
+                className="im-terminal-output"
+                ref={terminalRef}
+                tabIndex={0}
+                aria-label="Terminal output"
+              >
+                <span className="im-eyebrow">TEXT ADVENTURES / TERMINAL</span>
+                {messages.map((message, index) => (
+                  <p key={index}>&gt; {message}</p>
+                ))}
+              </div>
+              <CommandForm
+                id="sidebar-command"
+                value={command}
+                error={error}
+                onChange={setCommand}
+                onSubmit={submitCommand}
+              />
+            </div>
+          )}
+          <div className="im-journal-footer">
+            <span className="im-live-dot" /> DEMO SESSION / NOT SAVED
+          </div>
+        </aside>
       </main>
       <dialog
         ref={dialogRef}
@@ -367,27 +424,7 @@ export function InterfaceMockup() {
                 )}
               </nav>
               {view === "journal" ? (
-                <div className="im-journal-content">
-                  <div className="im-section-heading">
-                    <h2>Adventure journal</h2>
-                    <span className="im-muted">[LOG]</span>
-                  </div>
-                  <p className="im-journal-intro">
-                    &gt; Recording your adventure...
-                  </p>
-                  <ol className="im-timeline">
-                    {messages.map((message, index) => (
-                      <li key={`${messages.length}-${index}`}>
-                        <span className="im-eyebrow">
-                          {index === messages.length - 1
-                            ? "[ NOW ]"
-                            : `[ ${String(index + 1).padStart(3, "0")} ]`}
-                        </span>
-                        <p>{message}</p>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
+                <JournalContent messages={messages} />
               ) : view === "inventory" ? (
                 <div className="im-journal-content">
                   <h2>Inventory</h2>
@@ -441,38 +478,13 @@ export function InterfaceMockup() {
             </aside>
           )}
           {panel === "terminal" && (
-            <div className="im-command">
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  submitCommand();
-                }}
-              >
-                <label htmlFor="preview-command">Command</label>
-                <div>
-                  <input
-                    id="preview-command"
-                    value={command}
-                    onChange={(event) => setCommand(event.target.value)}
-                    aria-invalid={!!error}
-                    aria-describedby={
-                      error ? "preview-error" : "preview-command-hint"
-                    }
-                    placeholder="look_"
-                  />
-                  <button type="submit">Send ↵</button>
-                </div>
-                <small id="preview-command-hint">
-                  Demo commands: look, explore, attack, loot, go ruins.
-                  Availability follows the current scenario.
-                </small>
-                {error && (
-                  <p role="alert" id="preview-error">
-                    {error}
-                  </p>
-                )}
-              </form>
-            </div>
+            <CommandForm
+              id="preview-command"
+              value={command}
+              error={error}
+              onChange={setCommand}
+              onSubmit={submitCommand}
+            />
           )}
           {panel === "notes" && (
             <section
@@ -542,6 +554,82 @@ export function InterfaceMockup() {
           )}
         </div>
       </dialog>
+    </div>
+  );
+}
+
+function JournalContent({ messages }: { messages: string[] }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const content = contentRef.current;
+    if (content) content.scrollTop = content.scrollHeight;
+  }, [messages]);
+  return (
+    <div className="im-journal-content" ref={contentRef}>
+      <div className="im-section-heading">
+        <h2>Adventure journal</h2>
+        <span className="im-muted">[LOG]</span>
+      </div>
+      <p className="im-journal-intro">&gt; Recording your adventure...</p>
+      <ol className="im-timeline">
+        {messages.map((message, index) => (
+          <li key={`${messages.length}-${index}`}>
+            <span className="im-eyebrow">
+              {index === messages.length - 1
+                ? "[ NOW ]"
+                : `[ ${String(index + 1).padStart(3, "0")} ]`}
+            </span>
+            <p>{message}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function CommandForm({
+  id,
+  value,
+  error,
+  onChange,
+  onSubmit,
+}: {
+  id: string;
+  value: string;
+  error: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <div className="im-command">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <label htmlFor={id}>Command</label>
+        <div>
+          <input
+            id={id}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${id}-error` : `${id}-hint`}
+            placeholder="look_"
+          />
+          <button type="submit">Send ↵</button>
+        </div>
+        <small id={`${id}-hint`}>
+          Demo commands: look, explore, attack, loot, go ruins. Availability
+          follows the current scenario.
+        </small>
+        {error && (
+          <p role="alert" id={`${id}-error`}>
+            {error}
+          </p>
+        )}
+      </form>
     </div>
   );
 }

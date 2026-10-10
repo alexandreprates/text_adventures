@@ -84,7 +84,11 @@ The fourth revision makes the dungeon the dominant surface. The `100dvh` shell
 uses a single compact location header, a resource strip, an edge-to-edge map, and
 compact controls along the bottom. Equipment and character details live in the
 Character window. The default zoom is 1.3, with manual zoom still available.
-The map occupies about 82% of the viewport at 1440×900 and 74% at 390×844; narrow
+Desktop widths of 1024px and above include a right sidebar (240–300px) for
+Journal and Terminal. Both views share the same live history; the terminal keeps
+its input available and preserves draft commands when switching views. New entries
+scroll inside the panel. Below 1024px, the original modal controls remain in use.
+The map occupies about 65% of the viewport at 1440×900 and 74% at 390×844; narrow
 landscape screens retain at least 55%. Primary controls keep 44px touch targets.
 The latest feedback occupies one line, with complete messages available in Journal.
 Journal, inventory, character, terminal and preview controls use a native modal
@@ -96,6 +100,6 @@ Visual references inspected for this revision:
 - [Stoneshard screenshot, SuperSoluce](https://cdn.supersoluce.com/file/docs/docid_5e1c8296105f4d8912000001/elemid_4ee9faa20a2fe93d0e000010/stoneshard-009.jpg): edge-anchored actions and restrained contextual feedback.
 
 These are layout references, not bundled game assets. Playwright covers page overflow,
-minimum map area (75% desktop, 60% mobile portrait, 55% landscape) and visible controls
+minimum map area (60% desktop with sidebar, 60% mobile portrait, 55% landscape) and visible controls
 across four scenarios at 320×568, 390×844,
 667×375, 844×390, 1024×768, 1440×700 and 1440×900, as well as dialog scrolling and keyboard focus.

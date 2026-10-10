@@ -119,7 +119,11 @@ for (const size of [
       ).toEqual({ horizontal: false, vertical: false });
       const map = await page.locator(".im-map").boundingBox();
       const minimumMapShare =
-        size.height < 500 ? 0.55 : size.width <= 600 ? 0.6 : 0.75;
+        size.height < 500
+          ? 0.55
+          : size.width >= 1024 || size.width <= 600
+            ? 0.6
+            : 0.75;
       expect(
         (map!.width * map!.height) / (size.width * size.height),
       ).toBeGreaterThanOrEqual(minimumMapShare);
@@ -176,9 +180,65 @@ for (const size of [
     const tokenColors = await page.evaluate(() => ({
       utility: getComputedStyle(document.querySelector(".text-preview-muted")!)
         .color,
-      existing: getComputedStyle(document.querySelector(".im-muted")!).color,
+      existing: getComputedStyle(
+        document.querySelector(".im-review > .im-muted")!,
+      ).color,
     }));
     expect(tokenColors.utility).toBe(tokenColors.existing);
     await page.getByRole("button", { name: "Close panel" }).click();
   });
 }
+
+test("keeps the desktop journal and command terminal beside the map", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/?mockup=interface");
+  const sidebar = page.getByRole("complementary", {
+    name: "Journal and terminal",
+  });
+  await expect(sidebar).toBeVisible();
+  await expect(
+    sidebar.getByRole("heading", { name: "Adventure journal" }),
+  ).toBeVisible();
+  const map = await page.locator(".im-map").boundingBox();
+  const bounds = await sidebar.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(map!.x + map!.width);
+  expect(bounds!.width).toBeLessThanOrEqual(300);
+  await sidebar.getByRole("button", { name: "Terminal", exact: true }).click();
+  const command = sidebar.getByLabel("Command", { exact: true });
+  await command.fill("explore");
+  await command.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Attack skeleton" }),
+  ).toBeVisible();
+  await expect(command).toBeFocused();
+  await expect(sidebar.getByLabel("Terminal output")).toContainText(
+    "A skeleton guard",
+  );
+  await expect(page.getByRole("dialog")).toBeHidden();
+  for (let index = 0; index < 8; index++) {
+    await command.fill("look");
+    await command.press("Enter");
+  }
+  await command.fill("attack");
+  await sidebar.getByRole("button", { name: "Journal", exact: true }).click();
+  await expect(sidebar.locator(".im-timeline li")).toHaveCount(12);
+  expect(
+    await sidebar
+      .locator(".im-journal-content")
+      .evaluate((element) => element.scrollTop),
+  ).toBeGreaterThan(0);
+  await sidebar.locator(".im-journal-content").evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  await sidebar.getByRole("button", { name: "Terminal", exact: true }).click();
+  await expect(command).toHaveValue("attack");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(sidebar).toBeHidden();
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
+  await expect(
+    page.getByRole("dialog").getByLabel("Command", { exact: true }),
+  ).toHaveValue("attack");
+});
