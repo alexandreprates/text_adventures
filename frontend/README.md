@@ -63,6 +63,10 @@ restoration. Auto-explore speed controls live under **Auto settings**; **Stop**
 stays on the map while automation is running. The existing session, save URLs,
 WebSocket actions, trade flows, and renderer remain connected to the live game.
 The previous text-mode preference selects the Terminal tab on startup.
+The dungeon shares its action bar with the mockup: Explore/Attack/Collect,
+Heal with the live potion count, and Town. Heal is unavailable at full health or
+without healing potions; Town is unavailable during combat. Go Deep remains
+available in Auto settings and through the terminal.
 
 ## Interface proposal
 

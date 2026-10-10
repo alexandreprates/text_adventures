@@ -2378,6 +2378,51 @@ test("keeps the mobile map stationary when entering and leaving combat", async (
   await expect(page.getByLabel("Enemy status")).toBeVisible();
 });
 
+test("matches the mockup dungeon buttons on desktop and mobile", async ({ page }) => {
+  await mockGame(page, isometricRuinsPayload);
+  for (const size of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(size);
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: "Explore", exact: true })).toBeVisible();
+    const appearance = () => page.locator(".dungeon-actions > button").evaluateAll((buttons) => buttons.map((button) => {
+      const style = getComputedStyle(button);
+      const box = button.getBoundingClientRect();
+      return { width: box.width, height: box.height, background: style.backgroundColor,
+        color: style.color, font: style.font, icon: button.querySelector("path")?.getAttribute("d") };
+    }));
+    const live = await appearance();
+    await expect(page.locator(".dungeon-actions > button")).toHaveText(["Explore", "Heal 5", "Town"]);
+    await page.goto("/?mockup=interface");
+    await expect(page.getByRole("button", { name: "Explore the chamber" })).toBeVisible();
+    expect(await appearance()).toEqual(live);
+  }
+});
+
+test("connects dungeon healing, combat, and collection buttons to live state", async ({ page }) => {
+  const player = isometricRuinsPayload.state.player as Record<string, unknown>;
+  await mockGame(page, { ...isometricRuinsPayload, state: { ...isometricRuinsPayload.state,
+    player: { ...player, health: { current: 10, max: 30 } } } }, {
+    actionPatch: { player: { ...player, health: { current: 30, max: 30 },
+      inventory: [{ name: "potion of heal", type: "potion", quantity: 4 }] } },
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Heal 5", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Heal 4", exact: true })).toBeDisabled();
+  const actions = () => page.evaluate(() => ((window as unknown as { __sentSocketMessages: Array<Record<string, unknown>> }).__sentSocketMessages).filter((message) => message.type === "action"));
+  expect(await actions()).toContainEqual(expect.objectContaining({ action: "use", item: "potion of heal" }));
+  await page.evaluate((battle) => (window as unknown as MusicTestWindow).__pushGamePatch({ battle }, []), combatPayload.state.battle);
+  await expect(page.getByRole("button", { name: "Town", exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "Attack", exact: true }).click();
+  await expect.poll(actions).toContainEqual(expect.objectContaining({ action: "attack" }));
+  await page.evaluate((dungeon) => (window as unknown as MusicTestWindow).__pushGamePatch({ battle: { active: false, enemy: null }, dungeon }, []), {
+    ...(isometricRuinsPayload.state.dungeon as Record<string, unknown>), nearby_loot: { x: 2, y: 2, gold: 1, items: [] },
+  });
+  await page.getByRole("button", { name: "Collect", exact: true }).click();
+  await expect.poll(actions).toContainEqual(expect.objectContaining({ action: "loot" }));
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ player: { health: { current: 10, max: 30 }, inventory: [] } }, []));
+  await expect(page.getByRole("button", { name: "Heal 0", exact: true })).toBeDisabled();
+});
+
 test("renders auto-explore controls in ruins", async ({ page }) => {
   await mockGame(page, isometricRuinsPayload);
   await page.goto("/");
@@ -2401,8 +2446,7 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
     )
     .toBe(1);
   await expect(page.getByRole("button", { name: "Explore" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Go Town" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Go Deep" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Town", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Zoom in" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Zoom out" })).toHaveCount(0);
   await page.getByRole("button", { name: "Auto settings" }).click();
@@ -2416,6 +2460,7 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
   );
 
   await page.getByRole("button", { name: "Close panel" }).click();
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await page.getByRole("button", { name: "Go Deep" }).click();
   await expect(page.getByText("Auto: going deep")).toBeVisible();
 
@@ -3325,8 +3370,8 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await page.getByRole("button", { name: "Close panel" }).click();
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Explore" }));
   await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 8);
-  await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
-  await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Town", exact: true }));
+  expect((await page.getByRole("button", { name: "Heal 5" }).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   const canvasBox = await page.getByLabel("Dungeon map").boundingBox();
   expect(canvasBox?.width).toBeGreaterThan(390);
@@ -3481,6 +3526,7 @@ test("go deep hunts the current floor when it matches the player level", async (
   await mockRecordedSocketGame(page, controlledDescentHuntingPayload);
   await page.goto("/");
 
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await page.getByRole("button", { name: "Go Deep" }).click();
 
   await expect
@@ -3507,6 +3553,7 @@ test("go deep descends when the level-matched floor is complete", async ({ page 
   await mockRecordedSocketGame(page, controlledDescentCompletePayload);
   await page.goto("/");
 
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await page.getByRole("button", { name: "Go Deep" }).click();
 
   await expect
@@ -3618,7 +3665,7 @@ test("auto-explore finishes combat before using a scroll to resupply", async ({ 
 test("the explicit town goal uses a scroll and stops on arrival", async ({ page }) => {
   await mockAutoResupplyGame(page, { portal: true });
   await page.goto("/");
-  await page.getByRole("button", { name: "Go town" }).click();
+  await page.getByRole("button", { name: "Town", exact: true }).click();
   await expect(page.getByRole("button", { name: /^Return to dungeon/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Auto", exact: true })).toBeHidden();
   expect(await page.evaluate(() =>

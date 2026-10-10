@@ -5,6 +5,7 @@ import type {
 } from "../../lib/types";
 import type { AutoExploreControls } from "../../hooks/useAutoExplore";
 import { quickCommandsFor, type QuickCommand } from "../../lib/commands";
+import { DungeonActions } from "./DungeonActions";
 
 type CommandPanelProps = {
   state: GameState | null;
@@ -25,6 +26,21 @@ export function CommandPanel({
     ? autoExploreCommands()
     : quickCommandsFor(state);
   const connectionWarning = connectionWarningFor(connectionStatus);
+  const dungeonActions =
+    state?.scene === "ruins" &&
+    state.player.health.current > 0 &&
+    !state.pending?.confirmation;
+  const potions =
+    state?.player.inventory.reduce(
+      (count, item) =>
+        item.name === "potion of heal" ? count + (item.quantity ?? 1) : count,
+      0,
+    ) ?? 0;
+  const healthFull = Boolean(
+    state && state.player.health.current >= state.player.health.max,
+  );
+  const fighting = Boolean(state?.battle?.active);
+  const lootReady = Boolean(!fighting && state?.dungeon?.nearby_loot);
 
   return (
     <section
@@ -43,28 +59,59 @@ export function CommandPanel({
           {connectionWarning}
         </aside>
       ) : null}
-      <div className="context-commands" aria-live="polite">
-        {commands.map((command) => (
-          <button
-            key={`${command.command}-${command.label}`}
-            type="button"
-            data-kind={command.kind}
-            data-shortcut={shortcutForCommand(command.command, command.label)}
-            disabled={command.disabled}
-            onClick={() => {
-              if (command.command === "shop") {
-                onOpenShop();
-              } else if (command.command.startsWith("auto ")) {
-                autoExplore.setGoal(autoGoalFromCommand(command.command));
-              } else {
-                onCommand(command.command);
-              }
-            }}
-          >
-            {command.label}
-          </button>
-        ))}
-      </div>
+      {dungeonActions ? (
+        <DungeonActions
+          primaryLabel={fighting ? "Attack" : lootReady ? "Collect" : "Explore"}
+          primaryIcon={fighting ? "sword" : lootReady ? "coin" : "arrow"}
+          potions={potions}
+          healDisabled={healthFull || potions === 0}
+          healHint={
+            healthFull
+              ? "Health is already full"
+              : potions === 0
+                ? "No potions remaining"
+                : "Restore health"
+          }
+          townDisabled={fighting}
+          townHint={
+            fighting
+              ? "Finish combat before returning to town"
+              : "Return to town"
+          }
+          onPrimary={() =>
+            fighting
+              ? onCommand("attack")
+              : lootReady
+                ? onCommand("loot")
+                : autoExplore.setGoal("explore")
+          }
+          onHeal={() => onCommand("use potion of heal")}
+          onTown={() => autoExplore.setGoal("town")}
+        />
+      ) : (
+        <div className="context-commands" aria-live="polite">
+          {commands.map((command) => (
+            <button
+              key={`${command.command}-${command.label}`}
+              type="button"
+              data-kind={command.kind}
+              data-shortcut={shortcutForCommand(command.command, command.label)}
+              disabled={command.disabled}
+              onClick={() => {
+                if (command.command === "shop") {
+                  onOpenShop();
+                } else if (command.command.startsWith("auto ")) {
+                  autoExplore.setGoal(autoGoalFromCommand(command.command));
+                } else {
+                  onCommand(command.command);
+                }
+              }}
+            >
+              {command.label}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

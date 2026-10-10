@@ -334,7 +334,10 @@ export function GameShell({
               </div>
             </>
           ) : panel === "auto" ? (
-            <AutoSettings controls={autoExplore} />
+            <AutoSettings
+              controls={autoExplore}
+              onNavigate={() => setPanel(null)}
+            />
           ) : (
             journal
           )}
@@ -350,7 +353,13 @@ export function GameShell({
   );
 }
 
-function AutoSettings({ controls }: { controls: AutoExploreControls }) {
+function AutoSettings({
+  controls,
+  onNavigate,
+}: {
+  controls: AutoExploreControls;
+  onNavigate: () => void;
+}) {
   return (
     <div className="arcade-dialog-body p-4">
       <div className="auto-explore-controls">
@@ -380,6 +389,16 @@ function AutoSettings({ controls }: { controls: AutoExploreControls }) {
           ))}
         </div>
       </div>
+      <button
+        type="button"
+        disabled={!controls.canRun}
+        onClick={() => {
+          controls.setGoal("descent");
+          onNavigate();
+        }}
+      >
+        Go Deep
+      </button>
     </div>
   );
 }

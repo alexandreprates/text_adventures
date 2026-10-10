@@ -128,7 +128,7 @@ for (const size of [
         (map!.width * map!.height) / (size.width * size.height),
       ).toBeGreaterThanOrEqual(minimumMapShare);
       for (const selector of [
-        ".im-primary",
+        ".dungeon-primary",
         ".im-dock",
         ".im-resources",
         ".im-latest",
@@ -138,7 +138,7 @@ for (const size of [
         expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
         expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
       }
-      const action = await page.locator(".im-primary").boundingBox();
+      const action = await page.locator(".dungeon-primary").boundingBox();
       expect(action!.height).toBeGreaterThanOrEqual(44);
       const workspace = await page.locator(".im-player").boundingBox();
       const playerChildren = await page

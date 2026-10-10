@@ -1,0 +1,71 @@
+.dungeon-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  max-width: 480px;
+}
+:is(.arcade-shell, .interface-mockup) .dungeon-actions > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 12px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+:is(.arcade-shell, .interface-mockup) .dungeon-actions > .dungeon-primary {
+  flex: 1;
+  max-width: 240px;
+  background: var(--im-accent);
+  color: var(--im-ink);
+  border-color: var(--im-accent);
+}
+:is(.arcade-shell, .interface-mockup) .dungeon-primary:hover:not(:disabled),
+:is(.arcade-shell, .interface-mockup) .dungeon-primary:focus-visible {
+  background: var(--im-text);
+}
+.dungeon-actions .im-pixel-icon {
+  flex-shrink: 0;
+}
+.dungeon-potion-count {
+  color: var(--im-gold);
+}
+:is(.arcade-shell, .interface-mockup)
+  .dungeon-actions
+  > button:nth-child(2)
+  .im-pixel-icon {
+  color: var(--im-health);
+}
+:is(.arcade-shell, .interface-mockup)
+  .dungeon-actions
+  > button:nth-child(3)
+  .im-pixel-icon {
+  color: var(--im-mana);
+}
+@media (max-width: 900px) {
+  :is(.arcade-shell, .interface-mockup) .dungeon-actions > button {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .dungeon-actions .im-pixel-icon {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .dungeon-actions {
+    max-width: none;
+  }
+  :is(.arcade-shell, .interface-mockup) .dungeon-actions > button {
+    font-size: 12px;
+  }
+  :is(.arcade-shell, .interface-mockup) .dungeon-actions > .dungeon-primary {
+    max-width: none;
+  }
+  .dungeon-actions .im-pixel-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+}

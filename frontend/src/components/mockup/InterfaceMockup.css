@@ -592,41 +592,6 @@
   border-top: 1px solid var(--im-line);
   background: var(--im-surface);
 }
-.im-actions {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  max-width: 480px;
-}
-.im-actions button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  padding: 4px 12px;
-  min-height: 44px;
-}
-.interface-mockup .im-primary {
-  flex: 1;
-  max-width: 240px;
-  background: var(--im-accent);
-  color: var(--im-ink);
-  border-color: var(--im-accent);
-}
-.interface-mockup .im-primary:hover:not(:disabled),
-.interface-mockup .im-primary:focus-visible {
-  background: var(--im-text);
-}
-.im-count {
-  color: var(--im-gold);
-}
-.im-actions > button:nth-child(2) > .im-pixel-icon {
-  color: var(--im-health);
-}
-.im-actions > button:nth-child(3) > .im-pixel-icon {
-  color: var(--im-mana);
-}
 .im-dock {
   display: flex;
   gap: 4px;
@@ -677,14 +642,6 @@
   .im-controls {
     column-gap: 12px;
   }
-  .im-actions button {
-    padding: 4px 8px;
-    font-size: 11px;
-    gap: 4px;
-  }
-  .im-actions .im-pixel-icon {
-    display: none;
-  }
   .im-dock > button {
     min-width: 64px;
     padding: 4px;
@@ -721,20 +678,6 @@
   .im-controls {
     grid-template-columns: minmax(0, 1fr);
     padding: 4px 8px;
-  }
-  .im-actions {
-    max-width: none;
-  }
-  .im-actions button {
-    font-size: 12px;
-  }
-  .interface-mockup .im-primary {
-    max-width: none;
-  }
-  .im-actions .im-pixel-icon {
-    display: block;
-    width: 16px;
-    height: 16px;
   }
   .im-dock {
     display: grid;
