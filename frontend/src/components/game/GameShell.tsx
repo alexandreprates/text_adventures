@@ -17,6 +17,7 @@ import { CommandPanel, CombatSummary } from "./CommandPanel";
 import { MapPanel } from "./MapPanel";
 import { TradeOverlay } from "./TradeOverlay";
 import { GameTools } from "./GameTools";
+import { ConnectionIndicator } from "./ConnectionIndicator";
 import { GameDialog } from "./GameDialog";
 import { GameJournal, type JournalView } from "./GameJournal";
 
@@ -65,6 +66,11 @@ export function GameShell({
   const player = state?.player || null;
   const mana = player?.mana || { current: 0, max: 0 };
   const xp = currentSkillProgress(player);
+  const locationName = state?.scene === "ruins"
+    ? `Ruins Floor ${state.dungeon?.level ?? 1}`
+    : state
+      ? `Town - ${state.scene_display_name || state.prompt}`
+      : "Connecting";
   const compact = useCompactViewport();
   const [view, setView] = useState<JournalView>(savedJournalView);
   const [panel, setPanel] = useState<Panel | null>(() =>
@@ -140,14 +146,17 @@ export function GameShell({
         className="arcade-header platform-top-hud flex items-center gap-4"
         aria-label="Game status"
       >
-        <span className="sr-only" aria-label="Game title">
-          Text Adventures
-        </span>
-        <h1>{state?.scene_display_name || "Starting adventure"}</h1>
-        <span className="arcade-location" aria-label="Current location">
-          {state?.prompt || "Connecting"}
-        </span>
-        <GameTools scene={state?.scene} />
+        <h1 aria-label={`Text Adventures - ${locationName}`}>
+          <span aria-label="Game title">Text Adventures</span>
+          {" - "}
+          <span aria-label="Current location">
+            {locationName}
+          </span>
+        </h1>
+        <div className="arcade-header-tools flex items-center gap-1">
+          <ConnectionIndicator status={status} />
+          <GameTools scene={state?.scene} />
+        </div>
       </header>
       <main className="arcade-main grid min-h-0 flex-1">
         <section
@@ -158,6 +167,10 @@ export function GameShell({
             className="arcade-resources flex items-center gap-6"
             aria-label="Resources"
           >
+            <span className="arcade-class" aria-label="Player class and level">
+              {player?.current_class || "Adventurer"}{" "}
+              <span aria-label="Player level">({player?.level || 0})</span>
+            </span>
             <div className="arcade-meters grid grid-cols-3 gap-4">
               <HudMeter
                 label="Health"
@@ -178,9 +191,6 @@ export function GameShell({
                 kind="xp"
               />
             </div>
-            <span className="arcade-level" aria-label="Player level">
-              Level{player?.level || 0}
-            </span>
             <span className="arcade-gold" aria-label="Wallet">
               {player?.gold || 0} G
             </span>
@@ -201,6 +211,7 @@ export function GameShell({
               onZoomChange={onMapZoomChange}
               onCommand={onCommand}
               showZoomControls={false}
+              showConnectionIndicator={false}
             />
             <div className="arcade-scene-status">
               <span>
@@ -417,7 +428,7 @@ function HudMeter({
   return (
     <div className={`arcade-meter arcade-meter-${kind}`}>
       <div className="flex justify-between gap-2">
-        <span>{label}</span>
+        <span>{{ health: "HP", mana: "MP", xp: "XP" }[kind]}</span>
         <strong>{value}</strong>
       </div>
       <div

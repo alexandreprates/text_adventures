@@ -66,12 +66,14 @@
   font: 11px/1.6 var(--im-pixel-font);
   min-width: 0;
 }
-.arcade-location {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-.arcade-header .game-tools {
+.arcade-header-tools {
   margin-left: auto;
+  flex-shrink: 0;
+}
+.arcade-header .connection-indicator {
+  position: static;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
 .arcade-header .game-tool-button {
@@ -93,6 +95,7 @@
   background: var(--panel-bg);
 }
 .arcade-meters {
+  min-width: 0;
   width: min(100%, 600px);
 }
 .arcade-meter {
@@ -136,12 +139,17 @@
     var(--page-bg) calc(10% - 3px) 10%
   );
 }
-.arcade-level {
+.arcade-class {
   color: var(--text-muted);
   font-size: 10px;
+  flex-shrink: 0;
+  max-width: 120px;
+}
+.arcade-class [aria-label="Player level"] {
   white-space: nowrap;
 }
 .arcade-gold {
+  margin-left: auto;
   color: var(--gold);
   font-size: 12px;
   white-space: nowrap;
@@ -544,9 +552,6 @@
   .arcade-dock {
     justify-content: flex-end;
   }
-  .arcade-level {
-    display: none;
-  }
 }
 @media (max-width: 1023px) {
   .arcade-controls {
@@ -554,9 +559,6 @@
   }
   .arcade-main {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .arcade-location {
-    display: none;
   }
   .arcade-dock {
     justify-content: stretch;
@@ -575,13 +577,17 @@
   }
   .arcade-resources {
     padding: 4px 8px;
+    gap: 8px;
+  }
+  .arcade-class {
+    max-width: 80px;
+  }
+  .arcade-class, .arcade-meter, .arcade-gold {
+    font-size: 9px;
   }
   .arcade-meters {
     width: 100%;
-    gap: 12px;
-  }
-  .arcade-gold {
-    display: none;
+    gap: 8px;
   }
   .arcade-meter > div:first-child {
     flex-direction: column;

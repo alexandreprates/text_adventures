@@ -20,6 +20,7 @@ type MapPanelProps = {
   onZoomChange: (zoom: number) => void;
   onCommand: (command: string) => void;
   showZoomControls?: boolean;
+  showConnectionIndicator?: boolean;
 };
 
 const mapZoomMin = 0.76;
@@ -40,6 +41,7 @@ export function MapPanel({
   onZoomChange,
   onCommand,
   showZoomControls = true,
+  showConnectionIndicator = true,
 }: MapPanelProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -127,7 +129,7 @@ export function MapPanel({
           ].join(" ")}
           aria-busy={Boolean(viewport && rendererStatus === "loading")}
         >
-          <ConnectionIndicator status={status} />
+          {showConnectionIndicator ? <ConnectionIndicator status={status} /> : null}
           {hasCanvasMap && showZoomControls ? (
             <div className="map-zoom-controls" aria-label="Map zoom controls">
               <button

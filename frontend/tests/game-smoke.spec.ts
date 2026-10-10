@@ -93,7 +93,7 @@ test("plays the selected soundtrack, crossfades scenes, and remembers mute", asy
     };
   });
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Town", exact: true })).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Text Adventures - Town - Town", exact: true })).toBeAttached();
   expect(await page.evaluate(() => (window as unknown as MusicTestWindow).__musicElements.length)).toBe(0);
   await page.getByRole("button", { name: "Play music", exact: true }).click();
   await expect(page.getByRole("button", { name: "Mute music", exact: true })).toBeVisible();
@@ -291,7 +291,7 @@ test("uses a town scroll from inventory and exposes the preserved return trip", 
   await expect(page.getByLabel("Dungeon map", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Inventory", exact: true }).click();
   await page.getByRole("button", { name: /1x Town Portal Scroll Use/ }).click();
-  await expect(page.getByRole("heading", { name: "Town", exact: true })).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Text Adventures - Town - Town", exact: true })).toBeAttached();
   await expect(page.getByRole("button", { name: /1x Town Portal Scroll Use/ })).toHaveCount(0);
   const returnButton = page.getByRole("button", { name: /^Return to dungeon/ });
   await expect(returnButton).toBeVisible();
@@ -2000,6 +2000,51 @@ test("keeps web app controls inside safe areas as the mobile viewport changes", 
   await expect(page.getByLabel("Character overview")).toBeVisible();
 });
 
+test("keeps the live title, connection and ordered resources visible across screen sizes", async ({ page }) => {
+  await mockGame(page, townPayload);
+  await page.goto("/");
+  const header = page.getByRole("banner");
+  await expect(header.getByRole("heading", { level: 1 })).toHaveText("Text Adventures - Town - Town");
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({
+    scene: "tavern", scene_display_name: "Tavern", prompt: "Tavern",
+  }, []));
+  await expect(header.getByRole("heading", { level: 1 })).toHaveText("Text Adventures - Town - Tavern");
+  await page.evaluate((state) => (window as unknown as MusicTestWindow).__pushGamePatch(state, []), {
+    ...isometricRuinsPayload.state,
+    dungeon: { ...(isometricRuinsPayload.state.dungeon as Record<string, unknown>), level: 12 },
+    player: { ...(townPayload.state.player as Record<string, unknown>), current_class: "Spellblade", level: 12, gold: 12345 },
+  });
+  await expect(header.getByRole("heading", { level: 1 })).toHaveText("Text Adventures - Ruins Floor 12");
+  await expect(header.getByRole("heading", { level: 1 })).toHaveAccessibleName("Text Adventures - Ruins Floor 12");
+  await expect(header.getByRole("status", { name: "Connection online" })).toBeVisible();
+  await expect(page.locator(".map-stage .connection-indicator")).toHaveCount(0);
+  await expect(page.getByLabel("Player class and level")).toHaveText("Spellblade (12)");
+  await expect(page.getByLabel("Wallet")).toHaveText("12345 G");
+
+  for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size);
+    const resources = page.getByRole("complementary", { name: "Resources" });
+    for (const label of ["Player class and level", "Wallet"]) await expect(resources.getByLabel(label)).toBeInViewport();
+    const boxes = await resources.locator(".arcade-class, .arcade-meter, .arcade-gold").evaluateAll((nodes) => nodes.map((node) => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width };
+    }));
+    expect(boxes).toHaveLength(5);
+    boxes.forEach((box, index) => {
+      expect(box.width).toBeGreaterThan(0);
+      expect(box.right).toBeLessThanOrEqual(size.width);
+      if (index > 0) expect(box.left).toBeGreaterThanOrEqual(boxes[index - 1].right);
+    });
+    await expect(resources.locator(".arcade-meter span")).toHaveText(["HP", "MP", "XP"]);
+    const title = await header.getByRole("heading", { level: 1 }).boundingBox();
+    const tools = await page.locator(".arcade-header-tools").boundingBox();
+    expect(title!.x + title!.width).toBeLessThanOrEqual(tools!.x);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    await page.screenshot({ path: `../tmp/interface-review/header-hud-${size.width}.png` });
+  }
+});
+
 test("renders the migrated game shell", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
@@ -2008,7 +2053,7 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
   await expect(page.getByRole("button", { name: "Text Adventures" })).toHaveCount(0);
   await expect(page.getByLabel("Current location")).toContainText("Town");
-  await expect(page.getByLabel("Player level")).toHaveText("Level1");
+  await expect(page.getByLabel("Player class and level")).toHaveText("Adventurer (1)");
   await expect(page.getByLabel("Wallet")).toContainText("G");
   await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
@@ -2306,7 +2351,7 @@ test("keeps the centered player above combat controls on mobile screens", async 
   await mockGame(page, adventurerCombatPayload);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   await page.evaluate(() => {
     document.documentElement.style.setProperty("--safe-area-top", "47px");
@@ -2414,11 +2459,13 @@ test("connects dungeon healing, combat, and collection buttons to live state", a
   await expect(page.getByRole("button", { name: "Town", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "Attack", exact: true }).click();
   await expect.poll(actions).toContainEqual(expect.objectContaining({ action: "attack" }));
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await page.evaluate((dungeon) => (window as unknown as MusicTestWindow).__pushGamePatch({ battle: { active: false, enemy: null }, dungeon }, []), {
     ...(isometricRuinsPayload.state.dungeon as Record<string, unknown>), nearby_loot: { x: 2, y: 2, gold: 1, items: [] },
   });
   await page.getByRole("button", { name: "Collect", exact: true }).click();
   await expect.poll(actions).toContainEqual(expect.objectContaining({ action: "loot" }));
+  await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({ player: { health: { current: 10, max: 30 }, inventory: [] } }, []));
   await expect(page.getByRole("button", { name: "Heal 0", exact: true })).toBeDisabled();
 });
@@ -2429,7 +2476,7 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
 
   const autoToggle = page.getByRole("button", { name: /^Auto$/ });
 
-  await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
   await expect(page.getByLabel("Dungeon map")).toBeVisible();
   await expect
@@ -3612,7 +3659,7 @@ test("auto-explore resupplies at the tavern before returning to ruins", async ({
     { type: "action", action: "travel", destination: "ruins" },
   ]);
 
-  await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+  await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
   await expect(page.getByText("Auto: exploring")).toBeVisible();
 });
 
@@ -3639,7 +3686,7 @@ for (const affordable of [true, false]) {
       ], sell: [{ item: "cracked fang", quantity: 3 }] },
       { type: "action", action: "travel", destination: "ruins" },
     ]);
-    await expect(page.getByLabel("Current location")).toContainText("Ruins L1");
+    await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
     await expect(page.getByText("Auto: exploring")).toBeVisible();
     const memory = await page.evaluate(() => JSON.parse(localStorage.getItem("text_adventures.auto_explore.demo-game")!));
     expect(memory.visited).toContain("8,8");
