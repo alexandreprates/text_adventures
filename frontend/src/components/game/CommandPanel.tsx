@@ -1,4 +1,8 @@
-import type { AutoExploreGoal, ConnectionStatus, GameState } from "../../lib/types";
+import type {
+  AutoExploreGoal,
+  ConnectionStatus,
+  GameState,
+} from "../../lib/types";
 import type { AutoExploreControls } from "../../hooks/useAutoExplore";
 import { quickCommandsFor, type QuickCommand } from "../../lib/commands";
 
@@ -6,7 +10,6 @@ type CommandPanelProps = {
   state: GameState | null;
   connectionStatus: ConnectionStatus;
   autoExplore: AutoExploreControls;
-  recentLines: string[];
   onCommand: (command: string) => void;
   onOpenShop: () => void;
 };
@@ -15,7 +18,6 @@ export function CommandPanel({
   state,
   connectionStatus,
   autoExplore,
-  recentLines,
   onCommand,
   onOpenShop,
 }: CommandPanelProps) {
@@ -25,12 +27,13 @@ export function CommandPanel({
   const connectionWarning = connectionWarningFor(connectionStatus);
 
   return (
-    <section className="terminal-panel commands-panel" aria-labelledby="commands-title">
+    <section
+      className="terminal-panel commands-panel"
+      aria-labelledby="commands-title"
+    >
       <div className="panel-title" id="commands-title">
         === COMMANDS ==
       </div>
-      <CombatSummary state={state} />
-      <MobileCommandFeed lines={recentLines} />
       {connectionWarning ? (
         <aside
           className="command-connection-warning"
@@ -39,39 +42,6 @@ export function CommandPanel({
         >
           {connectionWarning}
         </aside>
-      ) : null}
-      {state?.scene === "ruins" || autoExplore.enabled ? (
-        <div className="auto-explore-controls" aria-live="polite">
-          <button
-            type="button"
-            aria-pressed={autoExplore.enabled ? "true" : "false"}
-            disabled={!autoExplore.enabled && !autoExplore.canRun}
-            onClick={() => {
-              if (autoExplore.enabled) {
-                autoExplore.stop();
-              } else {
-                autoExplore.start();
-              }
-            }}
-          >
-            Auto
-          </button>
-          <strong>{autoExplore.statusText}</strong>
-          <div className="auto-speed-buttons" aria-label="Auto speed">
-            {autoExplore.speeds.map((speed) => (
-              <button
-                className="map-speed-button"
-                key={speed}
-                type="button"
-                aria-label={`Auto speed ${speed}x`}
-                aria-pressed={autoExplore.speedMultiplier === speed ? "true" : "false"}
-                onClick={() => autoExplore.setSpeed(speed)}
-              >
-                {speed}x
-              </button>
-            ))}
-          </div>
-        </div>
       ) : null}
       <div className="context-commands" aria-live="polite">
         {commands.map((command) => (
@@ -149,13 +119,15 @@ function shortcutForCommand(command: string, label: string): string {
   return shortcuts[command] || label.slice(0, 1).toLowerCase();
 }
 
-function CombatSummary({ state }: { state: GameState | null }) {
+export function CombatSummary({ state }: { state: GameState | null }) {
   const enemy = state?.battle?.active ? state.battle.enemy : null;
   if (!enemy) return null;
 
   const current = enemy.health.current || 0;
   const max = enemy.health.max || 0;
-  const percent = max ? Math.max(0, Math.min(100, Math.round((current / max) * 100))) : 0;
+  const percent = max
+    ? Math.max(0, Math.min(100, Math.round((current / max) * 100)))
+    : 0;
   const statuses = enemy.statuses?.length ? enemy.statuses.join(", ") : "clear";
 
   return (
@@ -164,28 +136,22 @@ function CombatSummary({ state }: { state: GameState | null }) {
         <span>Enemy</span>
         <strong>{enemy.display_name || enemy.name}</strong>
       </div>
-      <div className="combat-summary-meter" aria-label={`Enemy HP ${current} of ${max}`}>
+      <div
+        className="combat-summary-meter"
+        aria-label={`Enemy HP ${current} of ${max}`}
+      >
         <i style={{ width: `${percent}%` }} />
         <strong>
           {current}/{max}
         </strong>
       </div>
-      <span className={statuses === "clear" ? "combat-status-clear" : "combat-status-alert"}>
+      <span
+        className={
+          statuses === "clear" ? "combat-status-clear" : "combat-status-alert"
+        }
+      >
         {statuses}
       </span>
-    </aside>
-  );
-}
-
-function MobileCommandFeed({ lines }: { lines: string[] }) {
-  const visibleLines = lines.map((line) => line.trim()).filter(Boolean);
-
-  // Reserve the mobile message area even before the first event to keep the map stable.
-  return (
-    <aside className="mobile-command-feed" aria-label="Recent messages" aria-live="polite">
-      {visibleLines.map((line, index) => (
-        <span key={`${line}-${index}`}>{line}</span>
-      ))}
     </aside>
   );
 }

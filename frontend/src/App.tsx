@@ -16,8 +16,9 @@ import type { CollectionTab, GameAction } from "./lib/types";
 import { useGameSession } from "./hooks/useGameSession";
 import { startWebAppWakeLock } from "./lib/webAppWakeLock";
 import "./App.css";
+import "./components/game/ArcadeShell.css";
 
-const initialMapZoom = 1;
+const initialMapZoom = 1.3;
 
 function App() {
   const mockup = new URLSearchParams(window.location.search).get("mockup");

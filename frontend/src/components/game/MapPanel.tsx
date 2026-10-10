@@ -19,6 +19,7 @@ type MapPanelProps = {
   movementDurationMs?: number;
   onZoomChange: (zoom: number) => void;
   onCommand: (command: string) => void;
+  showZoomControls?: boolean;
 };
 
 const mapZoomMin = 0.76;
@@ -38,6 +39,7 @@ export function MapPanel({
   movementDurationMs,
   onZoomChange,
   onCommand,
+  showZoomControls = true,
 }: MapPanelProps) {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -100,12 +102,13 @@ export function MapPanel({
   }, [dungeon?.level, lootAnimation, movementDurationMs, playerDirection, reducedMotion, rendererStatus, state, viewport, zoom]);
 
   useEffect(() => {
-    function handleResize() {
-      if (viewport) fitCanvas(canvasRef.current, stageRef.current, zoom);
-    }
+    const stage = stageRef.current;
+    if (!stage || !viewport) return;
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    // Observe the map itself: responsive panels can resize it after the window event.
+    const observer = new ResizeObserver(() => fitCanvas(canvasRef.current, stage, zoom));
+    observer.observe(stage);
+    return () => observer.disconnect();
   }, [viewport, zoom]);
 
   useEffect(() => {
@@ -125,7 +128,7 @@ export function MapPanel({
           aria-busy={Boolean(viewport && rendererStatus === "loading")}
         >
           <ConnectionIndicator status={status} />
-          {hasCanvasMap ? (
+          {hasCanvasMap && showZoomControls ? (
             <div className="map-zoom-controls" aria-label="Map zoom controls">
               <button
                 className="map-zoom-button"

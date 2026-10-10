@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   CollectionTab,
   ConnectionStatus,
@@ -13,15 +13,14 @@ import { commandPlaceholder } from "../../lib/viewModels";
 import { autoExploreStepDuration } from "../../lib/autoExploreTiming";
 import { CharacterPanel } from "./CharacterPanel";
 import { CollectionPanel } from "./CollectionPanel";
-import { CommandBar } from "./CommandBar";
-import { CommandPanel } from "./CommandPanel";
+import { CommandPanel, CombatSummary } from "./CommandPanel";
 import { MapPanel } from "./MapPanel";
-import { MessageLog } from "./MessageLog";
 import { TradeOverlay } from "./TradeOverlay";
 import { GameTools } from "./GameTools";
+import { GameDialog } from "./GameDialog";
+import { GameJournal, type JournalView } from "./GameJournal";
 
-type InterfaceMode = "actions" | "text";
-
+type Panel = "character" | "inventory" | "spells" | "journal" | "auto";
 const interfaceModeStorageKey = "text_adventures.interface_mode";
 
 type GameShellProps = {
@@ -66,191 +65,322 @@ export function GameShell({
   const player = state?.player || null;
   const mana = player?.mana || { current: 0, max: 0 };
   const xp = currentSkillProgress(player);
-  const compactViewport = useCompactViewport();
-  const [collectionOpen, setCollectionOpen] = useState(false);
-  const [characterOpen, setCharacterOpen] = useState(false);
-  const [interfaceMode, setInterfaceMode] = useState<InterfaceMode>(() => savedInterfaceMode());
-  const recentLogLines = useMemo(() => logLines.slice(-2), [logLines]);
-  const actionsMode = interfaceMode === "actions";
-  const characterVisible = !compactViewport || characterOpen;
+  const compact = useCompactViewport();
+  const [view, setView] = useState<JournalView>(savedJournalView);
+  const [panel, setPanel] = useState<Panel | null>(() =>
+    compact && savedJournalView() === "terminal" ? "journal" : null,
+  );
+  const journalDialog = compact && panel === "journal";
+  const detailsOpen =
+    panel === "character" || panel === "inventory" || panel === "spells";
 
-  function toggleCollection(tab: CollectionTab) {
-    setCharacterOpen(false);
-
-    if (activeTab === tab) {
-      setCollectionOpen((open) => !open);
-      return;
+  function selectView(next: JournalView) {
+    setView(next);
+    try {
+      window.localStorage.setItem(
+        interfaceModeStorageKey,
+        next === "terminal" ? "text" : "actions",
+      );
+    } catch {
+      /* Storage may be unavailable in restricted browser contexts. */
     }
-
-    onTabChange(tab);
-    setCollectionOpen(true);
   }
 
-  function toggleCharacterPanel() {
-    setCollectionOpen(false);
-    setCharacterOpen((open) => !open);
+  function openPanel(next: Panel) {
+    if (next === "inventory" || next === "spells") onTabChange(next);
+    setPanel(next);
   }
 
-  function toggleInterfaceMode() {
-    const nextMode: InterfaceMode = actionsMode ? "text" : "actions";
-    setCollectionOpen(false);
-    setCharacterOpen(false);
-    setInterfaceMode(nextMode);
-    rememberInterfaceMode(nextMode);
-  }
+  const journal = (
+    <GameJournal
+      view={view}
+      onViewChange={selectView}
+      lines={logLines}
+      value={commandValue}
+      onValueChange={onCommandValueChange}
+      onCommand={(command) => {
+        if (command.trim().toLowerCase() === "shop") setPanel(null);
+        onCommand(command);
+      }}
+      placeholder={commandPlaceholder(state, compact)}
+    />
+  );
+  const detailsButtons = (
+    <>
+      <button
+        type="button"
+        aria-label="Inventory"
+        aria-pressed={panel === "inventory"}
+        onClick={() => openPanel("inventory")}
+      >
+        Inventory
+      </button>
+      <button
+        type="button"
+        aria-label="Spellbook"
+        aria-pressed={panel === "spells"}
+        onClick={() => openPanel("spells")}
+      >
+        Spells
+      </button>
+      <button
+        type="button"
+        aria-label="Character"
+        aria-pressed={panel === "character"}
+        onClick={() => openPanel("character")}
+      >
+        Character
+      </button>
+    </>
+  );
 
   return (
-    <>
-      <div className={`app-shell platform-live-shell is-mode-${interfaceMode}`}>
-        <header className="platform-top-hud" aria-label="Game status">
-          <div className="platform-brand" aria-label="Game title">
-            Text Adventures
-          </div>
-          <h1 className="sr-only">{state?.scene_display_name || "Starting adventure"}</h1>
-
-          <div className="platform-location-chip" aria-label="Current location">
-            <span>{state?.scene_display_name || state?.scene || "Starting"}</span>
-            <strong>{state?.prompt || "Connecting"}</strong>
-          </div>
-
-          <div className="platform-meter-group" aria-label="Resources">
-            <HudMeter
-              label="HP"
-              value={`${player?.health.current || 0}/${player?.health.max || 0}`}
-              percent={resourcePercent(player?.health)}
-              kind="health"
-            />
-            <HudMeter
-              label="MP"
-              value={`${mana.current}/${mana.max}`}
-              percent={resourcePercent(mana)}
-              kind="mana"
-            />
-            <HudMeter
-              label="XP"
-              value={xp.label}
-              percent={xp.percent}
-              kind="stamina"
-            />
-          </div>
-
-          <div className="platform-pocket" aria-label="Player level">
-            <span>Level</span>
-            <strong>{player?.level || 0}</strong>
-          </div>
-
-          <button
-            className="interface-mode-toggle"
-            type="button"
-            aria-label={actionsMode ? "Switch to text mode" : "Switch to button mode"}
-            onClick={toggleInterfaceMode}
-          >
-            <span>Mode</span>
-            <strong>{actionsMode ? "Actions" : "Text"}</strong>
-          </button>
-          <GameTools scene={state?.scene} />
-        </header>
-
-        <main
-          className={`platform-live-playfield ${state?.scene === "ruins" ? "is-ruins" : ""}`}
+    <div className="arcade-shell arcade-theme">
+      <header
+        className="arcade-header platform-top-hud flex items-center gap-4"
+        aria-label="Game status"
+      >
+        <span className="sr-only" aria-label="Game title">
+          Text Adventures
+        </span>
+        <h1>{state?.scene_display_name || "Starting adventure"}</h1>
+        <span className="arcade-location" aria-label="Current location">
+          {state?.prompt || "Connecting"}
+        </span>
+        <GameTools scene={state?.scene} />
+      </header>
+      <main className="arcade-main grid min-h-0 flex-1">
+        <section
+          className="arcade-adventure grid min-h-0 min-w-0"
+          aria-label="Adventure"
         >
-          {actionsMode && characterVisible ? (
-            <aside className="platform-live-character" aria-label="Character overview">
-              <CharacterPanel state={state} />
-            </aside>
-          ) : null}
-
-          {actionsMode ? (
-            <aside className="platform-loadout-rail" aria-label="Loadout">
-              <button
-                className="character-toggle-button"
-                type="button"
-                aria-label="Character"
-                aria-pressed={characterVisible}
-                onClick={toggleCharacterPanel}
-              >
-                CHAR
-              </button>
-              <button
-                type="button"
-                aria-label="Inventory"
-                aria-pressed={collectionOpen && activeTab === "inventory"}
-                onClick={() => toggleCollection("inventory")}
-              >
-                INV
-              </button>
-              <button
-                type="button"
-                aria-label="Spellbook"
-                aria-pressed={collectionOpen && activeTab === "spells"}
-                onClick={() => toggleCollection("spells")}
-              >
-                SPL
-              </button>
-            </aside>
-          ) : null}
-
-          <MapPanel
-            lootAnimation={autoExplore.lootAnimation}
-            state={state}
-            status={status}
-            events={events}
-            zoom={mapZoom}
-            playerDirection={playerDirection}
-            movementDurationMs={autoExplore.enabled ? autoExploreStepDuration(autoExplore.speedMultiplier) : undefined}
-            onZoomChange={onMapZoomChange}
-            onCommand={onCommand}
-          />
-
-          {actionsMode ? (
-            <aside
-              className={`platform-live-collection ${collectionOpen ? "" : "is-hidden"}`}
-              aria-hidden={!collectionOpen}
-            >
-              <CollectionPanel
-                player={player}
-                activeTab={activeTab}
-                onItemCommand={onCommand}
-                canTeleport={state?.scene === "ruins" && !state.battle?.active && (player?.health.current || 0) > 0}
+          <aside
+            className="arcade-resources flex items-center gap-6"
+            aria-label="Resources"
+          >
+            <div className="arcade-meters grid grid-cols-3 gap-4">
+              <HudMeter
+                label="Health"
+                value={`${player?.health.current || 0} / ${player?.health.max || 0}`}
+                percent={resourcePercent(player?.health)}
+                kind="health"
               />
-            </aside>
-          ) : null}
-
-          {!actionsMode ? (
-            <aside className="platform-live-log">
-              <MessageLog lines={logLines} />
-            </aside>
-          ) : null}
-
-          {actionsMode ? (
+              <HudMeter
+                label="Mana"
+                value={`${mana.current} / ${mana.max}`}
+                percent={resourcePercent(mana)}
+                kind="mana"
+              />
+              <HudMeter
+                label="Experience"
+                value={xp.label}
+                percent={xp.percent}
+                kind="xp"
+              />
+            </div>
+            <span className="arcade-level" aria-label="Player level">
+              Level{player?.level || 0}
+            </span>
+            <span className="arcade-gold" aria-label="Wallet">
+              {player?.gold || 0} G
+            </span>
+          </aside>
+          <div className="arcade-map platform-live-playfield">
+            <MapPanel
+              state={state}
+              status={status}
+              events={events}
+              zoom={mapZoom}
+              lootAnimation={autoExplore.lootAnimation}
+              playerDirection={playerDirection}
+              movementDurationMs={
+                autoExplore.enabled
+                  ? autoExploreStepDuration(autoExplore.speedMultiplier)
+                  : undefined
+              }
+              onZoomChange={onMapZoomChange}
+              onCommand={onCommand}
+              showZoomControls={false}
+            />
+            <div className="arcade-scene-status">
+              <span>
+                {!state
+                  ? "CONNECTING"
+                  : state.player.health.current <= 0
+                    ? "DEFEATED"
+                    : state.battle?.active
+                      ? "YOUR TURN"
+                      : state.scene === "ruins"
+                        ? "EXPLORING"
+                        : "SAFE ZONE"}
+              </span>
+              <CombatSummary state={state} />
+            </div>
+            {state?.scene === "ruins" || autoExplore.enabled ? (
+              <div className="arcade-auto-shortcut flex items-center gap-2">
+                {autoExplore.enabled ? (
+                  <button type="button" onClick={() => autoExplore.stop()}>
+                    Stop
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label="Auto settings"
+                  onClick={() => setPanel("auto")}
+                >
+                  Auto {autoExplore.speedMultiplier}x
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <footer className="arcade-controls">
             <CommandPanel
               state={state}
               connectionStatus={status}
               autoExplore={autoExplore}
-              recentLines={recentLogLines}
               onCommand={onCommand}
               onOpenShop={onOpenShop}
             />
-          ) : null}
-        </main>
-
-        {!actionsMode ? (
-          <CommandBar
-            placeholder={commandPlaceholder(state, compactViewport)}
-            value={commandValue}
-            onValueChange={onCommandValueChange}
-            onSubmitCommand={onCommand}
-          />
+            <nav className="arcade-dock flex" aria-label="Loadout">
+              {compact ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    selectView("journal");
+                    setPanel("journal");
+                  }}
+                >
+                  Journal
+                </button>
+              ) : null}
+              {detailsButtons}
+              {compact ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    selectView("terminal");
+                    setPanel("journal");
+                  }}
+                >
+                  Terminal
+                </button>
+              ) : null}
+            </nav>
+            <aside
+              className="arcade-latest"
+              aria-label="Recent messages"
+              aria-live="polite"
+            >
+              {autoExplore.enabled ? (
+                <span>{autoExplore.statusText} · </span>
+              ) : null}
+              {logLines.at(-1) ||
+                (status === "error" || status === "offline"
+                  ? "Connection lost. Reconnecting…"
+                  : "Awaiting your next move…")}
+            </aside>
+          </footer>
+        </section>
+        {!compact ? (
+          <aside
+            className="arcade-sidebar flex min-h-0 flex-col"
+            aria-label="Journal and terminal"
+          >
+            {journal}
+          </aside>
         ) : null}
-      </div>
-
+      </main>
+      {detailsOpen || journalDialog || panel === "auto" ? (
+        <GameDialog
+          title={
+            detailsOpen
+              ? "Adventurer"
+              : panel === "auto"
+                ? "Exploration settings"
+                : "Journal / Terminal"
+          }
+          onClose={() => setPanel(null)}
+        >
+          {detailsOpen ? (
+            <>
+              <nav className="arcade-tabs flex" aria-label="Adventurer panels">
+                {detailsButtons}
+              </nav>
+              <div className="arcade-dialog-body min-h-0 overflow-y-auto">
+                {panel === "character" ? (
+                  <aside
+                    className="platform-live-character"
+                    aria-label="Character overview"
+                  >
+                    <CharacterPanel state={state} />
+                  </aside>
+                ) : (
+                  <aside className="platform-live-collection">
+                    <CollectionPanel
+                      player={player}
+                      activeTab={activeTab}
+                      onItemCommand={(command) => {
+                        onCommand(command);
+                        setPanel(null);
+                      }}
+                      canTeleport={
+                        state?.scene === "ruins" &&
+                        !state.battle?.active &&
+                        (player?.health.current || 0) > 0
+                      }
+                    />
+                  </aside>
+                )}
+              </div>
+            </>
+          ) : panel === "auto" ? (
+            <AutoSettings controls={autoExplore} />
+          ) : (
+            journal
+          )}
+        </GameDialog>
+      ) : null}
       <TradeOverlay
         open={shopOpen}
         state={state}
         onClose={onCloseShop}
         onSubmitAction={onSubmitAction}
       />
-    </>
+    </div>
+  );
+}
+
+function AutoSettings({ controls }: { controls: AutoExploreControls }) {
+  return (
+    <div className="arcade-dialog-body p-4">
+      <div className="auto-explore-controls">
+        <button
+          type="button"
+          aria-pressed={controls.enabled}
+          disabled={!controls.enabled && !controls.canRun}
+          onClick={() =>
+            controls.enabled ? controls.stop() : controls.start()
+          }
+        >
+          Auto
+        </button>
+        <strong role="status">{controls.statusText}</strong>
+        <div className="auto-speed-buttons" aria-label="Auto speed">
+          {controls.speeds.map((speed) => (
+            <button
+              key={speed}
+              type="button"
+              className="map-speed-button"
+              aria-label={`Auto speed ${speed}x`}
+              aria-pressed={controls.speedMultiplier === speed}
+              onClick={() => controls.setSpeed(speed)}
+            >
+              {speed}x
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -263,31 +393,43 @@ function HudMeter({
   label: string;
   value: string;
   percent: number;
-  kind: "health" | "mana" | "stamina";
+  kind: "health" | "mana" | "xp";
 }) {
   return (
-    <div className={`platform-meter platform-meter-${kind}`}>
-      <span>{label}</span>
-      <div className="platform-meter-track">
-        <i className="platform-meter-fill" style={{ width: `${percent}%` }} />
+    <div className={`arcade-meter arcade-meter-${kind}`}>
+      <div className="flex justify-between gap-2">
+        <span>{label}</span>
+        <strong>{value}</strong>
       </div>
-      <strong>{value}</strong>
+      <div
+        className="arcade-meter-track"
+        role="meter"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-valuetext={value}
+      >
+        <i style={{ width: `${percent}%` }} />
+      </div>
     </div>
   );
 }
 
 function resourcePercent(resource?: Resource | null): number {
-  if (!resource?.max) return 0;
-
-  return clampPercent((resource.current / resource.max) * 100);
+  return resource?.max
+    ? clampPercent((resource.current / resource.max) * 100)
+    : 0;
 }
 
-function currentSkillProgress(player: PlayerState | null): { label: string; percent: number } {
+function currentSkillProgress(player: PlayerState | null): {
+  label: string;
+  percent: number;
+} {
   if (!player) return { label: "0%", percent: 0 };
-
   const progress = Object.values(player.skills || {})[0];
-  if (!progress?.next_level_xp) return { label: `Lv ${player.level}`, percent: 0 };
-
+  if (!progress?.next_level_xp)
+    return { label: `Lv ${player.level}`, percent: 0 };
   return {
     label: `${Math.round((progress.xp / progress.next_level_xp) * 100)}%`,
     percent: clampPercent((progress.xp / progress.next_level_xp) * 100),
@@ -298,37 +440,26 @@ function clampPercent(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function savedInterfaceMode(): InterfaceMode {
+function savedJournalView(): JournalView {
   try {
-    return window.localStorage.getItem(interfaceModeStorageKey) === "text" ? "text" : "actions";
+    return window.localStorage.getItem(interfaceModeStorageKey) === "text"
+      ? "terminal"
+      : "journal";
   } catch {
-    return "actions";
-  }
-}
-
-function rememberInterfaceMode(mode: InterfaceMode): void {
-  try {
-    window.localStorage.setItem(interfaceModeStorageKey, mode);
-  } catch {
-    // localStorage can be unavailable in restricted browser contexts.
+    return "journal";
   }
 }
 
 function useCompactViewport(): boolean {
-  const compactQuery = "(max-width: 700px), (max-width: 980px) and (max-height: 500px)";
-  const [compact, setCompact] = useState(() =>
-    typeof window === "undefined" ? false : window.matchMedia(compactQuery).matches,
+  const [compact, setCompact] = useState(
+    () => window.matchMedia("(max-width: 1023px)").matches,
   );
-
   useEffect(() => {
-    const query = window.matchMedia(compactQuery);
-    const updateCompact = () => setCompact(query.matches);
-
-    updateCompact();
-    query.addEventListener("change", updateCompact);
-
-    return () => query.removeEventListener("change", updateCompact);
+    const query = window.matchMedia("(max-width: 1023px)");
+    const update = () => setCompact(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
-
   return compact;
 }

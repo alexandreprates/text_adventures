@@ -27,7 +27,7 @@ test("avoids map-cache writes for manual typing and unchanged server terrain", a
   await page.goto("/");
   await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
   await expect.poll(() => explorationWriteCount(page)).toBe(1);
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
   await page.locator("#command-input").fill("look");
   await page.locator("#command-input").press("Enter");
   await expect(page.getByRole("status", { name: "Connection online", exact: true })).toBeVisible();
@@ -1870,6 +1870,98 @@ test("offers offline recovery without caching game state or losing the game URL"
   await expect(page).toHaveURL(/\/game\/demo-game$/);
 });
 
+for (const size of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 667, height: 375 }, { width: 844, height: 390 }, { width: 1024, height: 768 }, { width: 1440, height: 900 }]) {
+  test(`keeps the arcade canvas dominant at ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await mockGame(page, adventurerCombatPayload);
+    await page.goto("/");
+    await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+    const geometry = await page.locator(".map-stage").evaluate((stage) => {
+      const bounds = stage.getBoundingClientRect();
+      return { fraction: bounds.width * bounds.height / (innerWidth * innerHeight),
+        overflow: document.documentElement.scrollHeight > innerHeight || document.documentElement.scrollWidth > innerWidth };
+    });
+    expect(geometry.overflow).toBe(false);
+    expect(geometry.fraction).toBeGreaterThanOrEqual(size.height < 500 ? 0.55 : 0.60);
+    const canvas = await page.getByLabel("Dungeon map", { exact: true }).boundingBox();
+    const stage = await page.locator(".map-stage").boundingBox();
+    expect(Math.abs(canvas!.x + canvas!.width / 2 - stage!.x - stage!.width / 2)).toBeLessThan(2);
+    await expect(page.getByRole("button", { name: "Zoom in" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Attack", exact: true })).toBeInViewport();
+    await expect(page.getByRole("meter", { name: "Health", exact: true })).toHaveAttribute("aria-valuetext", "30 / 30");
+    await page.getByRole("button", { name: "Character", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Adventurer" });
+    await expect(dialog).toBeInViewport();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Character", exact: true })).toBeFocused();
+  });
+}
+
+test("refits the live canvas when the journal sidebar appears and disappears", async ({ page }) => {
+  await mockGame(page, isometricRuinsPayload);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
+  for (const size of [{ width: 390, height: 844 }, { width: 844, height: 390 }, { width: 1024, height: 768 }, { width: 320, height: 568 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size);
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect.poll(() => page.locator(".map-stage").evaluate((stage) => {
+      const canvas = stage.querySelector("canvas.map-canvas")!.getBoundingClientRect();
+      const bounds = stage.getBoundingClientRect();
+      return canvas.width > bounds.width / 2 && Math.abs(canvas.x + canvas.width / 2 - bounds.x - bounds.width / 2) < 2;
+    })).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+  }
+});
+
+test("keeps live terminal drafts, validation, and internally scrolling history", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await mockGame(page, townPayload);
+  await page.goto("/");
+  const sidebar = page.getByLabel("Journal and terminal", { exact: true });
+  const tabs = sidebar.getByLabel("Journal views");
+  await tabs.getByRole("button", { name: "Terminal" }).click();
+  await sidebar.getByRole("button", { name: "Send" }).click();
+  await expect(sidebar.getByRole("alert")).toHaveText("Enter a command.");
+  await page.locator("#command-input").fill("look");
+  await tabs.getByRole("button", { name: "Journal" }).click();
+  await tabs.getByRole("button", { name: "Terminal" }).click();
+  await expect(page.locator("#command-input")).toHaveValue("look");
+  await page.locator("#command-input").press("Enter");
+  await expect(page.locator("#command-input")).toHaveValue("");
+  await page.locator("#command-input").press("ArrowUp");
+  await expect(page.locator("#command-input")).toHaveValue("look");
+  await page.locator("#command-input").fill("invalid-command");
+  await page.locator("#command-input").press("Enter");
+  await expect(sidebar.getByLabel("Terminal output")).toContainText("Unsupported command");
+  await page.evaluate(() => (window as unknown as MusicTestWindow).__pushGamePatch({},
+    Array.from({ length: 50 }, (_, index) => ({ type: "message", text: `Journal event ${index}` })) as []));
+  await expect(sidebar.getByLabel("Terminal output")).toContainText("Journal event 49");
+  expect(await sidebar.getByLabel("Terminal output").evaluate((node) => node.scrollTop > 0)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight === innerHeight)).toBe(true);
+  await page.locator("#command-input").fill("go ruins");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(sidebar).toHaveCount(0);
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
+  await expect(page.locator("#command-input")).toHaveValue("go ruins");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Terminal", exact: true })).toBeFocused();
+});
+
+test("opens merchant trade from the mobile terminal", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockGame(page, blacksmithPayload);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
+  await page.locator("#command-input").fill("shop");
+  await page.locator("#command-input").press("Enter");
+  await expect(page.getByRole("dialog", { name: "Journal / Terminal" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Close trade" })).toBeVisible();
+  await page.getByRole("button", { name: "Close trade" }).click();
+  await expect(page.getByRole("button", { name: "Shop", exact: true })).toBeEnabled();
+});
+
 test("keeps web app controls inside safe areas as the mobile viewport changes", async ({ page }) => {
   await mockGame(page, isometricRuinsPayload);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1903,7 +1995,7 @@ test("keeps web app controls inside safe areas as the mobile viewport changes", 
   expect(landscapeHud!.x + landscapeHud!.width).toBeLessThanOrEqual(844 - 47);
   const canvas = await page.getByLabel("Dungeon map", { exact: true }).boundingBox();
   const commands = await page.locator(".commands-panel").boundingBox();
-  expect(canvas!.x + canvas!.width / 2).toBeLessThan(commands!.x);
+  expect(canvas!.y + canvas!.height / 2).toBeLessThan(commands!.y);
   await page.getByRole("button", { name: "Character", exact: true }).click();
   await expect(page.getByLabel("Character overview")).toBeVisible();
 });
@@ -1912,24 +2004,17 @@ test("renders the migrated game shell", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  await expect(page.getByRole("button", { name: "Switch to text mode" })).toContainText(
-    "Actions",
-  );
+  await expect(page.getByRole("button", { name: "Terminal", exact: true })).toBeVisible();
   await expect(page.getByLabel("Game title")).toHaveText("Text Adventures");
   await expect(page.getByRole("button", { name: "Text Adventures" })).toHaveCount(0);
   await expect(page.getByLabel("Current location")).toContainText("Town");
   await expect(page.getByLabel("Player level")).toHaveText("Level1");
-  await expect(page.getByLabel("Wallet")).toHaveCount(0);
+  await expect(page.getByLabel("Wallet")).toContainText("G");
   await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
   await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
-  if ((page.viewportSize()?.width || 0) <= 700) {
-    await expect(page.getByRole("button", { name: "Character" })).toBeVisible();
-    await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
-  } else {
-    await expect(page.getByRole("button", { name: "Character" })).toHaveCount(0);
-    await expect(page.locator(".platform-live-character .character-panel")).toBeVisible();
-  }
-  await expect(page.locator("#command-input")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Character" })).toBeVisible();
+  await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
+  await expect(page.locator("#command-input")).toBeHidden();
   await expect(page.getByText("=== LOG ==")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Inventory" })).toHaveAttribute(
     "aria-pressed",
@@ -1940,20 +2025,17 @@ test("renders the migrated game shell", async ({ page }) => {
   await expect(page.getByText("Potion of Heal")).toBeVisible();
 });
 
-test("switches from action mode to text mode", async ({ page }) => {
+test("opens the terminal while retaining the game layout", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
 
-  await expect(page.getByRole("button", { name: "Switch to button mode" })).toContainText(
-    "Text",
-  );
-  await expect(page.getByRole("button", { name: "Inventory" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Ruins" })).toHaveCount(0);
+  await expect(page.getByLabel("Journal views").getByRole("button", { name: "Terminal", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".arcade-controls")).toBeVisible();
   await expect(page.locator(".platform-live-character")).toHaveCount(0);
   await expect(page.locator(".platform-status-drawer")).toHaveCount(0);
-  await expect(page.getByText("=== LOG ==")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Command terminal" })).toBeVisible();
   await expect(page.locator("#command-input")).toHaveAttribute(
     "placeholder",
     /go ruins, (go blacksmith, )?inventory/,
@@ -1965,27 +2047,27 @@ test("keeps mobile Town and text controls at comfortable touch target heights", 
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
-  await expectHorizontalPadding(page.getByRole("button", { name: "Switch to text mode" }), 10);
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Terminal" }));
+  await expectHorizontalPadding(page.getByRole("button", { name: "Terminal" }), 4);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Character" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Ruins" }));
 
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
 
-  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to button mode" }));
+  await expectControlHeightAtLeast(page.getByLabel("Journal views").getByRole("button", { name: "Journal" }));
   await expectControlHeightAtLeast(page.locator("#command-input"));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Send" }));
   await expectHorizontalPadding(page.getByRole("button", { name: "Send" }), 13);
 });
 
-test("toggles the mobile character panel from the loadout rail", async ({ page }) => {
+test("opens readable mobile character details and switches to inventory", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  const characterButton = page.getByRole("button", { name: "Character" });
+  const characterButton = page.getByLabel("Loadout", { exact: true }).getByRole("button", { name: "Character" });
   const characterPanel = page.locator(".platform-live-character .character-panel");
 
   await expect(characterButton).toHaveAttribute("aria-pressed", "false");
@@ -1994,23 +2076,24 @@ test("toggles the mobile character panel from the loadout rail", async ({ page }
   await characterButton.click();
   await expect(characterButton).toHaveAttribute("aria-pressed", "true");
   await expect(characterPanel).toBeVisible();
-  await expectFontSize(characterPanel.locator(".frame-name"), 8);
-  await expectFontSize(characterPanel.locator(".section-label").first(), 6);
-  await expectFontSize(characterPanel.locator(".terminal-output").first(), 6.5);
+  await expectFontSize(characterPanel.locator(".frame-name"), 16);
+  await expectFontSize(characterPanel.locator(".section-label").first(), 12);
+  await expectFontSize(characterPanel.locator(".terminal-output").first(), 13);
 
-  await page.getByRole("button", { name: "Inventory" }).click();
+  await page.getByRole("dialog", { name: "Adventurer" }).getByRole("button", { name: "Inventory" }).click();
   await expect(characterButton).toHaveAttribute("aria-pressed", "false");
   await expect(characterPanel).toHaveCount(0);
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
 });
 
-test("keeps desktop character panel typography unchanged", async ({ page }) => {
+test("opens desktop character details with readable typography", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await mockGame(page, townPayload);
   await page.goto("/");
 
   const characterPanel = page.locator(".platform-live-character .character-panel");
 
+  await page.getByRole("button", { name: "Character" }).click();
   await expect(characterPanel).toBeVisible();
   await expectFontSize(characterPanel.locator(".frame-name"), 16);
   await expectFontSize(characterPanel.locator(".section-label").first(), 12);
@@ -2021,9 +2104,7 @@ test("renders the current class passive in the responsive character panel", asyn
   await mockGame(page, passiveTownPayload);
   await page.goto("/");
 
-  if ((page.viewportSize()?.width || 0) <= 700) {
-    await page.getByRole("button", { name: "Character" }).click();
-  }
+  await page.getByRole("button", { name: "Character" }).click();
 
   const characterPanel = page.locator(".platform-live-character .character-panel");
   await expect(characterPanel).toBeVisible();
@@ -2066,16 +2147,14 @@ test("lists the current class passive as a non-castable spellbook item", async (
     .toBe(true);
 });
 
-test("persists the selected interface mode", async ({ page }) => {
+test("persists the selected terminal view", async ({ page }) => {
   await mockGame(page, townPayload);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
   await page.reload();
 
-  await expect(page.getByRole("button", { name: "Switch to button mode" })).toContainText(
-    "Text",
-  );
+  await expect(page.getByLabel("Journal views").getByRole("button", { name: "Terminal", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("#command-input")).toBeVisible();
 });
 
@@ -2100,7 +2179,7 @@ test("keeps the player centered and camera motion continuous across unrelated st
   });
   await page.goto("/");
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
   await page.clock.pauseAt(new Date("2026-01-01T00:01:00Z"));
   await page.evaluate(() => {
     const positions: number[] = [];
@@ -2287,7 +2366,7 @@ test("keeps the mobile map stationary when entering and leaving combat", async (
     const loadout = await page.getByLabel("Loadout", { exact: true }).boundingBox();
     expect(enemy!.y).toBeGreaterThanOrEqual(24);
     expect(enemy!.y + enemy!.height).toBeLessThan(controls!.y);
-    expect(enemy!.x + enemy!.width).toBeLessThan(loadout!.x);
+    expect(enemy!.y + enemy!.height).toBeLessThan(loadout!.y);
     await expect(page.getByLabel("Recent messages")).toContainText("Skeleton Guard");
     expect(await canvas.boundingBox()).toEqual(before);
     await pushBattle(idleBattle, "The enemy was defeated.");
@@ -2324,13 +2403,9 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Explore" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Town" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Go Deep" })).toBeVisible();
-  if ((page.viewportSize()?.width || 0) <= 700) {
-    await expect(page.getByRole("button", { name: "Zoom in" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Zoom out" })).toHaveCount(0);
-  } else {
-    await expect(page.getByRole("button", { name: "Zoom in" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Zoom out" })).toBeVisible();
-  }
+  await expect(page.getByRole("button", { name: "Zoom in" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Zoom out" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await expect(autoToggle).toHaveAttribute("aria-pressed", "false");
 
   await page.getByRole("button", { name: "Auto speed 3x" }).click();
@@ -2340,10 +2415,12 @@ test("renders auto-explore controls in ruins", async ({ page }) => {
     "true",
   );
 
+  await page.getByRole("button", { name: "Close panel" }).click();
   await page.getByRole("button", { name: "Go Deep" }).click();
-  await expect(autoToggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText("Auto: going deep")).toBeVisible();
 
+  await page.getByRole("button", { name: "Auto settings" }).click();
+  await expect(autoToggle).toHaveAttribute("aria-pressed", "true");
   await autoToggle.click();
   await expect(page.getByText("Auto: stopped")).toBeVisible();
 });
@@ -2943,8 +3020,10 @@ for (const scenario of [
       };
     });
     if (scenario.auto) {
+      await page.getByRole("button", { name: "Auto settings" }).click();
       await page.getByRole("button", { name: `Auto speed ${scenario.speed}x` }).click();
       await page.getByRole("button", { name: "Auto", exact: true }).click();
+      await page.getByRole("button", { name: "Close panel" }).click();
     } else await page.getByRole("button", { name: /attack/i }).click();
     await expect.poll(() => page.evaluate(() => (window as unknown as LootSequenceWindow).__lootFrames.some((frame) => frame.corpse))).toBe(true);
     await page.screenshot({ path: testInfo.outputPath("corpse-before-loot.png") });
@@ -3233,17 +3312,19 @@ test("keeps mobile Ruins action controls at comfortable touch target heights", a
   await mockGame(page, isometricRuinsPayload);
   await page.goto("/");
 
-  await expectControlHeightAtLeast(page.getByRole("button", { name: "Switch to text mode" }));
+  await expectControlHeightAtLeast(page.getByRole("button", { name: "Terminal" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Character" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Inventory" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Spellbook" }));
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await expectControlHeightAtLeast(page.getByRole("button", { name: /^Auto$/ }));
-  await expectHorizontalPadding(page.getByRole("button", { name: /^Auto$/ }), 7);
+  await expectHorizontalPadding(page.getByRole("button", { name: /^Auto$/ }), 12);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 1x" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 2x" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Auto speed 3x" }));
+  await page.getByRole("button", { name: "Close panel" }).click();
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Explore" }));
-  await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 6, 11);
+  await expectHorizontalPadding(page.getByRole("button", { name: "Explore" }), 8);
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Town" }));
   await expectControlHeightAtLeast(page.getByRole("button", { name: "Go Deep" }));
   await expect(page.getByText("Loading isometric dungeon…")).toBeHidden();
@@ -3341,7 +3422,7 @@ test("ignores a delayed close event from a superseded WebSocket", async ({ page 
   await page.goto("/");
   await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Switch to text mode" }).click();
+  await page.getByRole("button", { name: "Terminal" }).click();
   await page.locator("#command-input").fill("new");
   await page.getByRole("button", { name: "Send" }).click();
 
@@ -3523,7 +3604,9 @@ for (const affordable of [true, false]) {
 test("auto-explore finishes combat before using a scroll to resupply", async ({ page }) => {
   await mockAutoResupplyGame(page, { portal: true, combat: true });
   await page.goto("/");
+  await page.getByRole("button", { name: "Auto settings" }).click();
   await page.getByRole("button", { name: "Auto", exact: true }).click();
+  await page.getByRole("button", { name: "Close panel" }).click();
   await expect.poll(() => page.evaluate(() =>
     (window as unknown as { __sentActions: Array<Record<string, unknown>> }).__sentActions.slice(0, 2),
   )).toEqual([
@@ -3548,7 +3631,7 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
   await mockGame(page, combatPayload);
   await page.goto("/");
 
-  await expect(page.locator(".commands-panel").getByLabel("Enemy status")).toContainText(
+  await expect(page.getByLabel("Enemy status")).toContainText(
     "Skeleton Guard",
   );
   await expect(page.getByLabel("Recent messages")).toContainText("[Skeleton Guard HP: 28/28]");
@@ -3559,11 +3642,11 @@ test("keeps mobile ruins feedback and loadout visible during combat", async ({ p
   await expect(
     page.locator(".platform-live-character .character-panel").getByText("Skeleton Guard"),
   ).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Inventory" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Spellbook" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Adventurer" }).getByRole("button", { name: "Inventory" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Adventurer" }).getByRole("button", { name: "Spellbook" })).toBeVisible();
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeHidden();
 
-  await page.getByRole("button", { name: "Inventory" }).click();
+  await page.getByRole("dialog", { name: "Adventurer" }).getByRole("button", { name: "Inventory" }).click();
   await expect(page.locator(".platform-live-character .character-panel")).toHaveCount(0);
   await expect(page.locator(".platform-live-collection").getByText("Potion of Heal")).toBeVisible();
 });

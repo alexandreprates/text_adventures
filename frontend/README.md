@@ -52,6 +52,18 @@ a component rather than adding `!important`. Keep class names complete and
 statically discoverable in source. The mockup's design-notes grid demonstrates
 responsive utilities and a theme color alias.
 
+## Playable arcade interface
+
+The playable game uses the approved arcade layout: a viewport-sized shell,
+compact numeric resources, a dominant map, contextual bottom actions, and a
+Journal/Terminal sidebar from 1024px. Smaller viewports open the journal and
+terminal in an accessible modal. Inventory, spellbook, and character details use
+the same modal pattern with internal scrolling, Escape dismissal, and focus
+restoration. Auto-explore speed controls live under **Auto settings**; **Stop**
+stays on the map while automation is running. The existing session, save URLs,
+WebSocket actions, trade flows, and renderer remain connected to the live game.
+The previous text-mode preference selects the Terminal tab on startup.
+
 ## Interface proposal
 
 Open `http://127.0.0.1:5173/?mockup=interface` with `pnpm dev` running to view
@@ -63,27 +75,27 @@ Open **Preview** to select exploration, combat, loot, or town, access design not
 or return to the production game.
 Explore starts a simulated encounter; three attacks reveal rewards; collecting
 them updates the sample gold balance. Healing, inventory, character details,
-the journal, zoom, and a limited text-command form are interactive. Changing
+the journal and a limited text-command form are interactive. Changing
 the scenario resets the sample values. **Preview → Design notes** opens the
 current-interface findings and reference links in an internal window.
 
 The assessment prioritizes a single contextual action, numeric resources on
 mobile, secondary panels outside the map, readable history in action mode, and
-explicit labels. This is a presentation prototype, not a replacement gameplay
-client. Validate the proposed layout with players before production integration.
+explicit labels. This route remains a presentation prototype with simulated data.
+The approved layout also powers the playable client at `/` and `/game/:id`.
 
 The visual direction follows a pixel-art arcade and terminal dungeon-crawler
 direction: local Press Start 2P display typography, monospace body copy, square
 frames, beveled pixel controls, segmented resources, phosphor-green actions,
 amber gold, and terminal-style event history. The map's subtle scanline texture is static;
-there is no flashing CRT effect. The original game UI is unchanged.
+there is no flashing CRT effect. The playable client shares the same palette and font tokens.
 
 The bundled font and its OFL license are under `public/assets/fonts/press-start-2p/`.
 
 The fourth revision makes the dungeon the dominant surface. The `100dvh` shell
 uses a single compact location header, a resource strip, an edge-to-edge map, and
 compact controls along the bottom. Equipment and character details live in the
-Character window. The default zoom is 1.3, with manual zoom still available.
+Character window. The default zoom is 1.3; manual zoom buttons are omitted.
 Desktop widths of 1024px and above include a right sidebar (240–300px) for
 Journal and Terminal. Both views share the same live history; the terminal keeps
 its input available and preserves draft commands when switching views. New entries

@@ -1,31 +1,6 @@
-@font-face {
-  font-family: "Press Start 2P";
-  src: url("/assets/fonts/press-start-2p/PressStart2P-Regular.ttf")
-    format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+@import "../game/ArcadeTheme.css";
 
 .interface-mockup {
-  --im-bg: #0c0e14;
-  --im-surface: #141a24;
-  --im-raised: #202b37;
-  --im-line: #3d5060;
-  --im-line-light: #637d88;
-  --im-text: #e1eddb;
-  --im-muted: #9aafb5;
-  --im-accent: #b5ef66;
-  --im-ink: #15220e;
-  --im-health: #ff817c;
-  --im-mana: #73c5f1;
-  --im-green: #b5ef66;
-  --im-gold: #f6ce72;
-  --im-violet: #b9a4ea;
-  --im-map: #070807;
-  --im-shadow: #020406;
-  --im-scanline: rgba(141, 184, 159, 0.035);
-  --im-pixel-font: "Press Start 2P", var(--mono);
   height: 100dvh;
   display: flex;
   flex-direction: column;
