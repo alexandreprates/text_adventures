@@ -182,8 +182,8 @@ export function useAutoExplore({
     model.enabled = true;
     model.goal = goal;
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
-    model.continueAfterDescent = goal === "descent";
-    model.continuousDescent = goal === "descent";
+    model.continueAfterDescent = goal !== "town";
+    model.continuousDescent = goal !== "town";
     markAutoExploreVisited();
     setStatusText(autoExploreGoalStatus(goal));
     scheduleAutoExplore();
@@ -212,8 +212,8 @@ export function useAutoExplore({
 
     model.goal = goal;
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
-    model.continueAfterDescent = goal === "descent";
-    model.continuousDescent = goal === "descent";
+    model.continueAfterDescent = goal !== "town";
+    model.continuousDescent = goal !== "town";
     model.resupplying = false;
     model.currentPath = [];
     model.destinationKey = null;
@@ -380,23 +380,13 @@ export function useAutoExplore({
       if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
     }
 
-    if (model.goal !== "explore") return nextAutoExploreGoalDecision();
-
-    if (currentState.dungeon?.nearby_loot) {
-      return { command: "loot", status: "Auto: looting" };
-    }
-
-    const direction = await nextAutoExploreDirection();
-    return direction
-      ? { command: `go ${direction}`, status: "Auto: exploring" }
-      : autoExploreLevelCompleteDecision();
+    return nextAutoExploreGoalDecision();
   }
 
   async function autoExploreLevelCompleteDecision(): Promise<Decision> {
     const model = modelRef.current;
     if (!autoExploreDescentFound()) return { stopReason: "level complete" };
 
-    model.goal = "descent";
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
     model.continueAfterDescent = true;
     model.currentPath = [];
@@ -415,16 +405,16 @@ export function useAutoExplore({
       return { command: `use ${scroll.name}`, status: "Auto: teleporting to town" };
     }
 
-    if (model.goal === "descent" && currentState.dungeon.nearby_loot) {
+    if (model.goal !== "town" && currentState.dungeon.nearby_loot) {
       return { command: "loot", status: "Auto: looting" };
     }
 
-    if (model.goal === "descent" && autoExploreShouldHuntBeforeDescent()) {
+    if (model.goal !== "town" && autoExploreShouldHuntBeforeDescent()) {
       const direction = await nextAutoExploreDirection();
       if (direction) return { command: `go ${direction}`, status: "Auto: hunting" };
     }
 
-    if (model.goal === "descent" && !autoExploreDescentFound()) {
+    if (model.goal !== "town" && !autoExploreDescentFound()) {
       return nextAutoExploreDeepExplorationDecision();
     }
 
@@ -466,9 +456,7 @@ export function useAutoExplore({
     if (model.goal === "town") {
       return currentState?.dungeon?.entrance_portal || currentState?.dungeon?.ascent;
     }
-    if (model.goal === "descent") return currentState?.dungeon?.descent;
-
-    return null;
+    return currentState?.dungeon?.descent;
   }
 
   async function nextAutoExploreTargetDirection(target: Position) {
@@ -589,8 +577,8 @@ export function useAutoExplore({
     model.resupplying = false;
     model.goal = "explore";
     model.goalLevel = stateRef.current?.dungeon?.level ?? null;
-    model.continueAfterDescent = false;
-    model.continuousDescent = false;
+    model.continueAfterDescent = true;
+    model.continuousDescent = true;
     model.currentPath = [];
     model.destinationKey = null;
     model.lastAction = null;
@@ -938,7 +926,7 @@ export function useAutoExplore({
     }
 
     if (
-      model.goal === "descent" &&
+      model.goal !== "town" &&
       Number.isInteger(model.goalLevel) &&
       currentState?.dungeon?.level !== model.goalLevel
     ) {
@@ -957,7 +945,6 @@ export function useAutoExplore({
   function continueAutoExploreAfterDescent() {
     const model = modelRef.current;
     const currentState = stateRef.current;
-    model.goal = model.continuousDescent ? "descent" : "explore";
     model.goalLevel = currentState?.dungeon?.level ?? null;
     model.continueAfterDescent = model.continuousDescent;
     model.currentPath = [];

@@ -27,10 +27,10 @@ beforeEach(() => {
 });
 afterEach(() => { hooks.cleanups.forEach((cleanup) => cleanup()); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-function setup() {
+function setup(initialState?: GameState) {
   const cells = Array.from({ length: 1000 }, (_, x) => [`${x},2`, "open"]);
-  storage.set("text_adventures.auto_explore.game", JSON.stringify({ level: 1, cells }));
-  const state = {
+  if (!initialState) storage.set("text_adventures.auto_explore.game", JSON.stringify({ level: 1, cells }));
+  const state = initialState ?? {
     scene: "ruins", player: { health: { current: 30, max: 30 }, inventory: [{ type: "potion", name: "potion of heal", quantity: 5 }], spells: [] },
     dungeon: { level: 1, player_position: { x: 998, y: 2 }, viewport: { width: 18, height: 15, origin: { x: 990, y: 0 }, terrain: "?".repeat(270), entities: [] } },
   } as unknown as GameState;
@@ -48,6 +48,28 @@ function setup() {
 }
 
 describe("cooperative auto exploration", () => {
+  it.each(["default", "explore", "descent"] as const)("keeps descending across floors with the %s goal until stopped", async (goal) => {
+    const initial = {
+      scene: "ruins",
+      player: { level: 10, health: { current: 30, max: 30 }, inventory: [{ type: "potion", name: "potion of heal", quantity: 5 }], spells: [] },
+      dungeon: {
+        level: 1, player_position: { x: 1, y: 1 }, descent: { x: 2, y: 1 },
+        viewport: { width: 3, height: 3, origin: { x: 0, y: 0 }, terrain: ".........", entities: [{ type: "descent", x: 2, y: 1 }] },
+      },
+    } as unknown as GameState;
+    const { render, controls, runCommand } = setup(initial);
+    if (goal !== "default") controls.setGoal(goal);
+    for (const level of [1, 2, 3]) {
+      if (level > 1) render("online", { ...initial, dungeon: { ...initial.dungeon!, level } });
+      await vi.advanceTimersByTimeAsync(550);
+      expect(runCommand).toHaveBeenLastCalledWith("go right", { source: "auto" });
+      expect(runCommand).toHaveBeenCalledTimes(level);
+    }
+    controls.stop();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(runCommand).toHaveBeenCalledTimes(3);
+  });
+
   it.each([1, 2, 3])("waits for the rendered loot frame at speed %s even after the death timer elapsed", async (speed) => {
     const { render, controls, state, runCommand } = setup();
     controls.setSpeed(speed);

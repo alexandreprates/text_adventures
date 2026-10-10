@@ -3569,12 +3569,13 @@ test("shows a mobile command panel warning when the connection errors", async ({
   await expect(page.getByLabel("Connection warning")).toContainText("Connection problem");
 });
 
-test("go deep hunts the current floor when it matches the player level", async ({ page }) => {
+for (const mode of ["Explore", "Go Deep"]) {
+test(`${mode} hunts the current floor when it matches the player level`, async ({ page }) => {
   await mockRecordedSocketGame(page, controlledDescentHuntingPayload);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Auto settings" }).click();
-  await page.getByRole("button", { name: "Go Deep" }).click();
+  if (mode === "Go Deep") await page.getByRole("button", { name: "Auto settings" }).click();
+  await page.getByRole("button", { name: mode, exact: true }).click();
 
   await expect
     .poll(
@@ -3596,12 +3597,12 @@ test("go deep hunts the current floor when it matches the player level", async (
   await expect(page.getByText("Auto: hunting")).toBeVisible();
 });
 
-test("go deep descends when the level-matched floor is complete", async ({ page }) => {
+test(`${mode} descends when the level-matched floor is complete`, async ({ page }) => {
   await mockRecordedSocketGame(page, controlledDescentCompletePayload);
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Auto settings" }).click();
-  await page.getByRole("button", { name: "Go Deep" }).click();
+  if (mode === "Go Deep") await page.getByRole("button", { name: "Auto settings" }).click();
+  await page.getByRole("button", { name: mode, exact: true }).click();
 
   await expect
     .poll(
@@ -3621,6 +3622,41 @@ test("go deep descends when the level-matched floor is complete", async ({ page 
 
   expect(firstAction).toEqual({ type: "action", action: "move", direction: "right" });
 });
+
+}
+
+for (const entry of ["Explore", "Auto", "terminal", "Go Deep"]) {
+  test(`${entry} continues toward descent on each new dungeon floor`, async ({ page }) => {
+    await mockGame(page, { ...controlledDescentHuntingPayload, state: {
+      ...controlledDescentHuntingPayload.state,
+      player: { ...controlledDescentPlayer, level: 10 },
+    } });
+    await page.goto("/");
+    if (entry === "terminal") {
+      await page.getByRole("button", { name: "Terminal", exact: true }).click();
+      await page.locator("#command-input").fill("explore");
+      await page.locator("#command-input").press("Enter");
+      await page.keyboard.press("Escape");
+    } else {
+      if (entry !== "Explore") await page.getByRole("button", { name: "Auto settings" }).click();
+      await page.getByRole("button", { name: entry, exact: true }).click();
+      if (entry === "Auto") await page.getByRole("button", { name: "Close panel", exact: true }).click();
+    }
+    const moves = () => page.evaluate(() => (window as unknown as { __sentSocketMessages: Array<Record<string, unknown>> }).__sentSocketMessages.filter((message) => message.type === "action"));
+    for (const level of [1, 2, 3]) {
+      if (level > 1) await page.evaluate(({ dungeon, level }) => {
+        (window as unknown as MusicTestWindow).__pushGamePatch({ dungeon: { ...dungeon, level } }, []);
+      }, { dungeon: controlledDescentHuntingPayload.state.dungeon as Record<string, unknown>, level });
+      await expect.poll(moves).toHaveLength(level);
+      expect((await moves())[level - 1]).toEqual({ type: "action", action: "move", direction: "right" });
+      await expect(page.getByRole("status", { name: "Connection online" })).toBeVisible();
+      await expect(page.getByLabel("Current location")).toHaveText(`Ruins Floor ${level}`);
+    }
+    await page.getByRole("button", { name: "Stop", exact: true }).click();
+    await page.waitForTimeout(700);
+    expect(await moves()).toHaveLength(3);
+  });
+}
 
 test("auto-explore resupplies at the tavern before returning to ruins", async ({ page }) => {
   await mockAutoResupplyGame(page);
@@ -3660,7 +3696,7 @@ test("auto-explore resupplies at the tavern before returning to ruins", async ({
   ]);
 
   await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
-  await expect(page.getByText("Auto: exploring")).toBeVisible();
+  await expect(page.getByText("Auto: hunting")).toBeVisible();
 });
 
 for (const affordable of [true, false]) {
@@ -3687,7 +3723,7 @@ for (const affordable of [true, false]) {
       { type: "action", action: "travel", destination: "ruins" },
     ]);
     await expect(page.getByLabel("Current location")).toContainText("Ruins Floor 1");
-    await expect(page.getByText("Auto: exploring")).toBeVisible();
+    await expect(page.getByText("Auto: hunting")).toBeVisible();
     const memory = await page.evaluate(() => JSON.parse(localStorage.getItem("text_adventures.auto_explore.demo-game")!));
     expect(memory.visited).toContain("8,8");
     expect(memory.failedMoves).toContain("8,8:up");
