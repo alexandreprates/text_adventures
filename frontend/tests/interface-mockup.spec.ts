@@ -72,11 +72,12 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
   page,
 }) => {
   await page.goto("/?mockup=interface");
+  await page.getByRole("button", { name: "Design notes" }).click();
   for (const size of [
-    { width: 320, height: 740 },
-    { width: 390, height: 844 },
-    { width: 1024, height: 768 },
-    { width: 1440, height: 900 },
+    { width: 320, height: 740, columns: 1 },
+    { width: 390, height: 844, columns: 1 },
+    { width: 1024, height: 768, columns: 2 },
+    { width: 1440, height: 900, columns: 3 },
   ]) {
     await page.setViewportSize(size);
     await expect(
@@ -100,5 +101,24 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
     expect(action!.height).toBeGreaterThanOrEqual(44);
     if (size.width === 390 || size.width === 1440)
       expect(action!.y + action!.height).toBeLessThanOrEqual(size.height);
+    const grid = await page.locator(".im-findings").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        display: style.display,
+        columns: style.gridTemplateColumns.split(" ").length,
+        gap: style.gap,
+      };
+    });
+    expect(grid).toEqual({
+      display: "grid",
+      columns: size.columns,
+      gap: "24px",
+    });
   }
+  const tokenColors = await page.evaluate(() => ({
+    utility: getComputedStyle(document.querySelector(".text-preview-muted")!)
+      .color,
+    existing: getComputedStyle(document.querySelector(".im-muted")!).color,
+  }));
+  expect(tokenColors.utility).toBe(tokenColors.existing);
 });

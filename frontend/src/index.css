@@ -1,101 +1,117 @@
-:root {
-  --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-right: env(safe-area-inset-right, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-left: env(safe-area-inset-left, 0px);
-  --page-bg: #090c10;
-  --panel-bg: #111820;
-  --panel-bg-strong: #16232c;
-  --panel-line: #2e5560;
-  --panel-line-soft: rgba(116, 197, 191, 0.2);
-  --text: #d8f4e8;
-  --text-muted: #8eb5ac;
-  --text-dim: #66857f;
-  --accent: #7be88f;
-  --accent-strong: #bcff7a;
-  --danger: #ff6b6b;
-  --mana: #8ab4ff;
-  --gold: #f3cc66;
-  --button-bg: #172932;
-  --button-hover: #223944;
-  --dungeon-canvas-bg: #050606;
-  --dungeon-stage-bg: #070807;
-  --dungeon-stage-line: #302c25;
-  --dungeon-status-bg: rgba(9, 10, 9, 0.9);
-  --dungeon-light-ambient: rgba(1, 5, 10, 0.28);
-  --dungeon-light-vision-near: rgba(1, 4, 8, 0.02);
-  --dungeon-light-vision-soft: rgba(1, 4, 9, 0.2);
-  --dungeon-light-vision-mid: rgba(0, 3, 8, 0.64);
-  --dungeon-light-vision-edge: rgba(0, 2, 6, 0.96);
-  --dungeon-light-player-core: rgba(126, 176, 164, 0.16);
-  --dungeon-light-player-soft: rgba(50, 93, 96, 0.07);
-  --dungeon-light-player-edge: rgba(27, 61, 68, 0);
-  --dungeon-light-torch-core: rgba(255, 199, 97, 0.28);
-  --dungeon-light-torch-soft: rgba(221, 114, 42, 0.1);
-  --dungeon-light-torch-edge: rgba(152, 57, 23, 0);
-  --dungeon-light-beam-core: rgba(255, 210, 118, 0.12);
-  --dungeon-light-beam-soft: rgba(229, 129, 54, 0.045);
-  --dungeon-light-beam-edge: rgba(170, 68, 24, 0);
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
-  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+@import "./tailwind.css";
 
-  color: var(--text);
-  background: var(--page-bg);
-  font: 16px/1.45 var(--sans);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@layer base {
+  :root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --page-bg: #090c10;
+    --panel-bg: #111820;
+    --panel-bg-strong: #16232c;
+    --panel-line: #2e5560;
+    --panel-line-soft: rgba(116, 197, 191, 0.2);
+    --text: #d8f4e8;
+    --text-muted: #8eb5ac;
+    --text-dim: #66857f;
+    --accent: #7be88f;
+    --accent-strong: #bcff7a;
+    --danger: #ff6b6b;
+    --mana: #8ab4ff;
+    --gold: #f3cc66;
+    --button-bg: #172932;
+    --button-hover: #223944;
+    --dungeon-canvas-bg: #050606;
+    --dungeon-stage-bg: #070807;
+    --dungeon-stage-line: #302c25;
+    --dungeon-status-bg: rgba(9, 10, 9, 0.9);
+    --dungeon-light-ambient: rgba(1, 5, 10, 0.28);
+    --dungeon-light-vision-near: rgba(1, 4, 8, 0.02);
+    --dungeon-light-vision-soft: rgba(1, 4, 9, 0.2);
+    --dungeon-light-vision-mid: rgba(0, 3, 8, 0.64);
+    --dungeon-light-vision-edge: rgba(0, 2, 6, 0.96);
+    --dungeon-light-player-core: rgba(126, 176, 164, 0.16);
+    --dungeon-light-player-soft: rgba(50, 93, 96, 0.07);
+    --dungeon-light-player-edge: rgba(27, 61, 68, 0);
+    --dungeon-light-torch-core: rgba(255, 199, 97, 0.28);
+    --dungeon-light-torch-soft: rgba(221, 114, 42, 0.1);
+    --dungeon-light-torch-edge: rgba(152, 57, 23, 0);
+    --dungeon-light-beam-core: rgba(255, 210, 118, 0.12);
+    --dungeon-light-beam-soft: rgba(229, 129, 54, 0.045);
+    --dungeon-light-beam-edge: rgba(170, 68, 24, 0);
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.42);
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --sans:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
 
-* {
-  box-sizing: border-box;
-}
+    color: var(--text);
+    background: var(--page-bg);
+    font: 16px/1.45 var(--sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  min-width: 320px;
-  min-height: 100svh;
-  min-height: 100dvh;
-  margin: 0;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(123, 232, 143, 0.08), transparent 28rem),
-    radial-gradient(circle at 88% 12%, rgba(243, 204, 102, 0.08), transparent 24rem),
-    linear-gradient(180deg, #0b1117 0%, var(--page-bg) 100%);
-}
+  * {
+    box-sizing: border-box;
+  }
 
-button,
-input {
-  font: inherit;
-}
+  body {
+    min-width: 320px;
+    min-height: 100svh;
+    min-height: 100dvh;
+    margin: 0;
+    background:
+      radial-gradient(
+        circle at 12% 0%,
+        rgba(123, 232, 143, 0.08),
+        transparent 28rem
+      ),
+      radial-gradient(
+        circle at 88% 12%,
+        rgba(243, 204, 102, 0.08),
+        transparent 24rem
+      ),
+      linear-gradient(180deg, #0b1117 0%, var(--page-bg) 100%);
+  }
 
-button {
-  touch-action: manipulation;
-  min-height: 38px;
-  border: 1px solid var(--panel-line);
-  border-radius: 6px;
-  color: var(--text);
-  background: var(--button-bg);
-  cursor: pointer;
-}
+  button,
+  input {
+    font: inherit;
+  }
 
-button:hover,
-button:focus-visible {
-  background: var(--button-hover);
-  border-color: var(--accent);
-  outline: none;
-}
+  button {
+    touch-action: manipulation;
+    min-height: 38px;
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    color: var(--text);
+    background: var(--button-bg);
+    cursor: pointer;
+  }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
+  button:hover,
+  button:focus-visible {
+    background: var(--button-hover);
+    border-color: var(--accent);
+    outline: none;
+  }
 
-#root {
-  min-height: 100svh;
-  min-height: 100dvh;
-}
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+  }
 
-@media (display-mode: standalone) {
-  html { overscroll-behavior-y: none; }
+  #root {
+    min-height: 100svh;
+    min-height: 100dvh;
+  }
+
+  @media (display-mode: standalone) {
+    html {
+      overscroll-behavior-y: none;
+    }
+  }
 }

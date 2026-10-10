@@ -1,0 +1,26 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+/* Keep the existing base styles instead of introducing Preflight resets. */
+@import "tailwindcss/utilities.css" layer(utilities) source(".");
+@source "../index.html";
+
+@theme inline {
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
+  --color-page: var(--page-bg);
+  --color-surface: var(--panel-bg);
+  --color-surface-strong: var(--panel-bg-strong);
+  --color-line: var(--panel-line);
+  --color-line-soft: var(--panel-line-soft);
+  --color-foreground: var(--text);
+  --color-muted: var(--text-muted);
+  --color-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-danger: var(--danger);
+  --color-mana: var(--mana);
+  --color-gold: var(--gold);
+  --color-button: var(--button-bg);
+  --color-button-hover: var(--button-hover);
+  --color-preview-muted: var(--im-muted);
+}

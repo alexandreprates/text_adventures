@@ -516,11 +516,11 @@ export function InterfaceMockup() {
         >
           <span className="im-eyebrow">FROM OBSERVATION TO PROPOSAL</span>
           <h2>Keep the world. Clear the interface.</h2>
-          <p>
+          <p className="text-preview-muted">
             Assessment of the current browser UI at 1440 × 900 and 390 × 844.
             These are design observations, not usability-study results.
           </p>
-          <div className="im-findings">
+          <div className="im-findings my-8 grid grid-cols-1 gap-6 min-[701px]:grid-cols-2 min-[1151px]:grid-cols-3">
             {findings.map(([number, title, current, proposal]) => (
               <article key={number}>
                 <span className="im-eyebrow">{number}</span>
