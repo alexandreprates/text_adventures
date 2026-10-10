@@ -205,22 +205,9 @@
   max-width: none;
   image-rendering: pixelated;
 }
-.interface-mockup .im-map .connection-indicator {
-  display: none;
-}
+.interface-mockup .im-map .connection-indicator,
 .interface-mockup .im-map .map-zoom-controls {
-  display: flex;
-  top: 16px;
-  right: 16px;
-}
-.interface-mockup .im-map .map-zoom-button {
-  width: 44px;
-  min-height: 44px;
-  height: 44px;
-  padding: 0;
-  background: var(--im-surface);
-  border-color: var(--im-line);
-  color: var(--im-text);
+  display: none;
 }
 .im-journal {
   min-width: 0;
@@ -789,10 +776,6 @@
     left: 8px;
     top: 8px;
     width: 144px;
-  }
-  .interface-mockup .im-map .map-zoom-controls {
-    top: 8px;
-    right: 8px;
   }
   .im-review {
     padding: 16px;
