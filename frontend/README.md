@@ -59,11 +59,12 @@ the interactive interface assessment and redesign proposal. The mockup reuses
 the existing dungeon renderer and artwork, works without the Ruby API, and
 does not read or write game saves.
 
-Use the scenario selector to preview exploration, combat, loot, and town.
+Open **Preview** to select exploration, combat, loot, or town, access design notes,
+or return to the production game.
 Explore starts a simulated encounter; three attacks reveal rewards; collecting
 them updates the sample gold balance. Healing, inventory, character details,
 the journal, zoom, and a limited text-command form are interactive. Changing
-the scenario resets the sample values. The **Design notes** button opens the
+the scenario resets the sample values. **Preview → Design notes** opens the
 current-interface findings and reference links in an internal window.
 
 The assessment prioritizes a single contextual action, numeric resources on
@@ -74,19 +75,20 @@ client. Validate the proposed layout with players before production integration.
 The visual direction follows a pixel-art arcade and terminal dungeon-crawler
 direction: local Press Start 2P display typography, monospace body copy, square
 frames, beveled pixel controls, segmented resources, phosphor-green actions,
-amber gold, and terminal-style event history. The character portrait reuses the
-existing Adventurer sprite sheet. The map's subtle scanline texture is static;
+amber gold, and terminal-style event history. The map's subtle scanline texture is static;
 there is no flashing CRT effect. The original game UI is unchanged.
 
 The bundled font and its OFL license are under `public/assets/fonts/press-start-2p/`.
 
-The third revision treats the mockup as a game viewport: the shell occupies
-`100dvh`, the dungeon fills the remaining space, and resources, contextual actions,
-latest feedback and panel navigation stay on screen. Journal, inventory, character,
-terminal and design notes use a native modal dialog with Escape dismissal and focus
-restoration. Only long dialog content scrolls. Narrow landscape screens move the
-resources and actions beside the map. Secondary character details remain available
-in the Character window when the compact HUD omits them.
+The fourth revision makes the dungeon the dominant surface. The `100dvh` shell
+uses a single compact location header, a resource strip, an edge-to-edge map, and
+compact controls along the bottom. Equipment and character details live in the
+Character window. The default zoom is 1.3, with manual zoom still available.
+The map occupies about 82% of the viewport at 1440×900 and 74% at 390×844; narrow
+landscape screens retain at least 55%. Primary controls keep 44px touch targets.
+The latest feedback occupies one line, with complete messages available in Journal.
+Journal, inventory, character, terminal and preview controls use a native modal
+dialog with Escape dismissal and focus restoration. Only long dialog content scrolls.
 
 Visual references inspected for this revision:
 
@@ -94,5 +96,6 @@ Visual references inspected for this revision:
 - [Stoneshard screenshot, SuperSoluce](https://cdn.supersoluce.com/file/docs/docid_5e1c8296105f4d8912000001/elemid_4ee9faa20a2fe93d0e000010/stoneshard-009.jpg): edge-anchored actions and restrained contextual feedback.
 
 These are layout references, not bundled game assets. Playwright covers page overflow,
-minimum map space and visible controls across four scenarios at 320×568, 390×844,
+minimum map area (75% desktop, 60% mobile portrait, 55% landscape) and visible controls
+across four scenarios at 320×568, 390×844,
 667×375, 844×390, 1024×768, 1440×700 and 1440×900, as well as dialog scrolling and keyboard focus.

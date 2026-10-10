@@ -57,10 +57,10 @@ export function InterfaceMockup() {
   const [potions, setPotions] = useState(3);
   const [messages, setMessages] = useState(initialMessages);
   const [view, setView] = useState<JournalView>("journal");
-  const [zoom, setZoom] = useState(1);
-  const [panel, setPanel] = useState<"details" | "terminal" | "notes" | null>(
-    null,
-  );
+  const [zoom, setZoom] = useState(1.3);
+  const [panel, setPanel] = useState<
+    "details" | "terminal" | "notes" | "preview" | null
+  >(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -167,237 +167,140 @@ export function InterfaceMockup() {
   return (
     <div className="interface-mockup">
       <header className="im-header">
-        <div className="im-wordmark">
-          <span className="im-emblem">
-            <PixelIcon kind="gate" />
-          </span>
-          <span>
-            TEXT
-            <br />
-            <strong>ADVENTURES</strong>
-          </span>
-        </div>
-        <div className="im-chapter">
-          <span className="im-eyebrow">WORLD_01 / NEE'PEH</span>
-          <span>
-            Nee'Peh <span aria-hidden="true">/</span>{" "}
-            {scene === "town" ? "Village" : "Ruins · Floor 01"}
-          </span>
-        </div>
-        <div className="im-header-tools">
-          <span className="im-preview-badge">
-            <span className="im-live-dot" /> MOCKUP 03
-          </span>
-          <button onClick={() => setPanel("notes")}>Design notes</button>
-          <a href="/">Open game ↗</a>
-        </div>
+        <h1>
+          {scene === "town" ? "The town of Nee'Peh" : "The Eastern Chamber"}
+        </h1>
+        <span className="im-header-location">
+          NEE'PEH / {scene === "town" ? "SAFE ZONE" : "RUINS · B1"}
+        </span>
+        <button onClick={() => setPanel("preview")}>Preview</button>
       </header>
-
       <main className="im-main">
-        <div className="im-page-heading">
-          <div>
-            <span className="im-eyebrow">
-              {scene === "town"
-                ? "// SAFE ZONE / REST & RESUPPLY"
-                : "// DUNGEON_01 / EXPLORE THE UNKNOWN"}
-            </span>
-            <h1>
-              {scene === "town" ? "The town of Nee'Peh" : "The Eastern Chamber"}
-            </h1>
-          </div>
-          <label className="im-scenes">
-            <span>Preview</span>
-            <select
-              aria-label="Preview scenario"
-              value={scene}
-              onChange={(event) => selectScene(event.target.value as DemoScene)}
-            >
-              {(Object.keys(sceneLabels) as DemoScene[]).map((name) => (
-                <option key={name} value={name}>
-                  {sceneLabels[name]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="im-workspace grid min-h-0 grid-cols-1 min-[901px]:grid-cols-[232px_minmax(0,1fr)]">
+        <section className="im-adventure" aria-label="Adventure preview">
           <aside className="im-player" aria-label="Player overview">
-            <div className="im-identity">
-              <span className="im-player-mark" aria-hidden="true" />
-              <div>
-                <span className="im-eyebrow">PLAYER_01</span>
-                <h2>Adventurer</h2>
-                <span className="im-muted">LVL 03 / Adventurer</span>
-              </div>
-            </div>
-            <div className="im-resources grid grid-cols-3 gap-4 min-[901px]:grid-cols-1">
+            <div className="im-resources grid grid-cols-3 gap-4">
               <Meter label="Health" current={health} max={30} kind="health" />
               <Meter label="Mana" current={9} max={12} kind="mana" />
               <Meter label="Experience" current={68} max={100} kind="xp" />
             </div>
-            <div className="im-gold">
-              <span>Gold carried</span>
-              <strong>
-                <PixelIcon kind="coin" /> {String(gold).padStart(4, "0")}
-              </strong>
-            </div>
-            <div className="im-equipment">
-              <span className="im-eyebrow">[ EQUIPMENT ]</span>
-              <div>
-                <span>
-                  <PixelIcon kind="sword" />
-                </span>
-                <div>
-                  Iron sword<small>10 attack</small>
-                </div>
-              </div>
-              <div>
-                <span>
-                  <PixelIcon kind="shield" />
-                </span>
-                <div>
-                  Leather armor<small>12 defense</small>
-                </div>
-              </div>
-            </div>
-            <div className="im-tip">
-              <span className="im-eyebrow">[ CURRENT OBJECTIVE ]</span>
-              <p>Find a path through the ruins.</p>
-              <span className="im-muted">
-                &gt; Your skills grow with every encounter.
-              </span>
-            </div>
+            <span className="im-hud-identity">ADVENTURER · LVL 03</span>
+            <span className="im-hud-gold">
+              <PixelIcon kind="coin" /> {gold}
+            </span>
           </aside>
-
-          <section className="im-adventure" aria-label="Adventure preview">
+          <div className="im-map">
+            <MapPanel
+              state={state}
+              status="online"
+              events={[]}
+              zoom={zoom}
+              playerDirection="right"
+              onZoomChange={setZoom}
+              onCommand={() => undefined}
+            />
             <div className="im-scene-heading">
               <span>
                 <span
                   className={`im-live-dot ${isCombat ? "im-danger" : ""}`}
                 />
                 {isCombat
-                  ? "COMBAT / YOUR TURN"
+                  ? "YOUR TURN"
                   : scene === "loot"
-                    ? "VICTORY / LOOT READY"
+                    ? "LOOT READY"
                     : scene === "town"
-                      ? "TOWN / SAFE ZONE"
-                      : "EXPLORATION / READY"}
+                      ? "SAFE ZONE"
+                      : "EXPLORING"}
               </span>
-              <span className="im-muted">
-                {scene === "town" ? "[ TOWN ]" : "[ B1 ]"}
-              </span>
+              {isCombat && (
+                <Meter
+                  label="Enemy health"
+                  current={enemyHealth}
+                  max={24}
+                  kind="health"
+                />
+              )}
             </div>
-            <div className="im-map">
-              <MapPanel
-                state={state}
-                status="online"
-                events={[]}
-                zoom={zoom}
-                playerDirection="right"
-                onZoomChange={setZoom}
-                onCommand={() => undefined}
-              />
-              <span className="im-map-caption">
-                &gt; OBJECTIVE: Find a path through the ruins.
-              </span>
-            </div>
-            <div className="im-action-area">
-              <div className="im-context">
-                <div>
-                  <span className="im-eyebrow">
-                    {isCombat
-                      ? "SKELETON GUARD"
-                      : scene === "loot"
-                        ? "THE SPOILS OF BATTLE"
-                        : scene === "town"
-                          ? "READY WHEN YOU ARE"
-                          : "AN UNEXPLORED PASSAGE"}
-                  </span>
-                  <p>
-                    {isCombat
-                      ? "A rusted blade rises. Make your move."
-                      : scene === "loot"
-                        ? "18 gold. Yours for the taking."
-                        : scene === "town"
-                          ? "The ruins hold another story."
-                          : "Torchlight spills into the next chamber."}
-                  </p>
-                </div>
-                {isCombat && (
-                  <Meter
-                    label="Enemy health"
-                    current={enemyHealth}
-                    max={24}
-                    kind="health"
-                  />
-                )}
-              </div>
-              <div className="im-actions flex flex-wrap gap-2">
-                <button className="im-primary" onClick={act}>
-                  <PixelIcon
-                    kind={
-                      isCombat ? "sword" : scene === "loot" ? "coin" : "arrow"
-                    }
-                  />
-                  {primaryLabel}
-                </button>
-                <button
-                  disabled={health === 30 || potions === 0}
-                  onClick={drinkPotion}
-                  title={
-                    health === 30
-                      ? "Health is already full"
-                      : potions === 0
-                        ? "No potions remaining"
-                        : "Restore health"
-                  }
-                >
-                  <PixelIcon kind="potion" /> Heal{" "}
-                  <span className="im-count">{potions}</span>
-                </button>
-                <button
-                  disabled={isCombat || scene === "town"}
-                  title={
-                    isCombat
-                      ? "Finish combat before returning to town"
-                      : scene === "town"
-                        ? "You are already in town"
-                        : "Return to town"
-                  }
-                  onClick={returnToTown}
-                >
-                  <PixelIcon kind="gate" /> Town
-                </button>
-              </div>
-              <p className="im-latest" role="status">
-                &gt; {messages[messages.length - 1]}
-              </p>
-            </div>
-          </section>
-        </div>
-        <nav className="im-dock" aria-label="Game panels">
-          {(["journal", "inventory", "character"] as JournalView[]).map(
-            (name) => (
+          </div>
+          <div className="im-controls">
+            <div className="im-actions flex flex-wrap gap-2">
               <button
-                key={name}
-                onClick={() => {
-                  setView(name);
-                  setPanel("details");
-                }}
+                className="im-primary"
+                aria-label={primaryLabel}
+                onClick={act}
               >
-                {name[0].toUpperCase() + name.slice(1)}
+                <PixelIcon
+                  kind={
+                    isCombat ? "sword" : scene === "loot" ? "coin" : "arrow"
+                  }
+                />
+                {isCombat
+                  ? "Attack"
+                  : scene === "loot"
+                    ? "Collect"
+                    : scene === "town"
+                      ? "Enter ruins"
+                      : "Explore"}
               </button>
-            ),
-          )}
-          <button onClick={() => setPanel("terminal")}>
-            <span className="im-command-prompt" aria-hidden="true">
-              &gt;_
-            </span>{" "}
-            Terminal
-          </button>
-          <span className="im-muted">DEMO SESSION / NOT SAVED</span>
-        </nav>
+              <button
+                disabled={health === 30 || potions === 0}
+                onClick={drinkPotion}
+                title={
+                  health === 30
+                    ? "Health is already full"
+                    : potions === 0
+                      ? "No potions remaining"
+                      : "Restore health"
+                }
+              >
+                <PixelIcon kind="potion" /> Heal{" "}
+                <span className="im-count">{potions}</span>
+              </button>
+              <button
+                disabled={isCombat || scene === "town"}
+                title={
+                  isCombat
+                    ? "Finish combat before returning to town"
+                    : scene === "town"
+                      ? "You are already in town"
+                      : "Return to town"
+                }
+                onClick={returnToTown}
+              >
+                <PixelIcon kind="gate" /> Town
+              </button>
+            </div>
+
+            <nav className="im-dock" aria-label="Game panels">
+              {(["journal", "inventory", "character"] as JournalView[]).map(
+                (name) => (
+                  <button
+                    key={name}
+                    onClick={() => {
+                      setView(name);
+                      setPanel("details");
+                    }}
+                  >
+                    {name[0].toUpperCase() + name.slice(1)}
+                  </button>
+                ),
+              )}
+              <button onClick={() => setPanel("terminal")}>
+                <span className="im-command-prompt" aria-hidden="true">
+                  &gt;_
+                </span>{" "}
+                Terminal
+              </button>
+            </nav>
+
+            <p
+              className="im-latest"
+              role="status"
+              title={messages[messages.length - 1]}
+            >
+              &gt; {messages[messages.length - 1]}
+            </p>
+          </div>
+        </section>
       </main>
       <dialog
         ref={dialogRef}
@@ -411,13 +314,40 @@ export function InterfaceMockup() {
               ? "Design notes"
               : panel === "terminal"
                 ? "Command terminal"
-                : "Adventure details"}
+                : panel === "preview"
+                  ? "Mockup controls"
+                  : "Adventure details"}
           </h2>
           <button onClick={() => setPanel(null)} aria-label="Close panel">
             Close ×
           </button>
         </div>
         <div className="im-dialog-body">
+          {panel === "preview" && (
+            <div className="im-preview-controls grid gap-4 p-6">
+              <p className="im-muted">
+                TEXT ADVENTURES / MOCKUP 04 · Sample data
+              </p>
+              <label className="im-scenes">
+                Preview scenario
+                <select
+                  value={scene}
+                  onChange={(event) => {
+                    selectScene(event.target.value as DemoScene);
+                    setPanel(null);
+                  }}
+                >
+                  {(Object.keys(sceneLabels) as DemoScene[]).map((name) => (
+                    <option key={name} value={name}>
+                      {sceneLabels[name]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button onClick={() => setPanel("notes")}>Design notes</button>
+              <a href="/">Open game ↗</a>
+            </div>
+          )}
           {panel === "details" && (
             <aside className="im-journal" aria-label="Adventure details">
               <nav
@@ -488,6 +418,9 @@ export function InterfaceMockup() {
                 <div className="im-journal-content">
                   <h2>Your character</h2>
                   <p className="im-journal-intro">Adventurer · Level 3</p>
+                  <p className="im-muted">
+                    Current objective: find a path through the ruins.
+                  </p>
                   <div className="im-inventory-row">
                     <span>Weapon</span>
                     <strong>Iron sword · 10 attack</strong>
@@ -548,7 +481,7 @@ export function InterfaceMockup() {
               aria-label="Interface assessment"
             >
               <span className="im-eyebrow">FROM OBSERVATION TO PROPOSAL</span>
-              <h2>A game screen, inside one viewport.</h2>
+              <h2>The dungeon takes the screen.</h2>
               <p className="text-preview-muted">
                 Assessment of the current browser UI at 1440 × 900 and 390 ×
                 844. These are design observations, not usability-study results.
@@ -578,8 +511,8 @@ export function InterfaceMockup() {
                 </a>
               </div>
               <p className="im-muted">
-                Applied here: a flexible dungeon viewport, permanent resources
-                and action dock, and internal windows for secondary panels. Only
+                Applied here: an edge-to-edge dungeon, compact resource and
+                action strips, and internal windows for secondary panels. Only
                 long panel content scrolls; the game screen stays in place.
                 Reference artwork belongs to its respective creators and is not
                 included as game assets.

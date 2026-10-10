@@ -50,6 +50,7 @@ test("shows the assessment and validates optional commands", async ({
   page,
 }) => {
   await page.goto("/?mockup=interface");
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
   await page.getByRole("button", { name: "Design notes" }).click();
   await expect(
     page.getByRole("region", { name: "Interface assessment" }),
@@ -59,7 +60,7 @@ test("shows the assessment and validates optional commands", async ({
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("button", { name: "Design notes" }),
+    page.getByRole("button", { name: "Preview", exact: true }),
   ).toBeFocused();
   await expect(
     page.getByRole("region", { name: "Interface assessment" }),
@@ -76,21 +77,21 @@ test("shows the assessment and validates optional commands", async ({
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
-test("keeps the map, resources and actions usable across screen sizes", async ({
-  page,
-}) => {
-  await page.goto("/?mockup=interface");
-  await page.evaluate(() => document.fonts.ready);
-  for (const size of [
-    { width: 320, height: 568, columns: 1 },
-    { width: 390, height: 844, columns: 1 },
-    { width: 844, height: 390, columns: 2 },
-    { width: 667, height: 375, columns: 1 },
-    { width: 1024, height: 768, columns: 2 },
-    { width: 1440, height: 700, columns: 3 },
-    { width: 1440, height: 900, columns: 3 },
-  ]) {
+for (const size of [
+  { width: 320, height: 568, columns: 1 },
+  { width: 390, height: 844, columns: 1 },
+  { width: 844, height: 390, columns: 2 },
+  { width: 667, height: 375, columns: 1 },
+  { width: 1024, height: 768, columns: 2 },
+  { width: 1440, height: 700, columns: 3 },
+  { width: 1440, height: 900, columns: 3 },
+]) {
+  test(`keeps the map dominant and controls visible at ${size.width}x${size.height}`, async ({
+    page,
+  }) => {
     await page.setViewportSize(size);
+    await page.goto("/?mockup=interface");
+    await page.evaluate(() => document.fonts.ready);
     await expect
       .poll(() =>
         page.evaluate(() => ({ width: innerWidth, height: innerHeight })),
@@ -107,7 +108,9 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
       "false",
     );
     for (const scene of ["combat", "loot", "town", "exploration"]) {
+      await page.getByRole("button", { name: "Preview", exact: true }).click();
       await page.getByLabel("Preview scenario").selectOption(scene);
+      await expect(page.getByRole("dialog")).toBeHidden();
       expect(
         await page.evaluate(() => ({
           horizontal: document.documentElement.scrollWidth > innerWidth,
@@ -115,7 +118,11 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
         })),
       ).toEqual({ horizontal: false, vertical: false });
       const map = await page.locator(".im-map").boundingBox();
-      expect(map!.height).toBeGreaterThan(100);
+      const minimumMapShare =
+        size.height < 500 ? 0.55 : size.width <= 600 ? 0.6 : 0.75;
+      expect(
+        (map!.width * map!.height) / (size.width * size.height),
+      ).toBeGreaterThanOrEqual(minimumMapShare);
       for (const selector of [
         ".im-primary",
         ".im-dock",
@@ -129,7 +136,7 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
       }
       const action = await page.locator(".im-primary").boundingBox();
       expect(action!.height).toBeGreaterThanOrEqual(44);
-      const workspace = await page.locator(".im-workspace").boundingBox();
+      const workspace = await page.locator(".im-player").boundingBox();
       const playerChildren = await page
         .locator(".im-player > *")
         .evaluateAll((elements) =>
@@ -143,6 +150,7 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
         );
       }
     }
+    await page.getByRole("button", { name: "Preview", exact: true }).click();
     await page.getByRole("button", { name: "Design notes" }).click();
     const grid = await page.locator(".im-findings").evaluate((element) => {
       const style = getComputedStyle(element);
@@ -165,13 +173,12 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
       element.scrollTop = element.scrollHeight;
     });
     expect(await page.evaluate(() => scrollY)).toBe(0);
+    const tokenColors = await page.evaluate(() => ({
+      utility: getComputedStyle(document.querySelector(".text-preview-muted")!)
+        .color,
+      existing: getComputedStyle(document.querySelector(".im-muted")!).color,
+    }));
+    expect(tokenColors.utility).toBe(tokenColors.existing);
     await page.getByRole("button", { name: "Close panel" }).click();
-  }
-  await page.getByRole("button", { name: "Design notes" }).click();
-  const tokenColors = await page.evaluate(() => ({
-    utility: getComputedStyle(document.querySelector(".text-preview-muted")!)
-      .color,
-    existing: getComputedStyle(document.querySelector(".im-muted")!).color,
-  }));
-  expect(tokenColors.utility).toBe(tokenColors.existing);
-});
+  });
+}
