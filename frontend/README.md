@@ -63,10 +63,36 @@ Use the scenario selector to preview exploration, combat, loot, and town.
 Explore starts a simulated encounter; three attacks reveal rewards; collecting
 them updates the sample gold balance. Healing, inventory, character details,
 the journal, zoom, and a limited text-command form are interactive. Changing
-the scenario resets the sample values. The **Design notes** button expands the
-current-interface findings and the corresponding proposals.
+the scenario resets the sample values. The **Design notes** button opens the
+current-interface findings and reference links in an internal window.
 
 The assessment prioritizes a single contextual action, numeric resources on
 mobile, secondary panels outside the map, readable history in action mode, and
 explicit labels. This is a presentation prototype, not a replacement gameplay
 client. Validate the proposed layout with players before production integration.
+
+The visual direction follows a pixel-art arcade and terminal dungeon-crawler
+direction: local Press Start 2P display typography, monospace body copy, square
+frames, beveled pixel controls, segmented resources, phosphor-green actions,
+amber gold, and terminal-style event history. The character portrait reuses the
+existing Adventurer sprite sheet. The map's subtle scanline texture is static;
+there is no flashing CRT effect. The original game UI is unchanged.
+
+The bundled font and its OFL license are under `public/assets/fonts/press-start-2p/`.
+
+The third revision treats the mockup as a game viewport: the shell occupies
+`100dvh`, the dungeon fills the remaining space, and resources, contextual actions,
+latest feedback and panel navigation stay on screen. Journal, inventory, character,
+terminal and design notes use a native modal dialog with Escape dismissal and focus
+restoration. Only long dialog content scrolls. Narrow landscape screens move the
+resources and actions beside the map. Secondary character details remain available
+in the Character window when the compact HUD omits them.
+
+Visual references inspected for this revision:
+
+- [Caves of Qud screenshot, Nintendo](https://www.nintendo.com/eu/media/images/assets/nintendo_switch_games/cavesofqud/nswitch_cavesofqud/CavesOfQud_05.jpg): fixed resource strips, terminal typography, map-first layout.
+- [Stoneshard screenshot, SuperSoluce](https://cdn.supersoluce.com/file/docs/docid_5e1c8296105f4d8912000001/elemid_4ee9faa20a2fe93d0e000010/stoneshard-009.jpg): edge-anchored actions and restrained contextual feedback.
+
+These are layout references, not bundled game assets. Playwright covers page overflow,
+minimum map space and visible controls across four scenarios at 320×568, 390×844,
+667×375, 844×390, 1024×768, 1440×700 and 1440×900, as well as dialog scrolling and keyboard focus.

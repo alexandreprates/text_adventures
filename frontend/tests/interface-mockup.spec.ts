@@ -11,6 +11,10 @@ test("previews combat, rewards and recovery without contacting the game API", as
   await expect(
     page.getByRole("heading", { name: "The Eastern Chamber" }),
   ).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  expect(
+    await page.evaluate(() => document.fonts.check('18px "Press Start 2P"')),
+  ).toBe(true);
   await page.getByRole("button", { name: "Explore the chamber" }).click();
   const adventure = page.getByRole("region", { name: "Adventure preview" });
   await expect(adventure.getByRole("button", { name: "Town" })).toBeDisabled();
@@ -25,11 +29,12 @@ test("previews combat, rewards and recovery without contacting the game API", as
   await expect(page.getByText("146 gold", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Use", exact: true }).click();
   await expect(
-    page.getByRole("progressbar", { name: "Health", exact: true }),
-  ).toHaveAttribute("value", "30");
-  await expect(
     page.getByRole("button", { name: "Use", exact: true }),
   ).toBeDisabled();
+  await page.getByRole("button", { name: "Close panel" }).click();
+  await expect(
+    page.getByRole("progressbar", { name: "Health", exact: true }),
+  ).toHaveAttribute("value", "30");
   await adventure.getByRole("button", { name: "Town" }).click();
   await expect(
     page.getByRole("heading", { name: "The town of Nee'Peh" }),
@@ -52,11 +57,14 @@ test("shows the assessment and validates optional commands", async ({
   await expect(
     page.getByRole("heading", { name: "Keep resources readable" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Hide notes" }).click();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Design notes" }),
+  ).toBeFocused();
   await expect(
     page.getByRole("region", { name: "Interface assessment" }),
   ).toBeHidden();
-  await page.getByText("Prefer words? Type a command").click();
+  await page.getByRole("button", { name: "Terminal", exact: true }).click();
   await page.getByLabel("Command", { exact: true }).fill("unknown");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByRole("alert")).toHaveText(/Try “explore” or “look”/);
@@ -72,14 +80,22 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
   page,
 }) => {
   await page.goto("/?mockup=interface");
-  await page.getByRole("button", { name: "Design notes" }).click();
+  await page.evaluate(() => document.fonts.ready);
   for (const size of [
-    { width: 320, height: 740, columns: 1 },
+    { width: 320, height: 568, columns: 1 },
     { width: 390, height: 844, columns: 1 },
+    { width: 844, height: 390, columns: 2 },
+    { width: 667, height: 375, columns: 1 },
     { width: 1024, height: 768, columns: 2 },
+    { width: 1440, height: 700, columns: 3 },
     { width: 1440, height: 900, columns: 3 },
   ]) {
     await page.setViewportSize(size);
+    await expect
+      .poll(() =>
+        page.evaluate(() => ({ width: innerWidth, height: innerHeight })),
+      )
+      .toEqual({ width: size.width, height: size.height });
     await expect(
       page.getByRole("progressbar", { name: "Health", exact: true }),
     ).toBeVisible();
@@ -90,17 +106,44 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
       "aria-busy",
       "false",
     );
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    const action = await page
-      .getByRole("button", { name: "Explore the chamber" })
-      .boundingBox();
-    expect(action!.height).toBeGreaterThanOrEqual(44);
-    if (size.width === 390 || size.width === 1440)
-      expect(action!.y + action!.height).toBeLessThanOrEqual(size.height);
+    for (const scene of ["combat", "loot", "town", "exploration"]) {
+      await page.getByLabel("Preview scenario").selectOption(scene);
+      expect(
+        await page.evaluate(() => ({
+          horizontal: document.documentElement.scrollWidth > innerWidth,
+          vertical: document.documentElement.scrollHeight > innerHeight,
+        })),
+      ).toEqual({ horizontal: false, vertical: false });
+      const map = await page.locator(".im-map").boundingBox();
+      expect(map!.height).toBeGreaterThan(100);
+      for (const selector of [
+        ".im-primary",
+        ".im-dock",
+        ".im-resources",
+        ".im-latest",
+      ]) {
+        const box = await page.locator(selector).boundingBox();
+        expect(box!.y).toBeGreaterThanOrEqual(0);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
+      }
+      const action = await page.locator(".im-primary").boundingBox();
+      expect(action!.height).toBeGreaterThanOrEqual(44);
+      const workspace = await page.locator(".im-workspace").boundingBox();
+      const playerChildren = await page
+        .locator(".im-player > *")
+        .evaluateAll((elements) =>
+          elements
+            .map((element) => element.getBoundingClientRect().toJSON())
+            .filter((box) => box.width > 0 && box.height > 0),
+        );
+      for (const box of playerChildren) {
+        expect(box.y + box.height).toBeLessThanOrEqual(
+          workspace!.y + workspace!.height,
+        );
+      }
+    }
+    await page.getByRole("button", { name: "Design notes" }).click();
     const grid = await page.locator(".im-findings").evaluate((element) => {
       const style = getComputedStyle(element);
       return {
@@ -114,7 +157,17 @@ test("keeps the map, resources and actions usable across screen sizes", async ({
       columns: size.columns,
       gap: "24px",
     });
+    const dialog = page.getByRole("dialog");
+    const bounds = await dialog.boundingBox();
+    expect(bounds!.y).toBeGreaterThanOrEqual(0);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(size.height);
+    await page.locator(".im-dialog-body").evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    await page.getByRole("button", { name: "Close panel" }).click();
   }
+  await page.getByRole("button", { name: "Design notes" }).click();
   const tokenColors = await page.evaluate(() => ({
     utility: getComputedStyle(document.querySelector(".text-preview-muted")!)
       .color,

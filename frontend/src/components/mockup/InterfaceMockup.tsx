@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPanel } from "../game/MapPanel";
 import {
   initialMessages,
@@ -27,19 +27,25 @@ const findings = [
     "03",
     "Let the dungeon breathe",
     "Character and collection panels float over the scene, competing with the artwork.",
-    "Dedicated desktop regions protect the map. On mobile, secondary information follows the action area.",
+    "A viewport-sized game shell protects the map. Secondary information opens inside the game instead of extending the page.",
   ],
   [
     "04",
     "Keep the story within reach",
     "In action mode, feedback is limited to a short mobile feed; full history requires text mode.",
-    "A persistent journal shows action outcomes. Inventory and character details share the same secondary region.",
+    "The latest outcome stays beside the actions. A dock opens the full journal, inventory and character without page scrolling.",
   ],
   [
     "05",
     "Replace abbreviations with clear labels",
     "CHAR, INV and SPL require players to learn the interface before using it.",
     "Character, Inventory and explicit action labels improve discovery. Text commands remain an optional tool.",
+  ],
+  [
+    "06",
+    "Match the dungeon's pixel identity",
+    "The first concept used serif headings, soft panels and muted accents that felt disconnected from the game.",
+    "Pixel typography, stepped frames, segmented resources and terminal prompts connect the HUD to the existing dungeon artwork.",
   ],
 ];
 
@@ -52,7 +58,16 @@ export function InterfaceMockup() {
   const [messages, setMessages] = useState(initialMessages);
   const [view, setView] = useState<JournalView>("journal");
   const [zoom, setZoom] = useState(1);
-  const [showNotes, setShowNotes] = useState(false);
+  const [panel, setPanel] = useState<"details" | "terminal" | "notes" | null>(
+    null,
+  );
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!panel || !dialog) return;
+    dialog.showModal();
+    return () => dialog.close();
+  }, [panel]);
   const [command, setCommand] = useState("");
   const [error, setError] = useState("");
   const state = mockupState(scene, health, enemyHealth, gold);
@@ -146,34 +161,15 @@ export function InterfaceMockup() {
       return;
     }
     setCommand("");
+    setPanel(null);
   }
 
   return (
     <div className="interface-mockup">
-      <div className="im-presentation">
-        <span>
-          <span className="im-live-dot" /> INTERFACE STUDY{" "}
-          <span className="im-version">/ 01</span>
-        </span>
-        <div>
-          <span className="im-demo-label">
-            Interactive mockup · sample data
-          </span>
-          <button
-            aria-expanded={showNotes}
-            aria-controls="design-review"
-            onClick={() => setShowNotes(!showNotes)}
-          >
-            {showNotes ? "Hide" : "Design"} notes{" "}
-            <span aria-hidden="true">↗</span>
-          </button>
-          <a href="/">Open game ↗</a>
-        </div>
-      </div>
       <header className="im-header">
         <div className="im-wordmark">
-          <span className="im-emblem" aria-hidden="true">
-            ✧
+          <span className="im-emblem">
+            <PixelIcon kind="gate" />
           </span>
           <span>
             TEXT
@@ -182,13 +178,19 @@ export function InterfaceMockup() {
           </span>
         </div>
         <div className="im-chapter">
-          <span className="im-eyebrow">YOUR ADVENTURE</span>
+          <span className="im-eyebrow">WORLD_01 / NEE'PEH</span>
           <span>
             Nee'Peh <span aria-hidden="true">/</span>{" "}
             {scene === "town" ? "Village" : "Ruins · Floor 01"}
           </span>
         </div>
-        <span className="im-preview-badge">LOCAL PREVIEW</span>
+        <div className="im-header-tools">
+          <span className="im-preview-badge">
+            <span className="im-live-dot" /> MOCKUP 03
+          </span>
+          <button onClick={() => setPanel("notes")}>Design notes</button>
+          <a href="/">Open game ↗</a>
+        </div>
       </header>
 
       <main className="im-main">
@@ -196,39 +198,40 @@ export function InterfaceMockup() {
           <div>
             <span className="im-eyebrow">
               {scene === "town"
-                ? "A MOMENT OF RESPITE"
-                : "BENEATH THE OLD STONES"}
+                ? "// SAFE ZONE / REST & RESUPPLY"
+                : "// DUNGEON_01 / EXPLORE THE UNKNOWN"}
             </span>
             <h1>
               {scene === "town" ? "The town of Nee'Peh" : "The Eastern Chamber"}
             </h1>
           </div>
-          <div className="im-scenes" role="group" aria-label="Preview scenario">
-            {(Object.keys(sceneLabels) as DemoScene[]).map((name) => (
-              <button
-                key={name}
-                aria-pressed={scene === name}
-                onClick={() => selectScene(name)}
-              >
-                {sceneLabels[name]}
-              </button>
-            ))}
-          </div>
+          <label className="im-scenes">
+            <span>Preview</span>
+            <select
+              aria-label="Preview scenario"
+              value={scene}
+              onChange={(event) => selectScene(event.target.value as DemoScene)}
+            >
+              {(Object.keys(sceneLabels) as DemoScene[]).map((name) => (
+                <option key={name} value={name}>
+                  {sceneLabels[name]}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        <div className="im-workspace">
+        <div className="im-workspace grid min-h-0 grid-cols-1 min-[901px]:grid-cols-[232px_minmax(0,1fr)]">
           <aside className="im-player" aria-label="Player overview">
             <div className="im-identity">
-              <span className="im-player-mark" aria-hidden="true">
-                ♜
-              </span>
+              <span className="im-player-mark" aria-hidden="true" />
               <div>
-                <span className="im-eyebrow">YOUR CHARACTER</span>
+                <span className="im-eyebrow">PLAYER_01</span>
                 <h2>Adventurer</h2>
-                <span className="im-muted">Level 3 · Wayfarer</span>
+                <span className="im-muted">LVL 03 / Adventurer</span>
               </div>
             </div>
-            <div className="im-resources">
+            <div className="im-resources grid grid-cols-3 gap-4 min-[901px]:grid-cols-1">
               <Meter label="Health" current={health} max={30} kind="health" />
               <Meter label="Mana" current={9} max={12} kind="mana" />
               <Meter label="Experience" current={68} max={100} kind="xp" />
@@ -236,33 +239,33 @@ export function InterfaceMockup() {
             <div className="im-gold">
               <span>Gold carried</span>
               <strong>
-                <span aria-hidden="true">◇</span> {gold}
+                <PixelIcon kind="coin" /> {String(gold).padStart(4, "0")}
               </strong>
             </div>
             <div className="im-equipment">
-              <span className="im-eyebrow">EQUIPPED</span>
+              <span className="im-eyebrow">[ EQUIPMENT ]</span>
               <div>
-                <span aria-hidden="true">⚔</span>
+                <span>
+                  <PixelIcon kind="sword" />
+                </span>
                 <div>
                   Iron sword<small>10 attack</small>
                 </div>
               </div>
               <div>
-                <span aria-hidden="true">♜</span>
+                <span>
+                  <PixelIcon kind="shield" />
+                </span>
                 <div>
                   Leather armor<small>12 defense</small>
                 </div>
               </div>
             </div>
             <div className="im-tip">
-              <span className="im-eyebrow">THE WAY FORWARD</span>
-              <p>
-                Explore the ruins.
-                <br />
-                Grow stronger with every encounter.
-              </p>
+              <span className="im-eyebrow">[ CURRENT OBJECTIVE ]</span>
+              <p>Find a path through the ruins.</p>
               <span className="im-muted">
-                Your skills improve as you use them.
+                &gt; Your skills grow with every encounter.
               </span>
             </div>
           </aside>
@@ -274,15 +277,15 @@ export function InterfaceMockup() {
                   className={`im-live-dot ${isCombat ? "im-danger" : ""}`}
                 />
                 {isCombat
-                  ? "In combat · Your turn"
+                  ? "COMBAT / YOUR TURN"
                   : scene === "loot"
-                    ? "Victory · Rewards waiting"
+                    ? "VICTORY / LOOT READY"
                     : scene === "town"
-                      ? "Safe haven"
-                      : "Exploring · No active threats"}
+                      ? "TOWN / SAFE ZONE"
+                      : "EXPLORATION / READY"}
               </span>
               <span className="im-muted">
-                {scene === "town" ? "NEE'PEH" : "FLOOR 01"}
+                {scene === "town" ? "[ TOWN ]" : "[ B1 ]"}
               </span>
             </div>
             <div className="im-map">
@@ -296,9 +299,7 @@ export function InterfaceMockup() {
                 onCommand={() => undefined}
               />
               <span className="im-map-caption">
-                {scene === "town"
-                  ? "A familiar light on the road home."
-                  : "Old walls. New stories."}
+                &gt; OBJECTIVE: Find a path through the ruins.
               </span>
             </div>
             <div className="im-action-area">
@@ -332,11 +333,13 @@ export function InterfaceMockup() {
                   />
                 )}
               </div>
-              <div className="im-actions">
+              <div className="im-actions flex flex-wrap gap-2">
                 <button className="im-primary" onClick={act}>
-                  <span aria-hidden="true">
-                    {isCombat ? "⚔" : scene === "loot" ? "◇" : "↗"}
-                  </span>
+                  <PixelIcon
+                    kind={
+                      isCombat ? "sword" : scene === "loot" ? "coin" : "arrow"
+                    }
+                  />
                   {primaryLabel}
                 </button>
                 <button
@@ -350,7 +353,8 @@ export function InterfaceMockup() {
                         : "Restore health"
                   }
                 >
-                  Heal <span className="im-count">{potions}</span>
+                  <PixelIcon kind="potion" /> Heal{" "}
+                  <span className="im-count">{potions}</span>
                 </button>
                 <button
                   disabled={isCombat || scene === "town"}
@@ -363,191 +367,248 @@ export function InterfaceMockup() {
                   }
                   onClick={returnToTown}
                 >
-                  Town <span aria-hidden="true">↗</span>
+                  <PixelIcon kind="gate" /> Town
                 </button>
               </div>
-              {isCombat && (
-                <small className="im-muted">
-                  Defeat the guard before returning to town.
-                </small>
-              )}
+              <p className="im-latest" role="status">
+                &gt; {messages[messages.length - 1]}
+              </p>
             </div>
           </section>
-
-          <aside className="im-journal" aria-label="Adventure details">
-            <nav
-              className="im-detail-tabs"
-              aria-label="Adventure details views"
-            >
-              {(["journal", "inventory", "character"] as JournalView[]).map(
-                (name) => (
-                  <button
-                    key={name}
-                    aria-pressed={view === name}
-                    onClick={() => setView(name)}
-                  >
-                    {name[0].toUpperCase() + name.slice(1)}
-                  </button>
-                ),
-              )}
-            </nav>
-            {view === "journal" ? (
-              <div className="im-journal-content">
-                <div className="im-section-heading">
-                  <h2>Adventure journal</h2>
-                  <span className="im-muted">01</span>
-                </div>
-                <p className="im-journal-intro">
-                  Every journey leaves a trace.
-                </p>
-                <ol className="im-timeline">
-                  {messages.slice(-5).map((message, index) => (
-                    <li key={`${messages.length}-${index}`}>
-                      <span className="im-eyebrow">
-                        {index === messages.slice(-5).length - 1
-                          ? "LATEST"
-                          : `EVENT ${String(Math.max(0, messages.length - 5) + index + 1).padStart(2, "0")}`}
-                      </span>
-                      <p>{message}</p>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            ) : view === "inventory" ? (
-              <div className="im-journal-content">
-                <h2>Inventory</h2>
-                <p className="im-journal-intro">
-                  Everything for the road ahead.
-                </p>
-                <div className="im-inventory-row">
-                  <div>
-                    <strong>Health potion</strong>
-                    <small>Restores your health · {potions} remaining</small>
-                  </div>
-                  <button
-                    onClick={drinkPotion}
-                    disabled={health === 30 || potions === 0}
-                  >
-                    Use
-                  </button>
-                </div>
-                {potions === 0 && (
-                  <p>No potions left. Visit a merchant in town.</p>
-                )}
-                <div className="im-inventory-row">
-                  <span>Gold pouch</span>
-                  <strong>{gold} gold</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="im-journal-content">
-                <h2>Your character</h2>
-                <p className="im-journal-intro">Adventurer · Level 3</p>
-                <div className="im-inventory-row">
-                  <span>Weapon</span>
-                  <strong>Iron sword</strong>
-                </div>
-                <div className="im-inventory-row">
-                  <span>Armor</span>
-                  <strong>Leather armor</strong>
-                </div>
-                <p className="im-muted">
-                  Weapon and spell use shapes your class. This preview shows
-                  sample progression.
-                </p>
-              </div>
-            )}
-            <div className="im-journal-footer">
-              <span className="im-live-dot" /> Preview only · progress is not
-              saved
-            </div>
-          </aside>
         </div>
-
-        <div className="im-below">
-          <details className="im-command">
-            <summary>
-              Prefer words? Type a command <span aria-hidden="true">⌄</span>
-            </summary>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                submitCommand();
-              }}
-            >
-              <label htmlFor="preview-command">Command</label>
-              <div>
-                <input
-                  id="preview-command"
-                  value={command}
-                  onChange={(event) => setCommand(event.target.value)}
-                  aria-invalid={!!error}
-                  aria-describedby={
-                    error ? "preview-error" : "preview-command-hint"
-                  }
-                  placeholder="Try look"
-                />
-                <button type="submit">Send ↵</button>
-              </div>
-              <small id="preview-command-hint">
-                Demo commands: look, explore, attack, loot, go ruins.
-                Availability follows the current scenario.
-              </small>
-              {error && (
-                <p role="alert" id="preview-error">
-                  {error}
-                </p>
-              )}
-            </form>
-          </details>
-          <span className="im-muted">
-            A quieter interface. A deeper adventure.
-          </span>
-        </div>
-        <p className="sr-only" role="status">
-          {messages[messages.length - 1]}
-        </p>
-
-        <section
-          id="design-review"
-          className="im-review"
-          hidden={!showNotes}
-          aria-label="Interface assessment"
-        >
-          <span className="im-eyebrow">FROM OBSERVATION TO PROPOSAL</span>
-          <h2>Keep the world. Clear the interface.</h2>
-          <p className="text-preview-muted">
-            Assessment of the current browser UI at 1440 × 900 and 390 × 844.
-            These are design observations, not usability-study results.
-          </p>
-          <div className="im-findings my-8 grid grid-cols-1 gap-6 min-[701px]:grid-cols-2 min-[1151px]:grid-cols-3">
-            {findings.map(([number, title, current, proposal]) => (
-              <article key={number}>
-                <span className="im-eyebrow">{number}</span>
-                <h3>{title}</h3>
-                <p>
-                  <strong>Today</strong> {current}
-                </p>
-                <p>
-                  <strong>Proposal</strong> {proposal}
-                </p>
-              </article>
-            ))}
-          </div>
-          <p className="im-muted">
-            Scope: local presentation with simulated exploration, combat, loot
-            and town. Existing artwork and dungeon renderer are reused. No
-            gameplay rules, saves or server actions are changed. Next: validate
-            navigation and information density with players before integration.
-          </p>
-        </section>
+        <nav className="im-dock" aria-label="Game panels">
+          {(["journal", "inventory", "character"] as JournalView[]).map(
+            (name) => (
+              <button
+                key={name}
+                onClick={() => {
+                  setView(name);
+                  setPanel("details");
+                }}
+              >
+                {name[0].toUpperCase() + name.slice(1)}
+              </button>
+            ),
+          )}
+          <button onClick={() => setPanel("terminal")}>
+            <span className="im-command-prompt" aria-hidden="true">
+              &gt;_
+            </span>{" "}
+            Terminal
+          </button>
+          <span className="im-muted">DEMO SESSION / NOT SAVED</span>
+        </nav>
       </main>
-      <footer className="im-footer">
-        <span>
-          TEXT ADVENTURES <span className="im-muted">/ Interface concept</span>
-        </span>
-        <span className="im-muted">Built around the adventure.</span>
-      </footer>
+      <dialog
+        ref={dialogRef}
+        className={`im-dialog ${panel === "notes" ? "im-dialog-wide" : ""}`}
+        aria-labelledby="im-dialog-title"
+        onCancel={() => setPanel(null)}
+      >
+        <div className="im-dialog-heading">
+          <h2 id="im-dialog-title">
+            {panel === "notes"
+              ? "Design notes"
+              : panel === "terminal"
+                ? "Command terminal"
+                : "Adventure details"}
+          </h2>
+          <button onClick={() => setPanel(null)} aria-label="Close panel">
+            Close ×
+          </button>
+        </div>
+        <div className="im-dialog-body">
+          {panel === "details" && (
+            <aside className="im-journal" aria-label="Adventure details">
+              <nav
+                className="im-detail-tabs"
+                aria-label="Adventure details views"
+              >
+                {(["journal", "inventory", "character"] as JournalView[]).map(
+                  (name) => (
+                    <button
+                      key={name}
+                      aria-pressed={view === name}
+                      onClick={() => setView(name)}
+                    >
+                      {name[0].toUpperCase() + name.slice(1)}
+                    </button>
+                  ),
+                )}
+              </nav>
+              {view === "journal" ? (
+                <div className="im-journal-content">
+                  <div className="im-section-heading">
+                    <h2>Adventure journal</h2>
+                    <span className="im-muted">[LOG]</span>
+                  </div>
+                  <p className="im-journal-intro">
+                    &gt; Recording your adventure...
+                  </p>
+                  <ol className="im-timeline">
+                    {messages.map((message, index) => (
+                      <li key={`${messages.length}-${index}`}>
+                        <span className="im-eyebrow">
+                          {index === messages.length - 1
+                            ? "[ NOW ]"
+                            : `[ ${String(index + 1).padStart(3, "0")} ]`}
+                        </span>
+                        <p>{message}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : view === "inventory" ? (
+                <div className="im-journal-content">
+                  <h2>Inventory</h2>
+                  <p className="im-journal-intro">
+                    Everything for the road ahead.
+                  </p>
+                  <div className="im-inventory-row">
+                    <div>
+                      <strong>Health potion</strong>
+                      <small>Restores your health · {potions} remaining</small>
+                    </div>
+                    <button
+                      onClick={drinkPotion}
+                      disabled={health === 30 || potions === 0}
+                    >
+                      Use
+                    </button>
+                  </div>
+                  {potions === 0 && (
+                    <p>No potions left. Visit a merchant in town.</p>
+                  )}
+                  <div className="im-inventory-row">
+                    <span>Gold pouch</span>
+                    <strong>{gold} gold</strong>
+                  </div>
+                </div>
+              ) : (
+                <div className="im-journal-content">
+                  <h2>Your character</h2>
+                  <p className="im-journal-intro">Adventurer · Level 3</p>
+                  <div className="im-inventory-row">
+                    <span>Weapon</span>
+                    <strong>Iron sword · 10 attack</strong>
+                  </div>
+                  <div className="im-inventory-row">
+                    <span>Armor</span>
+                    <strong>Leather armor · 12 defense</strong>
+                  </div>
+                  <p className="im-muted">
+                    Weapon and spell use shapes your class. This preview shows
+                    sample progression.
+                  </p>
+                </div>
+              )}
+              <div className="im-journal-footer">
+                <span className="im-live-dot" /> DEMO SESSION / NOT SAVED
+              </div>
+            </aside>
+          )}
+          {panel === "terminal" && (
+            <div className="im-command">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitCommand();
+                }}
+              >
+                <label htmlFor="preview-command">Command</label>
+                <div>
+                  <input
+                    id="preview-command"
+                    value={command}
+                    onChange={(event) => setCommand(event.target.value)}
+                    aria-invalid={!!error}
+                    aria-describedby={
+                      error ? "preview-error" : "preview-command-hint"
+                    }
+                    placeholder="look_"
+                  />
+                  <button type="submit">Send ↵</button>
+                </div>
+                <small id="preview-command-hint">
+                  Demo commands: look, explore, attack, loot, go ruins.
+                  Availability follows the current scenario.
+                </small>
+                {error && (
+                  <p role="alert" id="preview-error">
+                    {error}
+                  </p>
+                )}
+              </form>
+            </div>
+          )}
+          {panel === "notes" && (
+            <section
+              id="design-review"
+              className="im-review"
+              aria-label="Interface assessment"
+            >
+              <span className="im-eyebrow">FROM OBSERVATION TO PROPOSAL</span>
+              <h2>A game screen, inside one viewport.</h2>
+              <p className="text-preview-muted">
+                Assessment of the current browser UI at 1440 × 900 and 390 ×
+                844. These are design observations, not usability-study results.
+              </p>
+              <div className="im-references">
+                <a
+                  href="https://www.nintendo.com/eu/media/images/assets/nintendo_switch_games/cavesofqud/nswitch_cavesofqud/CavesOfQud_05.jpg"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Caves of Qud ↗
+                  <span>
+                    Reference image: fixed HUD, terminal typography and a
+                    dominant map.
+                  </span>
+                </a>
+                <a
+                  href="https://cdn.supersoluce.com/file/docs/docid_5e1c8296105f4d8912000001/elemid_4ee9faa20a2fe93d0e000010/stoneshard-009.jpg"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Stoneshard ↗
+                  <span>
+                    Reference image: edge-anchored actions, restrained frames
+                    and contextual feedback.
+                  </span>
+                </a>
+              </div>
+              <p className="im-muted">
+                Applied here: a flexible dungeon viewport, permanent resources
+                and action dock, and internal windows for secondary panels. Only
+                long panel content scrolls; the game screen stays in place.
+                Reference artwork belongs to its respective creators and is not
+                included as game assets.
+              </p>
+              <div className="im-findings my-8 grid grid-cols-1 gap-6 min-[701px]:grid-cols-2 min-[1151px]:grid-cols-3">
+                {findings.map(([number, title, current, proposal]) => (
+                  <article key={number}>
+                    <span className="im-eyebrow">{number}</span>
+                    <h3>{title}</h3>
+                    <p>
+                      <strong>Today</strong> {current}
+                    </p>
+                    <p>
+                      <strong>Proposal</strong> {proposal}
+                    </p>
+                  </article>
+                ))}
+              </div>
+              <p className="im-muted">
+                Scope: local presentation with simulated exploration, combat,
+                loot and town. Existing artwork and dungeon renderer are reused.
+                No gameplay rules, saves or server actions are changed. Next:
+                validate navigation and information density with players before
+                integration.
+              </p>
+            </section>
+          )}
+        </div>
+      </dialog>
     </div>
   );
 }
@@ -572,7 +633,35 @@ function Meter({
           <span> / {max}</span>
         </strong>
       </div>
-      <progress aria-label={label} value={current} max={max} />
+      <div className="im-meter-track">
+        <progress aria-label={label} value={current} max={max} />
+      </div>
     </div>
+  );
+}
+
+type PixelIconKind = "gate" | "sword" | "shield" | "potion" | "coin" | "arrow";
+
+function PixelIcon({ kind }: { kind: PixelIconKind }) {
+  const paths: Record<PixelIconKind, string> = {
+    gate: "M2 2h3v3h2V2h2v3h2V2h3v12h-4V9H6v5H2z M5 6v1h6V6z",
+    sword: "M11 1h4v4h-2v2h-2v2H9v2H7v2H5v2H2v-3h2v-2h2V8H4V6h2l2 2V6h2V4h1z",
+    shield: "M2 2h12v8h-2v2h-2v2H6v-2H4v-2H2z M7 4v6h2V4z",
+    potion: "M5 1h6v2h-1v3h2v2h1v6H3V8h1V6h2V3H5z M5 9v3h2V9z",
+    coin: "M5 1h6v2h2v2h2v6h-2v2h-2v2H5v-2H3v-2H1V5h2V3h2z M7 4v8h2V4z",
+    arrow: "M8 2h3v2h2v2h2v4h-2v2h-2v2H8v-3h2V9H1V7h9V5H8z",
+  };
+  return (
+    <svg
+      className="im-pixel-icon"
+      viewBox="0 0 16 16"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+      shapeRendering="crispEdges"
+    >
+      <path d={paths[kind]} fill="currentColor" fillRule="evenodd" />
+    </svg>
   );
 }
